@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   X,
@@ -11,20 +11,16 @@ import {
   ArrowRight,
   CheckCircle2,
   Shield,
-  Truck,
-  Sparkles,
   Tag,
   CreditCard,
   QrCode,
   Lock,
   ChevronLeft,
-  Download,
   BookOpen,
-  FileCheck,
-  Scale,
-  KeyRound,
   Printer,
-  FileText,
+  Sparkles,
+  Truck,
+  Check,
 } from "lucide-react";
 import { useCart, BookFormat, FORMAT_PRICING } from "@/context/CartContext";
 
@@ -64,13 +60,15 @@ export function CartDrawer() {
     state: "Maharashtra",
     pincode: "411005",
   });
-  const [selectedPayment, setSelectedPayment] = useState<"upi" | "card" | "netbanking">("upi");
+  const [selectedPayment, setSelectedPayment] = useState<"upi" | "card">("upi");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [processingStage, setProcessingStage] = useState("Securing 256-Bit SSL Handshake...");
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
 
+  // Check if any paperback / hardcopy is in cart
+  const hasPhysicalItem = items.some((item) => item.format === "paperback" || item.format === "combo");
+
   // Auto-prefill student details from existing session
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("lawkaksha_active_student");
       if (saved) {
@@ -101,47 +99,71 @@ export function CartDrawer() {
     }
   };
 
-  const handleProceedToPayment = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleProceedToPayment = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setCheckoutStep("payment");
   };
 
   const handleCompletePayment = () => {
     setIsProcessingPayment(true);
     setTimeout(() => {
-      // Map purchased item IDs to student dashboard unlocked item IDs
       const unlockedIds: string[] = [];
       items.forEach((item) => {
-        if (item.id === "ca-book-vol-1") {
+        if (item.id === "ca-book-vol-1" || item.id === "book-vol-1") {
           unlockedIds.push("book-vol-1");
-        } else if (item.id === "ca-book-vol-2") {
+        } else if (item.id === "ca-book-vol-2" || item.id === "book-vol-2") {
           unlockedIds.push("book-vol-2");
-        } else if (item.id === "ca-books-both-digital" || item.id === "ca-books-both-hardcopies") {
-          unlockedIds.push("book-vol-1", "book-vol-2");
-        } else if (
-          item.id === "ca-mcq-engine" ||
-          item.title.toLowerCase().includes("mcq") ||
-          item.title.toLowerCase().includes("question")
-        ) {
+        } else if (item.id === "book-mcq" || item.title.toLowerCase().includes("mcq")) {
           unlockedIds.push("book-mcq");
-        } else if (
-          item.id === "ca-all-access-pass" ||
-          item.title.toLowerCase().includes("all-access") ||
-          item.title.toLowerCase().includes("fellowship")
-        ) {
-          unlockedIds.push("book-vol-1", "book-vol-2", "book-ldr", "book-mcq", "video-classes", "mains-evaluation");
+        } else if (item.id === "book-ldr" || item.title.toLowerCase().includes("ldr") || item.title.toLowerCase().includes("revision")) {
+          unlockedIds.push("book-ldr");
+        } else if (item.id === "video-classes" || item.title.toLowerCase().includes("video") || item.title.toLowerCase().includes("masterclass")) {
+          unlockedIds.push("video-classes");
+        } else if (item.id === "mains-evaluation" || item.title.toLowerCase().includes("evaluation") || item.title.toLowerCase().includes("desk")) {
+          unlockedIds.push("mains-evaluation");
+        } else if (item.id.includes("both") || item.id.includes("combo")) {
+          unlockedIds.push("book-vol-1", "book-vol-2");
+        } else if (item.title.toLowerCase().includes("foundation")) {
+          unlockedIds.push("book-foundation");
+        } else if (item.title.toLowerCase().includes("final")) {
+          unlockedIds.push("book-final");
         } else {
-          unlockedIds.push("book-vol-1");
+          unlockedIds.push(item.id);
         }
       });
 
-      const uniqueUnlockedIds = Array.from(new Set(unlockedIds.length > 0 ? unlockedIds : ["book-mcq"]));
-      const generatedStudentId = `LK-2026-CA-${Math.floor(1000 + Math.random() * 9000)}`;
-      const generatedPassword = `law@${Math.floor(1000 + Math.random() * 9000)}`;
+      // Retrieve existing student session to preserve current unlocked items and profile
+      let existingUnlocked: string[] = [];
+      let studentName = shippingData.name || "Rohan Deshmukh";
+      let rollNumber = "CRO-0689421";
+      let studentEmail = shippingData.email || "rohan.d@gmail.com";
+      let studentPhone = shippingData.phone || "+91 98765 43210";
+      let targetExam = shippingData.exam || "CA Intermediate Paper 2: Corporate & Other Laws";
+
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("lawkaksha_active_student");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed) {
+              if (Array.isArray(parsed.unlockedItemIds)) existingUnlocked = parsed.unlockedItemIds;
+              if (parsed.name) studentName = parsed.name;
+              if (parsed.rollNumber) rollNumber = parsed.rollNumber;
+              if (parsed.email) studentEmail = parsed.email;
+              if (parsed.phone) studentPhone = parsed.phone;
+              if (parsed.targetExam) targetExam = parsed.targetExam;
+            }
+          } catch (e) {}
+        }
+      }
+
+      const mergedUnlockedIds = Array.from(new Set([...existingUnlocked, ...unlockedIds]));
+      const generatedOrderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      const generatedTxnId = `pay_LK_${Math.floor(10000000 + Math.random() * 90000000)}`;
 
       const generatedOrder = {
-        orderId: `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-        razorpayPaymentId: `pay_LK_${Math.floor(10000000 + Math.random() * 90000000)}`,
+        orderId: generatedOrderId,
+        razorpayPaymentId: generatedTxnId,
         items: [...items],
         totalAmount: cartTotal,
         discountGiven: cartSubtotal - cartTotal,
@@ -152,229 +174,242 @@ export function CartDrawer() {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        studentName: shippingData.name,
-        email: shippingData.email,
-        phone: shippingData.phone,
-        studentId: generatedStudentId,
-        tempPassword: generatedPassword,
-        unlockedItemIds: uniqueUnlockedIds,
-        address: `${shippingData.address}, ${shippingData.city}, ${shippingData.state} - ${shippingData.pincode}`,
-        trackingNumber: `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}`,
+        studentName: studentName,
+        email: studentEmail,
+        phone: studentPhone,
+        studentId: rollNumber,
+        tempPassword: `law@${Math.floor(1000 + Math.random() * 9000)}`,
+        unlockedItemIds: mergedUnlockedIds,
+        address: hasPhysicalItem
+          ? `${shippingData.address}, ${shippingData.city}, ${shippingData.state} - ${shippingData.pincode}`
+          : "Digital Delivery to Student Vault & Email",
+        trackingNumber: hasPhysicalItem ? `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}` : "INSTANT-DRM-VAULT",
       };
 
-      // Save student session to localStorage for instant sync on /student
       if (typeof window !== "undefined") {
+        // 1. Update Student Session in localStorage
         const studentSession = {
-          id: generatedStudentId,
-          name: shippingData.name,
-          rollNumber: generatedStudentId,
-          email: shippingData.email,
-          phone: shippingData.phone,
-          targetExam: shippingData.exam || "CA Intermediate Paper 2",
+          id: rollNumber,
+          name: studentName,
+          rollNumber: rollNumber,
+          email: studentEmail,
+          phone: studentPhone,
+          targetExam: targetExam,
           activePlanTitle: items.map((i) => i.title).join(" + "),
-          unlockedItemIds: uniqueUnlockedIds,
-          streakDays: 1,
-          todayMinutes: 0,
+          unlockedItemIds: mergedUnlockedIds,
+          streakDays: 14,
+          todayMinutes: 40,
           todayGoalMinutes: 45,
           examCountdownDays: 68,
-          avatarInitials: shippingData.name
-            ? shippingData.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()
-                .slice(0, 2)
-            : "ST",
+          avatarInitials: studentName.slice(0, 2).toUpperCase(),
         };
         localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
+
+        // 2. Automatically sync to Admin Orders Ledger
+        const adminOrderEntry = {
+          id: generatedOrderId,
+          customer: studentName,
+          phone: studentPhone,
+          item: items.map((i) => `${i.title} (${i.format.toUpperCase()})`).join(", "),
+          state: shippingData.state || "Maharashtra",
+          address: hasPhysicalItem
+            ? `${shippingData.address}, ${shippingData.city}, ${shippingData.state} - ${shippingData.pincode}`
+            : "Digital Instant DRM Vault Delivery",
+          pincode: shippingData.pincode || "400001",
+          amount: `₹${cartTotal}`,
+          date: "Just now",
+          status: "Processing",
+          tracking: hasPhysicalItem ? `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}` : "INSTANT-DRM-VAULT",
+          courier: hasPhysicalItem ? "DTDC Express Air" : "Instant Student Vault",
+        };
+
+        const existingAdminOrders = localStorage.getItem("lawkaksha_admin_orders");
+        const parsedAdminOrders = existingAdminOrders ? JSON.parse(existingAdminOrders) : [];
+        localStorage.setItem("lawkaksha_admin_orders", JSON.stringify([adminOrderEntry, ...parsedAdminOrders]));
+
+        // 3. Dispatch global storage event for immediate UI reflection
+        window.dispatchEvent(new Event("storage"));
       }
 
       setLastOrderDetails(generatedOrder);
       setIsProcessingPayment(false);
       setCheckoutStep("success");
       clearCart();
-    }, 1200);
+    }, 1000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-150">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
         onClick={() => setIsCartOpen(false)}
       />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-lg bg-white border-l border-sky-100 text-slate-800 h-full shadow-2xl flex flex-col justify-between overflow-hidden z-10 animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white border-l border-slate-200 text-slate-900 h-full shadow-2xl flex flex-col justify-between overflow-hidden z-10 animate-in slide-in-from-right duration-200">
         
-        {/* Top Header */}
-        <div className="p-5 bg-sky-50/80 border-b border-sky-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-[#0284C7] shadow-sm">
-              <ShoppingBag className="w-5 h-5 text-[#0284C7]" />
+        {/* TOP HEADER */}
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7]">
+              <ShoppingBag className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-serif font-black text-slate-900 flex items-center gap-2">
-                <span>The Law Kaksha Desk</span>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-serif font-black text-slate-900">Your Cart</h2>
                 {totalItemCount > 0 && (
-                  <span className="text-xs font-sans font-bold bg-[#0284C7] text-white px-2 py-0.5 rounded-full">
-                    {totalItemCount} {totalItemCount === 1 ? "Item" : "Items"}
+                  <span className="text-[11px] font-mono font-bold bg-sky-50 text-[#0284C7] border border-sky-200 px-2 py-0.5 rounded-full">
+                    {totalItemCount} {totalItemCount === 1 ? "item" : "items"}
                   </span>
                 )}
-              </h2>
-              <p className="text-[11px] text-slate-500">Official Exam Reviewers &amp; Compilers Checkout</p>
+              </div>
             </div>
           </div>
 
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors border border-slate-200"
+            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
             aria-label="Close cart"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Multi-Step Breadcrumb Bar */}
+        {/* STEP PROGRESS BAR */}
         {checkoutStep !== "success" && (
-          <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold">
+          <div className="px-5 py-2 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between text-xs">
             <button
               onClick={() => setCheckoutStep("cart")}
-              className={`flex items-center gap-1.5 transition-colors ${
-                checkoutStep === "cart" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-700"
+              className={`flex items-center gap-1.5 font-bold transition-colors ${
+                checkoutStep === "cart" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-sky-100 border border-sky-200 flex items-center justify-center text-[10px] text-[#0284C7]">
-                1
-              </span>
-              <span>Review Items</span>
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                checkoutStep === "cart" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              }`}>1</span>
+              <span>Cart</span>
             </button>
-            <span className="text-slate-300">→</span>
+            <span className="text-slate-300">/</span>
             <button
               onClick={() => items.length > 0 && setCheckoutStep("shipping")}
               disabled={items.length === 0}
-              className={`flex items-center gap-1.5 transition-colors ${
-                checkoutStep === "shipping" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-700"
+              className={`flex items-center gap-1.5 font-bold transition-colors ${
+                checkoutStep === "shipping" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-sky-100 border border-sky-200 flex items-center justify-center text-[10px] text-[#0284C7]">
-                2
-              </span>
-              <span>Student Details</span>
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                checkoutStep === "shipping" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              }`}>2</span>
+              <span>Details</span>
             </button>
-            <span className="text-slate-300">→</span>
+            <span className="text-slate-300">/</span>
             <span
-              className={`flex items-center gap-1.5 ${
+              className={`flex items-center gap-1.5 font-bold ${
                 checkoutStep === "payment" ? "text-[#0284C7]" : "text-slate-400"
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-sky-100 border border-sky-200 flex items-center justify-center text-[10px] text-[#0284C7]">
-                3
-              </span>
-              <span>Razorpay Payment</span>
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                checkoutStep === "payment" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              }`}>3</span>
+              <span>Payment</span>
             </span>
           </div>
         )}
 
-        {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        {/* MAIN DRAWER CONTENT */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           
           {/* STEP 1: CART ITEMS */}
           {checkoutStep === "cart" && (
             <>
               {items.length === 0 ? (
-                <div className="text-center py-16 space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center mx-auto text-[#0284C7]">
-                    <ShoppingBag className="w-8 h-8 text-[#0284C7]" />
+                <div className="text-center py-16 space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center mx-auto text-[#0284C7]">
+                    <ShoppingBag className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-serif font-bold text-slate-900">Your Desk is Empty</h3>
+                  <h3 className="text-base font-serif font-bold text-slate-900">Your cart is empty</h3>
                   <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                    Explore our 2026-2027 CA Law reviewers, question banks, and video courses.
+                    Add CA Law codexes, solved past papers, or video classes to get started.
                   </p>
                   <button
                     onClick={() => setIsCartOpen(false)}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] hover:from-[#0369A1] hover:to-[#0284C7] text-white font-bold text-xs transition-colors shadow-sm"
+                    className="px-5 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-colors"
                   >
-                    Browse Law Reviewers
+                    Browse CA Books &amp; Plans
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
+                  {/* Item Cards */}
                   {items.map((item) => (
                     <div
                       key={`${item.id}-${item.format}`}
-                      className="p-4 rounded-2xl bg-white border border-sky-100 hover:border-sky-300 transition-all shadow-sm space-y-3"
+                      className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-sky-300 transition-all space-y-2.5"
                     >
                       {/* Title & Delete */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          {item.badge && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7] bg-sky-50 border border-sky-200 px-2 py-0.5 rounded mr-2">
-                              {item.badge}
-                            </span>
-                          )}
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-serif mt-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-serif leading-snug line-clamp-1">
                             {item.title}
                           </h4>
                           <p className="text-[11px] text-slate-500 mt-0.5">{item.category}</p>
                         </div>
                         <button
                           onClick={() => removeFromCart(item.id, item.format)}
-                          className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                          aria-label="Remove item"
+                          className="text-slate-400 hover:text-red-500 p-1 transition-colors"
+                          title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {/* Format Selector Pills */}
-                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
-                          Select Study Format:
-                        </label>
-                        <div className="grid grid-cols-3 gap-1.5 text-[10px]">
-                          {(["pdf", "paperback", "combo"] as BookFormat[]).map((fmt) => (
+                      {/* Streamlined Format Selector (Clean Inline Pills) */}
+                      <div className="flex items-center gap-1.5 p-1 bg-slate-50 rounded-xl border border-slate-200/80 text-[10.5px]">
+                        <span className="text-slate-400 font-medium px-1.5 text-[10px] hidden sm:inline">Format:</span>
+                        {(["pdf", "paperback", "combo"] as BookFormat[]).map((fmt) => {
+                          const isActive = item.format === fmt;
+                          const fmtPrice = Math.round(item.price * FORMAT_PRICING[fmt].multiplier);
+                          return (
                             <button
                               key={fmt}
                               type="button"
                               onClick={() => changeFormat(item.id, item.format, fmt)}
-                              className={`p-2 rounded-xl border text-center transition-all flex flex-col justify-between ${
-                                item.format === fmt
-                                  ? "bg-sky-50/80 border-[#0284C7] text-slate-900 shadow-xs font-bold"
-                                  : "bg-slate-50/50 border-slate-200 hover:border-slate-300 text-slate-600"
+                              className={`flex-1 py-1 px-1.5 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1 ${
+                                isActive
+                                  ? "bg-white text-[#0284C7] font-bold shadow-2xs border border-sky-200"
+                                  : "text-slate-600 hover:text-slate-900"
                               }`}
                             >
-                              <span className="font-bold uppercase tracking-wider text-[9.5px]">
-                                {fmt === "pdf" ? "Digital PDF" : fmt === "paperback" ? "Hardcopy" : "Combo"}
-                              </span>
-                              <span className="text-[#0284C7] font-bold font-mono mt-0.5">
-                                ₹{Math.round(item.price * FORMAT_PRICING[fmt].multiplier)}
-                              </span>
+                              <span>{fmt === "pdf" ? "PDF" : fmt === "paperback" ? "Book" : "Combo"}</span>
+                              <span className="font-mono text-[10px] text-slate-500 font-normal">₹{fmtPrice}</span>
                             </button>
-                          ))}
-                        </div>
+                          );
+                        })}
                       </div>
 
-                      {/* Quantity & Price */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                      {/* Quantity Stepper & Price Row */}
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden">
                           <button
                             onClick={() => updateQuantity(item.id, item.format, item.quantity - 1)}
-                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
+                            className="px-2 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="px-3 font-mono font-bold text-slate-800">{item.quantity}</span>
+                          <span className="px-2.5 font-mono font-bold text-slate-800 text-[11px]">
+                            {item.quantity}
+                          </span>
                           <button
                             onClick={() => updateQuantity(item.id, item.format, item.quantity + 1)}
-                            className="px-2.5 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
+                            className="px-2 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
 
-                        <div className="text-right">
-                          <span className="font-bold text-[#0284C7] font-mono text-sm">
+                        <div className="text-right font-mono">
+                          <span className="text-sm font-black text-slate-900">
                             ₹{item.price * item.quantity}
                           </span>
                         </div>
@@ -382,7 +417,7 @@ export function CartDrawer() {
                     </div>
                   ))}
 
-                  {/* Coupon Code Section */}
+                  {/* Clean 1-Click Coupon Section */}
                   <div className="pt-2 space-y-2">
                     <form onSubmit={(e) => handleApplyCoupon(e)} className="flex gap-2">
                       <div className="relative flex-1">
@@ -391,44 +426,44 @@ export function CartDrawer() {
                           type="text"
                           value={inputCoupon}
                           onChange={(e) => setInputCoupon(e.target.value.toUpperCase())}
-                          placeholder="Coupon Code (e.g. CALAW20)"
-                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7] uppercase font-mono"
+                          placeholder="Promo code (e.g. CALAW20)"
+                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 uppercase font-mono focus:outline-none focus:border-[#0284C7]"
                         />
                       </div>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-sm"
+                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-2xs"
                       >
                         Apply
                       </button>
                     </form>
 
-                    {/* Quick 1-Click Coupon Pills */}
-                    <div className="flex items-center gap-1.5 flex-wrap text-[10.5px]">
-                      <span className="text-slate-400">Available:</span>
+                    {/* Instant 1-Click Promo Pill */}
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-slate-400">Offer:</span>
                       <button
                         type="button"
                         onClick={() => handleApplyCoupon(undefined, "CALAW20")}
-                        className="px-2 py-0.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0284C7] font-bold border border-sky-200 transition-colors"
+                        className="px-2 py-0.5 rounded-md bg-sky-50 hover:bg-sky-100 text-[#0284C7] font-bold border border-sky-200 transition-colors"
                       >
                         ⚡ CALAW20 (20% OFF)
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApplyCoupon(undefined, "RANKER10")}
-                        className="px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition-colors"
+                        className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition-colors"
                       >
                         🎓 RANKER10 (10% OFF)
                       </button>
                     </div>
 
                     {couponSuccess && (
-                      <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> {couponSuccess}
+                      <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {couponSuccess}
                       </p>
                     )}
                     {couponError && (
-                      <p className="text-[11px] text-rose-500 font-semibold mt-1">
+                      <p className="text-[11px] text-rose-500 font-semibold">
                         {couponError}
                       </p>
                     )}
@@ -438,12 +473,12 @@ export function CartDrawer() {
             </>
           )}
 
-          {/* STEP 2: STUDENT DETAILS & DISPATCH */}
+          {/* STEP 2: STUDENT DETAILS (Simplified) */}
           {checkoutStep === "shipping" && (
-            <form onSubmit={handleProceedToPayment} className="space-y-4 text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="text-sm font-bold font-serif text-slate-900">Student &amp; Shipping Profile</h3>
-                <span className="text-[10px] text-slate-500 font-semibold">Step 2 of 3</span>
+            <form onSubmit={handleProceedToPayment} className="space-y-3.5 text-xs">
+              <div className="pb-1 border-b border-slate-100">
+                <h3 className="text-sm font-bold font-serif text-slate-900">Student Contact &amp; Delivery</h3>
+                <p className="text-[11px] text-slate-500">License credentials will be sent to this email &amp; WhatsApp.</p>
               </div>
 
               <div>
@@ -454,20 +489,20 @@ export function CartDrawer() {
                   value={shippingData.name}
                   onChange={(e) => setShippingData({ ...shippingData, name: e.target.value })}
                   placeholder="e.g. Rohan Deshmukh"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">WhatsApp Mobile No.</label>
+                  <label className="font-semibold text-slate-700 block mb-1">WhatsApp Mobile</label>
                   <input
                     type="tel"
                     required
                     value={shippingData.phone}
                     onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:border-[#0284C7]"
                   />
                 </div>
                 <div>
@@ -478,188 +513,170 @@ export function CartDrawer() {
                     value={shippingData.email}
                     onChange={(e) => setShippingData({ ...shippingData, email: e.target.value })}
                     placeholder="student@gmail.com"
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Target Exam Attempt</label>
+                <label className="font-semibold text-slate-700 block mb-1">Target Exam</label>
                 <select
                   value={shippingData.exam}
                   onChange={(e) => setShippingData({ ...shippingData, exam: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
                 >
                   <option value="CA Intermediate Paper 2">CA Intermediate (Paper 2 Corporate &amp; Other Laws)</option>
                   <option value="CA Final Corporate Laws">CA Final (Corporate &amp; Economic Laws)</option>
                   <option value="CA Foundation Business Laws">CA Foundation (Paper 2 Business Laws)</option>
-                  <option value="CS Executive & CSEET">CS Executive &amp; CSEET</option>
+                  <option value="Judiciary PCS-J">Judiciary (PCS-J) Prelims &amp; Mains</option>
                 </select>
               </div>
 
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Postal Address (For Printed Books / Invoices)</label>
-                <input
-                  type="text"
-                  required
-                  value={shippingData.address}
-                  onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
-                  placeholder="House / Flat No, Street, Landmark"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
-                />
-              </div>
+              {/* Physical Dispatch Address (Only if physical book is in cart) */}
+              {hasPhysicalItem ? (
+                <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
+                    <Truck className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <span>Courier Delivery Address:</span>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      value={shippingData.address}
+                      onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
+                      placeholder="Street / Flat Address"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-[#0284C7]"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={shippingData.city}
+                      onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
+                      placeholder="City"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={shippingData.state}
+                      onChange={(e) => setShippingData({ ...shippingData, state: e.target.value })}
+                      placeholder="State"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={shippingData.pincode}
+                      onChange={(e) => setShippingData({ ...shippingData, pincode: e.target.value })}
+                      placeholder="PIN"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-900"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 text-[11px] text-slate-700 flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#0284C7] shrink-0" />
+                  <span>Instant digital activation in Student Portal Vault + DRM sync upon payment.</span>
+                </div>
+              )}
 
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingData.city}
-                    onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                    placeholder="Pune"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">State</label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingData.state}
-                    onChange={(e) => setShippingData({ ...shippingData, state: e.target.value })}
-                    placeholder="Maharashtra"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">PIN Code</label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingData.pincode}
-                    onChange={(e) => setShippingData({ ...shippingData, pincode: e.target.value })}
-                    placeholder="411005"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:border-[#0284C7]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-3">
+              <div className="flex gap-2.5 pt-3">
                 <button
                   type="button"
                   onClick={() => setCheckoutStep("cart")}
-                  className="px-4 py-2.5 rounded-xl bg-slate-50 text-slate-600 font-semibold text-xs border border-slate-200 hover:bg-slate-100"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] hover:from-[#0369A1] hover:to-[#0284C7] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
                 >
-                  <span>Proceed to Razorpay Payment</span>
+                  <span>Proceed to Payment (₹{cartTotal})</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </form>
           )}
 
-          {/* STEP 3: RAZORPAY PAYMENT GATEWAY */}
+          {/* STEP 3: RAZORPAY PAYMENT */}
           {checkoutStep === "payment" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="text-sm font-bold font-serif text-slate-900">Razorpay Secure Checkout</h3>
-                <span className="text-[10px] text-slate-500 font-semibold">Step 3 of 3</span>
+            <div className="space-y-4 text-xs">
+              <div className="pb-1 border-b border-slate-100">
+                <h3 className="text-sm font-bold font-serif text-slate-900">Select Payment Mode</h3>
+                <p className="text-[11px] text-slate-500">256-Bit SSL Encrypted Banking Gateway</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {/* UPI Option */}
                 <div
                   onClick={() => setSelectedPayment("upi")}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     selectedPayment === "upi"
-                      ? "bg-sky-50/80 border-[#0284C7] shadow-sm"
+                      ? "bg-sky-50/80 border-[#0284C7] shadow-2xs"
                       : "bg-white border-slate-200 hover:border-sky-300"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-[#0284C7] shadow-sm">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-white border border-sky-200 flex items-center justify-center text-[#0284C7]">
                         <QrCode className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">Instant UPI &amp; QR Code</p>
+                        <p className="text-xs font-bold text-slate-900">Instant UPI / QR Code</p>
                         <p className="text-[10px] text-slate-500">Google Pay, PhonePe, Paytm, BHIM</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-                      Instant Activation
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Fastest
                     </span>
                   </div>
-
-                  {selectedPayment === "upi" && (
-                    <div className="mt-3 pt-3 border-t border-sky-100 flex items-center justify-center p-3 bg-white rounded-xl border border-dashed border-sky-300">
-                      <div className="text-center space-y-1">
-                        <div className="w-24 h-24 bg-white p-2 rounded-lg mx-auto flex items-center justify-center shadow border border-slate-200">
-                          <div className="w-full h-full border-2 border-slate-900 flex items-center justify-center font-mono text-[9px] text-slate-900 font-bold">
-                            UPI QR SIM
-                          </div>
-                        </div>
-                        <p className="text-[10px] text-slate-900 font-mono font-bold">thelawkaksha@upi</p>
-                        <p className="text-[10px] text-slate-500">Scan &amp; Pay or click Pay below</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Card Option */}
                 <div
                   onClick={() => setSelectedPayment("card")}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     selectedPayment === "card"
-                      ? "bg-sky-50/80 border-[#0284C7] shadow-sm"
+                      ? "bg-sky-50/80 border-[#0284C7] shadow-2xs"
                       : "bg-white border-slate-200 hover:border-sky-300"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-[#0284C7] shadow-sm">
-                        <CreditCard className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900">Credit / Debit Card</p>
-                        <p className="text-[10px] text-slate-500">Visa, MasterCard, RuPay</p>
-                      </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-white border border-sky-200 flex items-center justify-center text-[#0284C7]">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">Debit / Credit Card</p>
+                      <p className="text-[10px] text-slate-500">Visa, Mastercard, RuPay</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-100 flex items-center gap-2 text-xs text-slate-700">
-                <Lock className="w-4 h-4 text-[#0284C7] shrink-0" />
-                <span>256-Bit Bank Grade SSL Encrypted Checkout via Razorpay.</span>
-              </div>
-
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setCheckoutStep("shipping")}
-                  className="px-4 py-2.5 rounded-xl bg-slate-50 text-slate-600 font-semibold text-xs flex items-center gap-1 border border-slate-200 hover:text-[#0284C7]"
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
                 >
-                  <ChevronLeft className="w-4 h-4" /> Back
+                  Back
                 </button>
                 <button
                   type="button"
                   disabled={isProcessingPayment}
                   onClick={handleCompletePayment}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] hover:from-[#0369A1] hover:to-[#0284C7] text-white font-bold text-xs shadow-md shadow-sky-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.01]"
+                  className="flex-1 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2"
                 >
                   {isProcessingPayment ? (
-                    <span>Verifying Banking Gateway...</span>
+                    <span>Verifying with Bank...</span>
                   ) : (
                     <>
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Pay ₹{cartTotal} &amp; Activate License</span>
+                      <span>Pay ₹{cartTotal} &amp; Complete Order</span>
                     </>
                   )}
                 </button>
@@ -667,82 +684,67 @@ export function CartDrawer() {
             </div>
           )}
 
-          {/* STEP 4: ORDER SUCCESS & STUDENT CREDENTIALS */}
+          {/* STEP 4: ORDER SUCCESS */}
           {checkoutStep === "success" && lastOrderDetails && (
-            <div className="text-center py-4 space-y-5">
-              <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto text-2xl animate-in zoom-in-50">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            <div className="text-center py-4 space-y-4">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto animate-in zoom-in-50">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
               </div>
 
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  Payment Successful • Razorpay Verified
+                  Payment Verified
                 </span>
-                <h3 className="text-xl font-serif font-black text-slate-900 mt-2">
-                  Order Confirmed &amp; Access Activated!
+                <h3 className="text-lg font-serif font-black text-slate-900 mt-2">
+                  Access Activated!
                 </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  Tax invoice &amp; receipt sent to <span className="text-[#0284C7] font-mono font-bold">{lastOrderDetails.email}</span>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Receipt sent to <span className="text-[#0284C7] font-semibold">{lastOrderDetails.email}</span>
                 </p>
               </div>
 
-              {/* Student Access Credentials Card */}
-              <div className="text-left p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-sky-100">
+              {/* Credentials Box */}
+              <div className="text-left p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-2 text-xs">
+                <div className="flex items-center justify-between pb-1.5 border-b border-sky-100">
                   <span className="font-bold text-slate-900 flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-[#0284C7]" />
-                    <span>Your Student Workspace Credentials</span>
+                    <span>Student Access Credentials</span>
                   </span>
-                  <span className="text-[10.5px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold">
+                  <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
                     Active
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-slate-700">
                   <div>
-                    <span className="text-[10.5px] text-slate-400 block">Student Roll / ID:</span>
-                    <strong className="font-mono text-slate-900">{lastOrderDetails.studentId || "LK-2026-CA-0842"}</strong>
+                    <span className="text-[10px] text-slate-400 block">Student ID:</span>
+                    <strong className="font-mono text-slate-900">{lastOrderDetails.studentId}</strong>
                   </div>
                   <div>
-                    <span className="text-[10.5px] text-slate-400 block">Access Password:</span>
-                    <strong className="font-mono text-slate-900">{lastOrderDetails.tempPassword || "law@2026"}</strong>
+                    <span className="text-[10px] text-slate-400 block">Password:</span>
+                    <strong className="font-mono text-slate-900">{lastOrderDetails.tempPassword}</strong>
                   </div>
-                  <div>
-                    <span className="text-[10.5px] text-slate-400 block">Razorpay Txn ID:</span>
-                    <span className="font-mono text-[10.5px] text-slate-600">{lastOrderDetails.razorpayPaymentId || "pay_LK_78192014"}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10.5px] text-slate-400 block">Total Paid:</span>
-                    <strong className="font-mono text-[#0284C7] text-sm">₹{lastOrderDetails.totalAmount}</strong>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-sky-100 text-[11px] text-slate-600">
-                  <p><strong>Registered Email:</strong> {lastOrderDetails.email}</p>
-                  {lastOrderDetails.trackingNumber && (
-                    <p className="mt-0.5"><strong>Courier Tracking:</strong> {lastOrderDetails.trackingNumber} ({lastOrderDetails.studentName})</p>
-                  )}
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2 pt-1">
                 <Link
                   href="/student"
                   onClick={() => setIsCartOpen(false)}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] hover:from-[#0369A1] hover:to-[#0284C7] text-white font-bold text-xs shadow-md shadow-sky-500/25 transition-all hover:scale-[1.01]"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>Launch My Student Workspace (Auto-Login)</span>
+                  <span>Launch Student Workspace (Auto-Login)</span>
                 </Link>
 
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setInvoiceModalOpen(true)}
-                    className="flex-1 py-2.5 rounded-xl bg-white text-slate-700 hover:text-[#0284C7] font-semibold text-xs transition-colors border border-slate-200 hover:border-sky-300 flex items-center justify-center gap-1.5 shadow-2xs"
+                    className="flex-1 py-2 rounded-xl bg-white text-slate-700 hover:text-[#0284C7] font-semibold text-xs border border-slate-200 hover:border-sky-300 flex items-center justify-center gap-1.5 shadow-2xs"
                   >
                     <Printer className="w-3.5 h-3.5 text-[#0284C7]" />
-                    <span>Print Tax Invoice</span>
+                    <span>Tax Invoice</span>
                   </button>
 
                   <button
@@ -751,9 +753,9 @@ export function CartDrawer() {
                       setIsCartOpen(false);
                       setCheckoutStep("cart");
                     }}
-                    className="flex-1 py-2.5 rounded-xl bg-slate-50 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors border border-slate-200"
+                    className="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 font-semibold text-xs"
                   >
-                    Return to Store
+                    Close
                   </button>
                 </div>
               </div>
@@ -761,10 +763,10 @@ export function CartDrawer() {
           )}
         </div>
 
-        {/* Bottom Total & Checkout Bar (for Step 1) */}
+        {/* BOTTOM TOTAL & CHECKOUT BAR (For Step 1) */}
         {checkoutStep === "cart" && items.length > 0 && (
-          <div className="p-5 bg-slate-50 border-t border-slate-200 space-y-3">
-            <div className="space-y-1.5 text-xs">
+          <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 space-y-3 shrink-0">
+            <div className="space-y-1 text-xs">
               <div className="flex items-center justify-between text-slate-600">
                 <span>Subtotal ({totalItemCount} items)</span>
                 <span className="font-mono text-slate-900 font-bold">₹{cartSubtotal}</span>
@@ -775,28 +777,30 @@ export function CartDrawer() {
                   <span className="font-mono">- ₹{Math.round((cartSubtotal * couponDiscount) / 100)}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between text-slate-600">
-                <span>Expedited Courier Dispatch</span>
-                <span className="font-bold text-[#0284C7] uppercase text-[10px]">FREE</span>
-              </div>
-              <div className="flex items-baseline justify-between pt-2 border-t border-slate-200 text-sm">
-                <span className="font-bold text-slate-900 font-serif">Total Investment</span>
+              <div className="flex items-baseline justify-between pt-1.5 border-t border-slate-200 text-sm">
+                <span className="font-bold text-slate-900 font-serif">Total Payable:</span>
                 <div className="text-right">
-                  <div className="text-xl font-black text-[#0284C7] font-serif">₹{cartTotal}</div>
+                  <span className="text-xl font-black text-[#0284C7] font-mono">₹{cartTotal}</span>
                   {cartSavings > 0 && (
-                    <div className="text-[10px] text-slate-500 font-semibold">
-                      You save ₹{cartSavings} today
-                    </div>
+                    <span className="block text-[10px] text-emerald-700 font-bold">
+                      Saved ₹{cartSavings}
+                    </span>
                   )}
                 </div>
               </div>
             </div>
 
             <button
-              onClick={() => setCheckoutStep("shipping")}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] hover:from-[#0369A1] hover:to-[#0284C7] text-white font-bold text-xs shadow-md shadow-sky-500/25 transition-all flex items-center justify-center gap-2 tracking-wide hover:scale-[1.01]"
+              onClick={() => {
+                if (hasPhysicalItem) {
+                  setCheckoutStep("shipping");
+                } else {
+                  setCheckoutStep("payment");
+                }
+              }}
+              className="w-full py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
             >
-              <span>PROCEED TO DISPATCH ADDRESS</span>
+              <span>Proceed to Checkout ({totalItemCount} {totalItemCount === 1 ? "Item" : "Items"})</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -806,94 +810,68 @@ export function CartDrawer() {
       {/* Printable Tax Invoice Modal */}
       {invoiceModalOpen && lastOrderDetails && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-5 text-slate-800 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
-            {/* Invoice Header */}
-            <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-4 text-slate-800 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-3">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7] bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                  TAX INVOICE / RECEIPT
+                <span className="text-[10px] font-bold uppercase text-[#0284C7] bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                  TAX INVOICE
                 </span>
-                <h3 className="text-lg font-serif font-black text-slate-900 mt-1">THE LAW KAKSHA CA ACADEMY</h3>
-                <p className="text-[11px] text-slate-500">
-                  GSTIN: 27AABCT1928C1Z4 • Educational Publishing Division
-                </p>
-                <p className="text-[11px] text-slate-500">Nariman Point, Mumbai, MH - 400021</p>
+                <h3 className="text-base font-serif font-black text-slate-900 mt-1">THE LAW KAKSHA</h3>
+                <p className="text-[10.5px] text-slate-500">GSTIN: 27AABCT1928C1Z4 • Educational Publishing</p>
               </div>
               <button
                 onClick={() => setInvoiceModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Bill To & Invoice Info */}
-            <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase text-slate-400 block">Billed To:</span>
-                <strong className="text-slate-900 block">{lastOrderDetails.studentName}</strong>
-                <p className="text-slate-600">{lastOrderDetails.email}</p>
-                <p className="text-slate-600">{lastOrderDetails.phone}</p>
-                {lastOrderDetails.address && <p className="text-[11px] text-slate-500">{lastOrderDetails.address}</p>}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">Student:</span>
+                <strong className="text-slate-900">{lastOrderDetails.studentName}</strong>
+                <p className="text-slate-600 text-[11px]">{lastOrderDetails.email}</p>
               </div>
-
-              <div className="space-y-1 text-right">
-                <span className="text-[10px] font-bold uppercase text-slate-400 block">Invoice Details:</span>
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block">Invoice:</span>
                 <p className="font-mono font-bold text-slate-900">{lastOrderDetails.orderId}</p>
-                <p className="text-slate-600 font-mono text-[11px]">Txn: {lastOrderDetails.razorpayPaymentId}</p>
-                <p className="text-slate-600">{lastOrderDetails.date}</p>
-                <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                  PAID VIA RAZORPAY
-                </span>
+                <p className="text-slate-600 text-[10.5px]">{lastOrderDetails.date}</p>
               </div>
             </div>
 
-            {/* Line Items Table */}
-            <div className="border border-slate-200 rounded-2xl overflow-hidden">
-              <table className="w-full text-xs text-left">
+            <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+              <table className="w-full text-left">
                 <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">Item Description</th>
-                    <th className="p-3 text-center">Format</th>
-                    <th className="p-3 text-right">Amount</th>
+                    <th className="p-2.5">Item</th>
+                    <th className="p-2.5 text-center">Format</th>
+                    <th className="p-2.5 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-slate-100 text-[11px]">
                   {lastOrderDetails.items.map((it: any, iIdx: number) => (
                     <tr key={iIdx}>
-                      <td className="p-3 font-medium">
-                        {it.title}
-                        <span className="block text-[10.5px] text-slate-400">{it.category}</span>
+                      <td className="p-2.5 font-medium">{it.title}</td>
+                      <td className="p-2.5 text-center uppercase font-mono text-[10px]">
+                        {it.format === "pdf" ? "PDF" : it.format === "paperback" ? "Book" : "Combo"}
                       </td>
-                      <td className="p-3 text-center uppercase font-mono text-[10.5px]">
-                        {it.format === "pdf" ? "Digital PDF" : it.format === "paperback" ? "Hardcopy" : "Combo"}
-                      </td>
-                      <td className="p-3 text-right font-mono font-bold text-slate-900">
-                        ₹{it.price * it.quantity}
-                      </td>
+                      <td className="p-2.5 text-right font-mono font-bold">₹{it.price * it.quantity}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Total Strip */}
-            <div className="flex items-center justify-between p-4 bg-sky-50 rounded-2xl border border-sky-200">
-              <div className="text-xs">
-                <span className="font-bold text-slate-900 block">Student License ID:</span>
-                <span className="font-mono text-[#0284C7] font-bold">{lastOrderDetails.studentId}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-500 block">Total Amount Paid (Incl. Taxes)</span>
-                <span className="text-xl font-black text-slate-900 font-mono">₹{lastOrderDetails.totalAmount}</span>
-              </div>
+            <div className="flex items-center justify-between p-3 bg-sky-50 rounded-xl border border-sky-200 text-xs">
+              <span className="font-bold text-slate-900">Total Paid:</span>
+              <span className="text-lg font-black text-slate-900 font-mono">₹{lastOrderDetails.totalAmount}</span>
             </div>
 
-            {/* Action Bar */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setInvoiceModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-semibold"
+                className="px-4 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold"
               >
                 Close
               </button>
@@ -901,10 +879,10 @@ export function CartDrawer() {
                 onClick={() => {
                   if (typeof window !== "undefined") window.print();
                 }}
-                className="px-5 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                className="px-4 py-1.5 rounded-lg bg-[#0284C7] text-white text-xs font-bold flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>Print / Save as PDF</span>
+                <span>Print</span>
               </button>
             </div>
           </div>

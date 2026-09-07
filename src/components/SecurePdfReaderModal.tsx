@@ -1,25 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   BookOpen,
-  Lock,
-  Shield,
-  Search,
   ZoomIn,
   ZoomOut,
-  ChevronLeft,
-  ChevronRight,
-  Bookmark,
+  ChevronDown,
   Sparkles,
   Scale,
-  FileText,
-  AlertTriangle,
-  Highlighter,
   Sun,
   Moon,
-  Layers,
+  CheckCircle2,
+  FileText,
 } from "lucide-react";
 
 interface SecurePdfReaderProps {
@@ -39,56 +32,44 @@ interface SecurePdfReaderProps {
   };
 }
 
+const CHAPTERS_LIST = [
+  { page: 1, title: "Ch 1: Preliminary & Incorporation (§1–§22)" },
+  { page: 3, title: "Ch 2: Prospectus & Allotment of Securities (§23–§42)" },
+  { page: 6, title: "Ch 3: Share Capital & Debentures (§43–§72)" },
+  { page: 9, title: "Ch 4: Management & Administration (§88–§122)" },
+  { page: 12, title: "Ch 5: Accounts of Companies & CSR (§128–§138)" },
+  { page: 15, title: "Ch 6: Audit & Auditors (§139–§148)" },
+  { page: 17, title: "Ch 7: 9-Attempt Solved RTPs/MTPs & Model Answers" },
+];
+
 export function SecurePdfReaderModal({
   isOpen,
   onClose,
   book,
   student,
 }: SecurePdfReaderProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 18;
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [themeMode, setThemeMode] = useState<"light" | "sepia" | "dark">("light");
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [bookmarkedPages, setBookmarkedPages] = useState<number[]>([1, 4]);
-  const [activeTab, setActiveTab] = useState<"toc" | "search" | "notes">("toc");
-  const [antiPiracyAlert, setAntiPiracyAlert] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const totalPages = 18;
 
-  // Dynamic live watermark details
-  const sessionIp = "103.21.144.92";
-  const timestamp = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Intercept Copy, Print, and Screenshot key commands & enable smooth keyboard reading
+  // Intercept Copy, Print, and Screenshot key commands
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Intercept Ctrl+P, Ctrl+S, Ctrl+C, Ctrl+U, PrintScreen
       if (
         (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "c" || e.key === "u")) ||
         (e.metaKey && (e.key === "p" || e.key === "s" || e.key === "c" || e.key === "u")) ||
         e.key === "PrintScreen"
       ) {
         e.preventDefault();
-        setAntiPiracyAlert(true);
-        setTimeout(() => setAntiPiracyAlert(false), 3500);
         return;
       }
 
-      // Smooth keyboard reading navigation
-      if (e.key === "ArrowLeft" || e.key === "PageUp") {
-        e.preventDefault();
-        setCurrentPage((p) => Math.max(1, p - 1));
-      } else if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
-        e.preventDefault();
-        setCurrentPage((p) => Math.min(totalPages, p + 1));
-      } else if (e.key === "Escape") {
+      if (e.key === "Escape") {
         e.preventDefault();
         onClose();
       }
@@ -98,408 +79,341 @@ export function SecurePdfReaderModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
-  const toggleBookmark = (page: number) => {
-    if (bookmarkedPages.includes(page)) {
-      setBookmarkedPages(bookmarkedPages.filter((p) => p !== page));
-    } else {
-      setBookmarkedPages([...bookmarkedPages, page]);
+  // Smooth scroll to chapter/page
+  const scrollToPage = (pageNumber: number) => {
+    if (pageRefs.current[pageNumber - 1]) {
+      pageRefs.current[pageNumber - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md select-none p-2 sm:p-4"
-      onContextMenu={(e) => {
-        e.preventDefault();
-        setAntiPiracyAlert(true);
-        setTimeout(() => setAntiPiracyAlert(false), 3500);
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs select-none p-2 sm:p-4 animate-in fade-in duration-150"
+      onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Anti-Piracy Security Toast */}
-      {antiPiracyAlert && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-60 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl border border-red-400 flex items-center gap-3 text-xs font-bold animate-in zoom-in-95">
-          <AlertTriangle className="w-5 h-5 text-white shrink-0" />
-          <div>
-            <p className="font-serif uppercase tracking-wider">DRM Copyright Shield Active</p>
-            <p className="text-[11px] text-red-100 font-normal">
-              Copying, printing, and file extraction are strictly prohibited. Your session is cryptographically watermarked with ID {student.rollNumber}.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Main DRM Reader Window */}
-      <div className="relative w-full max-w-6xl h-[94vh] bg-white border border-sky-200 rounded-3xl text-slate-900 shadow-2xl flex flex-col overflow-hidden">
-        
-        {/* Top Header & Security Banner */}
-        <div className="px-4 py-3 bg-white border-b border-sky-100 flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7] shrink-0">
-              <BookOpen className="w-5 h-5 text-[#0284C7]" />
+      {/* Main Ultra-Clean Reader Window */}
+      <div
+        className={`relative w-full max-w-5xl h-[94vh] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border transition-colors ${
+          isDarkMode
+            ? "bg-[#0b1120] text-slate-100 border-slate-800"
+            : "bg-white text-slate-900 border-slate-200"
+        }`}
+      >
+        {/* MINIMAL TOP HEADER */}
+        <div
+          className={`px-4 sm:px-6 py-3 border-b flex items-center justify-between gap-3 shrink-0 ${
+            isDarkMode ? "bg-[#0f172a] border-slate-800" : "bg-white border-slate-100"
+          }`}
+        >
+          {/* Book Title & Student Badge */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7] shrink-0">
+              <BookOpen className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
-                  <Lock className="w-3 h-3" />
-                  <span>IN-APP DRM • DEVICE 1 OF 2</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7] font-mono">
+                  Student Edition
                 </span>
-                <span className="text-[11px] text-[#0284C7] font-mono hidden sm:inline font-semibold">
-                  LICENSED TO: {student.rollNumber}
+                <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                  • Licensed to {student.name || student.rollNumber}
                 </span>
               </div>
-              <h3 className="text-xs sm:text-sm font-serif font-black text-slate-900 truncate mt-0.5">
+              <h3 className="text-xs sm:text-sm font-serif font-black truncate max-w-xs sm:max-w-md">
                 {book.title}
               </h3>
             </div>
           </div>
 
-          {/* Reader Controls */}
+          {/* Quick Chapter Selector, Zoom, Dark Mode, & Close */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Theme Toggle */}
-            <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button
-                onClick={() => setThemeMode("light")}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
-                  themeMode === "light" ? "bg-white text-[#0284C7] font-bold shadow-xs" : "text-slate-500 hover:text-slate-800"
+            {/* Quick Chapter Jump Dropdown */}
+            <div className="relative hidden md:block">
+              <select
+                onChange={(e) => scrollToPage(Number(e.target.value))}
+                className={`text-xs font-semibold py-1.5 pl-3 pr-7 rounded-xl border focus:outline-none focus:border-sky-500 cursor-pointer appearance-none ${
+                  isDarkMode
+                    ? "bg-slate-900 border-slate-700 text-slate-200"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
-                title="Pristine Light Mode"
+                defaultValue=""
               >
-                <Sun className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setThemeMode("sepia")}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
-                  themeMode === "sepia" ? "bg-[#fbf0d9] text-[#2b2416] font-bold shadow-xs" : "text-slate-500 hover:text-slate-800"
-                }`}
-                title="Eye-Care Sepia"
-              >
-                <Layers className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setThemeMode("dark")}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
-                  themeMode === "dark" ? "bg-slate-900 text-sky-400 font-bold shadow-xs" : "text-slate-500 hover:text-slate-800"
-                }`}
-                title="Night Mode"
-              >
-                <Moon className="w-3.5 h-3.5" />
-              </button>
+                <option value="" disabled>
+                  Jump to Chapter...
+                </option>
+                {CHAPTERS_LIST.map((ch) => (
+                  <option key={ch.page} value={ch.page}>
+                    {ch.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center bg-sky-50 px-2 py-1 rounded-xl border border-sky-200 text-xs">
+            <div
+              className={`flex items-center rounded-xl border px-1 py-0.5 text-xs ${
+                isDarkMode ? "bg-slate-900 border-slate-700" : "bg-slate-50 border-slate-200"
+              }`}
+            >
               <button
-                onClick={() => setZoomLevel((z) => Math.max(80, z - 10))}
-                className="p-1 text-slate-500 hover:text-[#0284C7]"
+                onClick={() => setZoomLevel((z) => Math.max(85, z - 15))}
+                className="p-1 text-slate-500 hover:text-sky-500"
+                title="Zoom Out"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="px-1.5 font-mono text-[11px] text-[#0284C7] font-bold">{zoomLevel}%</span>
+              <span className="px-1.5 text-[10px] font-mono font-bold text-[#0284C7]">{zoomLevel}%</span>
               <button
-                onClick={() => setZoomLevel((z) => Math.min(140, z + 10))}
-                className="p-1 text-slate-500 hover:text-[#0284C7]"
+                onClick={() => setZoomLevel((z) => Math.min(130, z + 15))}
+                className="p-1 text-slate-500 hover:text-sky-500"
+                title="Zoom In"
               >
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
             </div>
 
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`p-1.5 rounded-xl border transition-colors ${
+                isDarkMode
+                  ? "bg-slate-800 border-slate-700 text-sky-400"
+                  : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900"
+              }`}
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
+
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors ml-1 border border-slate-200"
-              aria-label="Close Secure Reader"
+              className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/50 transition-colors ml-1"
+              aria-label="Close Reader"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Reader Workspace (Sidebar + Document Canvas) */}
-        <div className="flex-1 flex overflow-hidden">
-          
-          {/* Left Navigation Sidebar */}
-          <div className="w-64 bg-slate-50/90 border-r border-sky-100 hidden lg:flex flex-col justify-between shrink-0">
-            <div className="p-4 space-y-4 overflow-y-auto">
-              {/* Sidebar Tabs */}
-              <div className="grid grid-cols-3 gap-1 p-1 bg-white rounded-xl border border-sky-200 text-[10px] font-bold">
-                <button
-                  onClick={() => setActiveTab("toc")}
-                  className={`py-1.5 rounded-lg transition-all ${
-                    activeTab === "toc" ? "bg-gradient-to-r from-[#0284C7] to-[#38BDF8] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Chapters
-                </button>
-                <button
-                  onClick={() => setActiveTab("search")}
-                  className={`py-1.5 rounded-lg transition-all ${
-                    activeTab === "search" ? "bg-gradient-to-r from-[#0284C7] to-[#38BDF8] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Search
-                </button>
-                <button
-                  onClick={() => setActiveTab("notes")}
-                  className={`py-1.5 rounded-lg transition-all ${
-                    activeTab === "notes" ? "bg-gradient-to-r from-[#0284C7] to-[#38BDF8] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Bookmarks
-                </button>
-              </div>
-
-              {/* TAB 1: CHAPTERS TOC */}
-              {activeTab === "toc" && (
-                <div className="space-y-1.5 text-xs">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7] mb-2">
-                    Table of Contents (ICAI 2026-2027):
+        {/* CONTINUOUS SCROLLABLE DOCUMENT CANVAS */}
+        <div
+          ref={containerRef}
+          className={`flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 flex flex-col items-center selection:bg-sky-100 ${
+            isDarkMode ? "bg-[#030712]" : "bg-slate-100/70"
+          }`}
+          style={{ fontSize: `${(zoomLevel / 100) * 14}px` }}
+        >
+          {/* ALL CHAPTER PAGES IN SEQUENTIAL CONTINUOUS SCROLL */}
+          {[
+            {
+              page: 1,
+              chapter: "Chapter 1 • Sectional Codex",
+              title: "Companies Act, 2013: Statutory Scheme & Definitions (§1–§22)",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>1. Separate Legal Entity &amp; Lifting the Veil:</strong> Under Section 9 of the Companies Act 2013, upon registration, the subscribers to the memorandum become a body corporate capable of exercising all corporate functions. In <em>Salomon v. Salomon &amp; Co. Ltd.</em> and the Indian landmark <em>Tata Engineering &amp; Locomotive Co. Ltd. v. State of Bihar</em>, courts reaffirmed that a company is an independent juristic person distinct from its members.
                   </p>
-                  {[
-                    { page: 1, title: "Chapter 1: Preliminary & Incorporation (§1-§22)" },
-                    { page: 3, title: "Chapter 2: Prospectus & Allotment (§23-§42)" },
-                    { page: 6, title: "Chapter 3: Management & Administration (§88-§122)" },
-                    { page: 9, title: "Chapter 4: CSR & Accounts of Companies (§128-§138)" },
-                    { page: 13, title: "Chapter 5: 9-Attempt Solved RTPs & MTP Models" },
-                    { page: 16, title: "Chapter 6: 1.5-Day Last Day Revision (LDR) Maps" },
-                  ].map((ch) => (
-                    <button
-                      key={ch.page}
-                      onClick={() => setCurrentPage(ch.page)}
-                      className={`w-full text-left p-2 rounded-lg transition-all flex items-center justify-between text-[11px] ${
-                        currentPage === ch.page
-                          ? "bg-white text-[#0284C7] font-bold border border-sky-300 shadow-xs"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
-                      }`}
-                    >
-                      <span className="truncate">{ch.title}</span>
-                      <span className="text-[10px] font-mono text-[#0284C7] font-bold">P.{ch.page}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* TAB 2: SEARCH IN BOOK */}
-              {activeTab === "search" && (
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={searchKeyword}
-                      onChange={(e) => setSearchKeyword(e.target.value)}
-                      placeholder="Search sections, MCA circulars..."
-                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0284C7] focus:outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <p className="text-[10px] text-[#0284C7] font-bold uppercase">Quick Lookups:</p>
-                    {["Section 103 Quorum", "Section 135 CSR Rules", "Section 96 AGM Timelines", "Postal Ballot §110", "Section 180 Board Limits"].map(
-                      (kw, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setSearchKeyword(kw);
-                            setCurrentPage(6);
-                          }}
-                          className="block w-full text-left py-1 text-slate-600 hover:text-[#0284C7] hover:underline text-xs"
-                        >
-                          🔍 {kw}
-                        </button>
-                      )
-                    )}
+                  <div className="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs space-y-1.5 font-sans">
+                    <p className="font-bold text-[#0284C7] dark:text-sky-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Section 8 Companies (Non-Profit Objects):
+                    </p>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      Section 8 Companies are prohibited from distributing dividend to members and must apply profits solely in promoting statutory objects (commerce, art, science, sports, education, research, social welfare, charity, protection of environment).
+                    </p>
                   </div>
                 </div>
-              )}
-
-              {/* TAB 3: BOOKMARKS */}
-              {activeTab === "notes" && (
-                <div className="space-y-2 text-xs">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7]">
-                    Saved Revision Markers ({bookmarkedPages.length}):
+              ),
+            },
+            {
+              page: 2,
+              chapter: "Chapter 1 • MOA & AOA Doctrines",
+              title: "Doctrine of Ultra Vires & Indoor Management (Turquand's Rule)",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>2. Doctrine of Ultra Vires:</strong> Any act done beyond the scope of the Memorandum of Association (MOA) is ultra vires the company and is wholly void and incapable of ratification even by unanimous consent of all shareholders (<em>Ashbury Railway Carriage and Iron Co. Ltd. v. Riche</em>).
                   </p>
-                  {bookmarkedPages.map((pg) => (
-                    <button
-                      key={pg}
-                      onClick={() => setCurrentPage(pg)}
-                      className="w-full text-left p-2 rounded-lg bg-white border border-sky-200 text-slate-800 font-semibold flex items-center justify-between hover:border-[#0284C7] transition-colors shadow-xs"
-                    >
-                      <span>Bookmark on Page {pg}</span>
-                      <Bookmark className="w-3.5 h-3.5 fill-[#0284C7] text-[#0284C7]" />
-                    </button>
-                  ))}
+                  <p>
+                    <strong>3. Doctrine of Indoor Management (Turquand's Rule):</strong> Persons dealing with the company are presumed to have read public documents (MOA &amp; AOA) under constructive notice, but are entitled to assume that internal statutory procedures have been regularly performed (<em>Royal British Bank v. Turquand</em>).
+                  </p>
                 </div>
-              )}
-            </div>
-
-            {/* Anti-Piracy Notice at Sidebar Bottom */}
-            <div className="p-3 bg-white border-t border-sky-100 text-[10px] text-slate-500 space-y-1">
-              <p className="font-bold text-[#0284C7] flex items-center gap-1">
-                <Shield className="w-3 h-3 text-[#0284C7]" /> Digital Anti-Piracy DRM
-              </p>
-              <p>Device 1 of 2 Active • Hardware IP: {sessionIp}</p>
-              <p>Direct PDF downloads &amp; file sharing are blocked.</p>
-            </div>
-          </div>
-
-          {/* Center Document Canvas with Dynamic Multi-Layer Watermark */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-100 relative">
-            
-            {/* Book Page Surface */}
+              ),
+            },
+            {
+              page: 3,
+              chapter: "Chapter 2 • Securities Prospectus",
+              title: "Prospectus & Allotment of Securities (§23 to §42)",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>Section 23 Public Offer:</strong> A public company may issue securities: (a) to public through prospectus; (b) through private placement (§42); (c) through rights issue or bonus issue.
+                  </p>
+                  <p>
+                    <strong>Shelf Prospectus [§31]:</strong> Any class or classes of companies, as SEBI may provide by regulations, may file a shelf prospectus with the Registrar at the first offer stage with validity not exceeding <strong>1 year</strong>.
+                  </p>
+                  <p>
+                    <strong>Private Placement [§42]:</strong> Offer made to a select group of persons not exceeding <strong>200 in a financial year</strong> (excluding QIBs and employees under ESOP).
+                  </p>
+                </div>
+              ),
+            },
+            {
+              page: 6,
+              chapter: "Chapter 3 • Share Capital & Debentures",
+              title: "Section 43 to 72: Share Capital, Sweat Equity & Buy-Back",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>Section 54 Sweat Equity Shares:</strong> Issued to directors/employees at a discount or for non-cash consideration for know-how or value additions. Requires Special Resolution valid for allotment within 12 months.
+                  </p>
+                  <p>
+                    <strong>Section 68 Buy-Back of Securities:</strong> Buy-back must be authorized by AOA, special resolution (or Board resolution up to 10%), and post buy-back debt-equity ratio shall not exceed <strong>2:1</strong>.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              page: 9,
+              chapter: "Chapter 4 • Management & Administration",
+              title: "Section 96 & 103: AGM Timelines & Quorum Mandates",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>Section 96(1) AGM Timelines:</strong> AGM shall be held within <strong>6 months</strong> from FY closing, gap between 2 AGMs &le; <strong>15 months</strong>. First AGM must be within <strong>9 months</strong> from closing of first FY (No ROC extension allowed).
+                  </p>
+                  <div className="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 font-sans text-xs space-y-1">
+                    <p className="font-bold text-[#0284C7] dark:text-sky-400">Public Company Quorum Mandates [§103(1)(a)]:</p>
+                    <p>• Up to 1,000 members: <strong>5 members personally present</strong></p>
+                    <p>• 1,001 to 5,000 members: <strong>15 members personally present</strong></p>
+                    <p>• Exceeding 5,000 members: <strong>30 members personally present</strong></p>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              page: 12,
+              chapter: "Chapter 5 • Accounts & CSR",
+              title: "Section 135: Corporate Social Responsibility (CSR) Mandates",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>Statutory CSR Thresholds [§135(1)]:</strong> Every company having Net Worth &ge; <strong>₹500 Cr</strong> OR Turnover &ge; <strong>₹1,000 Cr</strong> OR Net Profit &ge; <strong>₹5 Cr</strong> during the preceding FY shall constitute a CSR Committee.
+                  </p>
+                  <p>
+                    <strong>CSR Mandatory Spending [§135(5)]:</strong> Board must ensure that the company spends at least <strong>2% of average net profits</strong> of 3 preceding financial years on Schedule VII activities.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              page: 15,
+              chapter: "Chapter 6 • Audit & Auditors",
+              title: "Section 139 & 141: Appointment, Rotation & Disqualifications",
+              content: (
+                <div className="space-y-4">
+                  <p>
+                    <strong>Section 139(2) Mandatory Rotation:</strong> Listed and prescribed unlisted companies shall not appoint an individual auditor for more than <strong>1 term of 5 years</strong>, and an audit firm for more than <strong>2 terms of 5 years</strong> (5-year cooling period applies).
+                  </p>
+                  <p>
+                    <strong>Section 141(3) Disqualifications:</strong> A person whose relative is a director or in employment of the company, or holding securities exceeding face value of ₹1,00,000.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              page: 17,
+              chapter: "Chapter 7 • RTPs & MTPs Solved",
+              title: "5-Pillar Descriptive Model Answers & Scoring Rubrics",
+              content: (
+                <div className="space-y-4">
+                  <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-sans space-y-1.5 text-slate-800 dark:text-slate-200">
+                    <p className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      5-Pillar Descriptive Answer Framework (6/6 Marks):
+                    </p>
+                    <p>1. Exact Statutory Section &amp; Rule Citation</p>
+                    <p>2. Relevant Substantive Legal Principles &amp; Exceptions</p>
+                    <p>3. Application of Law to the Factual Matrix</p>
+                    <p>4. Decided Case Law / Secretarial Standard SS-2 Reference</p>
+                    <p>5. Explicit Reasoned Legal Conclusion</p>
+                  </div>
+                </div>
+              ),
+            },
+          ].map((pData) => (
             <div
-              className={`relative w-full max-w-3xl shadow-xl rounded-2xl p-6 sm:p-12 transition-all overflow-hidden ${
-                themeMode === "light"
-                  ? "bg-white text-slate-900 border border-slate-200"
-                  : themeMode === "sepia"
-                  ? "bg-[#fbf0d9] text-[#2b2416] border border-[#d6c59c]"
-                  : "bg-slate-900 text-slate-100 border border-slate-800"
+              key={pData.page}
+              ref={(el) => {
+                pageRefs.current[pData.page - 1] = el;
+              }}
+              className={`w-full max-w-3xl rounded-2xl p-6 sm:p-10 font-serif leading-relaxed shadow-sm border relative transition-all ${
+                isDarkMode
+                  ? "bg-[#0f172a] text-slate-100 border-slate-800"
+                  : "bg-white text-slate-900 border-slate-200"
               }`}
-              style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: "top center" }}
             >
-              {/* FORENSIC ANTI-PIRACY REPEATING DIAGONAL WATERMARK OVERLAY */}
-              <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-around overflow-hidden opacity-10 rotate-[-25deg] scale-125">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="text-center font-mono font-black text-xs sm:text-sm tracking-widest uppercase text-[#0284C7] whitespace-nowrap">
-                    CONFIDENTIAL • {student.name.toUpperCase()} • {student.rollNumber} • IP: {sessionIp} • {timestamp}
-                  </div>
-                ))}
-              </div>
-
-              {/* Document Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-6 relative z-10">
-                <div className="flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-[#0284C7]" />
-                  <span className="text-[11px] font-mono uppercase font-bold tracking-wider text-[#0284C7]">
-                    The Law Kaksha • ICAI CA Law Reviewer Codex
+              {/* Running Header */}
+              <div
+                className={`flex items-center justify-between pb-3 mb-4 border-b text-[10px] font-sans ${
+                  isDarkMode ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-400"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Scale className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span className="font-bold uppercase tracking-wider text-[#0284C7]">
+                    The Law Kaksha • Master Codex
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleBookmark(currentPage)}
-                    className="p-1.5 rounded-lg border border-slate-200 hover:border-[#0284C7] transition-colors"
-                  >
-                    <Bookmark
-                      className={`w-4 h-4 ${
-                        bookmarkedPages.includes(currentPage)
-                          ? "fill-[#0284C7] text-[#0284C7]"
-                          : "text-slate-400"
-                      }`}
-                    />
-                  </button>
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-sky-50 text-[#0284C7] border border-sky-200">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                </div>
+                <span className="font-mono font-bold text-slate-500">
+                  Page {pData.page} of {totalPages}
+                </span>
               </div>
 
-              {/* Dynamic Page Content Based on Current Page */}
-              <div className="space-y-6 text-xs sm:text-sm leading-relaxed font-serif relative z-10">
-                {currentPage === 1 && (
-                  <>
-                    <div className="text-center py-4 border-b border-slate-200">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#0284C7] font-sans">
-                        Chapter 1 • Sectional Codex
-                      </span>
-                      <h2 className="text-xl sm:text-2xl font-black font-serif mt-1 text-slate-900">
-                        Companies Act, 2013: Statutory Scheme &amp; Definitions
-                      </h2>
-                      <p className="text-xs text-slate-500 font-sans mt-1">
-                        Sections 1 to 22: Classification, MOA/AOA Doctrines &amp; Corporate Personality
-                      </p>
-                    </div>
-
-                    <p>
-                      <strong>1. Separate Legal Entity &amp; Lifting the Veil:</strong> Under Section 9 of the Companies Act 2013, upon registration, the subscribers to the memorandum become a body corporate capable of exercising all corporate functions. In <strong>Salomon v. Salomon &amp; Co. Ltd.</strong> and the Indian landmark <strong>Tata Engineering &amp; Locomotive Co. Ltd. v. State of Bihar</strong>, courts reaffirmed that a company is an independent juristic person distinct from its members.
-                    </p>
-
-                    <div className="p-4 rounded-xl bg-sky-50 border border-sky-200 text-xs font-sans space-y-2">
-                      <p className="font-bold text-[#0284C7] flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" /> ICAI High-Yield Statutory Highlight:
-                      </p>
-                      <p className="text-slate-700">
-                        Section 8 Companies are prohibited from distributing dividend to members and must apply profits solely in promoting statutory objects (commerce, art, science, sports, education, research, social welfare, religion, charity, protection of environment).
-                      </p>
-                    </div>
-
-                    <p>
-                      <strong>2. Doctrine of Indoor Management (Turquand's Rule):</strong> Persons dealing with the company are presumed to have read public documents (MOA &amp; AOA) under constructive notice, but are entitled to assume that internal statutory procedures have been regularly performed (<strong>Royal British Bank v. Turquand</strong>).
-                    </p>
-                  </>
-                )}
-
-                {currentPage > 1 && (
-                  <>
-                    <div className="border-b border-slate-200 pb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#0284C7] font-sans">
-                        Page {currentPage} • 5-Pillar Answer Framework
-                      </span>
-                      <h3 className="text-lg font-black font-serif mt-1 text-slate-900">
-                        Section 103: Quorum for General Meetings &amp; Solved Case Scenarios
-                      </h3>
-                    </div>
-
-                    <p>
-                      <strong>Statutory Quorum Matrix for Public Companies:</strong>
-                    </p>
-
-                    <div className="p-4 rounded-xl bg-sky-50 border border-sky-200 space-y-2 font-sans text-xs">
-                      <p className="font-bold text-[#0284C7]">Section 103(1)(a) Public Company Requirements:</p>
-                      <ul className="list-disc pl-4 space-y-1 text-slate-700">
-                        <li><strong>Up to 1,000 members:</strong> 5 members personally present.</li>
-                        <li><strong>1,001 to 5,000 members:</strong> 15 members personally present.</li>
-                        <li><strong>Exceeding 5,000 members:</strong> 30 members personally present.</li>
-                        <li><strong>Private Company (§103(1)(b)):</strong> 2 members personally present unless AOA requires more.</li>
-                      </ul>
-                    </div>
-
-                    <p>
-                      <strong>Adjournment Rule (§103(2)):</strong> If quorum is not present within 30 minutes from the time appointed: (a) If called upon requisition of members under §100, the meeting stands cancelled; (b) in any other case, it stands adjourned to the same day in the next week at the same time and place.
-                    </p>
-                  </>
-                )}
+              {/* Chapter Badge & Title */}
+              <div className="mb-4">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0284C7] font-sans">
+                  {pData.chapter}
+                </span>
+                <h3 className="text-base sm:text-lg font-black font-serif mt-0.5">
+                  {pData.title}
+                </h3>
               </div>
 
-              {/* Document Footer */}
-              <div className="mt-12 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-500 relative z-10 font-sans">
-                <span>The Law Kaksha CA Reviewer Series</span>
-                <span className="text-[#0284C7] font-bold">Watermarked: {student.rollNumber}</span>
-                <span>Page {currentPage}</span>
+              {/* Page Body */}
+              <div className="text-xs sm:text-sm leading-relaxed space-y-3">
+                {pData.content}
+              </div>
+
+              {/* Running Footer */}
+              <div
+                className={`mt-8 pt-3 border-t flex items-center justify-between text-[10px] font-sans text-slate-400 ${
+                  isDarkMode ? "border-slate-800" : "border-slate-100"
+                }`}
+              >
+                <span>Student Digital Edition</span>
+                <span>Page {pData.page}</span>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Bottom Navigation Pagination Bar */}
-        <div className="px-5 py-3 bg-white border-t border-sky-100 flex items-center justify-between shrink-0 text-xs">
-          <div className="flex items-center gap-2">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 disabled:opacity-40 hover:bg-slate-200 text-slate-800 font-semibold flex items-center gap-1 transition-all"
-            >
-              <ChevronLeft className="w-4 h-4 text-[#0284C7]" />
-              <span>Previous Page</span>
-            </button>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 disabled:opacity-40 hover:bg-slate-200 text-slate-800 font-semibold flex items-center gap-1 transition-all"
-            >
-              <span>Next Page</span>
-              <ChevronRight className="w-4 h-4 text-[#0284C7]" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
-              Viewing Page {currentPage} of {totalPages}
-            </span>
-            <div className="flex items-center gap-1.5 bg-sky-50 border border-sky-200 px-3 py-1 rounded-xl text-[#0284C7] font-bold text-[11px]">
-              <Shield className="w-3.5 h-3.5 text-[#0284C7]" />
-              <span>Anti-Piracy Shield Active</span>
-            </div>
-          </div>
+        {/* MINIMAL BOTTOM BAR */}
+        <div
+          className={`px-5 py-2.5 border-t flex items-center justify-between text-xs shrink-0 ${
+            isDarkMode ? "bg-[#0f172a] border-slate-800 text-slate-400" : "bg-white border-slate-100 text-slate-500"
+          }`}
+        >
+          <span className="text-[11px] font-medium">
+            Continuous Scroll Active • 18 Pages Loaded
+          </span>
+          <span className="font-mono text-[10px] font-bold text-[#0284C7]">
+            License ID: {student.rollNumber}
+          </span>
         </div>
       </div>
     </div>

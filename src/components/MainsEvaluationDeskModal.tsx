@@ -28,8 +28,8 @@ interface MainsEvaluationDeskModalProps {
 export function MainsEvaluationDeskModal({
   isOpen,
   onClose,
-  studentName = "Adv. Aryan Sharma",
-  rollNumber = "LK-2026-PCSJ-0842",
+  studentName = "Rohan Deshmukh",
+  rollNumber = "CRO-0689421",
 }: MainsEvaluationDeskModalProps) {
   const [selectedQuestion, setSelectedQuestion] = useState(0);
   const [fileUploaded, setFileUploaded] = useState(false);
@@ -41,34 +41,34 @@ export function MainsEvaluationDeskModal({
 
   const mockPrompts = [
     {
-      id: "Q-MAINS-2026-01",
-      title: "Doctrine of Res Sub-Judice vs Res Judicata (CPC 1908)",
-      marks: "15 Marks • Word Limit: 250 Words",
-      subject: "Civil Procedure Code, Sections 10 & 11",
+      id: "Q-CA-LAW-MTP-01",
+      title: "Section 185 (Loans to Directors) vs Section 186 (Loans & Investments by Company)",
+      marks: "14 Marks • Word Limit: 300 Words",
+      subject: "Companies Act 2013, Chapter XII (Meetings of Board & Powers)",
       deadline: "Sunday, 11:59 PM",
       submissionStatus: "Evaluated",
-      score: "14.0 / 15.0",
-      evaluatorName: "Adv. Pearl Dsouza (Ex-Judicial Officer)",
+      score: "13.5 / 14.0",
+      evaluatorName: "CA / CS Rahul Sharma Sir (Faculty Evaluator)",
       evaluatorComments:
-        "Outstanding synthesis of the 4 statutory ingredients. Excellent distinction between stay of suit vs bar of trial. Case law citations (National Institute of Mental Health v. K. Kalyana Raman) are razor sharp.",
+        "Outstanding legal drafting! Excellent 4-point structure: (1) Applicable provisions & statutory prohibitions, (2) Board resolution vs Special Resolution requirements, (3) Exemption clauses for MD/WTD schemes, and (4) Penalties under Sec 185(4). Model ICAI presentation.",
       pillarScores: [
-        { pillar: "Statutory Accuracy & Sections", score: "3.0 / 3.0", comment: "Sec 10 & 11 CPC exact verbatim key phrases" },
-        { pillar: "Leading Precedents & Citations", score: "3.0 / 3.0", comment: "Supreme Court 3-Judge Bench ratio captured" },
-        { pillar: "Issue Framing & Synthesis", score: "2.5 / 3.0", comment: "Clean breakdown into sub-issues" },
-        { pillar: "Doctrinal Distinction Table", score: "3.0 / 3.0", comment: "Tabular comparison was exemplary" },
-        { pillar: "Judicial Conclusion & Order Format", score: "2.5 / 3.0", comment: "Strong operative drafting" },
+        { pillar: "Statutory Accuracy & Sections", score: "3.0 / 3.0", comment: "Exact verbatim sub-sections cited (185(1), (2) & (3))" },
+        { pillar: "ICAI Drafting Format & Structuring", score: "3.0 / 3.0", comment: "Clean step-by-step conclusion" },
+        { pillar: "ROC & MCA Circular Synthesis", score: "2.5 / 3.0", comment: "Covered MCA general circulars on wholly-owned subsidiaries" },
+        { pillar: "Tabular Comparative Distinctions", score: "2.5 / 2.5", comment: "Section 185 vs 186 side-by-side table was brilliant" },
+        { pillar: "Operative Advice & Penalty Calculation", score: "2.5 / 2.5", comment: "Accurate calculation of maximum penalty limits" },
       ],
     },
     {
-      id: "Q-MAINS-2026-02",
-      title: "Bharatiya Nyaya Sanhita (BNS) Sec 103 vs IPC 302 - Murder vs Culpable Homicide",
-      marks: "20 Marks • Word Limit: 350 Words",
-      subject: "Criminal Law / BNS 2023",
+      id: "Q-CA-LAW-MTP-02",
+      title: "Section 135 CSR Spending Thresholds & Treatment of Unspent CSR Account",
+      marks: "10 Marks • Word Limit: 200 Words",
+      subject: "Companies Act 2013, Section 135 & Companies (CSR Policy) Rules",
       deadline: "Next Wednesday, 06:00 PM",
       submissionStatus: "Pending Evaluation",
       score: "Under Faculty Review",
-      evaluatorName: "Adv. Raghavendra Rao",
-      evaluatorComments: "Submission received. Copy allocated to Criminal Law Evaluation Board.",
+      evaluatorName: "Law Faculty Review Board",
+      evaluatorComments: "Submission received. Copy assigned to Corporate Law Evaluation Desk.",
       pillarScores: [],
     },
   ];

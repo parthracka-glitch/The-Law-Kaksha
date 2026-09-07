@@ -53,8 +53,8 @@ export function MasterclassVideoModal({
   activeLesson,
   allLessons = [],
   onSelectLesson,
-  studentName = "Adv. Aryan Sharma",
-  rollNumber = "LK-2026-PCSJ-0842",
+  studentName = "Rohan Deshmukh",
+  rollNumber = "CRO-0689421",
 }: MasterclassVideoModalProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.25);
@@ -62,8 +62,7 @@ export function MasterclassVideoModal({
   const [activeTab, setActiveTab] = useState<"notes" | "statutes" | "playlist" | "doubt">("notes");
   const [userNote, setUserNote] = useState("");
   const [savedNotes, setSavedNotes] = useState<string[]>([
-    "Section 10 CPC Res Sub-Judice applies when previous suit is pending in a court of competent jurisdiction.",
-    "Section 11 Res Judicata bar requires matter directly and substantially in issue in former suit.",
+    "Section 96: First AGM must be held within 9 months of FY close (No ROC extension allowed for first AGM).",
   ]);
   const [doubtText, setDoubtText] = useState("");
   const [doubtSubmitted, setDoubtSubmitted] = useState(false);
