@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "The Law Kaksha - Premier CA Law Academy Next.js Frontend",
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
