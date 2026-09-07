@@ -57,17 +57,28 @@ export function Navbar() {
   return (
     <>
       {/* Top Announcement Bar */}
-      <div className="bg-sky-50/80 text-slate-700 text-xs py-1.5 px-4 border-b border-sky-100 flex items-center justify-center gap-2 text-center">
-        <span className="inline-flex items-center gap-1 text-[#0284C7] font-semibold text-[11px]">
-          <Sparkles className="w-3 h-3 text-[#0284C7]" /> ICAI 2026-2027 Scheme:
-        </span>
-        <span className="text-slate-600 text-[11px]">
-          CA Foundation, Inter &amp; Final Law Reviewers with 9-Attempt Solved RTPs/MTPs
-        </span>
-        <span className="hidden sm:inline text-slate-400 font-mono">•</span>
-        <span className="hidden sm:inline text-[#0284C7] font-medium text-[11px]">
-          Use code <strong>CALAW20</strong> for 20% Off
-        </span>
+      <div className="bg-sky-50/80 text-slate-700 text-xs py-1.5 px-4 border-b border-sky-100 flex items-center justify-between text-center">
+        <div className="hidden sm:block w-20" />
+        <div className="flex items-center justify-center gap-2 mx-auto">
+          <span className="inline-flex items-center gap-1 text-[#0284C7] font-semibold text-[11px]">
+            <Sparkles className="w-3 h-3 text-[#0284C7]" /> ICAI 2026-2027 Scheme:
+          </span>
+          <span className="text-slate-600 text-[11px]">
+            CA Foundation, Inter &amp; Final Law Reviewers with 9-Attempt Solved RTPs/MTPs
+          </span>
+          <span className="hidden sm:inline text-slate-400 font-mono">•</span>
+          <span className="hidden sm:inline text-[#0284C7] font-medium text-[11px]">
+            Use code <strong>CALAW20</strong> for 20% Off
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px]">
+          <Link
+            href="/admin"
+            className="text-slate-400 hover:text-[#0284C7] font-medium transition-colors flex items-center gap-1"
+          >
+            <span>Admin</span>
+          </Link>
+        </div>
       </div>
 
       {/* Clean Header Bar */}
