@@ -1,0 +1,25 @@
+{
+  "name": "the-law-kaksha-backend",
+  "version": "1.0.0",
+  "description": "The Law Kaksha - Express API Backend for Render",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0"
+  },
+  "keywords": [
+    "express",
+    "the-law-kaksha",
+    "render",
+    "api"
+  ],
+  "author": "The Law Kaksha",
+  "license": "ISC"
+}
