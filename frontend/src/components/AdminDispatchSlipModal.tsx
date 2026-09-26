@@ -120,15 +120,10 @@ export function AdminDispatchSlipModal({
               {/* Slip Top Header */}
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-sky-50 text-[#0284C7] border border-sky-200 flex items-center justify-center font-serif font-black text-sm shadow-xs">
-                    LK
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-black text-base text-slate-900 leading-tight">
-                      THE LAW KAKSHA ACADEMY
-                    </h4>
+                  <LawKakshaLogo size="sm" />
+                  <div className="border-l border-slate-200 pl-3">
                     <p className="text-[10px] text-slate-500 font-semibold">
-                      Judicial Examination Publishing Division • New Delhi
+                      Judicial Examination Publishing Division • Pan-India Speed Dispatch
                     </p>
                   </div>
                 </div>

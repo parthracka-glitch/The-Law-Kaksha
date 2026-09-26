@@ -43,3 +43,6 @@ frontend/next-env.d.ts
 # OS Files
 .DS_Store
 Thumbs.db
+*.tmp
+backend/data/*.tmp
+

@@ -10,6 +10,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://thelawkaksha.com"),
   title: "The Law Kaksha | Premier CA Law Academy • CA Foundation, Inter & Final",
   description:
     "The Law Kaksha is India's premier CA law preparation platform offering 2-Volume Flagship Books, solved RTPs/MTPs/PYPs, case scenario MCQs, and complete video course subscriptions for CA Foundation (Business Law), CA Intermediate (Corporate & Other Laws), and CA Final (Corporate & Economic Laws).",
@@ -25,12 +26,30 @@ export const metadata: Metadata = {
     "ICAI New Scheme 2026",
   ],
   authors: [{ name: "The Law Kaksha CA Academy" }],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "The Law Kaksha | Premier CA Law Academy",
     description:
       "2-Volume Flagship Law Books, 9-Attempt Solved RTPs/MTPs & Video Subscriptions for CA Foundation, Inter & Final.",
     url: "https://thelawkaksha.com",
     siteName: "The Law Kaksha",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 849,
+        height: 517,
+        alt: "The Law कक्षा - Premier CA Law Academy",
+      },
+    ],
     locale: "en_IN",
     type: "website",
   },
@@ -38,6 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Law Kaksha | CA Law Academy",
     description: "Master CA Law & Regulations with Supreme Precision.",
+    images: ["/images/logo.png"],
   },
 };
 

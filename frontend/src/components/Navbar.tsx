@@ -98,22 +98,28 @@ export function Navbar() {
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-6 text-xs lg:text-sm font-medium text-slate-600">
             <Link
-              href="#pricing"
+              href="/courses"
               className="px-2 py-1 hover:text-[#0284C7] transition-colors"
             >
-              2-Volume CA Books &amp; Courses
+              Courses &amp; Books
             </Link>
             <Link
-              href="#testimonials"
+              href="/about"
+              className="px-2 py-1 hover:text-[#0284C7] transition-colors"
+            >
+              About Faculty
+            </Link>
+            <Link
+              href="/reviews"
               className="px-2 py-1 hover:text-[#0284C7] transition-colors"
             >
               CA Rankers
             </Link>
             <Link
-              href="#faqs"
+              href="/contact"
               className="px-2 py-1 hover:text-[#0284C7] transition-colors"
             >
-              FAQs
+              Contact
             </Link>
           </nav>
 
@@ -175,25 +181,32 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 space-y-2 animate-in slide-in-from-top-2 duration-150">
             <Link
-              href="#pricing"
+              href="/courses"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] rounded-lg"
             >
-              2-Volume CA Books &amp; Subscriptions
+              Courses &amp; Codices
             </Link>
             <Link
-              href="#testimonials"
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] rounded-lg"
+            >
+              About Faculty
+            </Link>
+            <Link
+              href="/reviews"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] rounded-lg"
             >
               CA All-India Rankers
             </Link>
             <Link
-              href="#faqs"
+              href="/contact"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] rounded-lg"
             >
-              Frequently Asked Questions
+              Contact &amp; Support
             </Link>
             <div className="pt-2 border-t border-slate-100">
               <Link

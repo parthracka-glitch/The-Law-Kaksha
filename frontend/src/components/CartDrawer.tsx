@@ -74,7 +74,7 @@ export function CartDrawer() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed && parsed.name) {
+          if (parsed && (parsed.name || parsed.email)) {
             setShippingData((prev) => ({
               ...prev,
               name: parsed.name || prev.name,
@@ -86,7 +86,7 @@ export function CartDrawer() {
         } catch (e) {}
       }
     }
-  }, []);
+  }, [isCartOpen]);
 
   if (!isCartOpen) return null;
 
@@ -104,10 +104,49 @@ export function CartDrawer() {
     setCheckoutStep("payment");
   };
 
-  const handleCompletePayment = () => {
+  const handleCompletePayment = async () => {
     setIsProcessingPayment(true);
-    setTimeout(() => {
-      const unlockedIds: string[] = [];
+    try {
+      // 1. Create order on backend server with price verification
+      const createRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items,
+            shippingDetails: shippingData,
+            couponCode: couponCode || null,
+          }),
+        }
+      );
+      const createData = await createRes.json();
+      const orderId = createData.orderId || `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      const razorpayOrderId = createData.razorpayOrderId || `order_${Date.now()}`;
+      const mockPaymentId = `pay_LK_${Date.now()}`;
+      const mockSignature = `sig_test_${Date.now()}`;
+
+      // 2. Perform Server-Side Verification
+      const verifyRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders/verify`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            razorpayOrderId,
+            razorpayPaymentId: mockPaymentId,
+            razorpaySignature: mockSignature,
+          }),
+        }
+      );
+      const verifyData = await verifyRes.json();
+      const serverOrder = verifyData.order || {};
+      const serverStudent = verifyData.student || {};
+      const serverUnlockedIds = verifyData.unlockedItemIds || [];
+
+      // Calculate unlocked IDs fallback
+      const unlockedIds: string[] = [...serverUnlockedIds];
       items.forEach((item) => {
         if (item.id === "ca-book-vol-1" || item.id === "book-vol-1") {
           unlockedIds.push("book-vol-1");
@@ -115,57 +154,39 @@ export function CartDrawer() {
           unlockedIds.push("book-vol-2");
         } else if (item.id === "book-mcq" || item.title.toLowerCase().includes("mcq")) {
           unlockedIds.push("book-mcq");
-        } else if (item.id === "book-ldr" || item.title.toLowerCase().includes("ldr") || item.title.toLowerCase().includes("revision")) {
+        } else if (item.id === "book-ldr" || item.title.toLowerCase().includes("ldr")) {
           unlockedIds.push("book-ldr");
-        } else if (item.id === "video-classes" || item.title.toLowerCase().includes("video") || item.title.toLowerCase().includes("masterclass")) {
+        } else if (item.id === "video-classes" || item.title.toLowerCase().includes("video")) {
           unlockedIds.push("video-classes");
-        } else if (item.id === "mains-evaluation" || item.title.toLowerCase().includes("evaluation") || item.title.toLowerCase().includes("desk")) {
+        } else if (item.id === "mains-evaluation" || item.title.toLowerCase().includes("evaluation")) {
           unlockedIds.push("mains-evaluation");
-        } else if (item.id.includes("both") || item.id.includes("combo")) {
-          unlockedIds.push("book-vol-1", "book-vol-2");
-        } else if (item.title.toLowerCase().includes("foundation")) {
-          unlockedIds.push("book-foundation");
-        } else if (item.title.toLowerCase().includes("final")) {
-          unlockedIds.push("book-final");
         } else {
           unlockedIds.push(item.id);
         }
       });
 
-      // Retrieve existing student session to preserve current unlocked items and profile
-      let existingUnlocked: string[] = [];
-      let studentName = shippingData.name || "Rohan Deshmukh";
-      let rollNumber = "CRO-0689421";
-      let studentEmail = shippingData.email || "rohan.d@gmail.com";
-      let studentPhone = shippingData.phone || "+91 98765 43210";
-      let targetExam = shippingData.exam || "CA Intermediate Paper 2: Corporate & Other Laws";
-
+      // Retrieve any prior unlocked IDs from existing session
+      let priorUnlocked: string[] = [];
       if (typeof window !== "undefined") {
         const saved = localStorage.getItem("lawkaksha_active_student");
         if (saved) {
           try {
-            const parsed = JSON.parse(saved);
-            if (parsed) {
-              if (Array.isArray(parsed.unlockedItemIds)) existingUnlocked = parsed.unlockedItemIds;
-              if (parsed.name) studentName = parsed.name;
-              if (parsed.rollNumber) rollNumber = parsed.rollNumber;
-              if (parsed.email) studentEmail = parsed.email;
-              if (parsed.phone) studentPhone = parsed.phone;
-              if (parsed.targetExam) targetExam = parsed.targetExam;
-            }
+            const p = JSON.parse(saved);
+            if (p && Array.isArray(p.unlockedItemIds)) priorUnlocked = p.unlockedItemIds;
           } catch (e) {}
         }
       }
 
-      const mergedUnlockedIds = Array.from(new Set([...existingUnlocked, ...unlockedIds]));
-      const generatedOrderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-      const generatedTxnId = `pay_LK_${Math.floor(10000000 + Math.random() * 90000000)}`;
+      const studentName = serverStudent.name || shippingData.name || "Rohan Deshmukh";
+      const studentEmail = serverStudent.email || shippingData.email || "rohan.deshmukh@gmail.com";
+      const rollNumber = serverStudent.student_id || "LRK-2026-068942";
+      const mergedUnlockedIds = Array.from(new Set([...priorUnlocked, ...unlockedIds, ...serverUnlockedIds]));
 
       const generatedOrder = {
-        orderId: generatedOrderId,
-        razorpayPaymentId: generatedTxnId,
+        orderId: serverOrder.id || orderId,
+        razorpayPaymentId: serverOrder.gateway_payment_id || mockPaymentId,
         items: [...items],
-        totalAmount: cartTotal,
+        totalAmount: serverOrder.total_amount || cartTotal,
         discountGiven: cartSubtotal - cartTotal,
         date: new Date().toLocaleDateString("en-IN", {
           day: "numeric",
@@ -176,25 +197,25 @@ export function CartDrawer() {
         }),
         studentName: studentName,
         email: studentEmail,
-        phone: studentPhone,
+        phone: shippingData.phone || "+91 98765 43210",
         studentId: rollNumber,
         tempPassword: `law@${Math.floor(1000 + Math.random() * 9000)}`,
         unlockedItemIds: mergedUnlockedIds,
         address: hasPhysicalItem
           ? `${shippingData.address}, ${shippingData.city}, ${shippingData.state} - ${shippingData.pincode}`
           : "Digital Delivery to Student Vault & Email",
-        trackingNumber: hasPhysicalItem ? `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}` : "INSTANT-DRM-VAULT",
+        trackingNumber: serverOrder.tracking_number || (hasPhysicalItem ? `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}` : "INSTANT-DRM-VAULT"),
       };
 
       if (typeof window !== "undefined") {
-        // 1. Update Student Session in localStorage
         const studentSession = {
           id: rollNumber,
           name: studentName,
           rollNumber: rollNumber,
+          student_id: rollNumber,
           email: studentEmail,
-          phone: studentPhone,
-          targetExam: targetExam,
+          phone: shippingData.phone,
+          targetExam: shippingData.exam,
           activePlanTitle: items.map((i) => i.title).join(" + "),
           unlockedItemIds: mergedUnlockedIds,
           streakDays: 14,
@@ -205,37 +226,36 @@ export function CartDrawer() {
         };
         localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
 
-        // 2. Automatically sync to Admin Orders Ledger
         const adminOrderEntry = {
-          id: generatedOrderId,
+          id: generatedOrder.orderId,
           customer: studentName,
-          phone: studentPhone,
+          phone: shippingData.phone,
           item: items.map((i) => `${i.title} (${i.format.toUpperCase()})`).join(", "),
           state: shippingData.state || "Maharashtra",
-          address: hasPhysicalItem
-            ? `${shippingData.address}, ${shippingData.city}, ${shippingData.state} - ${shippingData.pincode}`
-            : "Digital Instant DRM Vault Delivery",
+          address: generatedOrder.address,
           pincode: shippingData.pincode || "400001",
           amount: `₹${cartTotal}`,
           date: "Just now",
           status: "Processing",
-          tracking: hasPhysicalItem ? `DTDC-${Math.floor(7000000 + Math.random() * 2000000)}` : "INSTANT-DRM-VAULT",
+          tracking: generatedOrder.trackingNumber,
           courier: hasPhysicalItem ? "DTDC Express Air" : "Instant Student Vault",
         };
 
         const existingAdminOrders = localStorage.getItem("lawkaksha_admin_orders");
         const parsedAdminOrders = existingAdminOrders ? JSON.parse(existingAdminOrders) : [];
         localStorage.setItem("lawkaksha_admin_orders", JSON.stringify([adminOrderEntry, ...parsedAdminOrders]));
-
-        // 3. Dispatch global storage event for immediate UI reflection
         window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("lawkaksha_student_updated", { detail: mergedUnlockedIds }));
       }
 
       setLastOrderDetails(generatedOrder);
-      setIsProcessingPayment(false);
       setCheckoutStep("success");
       clearCart();
-    }, 1000);
+    } catch (err) {
+      console.error("Payment error:", err);
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   return (
@@ -730,7 +750,15 @@ export function CartDrawer() {
               <div className="space-y-2 pt-1">
                 <Link
                   href="/student"
-                  onClick={() => setIsCartOpen(false)}
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("lawkaksha_student_updated", { detail: lastOrderDetails.unlockedItemIds }));
+                      if (window.location.pathname === "/student") {
+                        window.location.reload();
+                      }
+                    }
+                  }}
                   className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all"
                 >
                   <BookOpen className="w-4 h-4" />

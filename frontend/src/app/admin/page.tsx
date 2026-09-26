@@ -501,9 +501,50 @@ export default function AdminPortalPage() {
     },
   ]);
 
-  // Load real-time orders and students from localStorage
+  // Load real-time orders and students from backend API and localStorage
   useEffect(() => {
-    const loadRealtimeOrders = () => {
+    const loadRealtimeOrders = async () => {
+      // 1. Fetch from Backend Server API
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("lawkaksha_token") : null;
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/orders`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.orders)) {
+            const mappedOrders: DispatchOrder[] = data.orders.map((o: any) => ({
+              id: o.id,
+              customer: o.shipping_name || o.customer || "Student",
+              phone: o.shipping_phone || o.phone || "+91 98765 43210",
+              item: Array.isArray(o.items)
+                ? o.items.map((i: any) => `${i.title || i.product_id} (${(i.format || "pdf").toUpperCase()})`).join(", ")
+                : o.item || "CA Corporate Law Codex",
+              state: o.shipping_address ? o.shipping_address.split(",").slice(-2)[0]?.trim() || "India" : "India",
+              address: o.shipping_address || "Instant Student DRM Vault",
+              pincode: o.shipping_address ? o.shipping_address.split("-").slice(-1)[0]?.trim() || "400001" : "400001",
+              amount: `₹${o.total_amount || 399}`,
+              date: o.created_at ? new Date(o.created_at).toLocaleDateString("en-IN") : "Today",
+              status: o.payment_status === "PAID" ? "Processing" : (o.payment_status || "Processing"),
+              tracking: o.tracking_number || "INSTANT-DRM-VAULT",
+              courier: o.shipping_address?.includes("Digital") ? "Instant Student Vault" : "DTDC Express Air",
+            }));
+
+            setOrders((prev) => {
+              const existingIds = new Set(prev.map((ord) => ord.id));
+              const newOnes = mappedOrders.filter((ord) => !existingIds.has(ord.id));
+              return [...newOnes, ...prev];
+            });
+          }
+        }
+      } catch (e) {
+        // Fallback to local storage if server offline
+      }
+
+      // 2. Fetch from LocalStorage
       if (typeof window !== "undefined") {
         const saved = localStorage.getItem("lawkaksha_admin_orders");
         if (saved) {
@@ -514,34 +555,6 @@ export default function AdminPortalPage() {
                 const existingIds = new Set(prev.map((o) => o.id));
                 const newOnes = parsed.filter((o: DispatchOrder) => !existingIds.has(o.id));
                 return [...newOnes, ...prev];
-              });
-
-              // Also reflect new customer records in Students table
-              parsed.forEach((ord: any) => {
-                if (ord && ord.customer) {
-                  setStudents((prev) => {
-                    const existingName = prev.some((s) => s.name.toLowerCase() === ord.customer.toLowerCase());
-                    if (!existingName) {
-                      return [
-                        {
-                          id: `LK-STU-${Math.floor(100 + Math.random() * 900)}`,
-                          rollNo: `CA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-                          name: ord.customer,
-                          email: `${ord.customer.toLowerCase().replace(/\s+/g, ".")}@gmail.com`,
-                          phone: ord.phone || "+91 98765 43210",
-                          plan: ord.item || "CA Law Master Codex",
-                          exam: "CA Intermediate Paper 2",
-                          enrolledOn: "Just now",
-                          device: "Windows 11 / iOS (Direct Sync)",
-                          deviceStatus: "Active on Device",
-                          transfersLeft: 3,
-                        },
-                        ...prev,
-                      ];
-                    }
-                    return prev;
-                  });
-                }
               });
             }
           } catch (e) {}

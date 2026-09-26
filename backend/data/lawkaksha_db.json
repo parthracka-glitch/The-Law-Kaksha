@@ -1,0 +1,406 @@
+{
+  "users": [
+    {
+      "id": "usr-student-001",
+      "student_id": "LRK-2026-068942",
+      "name": "Rohan Deshmukh",
+      "email": "rohan.deshmukh@gmail.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$DQKPIHPhEfsyYc4kZoh3oeQ2sLPJDRuds3BdIphZEc1pC1qSh0t/a",
+      "role": "student",
+      "target_exam": "CA Intermediate Paper 2: Corporate & Other Laws (Nov'26)",
+      "is_active": 1,
+      "created_at": "2026-09-25T18:31:10.552Z",
+      "updated_at": "2026-09-25T18:31:10.552Z"
+    },
+    {
+      "id": "usr-admin-001",
+      "student_id": "LRK-ADM-000001",
+      "name": "The Law Kaksha Admin",
+      "email": "admin@thelawkaksha.com",
+      "phone": "+91 99999 88888",
+      "password_hash": "$2b$10$058m7MDF/42BUgKLBL38Bu4oHmZtoZgL.jQjC.BQPn.RroEjq7Tly",
+      "role": "admin",
+      "target_exam": "Administrator",
+      "is_active": 1,
+      "created_at": "2026-09-25T18:31:10.548Z",
+      "updated_at": "2026-09-25T18:31:10.548Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "mains-evaluation",
+      "slug": "1-on-1-descriptive-test-series-copy-checking",
+      "type": "evaluation",
+      "title": "1-on-1 Descriptive Test Series & Copy Checking Desk",
+      "subtitle": "Submit your handwritten answer sheets for 5-pillar faculty grading and audio feedback.",
+      "pages_or_duration": "8 Full Papers",
+      "price": 699,
+      "original_price": 1299,
+      "badge": "Copy Checking",
+      "category": "CA Mains Evaluation",
+      "description": "Get detailed line-by-line checking of your law descriptive papers within 48 hours to boost scores to 70+. Includes personalized audio feedback note and model ICAI benchmark copies.",
+      "cover_image": "/covers/copy-checking.png",
+      "preview_file": "sample-evaluated-copy.pdf",
+      "full_file_key": "vault/test-series-papers-2026.zip",
+      "highlights": [
+        "8 Full 100-Mark ICAI Model Test Papers",
+        "5-Pillar Rubric: Law citation, fact synthesis, argument & conclusion",
+        "Line-by-line red-ink annotated PDF evaluation within 48 hours",
+        "Personalized faculty voice note highlighting improvement areas"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Test 1 & 2",
+          "title": "Chapter-wise Tests: Sections 1 to 72 (50 Marks Each)"
+        },
+        {
+          "chapter": "Test 3 & 4",
+          "title": "Chapter-wise Tests: Sections 73 to 148 (50 Marks Each)"
+        },
+        {
+          "chapter": "Test 5 & 6",
+          "title": "Other Laws Comprehensive Tests (50 Marks Each)"
+        },
+        {
+          "chapter": "Test 7 & 8",
+          "title": "Full Syllabus 100-Mark ICAI Simulation Papers"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.324Z",
+      "updated_at": "2026-09-25T18:31:10.324Z"
+    },
+    {
+      "id": "video-classes",
+      "slug": "hd-video-masterclasses-full-law-lecture-series",
+      "type": "video",
+      "title": "HD Video Masterclasses: Full Law Lecture Series",
+      "subtitle": "32 in-depth chapter masterclasses with timestamped notes and faculty drafting rubrics.",
+      "pages_or_duration": "45+ Hours",
+      "price": 999,
+      "original_price": 1899,
+      "badge": "Video Course",
+      "category": "CA Foundation & Inter",
+      "description": "Detailed video breakdown of tricky corporate law sections with practical boardroom case studies, real MCA portal demonstrations, and drafting walk-throughs.",
+      "cover_image": "/covers/video-series.png",
+      "preview_file": "sample-video-preview.mp4",
+      "full_file_key": "vault/masterclass-law-series-2026.m3u8",
+      "highlights": [
+        "32 HD Video Masterclasses with dual speed audio (1.25x/1.5x/2.0x)",
+        "Timestamped Bare Act section navigation",
+        "Faculty drafting rubrics for high-scoring descriptive answers",
+        "Boardroom practical case study discussions"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Module 1",
+          "title": "Company Formation & Secretarial Compliances (8 Lectures)"
+        },
+        {
+          "chapter": "Module 2",
+          "title": "Securities, Prospectus & Allotment Rules (6 Lectures)"
+        },
+        {
+          "chapter": "Module 3",
+          "title": "General Meetings, Quorum & Voting Dynamics (10 Lectures)"
+        },
+        {
+          "chapter": "Module 4",
+          "title": "Audit, CSR Mandates & Statutory Presumptions (8 Lectures)"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.322Z",
+      "updated_at": "2026-09-25T18:31:10.322Z"
+    },
+    {
+      "id": "book-ldr",
+      "slug": "1-5-day-last-day-revision-ldr-maps",
+      "type": "book",
+      "title": "1.5-Day Last Day Revision (LDR) Section Maps",
+      "subtitle": "Summary Flowcharts, Limit Tables & Penalty Code Tables for the last 36 hours.",
+      "pages_or_duration": "180 Pages",
+      "price": 199,
+      "original_price": 349,
+      "badge": "Quick Revision",
+      "category": "CA Exam Eve Maps",
+      "description": "Ultra-condensed visual flowcharts and penalty summary tables designed specifically for the final 36 hours before your CA exam. Retain limits, thresholds, and timeframes.",
+      "cover_image": "/covers/ldr-maps.png",
+      "preview_file": "sample-preview-ldr.pdf",
+      "full_file_key": "vault/ca-ldr-maps-full-2026.pdf",
+      "highlights": [
+        "Complete time-limit tables (15 days, 30 days, 60 days, 90 days)",
+        "Penal provisions & compoundable vs non-compoundable offenses map",
+        "1.5-day hour-by-hour revision timetable for CA Law",
+        "Formula sheets for quorum and voting percentage calculations"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Map 1",
+          "title": "Incorporation & Capital Limits Map"
+        },
+        {
+          "chapter": "Map 2",
+          "title": "Deposits & Charges Flowcharts"
+        },
+        {
+          "chapter": "Map 3",
+          "title": "General Meetings & Quorum Master Table"
+        },
+        {
+          "chapter": "Map 4",
+          "title": "Accounts, CSR & Audit Critical Sections Checklist"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.320Z",
+      "updated_at": "2026-09-25T18:31:10.320Z"
+    },
+    {
+      "id": "book-mcq",
+      "slug": "icai-case-scenarios-30-mark-mcq-bank",
+      "type": "mcq",
+      "title": "ICAI Case Scenarios & 30-Mark MCQ Bank (1,200+ Qs)",
+      "subtitle": "Mandatory 30-mark section with detailed reasoning for each option.",
+      "pages_or_duration": "260 Pages",
+      "price": 249,
+      "original_price": 449,
+      "badge": "Practice Drill",
+      "category": "Practice Question Bank",
+      "description": "Practice chapter-wise ICAI case scenarios, negative marking prevention drills, and MCA amendment MCQs. Includes step-by-step statutory reasoning for all 4 options.",
+      "cover_image": "/covers/mcq-codex.png",
+      "preview_file": "sample-preview-mcq.pdf",
+      "full_file_key": "vault/ca-mcq-bank-full-2026.pdf",
+      "highlights": [
+        "1,200+ ICAI Curated Multiple Choice Questions",
+        "Full reasoning and Bare Act citation for every correct option",
+        "35 Integrated Case Scenarios with 5 MCQs each",
+        "Negative marking elimination techniques"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Section 1",
+          "title": "Corporate Law Chapter-wise Objective Drills"
+        },
+        {
+          "chapter": "Section 2",
+          "title": "Economic & Other Laws Conceptual MCQs"
+        },
+        {
+          "chapter": "Section 3",
+          "title": "35 Integrated Comprehensive Case Scenarios"
+        },
+        {
+          "chapter": "Section 4",
+          "title": "Mock Test Papers Objective Section with Solutions"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.317Z",
+      "updated_at": "2026-09-25T18:31:10.317Z"
+    },
+    {
+      "id": "book-vol-2",
+      "slug": "volume-2-economic-and-other-business-laws",
+      "type": "book",
+      "title": "Volume 2: Economic & Other Business Laws Codex",
+      "subtitle": "General Clauses Act, Interpretation of Statutes & Foreign Contribution (FCRA).",
+      "pages_or_duration": "480 Pages",
+      "price": 349,
+      "original_price": 599,
+      "badge": "High-Yield Notes",
+      "category": "CA Intermediate Paper 2",
+      "description": "Master statutory interpretation rules, General Clauses Act presumption principles, and Foreign Contribution Regulation Act (FCRA). Crafted specifically for CA Inter Paper 2 high scoring.",
+      "cover_image": "/covers/vol2-codex.png",
+      "preview_file": "sample-preview-vol-2.pdf",
+      "full_file_key": "vault/ca-other-laws-vol2-full-2026.pdf",
+      "highlights": [
+        "General Clauses Act 1897 deep-dive with judicial precedents",
+        "Interpretation of Statutes: Primary & Secondary Rules",
+        "Foreign Contribution Regulation Act (FCRA) 2010 rules",
+        "Past 12 exam descriptive answers with marking criteria"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Part A",
+          "title": "The General Clauses Act, 1897 (Sections 1 to 30)"
+        },
+        {
+          "chapter": "Part B",
+          "title": "Interpretation of Statutes, Deeds and Documents"
+        },
+        {
+          "chapter": "Part C",
+          "title": "The Foreign Contribution (Regulation) Act, 2010 (FCRA)"
+        },
+        {
+          "chapter": "Part D",
+          "title": "The Limited Liability Partnership Act, 2008 Overview"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.315Z",
+      "updated_at": "2026-09-25T18:31:10.315Z"
+    },
+    {
+      "id": "book-vol-1",
+      "slug": "volume-1-ca-corporate-law-master-codex",
+      "type": "book",
+      "title": "Volume 1: CA Corporate Law Master Codex (2026-2027)",
+      "subtitle": "Companies Act 2013 (Sections 1 to 148) with full Bare Act synthesis.",
+      "pages_or_duration": "540 Pages",
+      "price": 399,
+      "original_price": 699,
+      "badge": "Primary Textbook",
+      "category": "CA Intermediate & Final",
+      "description": "Complete line-by-line coverage of Companies Act 2013 with 45+ ROC circulars and past 10 attempts solved questions. Includes flowchart summaries and penalty code tables.",
+      "cover_image": "/covers/vol1-codex.png",
+      "preview_file": "sample-preview-vol-1.pdf",
+      "full_file_key": "vault/ca-corp-law-vol1-full-2026.pdf",
+      "highlights": [
+        "Complete Sections 1 to 148 of Companies Act 2013",
+        "45+ ROC Circulars, MCA Notifications & General Rules",
+        "10 Past Exam Attempts Model Solved Answers",
+        "Summary limit tables & penal provisions checklist"
+      ],
+      "syllabus": [
+        {
+          "chapter": "Chapter 1",
+          "title": "Preliminary & Key Statutory Definitions (Sec 1-2)"
+        },
+        {
+          "chapter": "Chapter 2",
+          "title": "Incorporation of Company & Incidental Matters (Sec 3-22)"
+        },
+        {
+          "chapter": "Chapter 3",
+          "title": "Prospectus and Allotment of Securities (Sec 23-42)"
+        },
+        {
+          "chapter": "Chapter 4",
+          "title": "Share Capital and Debentures (Sec 43-72)"
+        },
+        {
+          "chapter": "Chapter 5",
+          "title": "Acceptance of Deposits by Companies (Sec 73-76A)"
+        },
+        {
+          "chapter": "Chapter 6",
+          "title": "Registration of Charges (Sec 77-87)"
+        },
+        {
+          "chapter": "Chapter 7",
+          "title": "Management and Administration (Sec 88-122)"
+        },
+        {
+          "chapter": "Chapter 8",
+          "title": "Declaration and Payment of Dividend (Sec 123-127)"
+        },
+        {
+          "chapter": "Chapter 9",
+          "title": "Accounts of Companies & CSR Mandates (Sec 128-138)"
+        },
+        {
+          "chapter": "Chapter 10",
+          "title": "Audit and Auditors (Sec 139-148)"
+        }
+      ],
+      "status": "published",
+      "created_at": "2026-09-25T18:31:10.312Z",
+      "updated_at": "2026-09-25T18:31:10.312Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "LK-ORD-982100",
+      "user_id": "usr-student-001",
+      "total_amount": 399,
+      "discount_amount": 100,
+      "coupon_code": "LAW20",
+      "payment_status": "PAID",
+      "payment_gateway": "razorpay",
+      "gateway_order_id": "order_mock_982100",
+      "gateway_payment_id": "pay_mock_982100",
+      "gateway_signature": "sig_mock_verified",
+      "shipping_name": "Rohan Deshmukh",
+      "shipping_email": "rohan.deshmukh@gmail.com",
+      "shipping_phone": "+91 98765 43210",
+      "shipping_address": "Flat 402, Nariman Point, Mumbai, Maharashtra - 400021",
+      "tracking_number": "INSTANT-DRM-VAULT",
+      "created_at": "2026-09-25T18:31:10.554Z",
+      "updated_at": "2026-09-25T18:31:10.554Z"
+    }
+  ],
+  "order_items": [],
+  "enrollments": [
+    {
+      "id": "enr-002",
+      "user_id": "usr-student-001",
+      "product_id": "book-mcq",
+      "order_id": "LK-ORD-982100",
+      "access_status": "ACTIVE",
+      "created_at": "2026-09-25T18:31:10.557Z",
+      "updated_at": "2026-09-25T18:31:10.557Z"
+    },
+    {
+      "id": "enr-001",
+      "user_id": "usr-student-001",
+      "product_id": "book-vol-1",
+      "order_id": "LK-ORD-982100",
+      "access_status": "ACTIVE",
+      "created_at": "2026-09-25T18:31:10.555Z",
+      "updated_at": "2026-09-25T18:31:10.555Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-004",
+      "product_id": "mains-evaluation",
+      "student_name": "Pooja Hegde",
+      "student_rank": "Cleared CA Inter with 68 in Law",
+      "rating": 5,
+      "title": "The 1-on-1 copy checking boosted my score by 22 marks.",
+      "comment": "I used to write stories instead of legal answers. The 5-pillar rubric taught me how to cite Bare Act provisions and synthesize facts concisely. The audio feedback note from faculty is fantastic.",
+      "is_approved": 1,
+      "created_at": "2026-09-25T18:31:10.562Z",
+      "updated_at": "2026-09-25T18:31:10.562Z"
+    },
+    {
+      "id": "rev-003",
+      "product_id": "book-ldr",
+      "student_name": "Siddharth Jain",
+      "student_rank": "CA Final Candidate",
+      "rating": 5,
+      "title": "Life-saver during the 1.5-day exam gap.",
+      "comment": "You cannot read 800 pages before the exam. These LDR maps condensing penalty codes and filing days into 180 visual pages are pure gold. Must-have for every law aspirant.",
+      "is_approved": 1,
+      "created_at": "2026-09-25T18:31:10.561Z",
+      "updated_at": "2026-09-25T18:31:10.561Z"
+    },
+    {
+      "id": "rev-002",
+      "product_id": "book-mcq",
+      "student_name": "Karan Mehta",
+      "student_rank": "AIR 14 \u2014 CA Inter",
+      "rating": 5,
+      "title": "Full 30/30 in MCQ section thanks to this Question Bank.",
+      "comment": "Every single question has explanations for why the other 3 options are incorrect. The integrated case studies gave me the exact confidence needed for the tricky ICAI negative marking traps.",
+      "is_approved": 1,
+      "created_at": "2026-09-25T18:31:10.559Z",
+      "updated_at": "2026-09-25T18:31:10.559Z"
+    },
+    {
+      "id": "rev-001",
+      "product_id": "book-vol-1",
+      "student_name": "Ananya Singhal",
+      "student_rank": "AIR 3 \u2014 CA Intermediate (Nov'25)",
+      "rating": 5,
+      "title": "Scored 74 in Law! Volume 1 is unmatched.",
+      "comment": "The way Section 96 to 103 are broken down with practical AGM and quorum tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from Pearl Ma'am's book!",
+      "is_approved": 1,
+      "created_at": "2026-09-25T18:31:10.558Z",
+      "updated_at": "2026-09-25T18:31:10.558Z"
+    }
+  ]
+}

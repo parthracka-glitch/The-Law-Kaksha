@@ -32,6 +32,7 @@ import { MasterclassVideoModal, MasterclassLesson } from "@/components/Mastercla
 import { MainsEvaluationDeskModal } from "@/components/MainsEvaluationDeskModal";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
 import { useCart } from "@/context/CartContext";
+import { apiRequest } from "@/lib/api";
 
 interface StudentProfile {
   id: string;
@@ -212,45 +213,119 @@ export default function StudentDashboardPage() {
   const [editName, setEditName] = useState("");
   const [editExam, setEditExam] = useState("");
 
-  // Load saved session on mount and listen to storage events
-  useEffect(() => {
-    const syncSession = () => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("lawkaksha_active_student");
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed) {
-              setStudent((prev) => ({
-                ...prev,
-                name: parsed.name || prev.name,
-                rollNumber: parsed.rollNumber || prev.rollNumber,
-                email: parsed.email || prev.email,
-                targetExam: parsed.targetExam || prev.targetExam,
-                unlockedItemIds: parsed.unlockedItemIds || prev.unlockedItemIds,
-                avatarInitials: parsed.avatarInitials || (parsed.name ? parsed.name.slice(0, 2).toUpperCase() : prev.avatarInitials),
-              }));
-              if (parsed.unlockedItemIds && parsed.unlockedItemIds.length > 0) {
-                setUnlockedItemIds(parsed.unlockedItemIds);
-              }
+  // Normalize any course or book ID alias to canonical IDs
+  const normalizeUnlockId = (id: string): string[] => {
+    const clean = (id || "").toLowerCase();
+    if (clean === "ca-book-vol-1" || clean === "book-vol-1") return ["book-vol-1"];
+    if (clean === "ca-book-vol-2" || clean === "book-vol-2") return ["book-vol-2"];
+    if (clean === "book-mcq" || clean.includes("mcq")) return ["book-mcq"];
+    if (clean === "book-ldr" || clean.includes("ldr") || clean.includes("revision")) return ["book-ldr"];
+    if (clean === "video-classes" || clean.includes("video") || clean.includes("masterclass") || clean.includes("lecture")) return ["video-classes"];
+    if (clean === "mains-evaluation" || clean.includes("evaluation") || clean.includes("desk")) return ["mains-evaluation"];
+    if (clean.includes("both") || clean.includes("combo")) return ["book-vol-1", "book-vol-2"];
+    if (clean.includes("business-law")) return ["book-vol-1", "book-vol-2", "video-classes"];
+    return [id];
+  };
+
+  // Load saved session on mount, fetch server session and listen to storage and custom events
+  const syncSession = async () => {
+    if (typeof window !== "undefined") {
+      let localUnlocked: string[] = [];
+
+      // 1. Check local session first
+      const saved = localStorage.getItem("lawkaksha_active_student");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed) {
+            if (Array.isArray(parsed.unlockedItemIds)) {
+              localUnlocked = parsed.unlockedItemIds.flatMap(normalizeUnlockId);
             }
-          } catch (e) {}
+            setStudent((prev) => ({
+              ...prev,
+              name: parsed.name || prev.name,
+              rollNumber: parsed.student_id || parsed.rollNumber || prev.rollNumber,
+              email: parsed.email || prev.email,
+              targetExam: parsed.targetExam || prev.targetExam,
+              unlockedItemIds: localUnlocked.length > 0 ? localUnlocked : prev.unlockedItemIds,
+              avatarInitials: parsed.avatarInitials || (parsed.name ? parsed.name.slice(0, 2).toUpperCase() : prev.avatarInitials),
+            }));
+            if (localUnlocked.length > 0) {
+              setUnlockedItemIds(Array.from(new Set(localUnlocked)));
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 2. Fetch server-verified profile and enrollments
+      const res = await apiRequest("/api/auth/me");
+      if (res.success && res.data) {
+        const user = res.data.user;
+        const serverEnrolled = (res.data.enrolledProductIds || []).flatMap(normalizeUnlockId);
+        if (user) {
+          const combinedUnlocked = Array.from(new Set([...localUnlocked, ...serverEnrolled]));
+          setStudent((prev) => ({
+            ...prev,
+            name: user.name,
+            rollNumber: user.student_id || prev.rollNumber,
+            email: user.email,
+            targetExam: user.target_exam || prev.targetExam,
+            unlockedItemIds: combinedUnlocked.length > 0 ? combinedUnlocked : prev.unlockedItemIds,
+          }));
+          if (combinedUnlocked.length > 0) {
+            setUnlockedItemIds(combinedUnlocked);
+            // Keep localStorage updated with the combined set
+            if (saved) {
+              try {
+                const p = JSON.parse(saved);
+                p.unlockedItemIds = combinedUnlocked;
+                localStorage.setItem("lawkaksha_active_student", JSON.stringify(p));
+              } catch (e) {}
+            }
+          }
         }
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     syncSession();
     window.addEventListener("storage", syncSession);
-    return () => window.removeEventListener("storage", syncSession);
+    window.addEventListener("lawkaksha_student_updated", syncSession);
+    window.addEventListener("focus", syncSession);
+    return () => {
+      window.removeEventListener("storage", syncSession);
+      window.removeEventListener("lawkaksha_student_updated", syncSession);
+      window.removeEventListener("focus", syncSession);
+    };
   }, []);
+
+  // Re-sync when switching between tabs
+  useEffect(() => {
+    syncSession();
+  }, [activeTab]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Open the selected study item
-  const handleOpenItem = (item: StudyItem) => {
+  // Open the selected study item with server-side authorization check
+  const handleOpenItem = async (item: StudyItem) => {
+    // Check if enrolled
+    const isEnrolled = isItemUnlocked(item.id);
+    if (!isEnrolled) {
+      showToast(`⛔ Access Denied: "${item.title}" has not been purchased.`);
+      return;
+    }
+
+    // Server-side entitlement check
+    const authRes = await apiRequest(`/api/content/${item.id}/access`);
+    if (!authRes.success && authRes.error === "ACCESS_DENIED") {
+      showToast("⛔ Server Access Denied: Enrollment not verified.");
+      return;
+    }
+
     if (item.type === "book" || item.type === "mcq") {
       setSelectedBookForReader({
         id: item.id,
@@ -278,6 +353,7 @@ export default function StudentDashboardPage() {
       category: item.badge,
       badge: item.badge,
     });
+    setIsCartOpen(true);
     showToast(`🛒 "${item.title}" added to your basket.`);
   };
 
@@ -313,9 +389,22 @@ export default function StudentDashboardPage() {
     }, 1500);
   };
 
+  // Flatten and normalize all unlocked IDs so all purchased items are recognized
+  const allNormalizedUnlockedIds = Array.from(
+    new Set(unlockedItemIds.flatMap(normalizeUnlockId))
+  );
+
+  const isItemUnlocked = (itemId: string) => {
+    return (
+      allNormalizedUnlockedIds.includes(itemId) ||
+      unlockedItemIds.includes(itemId) ||
+      allNormalizedUnlockedIds.some((uid) => uid === itemId || uid.includes(itemId) || itemId.includes(uid))
+    );
+  };
+
   // Split items into owned vs available
-  const myEnrolledItems = ALL_STUDY_ITEMS.filter((item) => unlockedItemIds.includes(item.id));
-  const availableItems = ALL_STUDY_ITEMS.filter((item) => !unlockedItemIds.includes(item.id));
+  const myEnrolledItems = ALL_STUDY_ITEMS.filter((item) => isItemUnlocked(item.id));
+  const availableItems = ALL_STUDY_ITEMS.filter((item) => !isItemUnlocked(item.id));
 
   // Filtered lists by search
   const filteredEnrolled = myEnrolledItems.filter((i) =>
@@ -347,7 +436,7 @@ export default function StudentDashboardPage() {
           
           {/* Brand */}
           <Link href="/" className="flex items-center hover:opacity-90 transition-opacity shrink-0">
-            <LawKakshaLogo variant="dark" />
+            <LawKakshaLogo variant="light" />
           </Link>
 
           {/* 2 Primary Clean Tabs */}
@@ -644,7 +733,7 @@ export default function StudentDashboardPage() {
             {/* Store Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredStore.map((item) => {
-                const isOwned = unlockedItemIds.includes(item.id);
+                const isOwned = isItemUnlocked(item.id);
 
                 return (
                   <div
