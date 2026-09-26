@@ -710,6 +710,7 @@ interface SampleModalProps {
   onClose: () => void;
   bookTitle?: string;
   bookId?: string;
+  defaultBookId?: string;
   bookPrice?: number;
 }
 
@@ -717,14 +718,16 @@ export function EnhancedSampleChapterModal({
   isOpen,
   onClose,
   bookTitle,
-  bookId = "ca-inter",
+  bookId,
+  defaultBookId = "ca-inter",
   bookPrice = 249,
 }: SampleModalProps) {
   const [zoomLevel, setZoomLevel] = useState(100);
   const { addToCart } = useCart();
 
   // Match the exact book clicked
-  const normalizedId = bookId.toLowerCase();
+  const activeBookKey = bookId || defaultBookId || "ca-inter";
+  const normalizedId = activeBookKey.toLowerCase();
   let bookDataBuilder = BOOK_SAMPLES[normalizedId];
 
   if (!bookDataBuilder) {
