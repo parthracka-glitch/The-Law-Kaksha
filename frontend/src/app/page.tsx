@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
-import { TenthPassInteractiveHub } from "@/components/TenthPassInteractiveHub";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
 import { SmartChoicePricing } from "@/components/SmartChoicePricing";
 import { MainsAnswerInspector } from "@/components/MainsAnswerInspector";
@@ -14,13 +13,10 @@ export default function Home() {
       {/* 1. Clean Navigation Bar & Announcement */}
       <Navbar />
 
-      {/* 2. Prestigious Hero Section with instant Sample Chapter modal trigger & Audience Toggle */}
+      {/* 2. Prestigious Hero Section with instant Sample Chapter modal trigger */}
       <HeroSection />
 
-      {/* 3. Dedicated Flagship Interactive Studio for Class 10/12 Pass Students */}
-      <TenthPassInteractiveHub />
-
-      {/* 4. Streamlined Exam Countdowns & Daily High-Yield MCQ Challenge */}
+      {/* 3. Streamlined Exam Countdowns & Daily High-Yield MCQ Challenge */}
       <ExamCountdownsAndQOTD />
 
       {/* 4. Study Packages: 2-Volume Flagship Books & Course Subscriptions */}

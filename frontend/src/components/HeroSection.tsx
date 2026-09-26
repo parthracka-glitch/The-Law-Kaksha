@@ -90,7 +90,6 @@ export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [studentMode, setStudentMode] = useState<"beginner" | "intermediate">("beginner");
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -144,126 +143,46 @@ export function HeroSection() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[400px] bg-gradient-to-b from-sky-50/70 via-sky-50/20 to-transparent blur-3xl pointer-events-none -z-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Audience Perspective Switcher */}
-          <div className="flex justify-center lg:justify-start mb-6">
-            <div className="inline-flex items-center p-1 rounded-2xl bg-slate-100/90 border border-slate-200 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setStudentMode("beginner");
-                  setCurrentSlide(2); // Jump to CA Foundation slide
-                }}
-                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  studentMode === "beginner"
-                    ? "bg-[#0284C7] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <span>🎓 Class 10 &amp; 12 Pass (New to CA)</span>
-                <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] bg-white/20 text-white font-mono">
-                  Provisional Entry
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setStudentMode("intermediate");
-                  setCurrentSlide(0); // Jump to CA Inter slide
-                }}
-                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  studentMode === "intermediate"
-                    ? "bg-[#0284C7] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <span>⚖️ CA Inter &amp; Final Aspirants</span>
-              </button>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
             
-            {/* Left Column: Dynamic Copy Based on Perspective */}
+            {/* Left Column: Authoritative Editorial Copy */}
             <div className="lg:col-span-7 space-y-4 text-center lg:text-left">
               
               {/* Dynamic Tag */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-xs font-semibold text-[#0284C7] shadow-xs transition-all duration-300">
                 <span className="w-2 h-2 rounded-full bg-[#0284C7] animate-pulse" />
-                <span className="tracking-wide">
-                  {studentMode === "beginner"
-                    ? "ICAI New Scheme: Provisional CA Foundation Entry for Class 10 Pass"
-                    : `ICAI 2026 Master Series: ${active.categoryTag}`}
-                </span>
+                <span className="tracking-wide">ICAI 2026 Master Series: {active.categoryTag}</span>
               </div>
 
               {/* Main Headline */}
-              {studentMode === "beginner" ? (
-                <h1 className="text-3xl sm:text-5xl lg:text-5.5xl font-serif font-black text-slate-900 tracking-tight leading-[1.14]">
-                  Start Your Journey to{" "}
-                  <span className="text-[#0284C7]">Chartered Accountant</span> Right After Class 10.
-                </h1>
-              ) : (
-                <h1 className="text-3xl sm:text-5xl lg:text-5.5xl font-serif font-black text-slate-900 tracking-tight leading-[1.14]">
-                  Master CA Law &amp; Regulations with{" "}
-                  <span className="text-[#0284C7]">Supreme Precision.</span>
-                </h1>
-              )}
+              <h1 className="text-3xl sm:text-5xl lg:text-5.5xl font-serif font-black text-slate-900 tracking-tight leading-[1.14]">
+                Master CA Law &amp; Regulations with{" "}
+                <span className="text-[#0284C7]">Supreme Precision.</span>
+              </h1>
 
               {/* Concise Subtitle */}
-              {studentMode === "beginner" ? (
-                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                  Think law is boring memorization? <strong className="text-slate-900 font-semibold">Think again!</strong> We turn the Indian Contract Act and Companies Law into <strong className="text-slate-800 font-semibold">real-life boardroom detective stories, visual flowcharts &amp; interactive 1-minute case puzzles</strong> so you can build your CA dream from school itself.
-                </p>
-              ) : (
-                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                  Engineered exclusively for <strong className="text-slate-900 font-semibold">CA Foundation, CA Intermediate &amp; CA Final</strong> aspirants. 
-                  Integrating <strong className="text-slate-800 font-semibold">10-attempt solved RTPs, MTPs &amp; Suggested Answers</strong>, Companies Act 2013 sections, MCA notifications, IBC 2016, and ICAI examiner scoring rubrics.
-                </p>
-              )}
+              <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+                Engineered exclusively for <strong className="text-slate-900 font-semibold">CA Foundation, CA Intermediate &amp; CA Final</strong> aspirants. 
+                Integrating <strong className="text-slate-800 font-semibold">10-attempt solved RTPs, MTPs &amp; Suggested Answers</strong>, Companies Act 2013 sections, MCA notifications, IBC 2016, and ICAI examiner scoring rubrics.
+              </p>
 
               {/* Dual Clean CTAs */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-1">
-                {studentMode === "beginner" ? (
-                  <>
-                    <a
-                      href="#tenth-pass-hub"
-                      className="inline-flex items-center gap-2 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs sm:text-sm font-semibold px-6 py-3 rounded-xl shadow-xs transition-all hover:shadow-md hover:shadow-sky-500/20 active:scale-95"
-                    >
-                      <span>Explore 10th-to-CA Roadmap &amp; Games</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
+                <Link
+                  href="#pricing"
+                  className="inline-flex items-center gap-2 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs sm:text-sm font-semibold px-6 py-3 rounded-xl shadow-xs transition-all hover:shadow-md hover:shadow-sky-500/20 active:scale-95"
+                >
+                  <span>Explore CA Books &amp; Courses</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
 
-                    <button
-                      type="button"
-                      onClick={() => setSampleModalOpen(true)}
-                      className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-sky-300 text-xs sm:text-sm font-semibold px-5 py-3 rounded-xl transition-all shadow-xs active:scale-95"
-                    >
-                      <Eye className="w-4 h-4 text-[#0284C7]" />
-                      <span>Preview Free Beginner Chapter</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="#pricing"
-                      className="inline-flex items-center gap-2 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs sm:text-sm font-semibold px-6 py-3 rounded-xl shadow-xs transition-all hover:shadow-md hover:shadow-sky-500/20 active:scale-95"
-                    >
-                      <span>Explore CA Books &amp; Courses</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => setSampleModalOpen(true)}
-                      className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-sky-300 text-xs sm:text-sm font-semibold px-5 py-3 rounded-xl transition-all shadow-xs active:scale-95"
-                    >
-                      <Eye className="w-4 h-4 text-[#0284C7]" />
-                      <span>View Sample Chapter</span>
-                    </button>
-                  </>
-                )}
+                <button
+                  onClick={() => setSampleModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-sky-300 text-xs sm:text-sm font-semibold px-5 py-3 rounded-xl transition-all shadow-xs active:scale-95"
+                >
+                  <Eye className="w-4 h-4 text-[#0284C7]" />
+                  <span>View Sample Chapter</span>
+                </button>
               </div>
 
               {/* Social Proof */}
@@ -273,11 +192,7 @@ export function HeroSection() {
                     <Star key={i} className="w-3.5 h-3.5 fill-current" />
                   ))}
                 </div>
-                <span>
-                  {studentMode === "beginner"
-                    ? "Trusted by 14,000+ Class 10 & 11 Commerce Beginners Across India"
-                    : "Rated 4.9/5 by 38,000+ Chartered Accountancy Aspirants Across India"}
-                </span>
+                <span>Rated <strong>4.9/5</strong> by 38,000+ Chartered Accountancy Aspirants Across India</span>
               </div>
             </div>
 
