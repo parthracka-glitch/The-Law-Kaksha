@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   BookOpen,
   FileText,
@@ -70,34 +71,37 @@ interface StudyItem {
   description: string;
   sampleBookId?: string;
   highlights: string[];
+  coverImage?: string;
 }
 
 const ALL_STUDY_ITEMS: StudyItem[] = [
   {
     id: "book-vol-1",
     type: "book",
-    title: "Volume 1: CA Corporate Law Master Codex (2026-2027)",
-    subtitle: "Companies Act 2013 (Sections 1 to 148) with full Bare Act synthesis.",
+    title: "Part 1: The Indian Contract Act, 1872",
+    subtitle: "Units 1 - 9 • Smart Revision Question Bank",
+    coverImage: "/covers/vol1-codex.webp",
     pagesOrDuration: "540 Pages",
-    price: 399,
-    originalPrice: 699,
-    badge: "Primary Textbook",
-    description: "Complete line-by-line coverage of Companies Act 2013 with 45+ ROC circulars and past 10 attempts solved questions.",
+    price: 249,
+    originalPrice: 449,
+    badge: "Volume 1",
+    description: "Official The Law कक्षा Smart Revision Question Bank for The Indian Contract Act 1872 with Application-based questions and model answers.",
     sampleBookId: "ca-inter",
-    highlights: ["Complete Sections 1 to 148", "ROC Circulars & Notifications", "ICAI Model Solved Questions"],
+    highlights: ["Units 1 to 9 Comprehensive Coverage", "Application-Based Questions & Answers", "Examiner Answer-Writing Framework"],
   },
   {
     id: "book-vol-2",
     type: "book",
-    title: "Volume 2: Economic & Other Business Laws Codex",
-    subtitle: "General Clauses Act, Interpretation of Statutes & Foreign Contribution (FCRA).",
+    title: "Part 2: Rest of the Acts",
+    subtitle: "Examiner's Answer-Writing Framework",
+    coverImage: "/covers/vol2-codex.webp",
     pagesOrDuration: "480 Pages",
-    price: 349,
-    originalPrice: 599,
-    badge: "High-Yield Notes",
-    description: "Master statutory interpretation rules, General Clauses Act presumption principles, and FCRA regulations.",
+    price: 249,
+    originalPrice: 449,
+    badge: "Volume 2",
+    description: "Sale of Goods, Partnership, LLP & Companies Act Question Bank with previous exam questions and scoring keyword rubrics.",
     sampleBookId: "ca-inter-vol2",
-    highlights: ["General Clauses Act deep-dive", "Interpretation of Statutes rules", "Past exam descriptive answers"],
+    highlights: ["Rest of the Business Law Acts", "Questions from Previous ICAI Exams", "Revision & Practice Framework"],
   },
   {
     id: "book-mcq",
@@ -609,6 +613,21 @@ export default function StudentDashboardPage() {
                         {item.pagesOrDuration}
                       </span>
                     </div>
+
+                    {item.coverImage && (
+                      <div className="relative mx-auto my-1.5 w-full flex items-center justify-center py-1">
+                        <div className="relative rounded-xl overflow-hidden shadow-[0_6px_18px_rgba(2,132,199,0.12)] border border-slate-200/90 bg-white transition-all duration-300 group-hover:shadow-[0_10px_24px_rgba(2,132,199,0.2)]">
+                          <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                          <Image
+                            src={item.coverImage}
+                            alt={item.title}
+                            width={240}
+                            height={360}
+                            className="h-44 w-auto object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]"
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0284C7] transition-colors leading-snug">

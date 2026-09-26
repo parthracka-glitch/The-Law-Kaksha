@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
@@ -130,26 +131,24 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white border border-sky-100 rounded-3xl p-6 sm:p-8 shadow-xs">
           {/* Left Column: Cover & Preview Trigger */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="aspect-4/3 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#0284C7] p-6 text-white flex flex-col justify-between relative overflow-hidden shadow-md">
-              <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#38BDF8]/20 rounded-full blur-2xl pointer-events-none" />
-
-              <div className="space-y-2">
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold tracking-wider uppercase text-sky-200">
-                  {product.badge || "Flagship"}
-                </span>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight font-serif">
-                  {product.title}
-                </h2>
-                <p className="text-xs text-slate-300">
-                  {product.pages_or_duration} • ICAI 2026-2027 Scheme
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-sky-200">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% Verified Bare Act
-                </span>
-                <span className="font-mono">THE LAW KAKSHA</span>
+            <div className="rounded-3xl bg-slate-50/80 border border-slate-200/90 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-xs">
+              <div className="relative group/book rounded-2xl overflow-hidden shadow-[0_16px_40px_rgba(2,132,199,0.18)] border border-slate-200 bg-white max-w-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(2,132,199,0.25)] hover:-translate-y-1">
+                {/* 3D Spine Lighting highlight */}
+                <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                <Image
+                  src={
+                    product.id.includes("vol-2")
+                      ? "/covers/vol2-codex.webp"
+                      : product.id.includes("combo") || product.id.includes("both")
+                      ? "/covers/combo-codex.webp"
+                      : "/covers/vol1-codex.webp"
+                  }
+                  alt={product.title}
+                  width={340}
+                  height={510}
+                  className="w-full h-auto object-cover object-top"
+                  priority
+                />
               </div>
             </div>
 

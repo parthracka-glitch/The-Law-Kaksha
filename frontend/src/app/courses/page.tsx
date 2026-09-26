@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
@@ -34,36 +35,39 @@ interface Product {
   category: string;
   pages_or_duration: string;
   highlights: string[];
+  cover_image?: string;
 }
 
 const FALLBACK_PRODUCTS: Product[] = [
   {
     id: "book-vol-1",
-    slug: "volume-1-ca-corporate-law-master-codex",
+    slug: "volume-1-ca-foundation-business-laws-contract-act",
     type: "book",
-    title: "Volume 1: CA Corporate Law Master Codex (2026-2027)",
-    subtitle: "Companies Act 2013 (Sections 1 to 148) with full Bare Act synthesis.",
+    title: "Part 1: The Indian Contract Act, 1872",
+    subtitle: "Units 1 - 9 • Smart Revision Question Bank",
+    cover_image: "/covers/vol1-codex.webp",
     pages_or_duration: "540 Pages",
-    price: 399,
-    original_price: 699,
-    badge: "Primary Textbook",
-    category: "CA Intermediate & Final",
-    description: "Complete line-by-line coverage of Companies Act 2013 with 45+ ROC circulars and past 10 attempts solved questions.",
-    highlights: ["Complete Sections 1 to 148", "ROC Circulars & Notifications", "ICAI Model Solved Questions"],
+    price: 249,
+    original_price: 449,
+    badge: "Volume 1",
+    category: "CA Foundation Paper 2",
+    description: "Official The Law कक्षा Smart Revision Question Bank for The Indian Contract Act 1872 with Application-based questions and model answers.",
+    highlights: ["Units 1 to 9 Comprehensive Coverage", "Application-Based Questions & Answers", "Examiner Answer-Writing Framework"],
   },
   {
     id: "book-vol-2",
-    slug: "volume-2-economic-and-other-business-laws",
+    slug: "volume-2-ca-foundation-business-laws-rest-of-acts",
     type: "book",
-    title: "Volume 2: Economic & Other Business Laws Codex",
-    subtitle: "General Clauses Act, Interpretation of Statutes & Foreign Contribution (FCRA).",
+    title: "Part 2: Rest of the Acts",
+    subtitle: "Examiner's Answer-Writing Framework",
+    cover_image: "/covers/vol2-codex.webp",
     pages_or_duration: "480 Pages",
-    price: 349,
-    original_price: 599,
-    badge: "High-Yield Notes",
-    category: "CA Intermediate Paper 2",
-    description: "Master statutory interpretation rules, General Clauses Act presumption principles, and FCRA regulations.",
-    highlights: ["General Clauses Act deep-dive", "Interpretation of Statutes rules", "Past exam descriptive answers"],
+    price: 249,
+    original_price: 449,
+    badge: "Volume 2",
+    category: "CA Foundation Paper 2",
+    description: "Sale of Goods, Partnership, LLP & Companies Act Question Bank with previous exam questions and scoring keyword rubrics.",
+    highlights: ["Rest of the Business Law Acts", "Questions from Previous ICAI Exams", "Revision & Practice Framework"],
   },
   {
     id: "book-mcq",
@@ -326,6 +330,21 @@ export default function CoursesCatalogPage() {
                       {product.pages_or_duration}
                     </span>
                   </div>
+
+                  {product.cover_image && (
+                    <div className="relative mx-auto my-1.5 w-full flex items-center justify-center py-1">
+                      <div className="relative group/book rounded-xl overflow-hidden shadow-[0_6px_18px_rgba(2,132,199,0.12)] border border-slate-200/90 bg-white transition-all duration-300 group-hover:shadow-[0_10px_24px_rgba(2,132,199,0.2)]">
+                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                        <Image
+                          src={product.cover_image}
+                          alt={product.title}
+                          width={240}
+                          height={360}
+                          className="h-44 w-auto object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <Link href={`/product/${product.id}`} className="block group-hover:text-[#0284C7] transition-colors">
                     <h3 className="text-base font-bold text-slate-900 leading-snug font-serif">

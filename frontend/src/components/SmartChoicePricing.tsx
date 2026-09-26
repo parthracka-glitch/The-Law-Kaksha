@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   CheckCircle2,
   ArrowRight,
@@ -45,8 +46,9 @@ export function SmartChoicePricing() {
   const bookPackages = [
     {
       id: "ca-book-vol-1",
-      title: "Volume 1: CA Law Codex",
-      subtitle: "Case Scenarios, Section Notes & 1,200+ MCQs",
+      title: "Part 1: The Indian Contract Act",
+      subtitle: "Units 1 - 9 • Smart Revision Question Bank",
+      coverImage: "/covers/vol1-codex.webp",
       price: 249,
       originalPrice: 449,
       discount: "45% OFF",
@@ -54,20 +56,21 @@ export function SmartChoicePricing() {
       badge: "Volume 1 Only",
       popular: false,
       includedVolumes: [
-        { vol: "Vol. 1", name: "Companies Act 2013 & Other Laws 1,200+ Case Scenarios & MCQs (540 Pgs)" },
+        { vol: "Part 1", name: "The Indian Contract Act 1872 (Units 1-9), Model Answers & Exam Framework (540 Pgs)" },
       ],
       features: [
-        "Immediate PDF delivery to student portal vault",
-        "Section-by-section breakdown for 30-mark MCQs",
-        "Annotatable high-res DRM PDF for iPad & PC",
-        "Updated for ICAI 2026-2027 examination syllabus",
+        "Official The Law कक्षा Smart Revision Question Bank",
+        "Application-based questions & ICAI model answers",
+        "Annotatable high-res DRM PDF for iPad, tablet & PC",
+        "Updated for CA Foundation Paper 2 Business Laws (2026-2027)",
       ],
-      ctaText: "Get Volume 1 PDF",
+      ctaText: "Get Part 1 PDF",
     },
     {
       id: "ca-book-vol-2",
-      title: "Volume 2: Solved RTP/MTPs",
-      subtitle: "9-Attempt Solved Papers & Descriptive Models",
+      title: "Part 2: Rest of the Acts",
+      subtitle: "Examiner's Answer-Writing Framework",
+      coverImage: "/covers/vol2-codex.webp",
       price: 249,
       originalPrice: 449,
       discount: "45% OFF",
@@ -75,20 +78,21 @@ export function SmartChoicePricing() {
       badge: "Volume 2 Only",
       popular: false,
       includedVolumes: [
-        { vol: "Vol. 2", name: "Past 9-Attempt Solved RTPs, MTPs & Examiner Scoring Rubrics (490 Pgs)" },
+        { vol: "Part 2", name: "Sale of Goods, Partnership, LLP & Companies Act Question Bank (490 Pgs)" },
       ],
       features: [
-        "Immediate PDF delivery to student portal vault",
-        "Step-by-step scoring keywords for 70-mark descriptive",
-        "Annotatable high-res DRM PDF for iPad & PC",
-        "1.5-day exam day quick revision summaries",
+        "Official The Law कक्षा Smart Revision Question Bank",
+        "Questions from previous ICAI exams with keywords",
+        "Annotatable high-res DRM PDF for iPad, tablet & PC",
+        "1.5-day exam day quick revision & practice framework",
       ],
-      ctaText: "Get Volume 2 PDF",
+      ctaText: "Get Part 2 PDF",
     },
     {
       id: "ca-books-both-digital",
       title: "Both Volumes (Digital PDF)",
-      subtitle: "Complete Digital 2-Book Bundle (Vol 1 + Vol 2)",
+      subtitle: "Complete 2-Volume Smart Revision Question Bank",
+      coverImage: "/covers/combo-codex.webp",
       price: 399,
       originalPrice: 799,
       discount: "50% OFF",
@@ -96,14 +100,14 @@ export function SmartChoicePricing() {
       badge: "Best Value • Digital",
       popular: false,
       includedVolumes: [
-        { vol: "Vol. 1", name: "Case Scenarios & Objective MCQ Codex (540 Pgs)" },
-        { vol: "Vol. 2", name: "9-Attempt Solved RTPs, MTPs & Model Answers (490 Pgs)" },
+        { vol: "Part 1", name: "The Indian Contract Act 1872 Units 1-9 (540 Pgs)" },
+        { vol: "Part 2", name: "Rest of the Acts & Previous Exams Compendium (490 Pgs)" },
       ],
       features: [
-        "Instant access to both Vol 1 & Vol 2 in student vault",
-        "100% exam coverage (30-mark MCQs + 70-mark Descriptive)",
+        "Instant access to both Part 1 & Part 2 in student vault",
+        "100% syllabus coverage (Application questions + Model answers)",
         "Searchable & annotatable high-res DRM PDFs",
-        "Free statutory MCA circulars & amendment updates",
+        "Free statutory amendment & circular updates",
       ],
       ctaText: "Get Both Volumes (Digital)",
     },
@@ -111,6 +115,7 @@ export function SmartChoicePricing() {
       id: "ca-books-both-hardcopies",
       title: "Hardcopies: Both Volumes",
       subtitle: "Physical 2-Book Box Set to Doorstep",
+      coverImage: "/covers/combo-codex.webp",
       price: 699,
       originalPrice: 1199,
       discount: "42% OFF",
@@ -118,8 +123,8 @@ export function SmartChoicePricing() {
       badge: "Most Popular • Printed Set",
       popular: true,
       includedVolumes: [
-        { vol: "Printed 1", name: "Physical Book: Volume 1 Case Scenarios & MCQs (540 Pgs)" },
-        { vol: "Printed 2", name: "Physical Book: Volume 2 RTPs & Descriptive Codex (490 Pgs)" },
+        { vol: "Part 1", name: "Printed Book: The Indian Contract Act 1872 (540 Pgs)" },
+        { vol: "Part 2", name: "Printed Book: Rest of the Acts & Question Bank (490 Pgs)" },
       ],
       features: [
         "Both physical books shipped in a protective box set",
@@ -303,7 +308,22 @@ export function SmartChoicePricing() {
                       </span>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900 mb-1">
+                    {/* Book Front Cover 3D Display */}
+                    <div className="relative mx-auto mb-4 w-full flex items-center justify-center py-1">
+                      <div className="relative group/book rounded-xl overflow-hidden shadow-[0_8px_20px_rgba(2,132,199,0.12)] border border-slate-200/90 bg-white transition-all duration-300 hover:shadow-[0_12px_28px_rgba(2,132,199,0.22)] hover:-translate-y-1">
+                        {/* 3D Spine Lighting highlight */}
+                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                        <Image
+                          src={pkg.coverImage}
+                          alt={pkg.title}
+                          width={260}
+                          height={390}
+                          className="h-44 sm:h-48 w-auto object-cover object-top transition-transform duration-300 group-hover/book:scale-[1.03]"
+                        />
+                      </div>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900 mb-1 leading-snug">
                       {pkg.title}
                     </h3>
                     <p className="text-xs text-slate-500 mb-3">{pkg.subtitle}</p>
