@@ -5,11 +5,8 @@ import {
   CheckCircle2,
   XCircle,
   Sparkles,
-  Scale,
   FileText,
-  ArrowRight,
 } from "lucide-react";
-import { useCart } from "@/context/CartContext";
 
 interface ModelAnswerCase {
   id: string;
@@ -116,119 +113,206 @@ However, for financial creditors, pre-existing dispute does not matter like Sect
 
 export function MainsAnswerInspector() {
   const [activeCaseId, setActiveCaseId] = useState<string>("ca-inter-corp");
-  const { addToCart } = useCart();
 
   const currentCase =
     MAINS_CASES.find((c) => c.id === activeCaseId) || MAINS_CASES[0];
 
   return (
-    <section id="mains-inspector" className="py-8 sm:py-10 bg-white text-slate-800 border-b border-slate-100">
+    <section id="mains-inspector" className="py-12 sm:py-16 bg-white text-slate-800 border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-5">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0284C7] font-serif block mb-1">
-            Answer Writing Evaluation
-          </span>
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-100/80 text-[11px] font-semibold tracking-wide uppercase text-[#0284C7] mb-3">
+            <Sparkles className="w-3 h-3 text-[#0284C7]" />
+            ICAI Scoring Rubric Matrix
+          </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight">
             Mains Answer Architecture
           </h2>
-          <p className="mt-1.5 text-xs sm:text-sm text-slate-600">
-            Compare average answers with The Law Kaksha 5-pillar model solution to understand examiner scoring rubrics.
+          <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+            See the exact difference between an average draft and a rank-grade 4-pillar model solution evaluated against ICAI examiner rubrics.
           </p>
         </div>
 
-        {/* Topic Selector Tabs */}
-        <div className="flex justify-center gap-2 mb-5">
-          {MAINS_CASES.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveCaseId(c.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2 ${
-                activeCaseId === c.id
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>{c.subject}</span>
-            </button>
-          ))}
+        {/* Minimalist Segmented Tabs */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60 shadow-xs">
+            {MAINS_CASES.map((c) => {
+              const isActive = activeCaseId === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCaseId(c.id)}
+                  className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    isActive
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                  }`}
+                >
+                  <FileText className={`w-3.5 h-3.5 ${isActive ? "text-[#0284C7]" : "text-slate-400"}`} />
+                  <span>{c.subject}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Question Prompt Card */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 mb-5">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-            <span className="font-semibold text-slate-800">Prompt ({currentCase.marks})</span>
-            <span className="text-[11px] font-mono">{currentCase.topic}</span>
+        <div className="rounded-2xl bg-slate-50/70 border border-slate-200/80 p-5 sm:p-6 mb-8 transition-colors">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-200/60">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                ICAI Exam Problem
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-800 text-[11px] font-semibold">
+                {currentCase.marks}
+              </span>
+            </div>
+            <span className="text-xs font-mono text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200/60">
+              {currentCase.topic}
+            </span>
           </div>
-          <p className="text-xs sm:text-sm font-serif font-medium text-slate-900 leading-relaxed">
-            &ldquo;{currentCase.question}&rdquo;
-          </p>
+          <blockquote className="border-l-2 border-slate-300 pl-3.5 my-1">
+            <p className="text-xs sm:text-sm text-slate-800 font-serif leading-relaxed italic">
+              &ldquo;{currentCase.question}&rdquo;
+            </p>
+          </blockquote>
         </div>
 
         {/* Side-by-Side Comparison Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           
-          {/* LEFT: AVERAGE ANSWER */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 flex flex-col justify-between space-y-4">
-            <div className="space-y-4">
+          {/* LEFT: AVERAGE ASPIRANT DRAFT */}
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 flex flex-col justify-between hover:border-slate-300 transition-colors">
+            <div className="space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-bold text-rose-700 uppercase">Average Aspirant Draft</span>
-                <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
-                  {currentCase.averageAnswer.score}
-                </span>
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block text-[10px]">
+                    Comparative Draft
+                  </span>
+                  <span className="text-sm font-bold text-slate-800">
+                    Average Aspirant Draft
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold">
+                  <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                  <span>{currentCase.averageAnswer.score}</span>
+                </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-line">
+              {/* Draft text */}
+              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-line">
                 {currentCase.averageAnswer.text}
               </div>
 
-              <div className="space-y-1.5 pt-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Examiner Critique:</p>
-                {currentCase.averageAnswer.critiquePoints.map((critique, idx) => (
-                  <p key={idx} className="text-xs text-rose-700">
-                    {critique}
-                  </p>
-                ))}
+              {/* Examiner Critique List */}
+              <div className="space-y-2.5 pt-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 block">
+                  Examiner Critique &amp; Negative Deductions:
+                </span>
+                <div className="space-y-2">
+                  {currentCase.averageAnswer.critiquePoints.map((critique, idx) => {
+                    const cleanText = critique.replace(/^❌\s*/, "");
+                    return (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-600">
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{cleanText}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
 
           {/* RIGHT: THE LAW KAKSHA MODEL SOLUTION */}
-          <div className="rounded-2xl bg-white border border-sky-200 p-6 flex flex-col justify-between space-y-4 shadow-xs">
-            <div className="space-y-4">
+          <div className="rounded-2xl bg-gradient-to-b from-sky-50/30 via-white to-white border border-sky-200/80 p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:border-sky-300 transition-colors">
+            <div className="space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-sky-100">
-                <span className="text-xs font-bold text-[#0284C7] uppercase">The Law Kaksha Model Solution</span>
-                <span className="text-xs font-bold text-[#0284C7] bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                  {currentCase.lawKakshaAnswer.score}
-                </span>
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0284C7] block text-[10px]">
+                    ICAI Ranker Framework
+                  </span>
+                  <span className="text-sm font-bold text-slate-900">
+                    The Law Kaksha Model Solution
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{currentCase.lawKakshaAnswer.score}</span>
+                </div>
               </div>
 
+              {/* 4-Pillar Breakdown */}
               <div className="space-y-2.5 text-xs">
-                <div className="p-3 rounded-lg bg-sky-50/40 border border-sky-100">
-                  <strong className="text-slate-900 block mb-0.5">1. Formulated Legal Issue:</strong>
-                  <p className="text-slate-700">{currentCase.lawKakshaAnswer.issue}</p>
+                
+                {/* Pillar 1 */}
+                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                      1
+                    </span>
+                    <strong className="text-slate-900 font-semibold">Formulated Legal Issue</strong>
+                  </div>
+                  <p className="text-slate-600 pl-5.5 leading-relaxed">
+                    {currentCase.lawKakshaAnswer.issue}
+                  </p>
                 </div>
 
-                <div className="p-3 rounded-lg bg-sky-50/40 border border-sky-100">
-                  <strong className="text-slate-900 block mb-0.5">2. Statutory Framework:</strong>
-                  <p className="text-slate-700">{currentCase.lawKakshaAnswer.statutoryBasis}</p>
+                {/* Pillar 2 */}
+                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                      2
+                    </span>
+                    <strong className="text-slate-900 font-semibold">Statutory Framework</strong>
+                  </div>
+                  <p className="text-slate-600 pl-5.5 leading-relaxed">
+                    {currentCase.lawKakshaAnswer.statutoryBasis}
+                  </p>
                 </div>
 
-                <div className="p-3 rounded-lg bg-sky-50/40 border border-sky-100">
-                  <strong className="text-slate-900 block mb-0.5">3. Supreme Court Precedents:</strong>
-                  {currentCase.lawKakshaAnswer.landmarkCases.map((cs, idx) => (
-                    <p key={idx} className="text-slate-700">
-                      <strong>{cs.name}</strong> <span className="font-mono text-[10px] text-slate-500">({cs.citation})</span>: {cs.rule}
-                    </p>
-                  ))}
+                {/* Pillar 3 */}
+                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                      3
+                    </span>
+                    <strong className="text-slate-900 font-semibold">Supreme Court Precedents &amp; Rules</strong>
+                  </div>
+                  <div className="pl-5.5 space-y-1">
+                    {currentCase.lawKakshaAnswer.landmarkCases.map((cs, idx) => (
+                      <p key={idx} className="text-slate-600 leading-relaxed">
+                        <strong className="text-slate-800">{cs.name}</strong>{" "}
+                        <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
+                          {cs.citation}
+                        </span>
+                        : {cs.rule}
+                      </p>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-sky-50/40 border border-sky-100">
-                  <strong className="text-slate-900 block mb-0.5">4. Conclusion &amp; Ruling:</strong>
-                  <p className="text-slate-700">{currentCase.lawKakshaAnswer.conclusion}</p>
+                {/* Pillar 4 */}
+                <div className="p-3 rounded-xl bg-sky-50/50 border border-sky-200/80 shadow-2xs">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-[#0284C7] text-white text-[10px] font-bold flex items-center justify-center">
+                      4
+                    </span>
+                    <strong className="text-slate-900 font-semibold">Conclusion &amp; Ruling</strong>
+                  </div>
+                  <p className="text-slate-700 pl-5.5 leading-relaxed font-medium">
+                    {currentCase.lawKakshaAnswer.conclusion}
+                  </p>
                 </div>
+
+              </div>
+
+              {/* Examiner Remarks Note */}
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600 flex items-center gap-2">
+                <span className="text-amber-500 font-bold">★</span>
+                <span>{currentCase.lawKakshaAnswer.examinerRemarks.replace(/^⭐\s*/, "")}</span>
               </div>
             </div>
           </div>
