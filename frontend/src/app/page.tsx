@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
+import { PublicLeaderboardSection } from "@/components/PublicLeaderboardSection";
 import { SmartChoicePricing } from "@/components/SmartChoicePricing";
 import { MainsAnswerInspector } from "@/components/MainsAnswerInspector";
 import { Testimonials } from "@/components/Testimonials";
@@ -19,19 +20,22 @@ export default function Home() {
       {/* 3. Streamlined Exam Countdowns & Daily High-Yield MCQ Challenge */}
       <ExamCountdownsAndQOTD />
 
-      {/* 4. Study Packages: 2-Volume Flagship Books & Course Subscriptions */}
+      {/* 4. All-India Daily Legal Challenge Leaderboard */}
+      <PublicLeaderboardSection />
+
+      {/* 5. Study Packages: 2-Volume Flagship Books & Course Subscriptions */}
       <SmartChoicePricing />
 
-      {/* 5. Interactive 5-Pillar Model Legal Answer Builder */}
+      {/* 6. Interactive 5-Pillar Model Legal Answer Builder */}
       <MainsAnswerInspector />
 
-      {/* 6. Toppers Testimonials */}
+      {/* 7. Toppers Testimonials */}
       <Testimonials />
 
-      {/* 7. Frequently Asked Questions */}
+      {/* 8. Frequently Asked Questions */}
       <FaqSection />
 
-      {/* 8. Minimalist Footer */}
+      {/* 9. Minimalist Footer */}
       <Footer />
     </main>
   );

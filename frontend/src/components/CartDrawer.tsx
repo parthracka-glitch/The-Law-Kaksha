@@ -51,14 +51,14 @@ export function CartDrawer() {
 
   const [inputCoupon, setInputCoupon] = useState("");
   const [shippingData, setShippingData] = useState({
-    name: "Rohan Deshmukh",
-    email: "rohan.d@gmail.com",
-    phone: "+91 98765 43210",
+    name: "",
+    email: "",
+    phone: "",
     exam: "CA Intermediate Paper 2",
-    address: "B-402, Shanti Heights, Shivaji Nagar",
-    city: "Pune",
-    state: "Maharashtra",
-    pincode: "411005",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
   const [selectedPayment, setSelectedPayment] = useState<"upi" | "card">("upi");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -99,8 +99,8 @@ export function CartDrawer() {
     }
   };
 
-  const handleProceedToPayment = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleProceedToPayment = (e: React.FormEvent) => {
+    e.preventDefault();
     setCheckoutStep("payment");
   };
 
@@ -259,27 +259,27 @@ export function CartDrawer() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/30 backdrop-blur-md transition-opacity"
         onClick={() => setIsCartOpen(false)}
       />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-md sm:max-w-lg bg-white border-l border-slate-200 text-slate-900 h-full shadow-2xl flex flex-col justify-between overflow-hidden z-10 animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white border-l border-black/[0.08] text-[#1D1D1F] h-full shadow-[0_20px_60px_rgba(0,0,0,0.18)] flex flex-col justify-between overflow-hidden z-10 animate-in slide-in-from-right duration-300">
         
         {/* TOP HEADER */}
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7]">
+        <div className="px-6 py-4 border-b border-black/[0.05] flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-[#0071E3]">
               <ShoppingBag className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-serif font-black text-slate-900">Your Cart</h2>
+                <h2 className="text-base font-semibold text-[#1D1D1F]">Your Bag</h2>
                 {totalItemCount > 0 && (
-                  <span className="text-[11px] font-mono font-bold bg-sky-50 text-[#0284C7] border border-sky-200 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-medium bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20 px-2.5 py-0.5 rounded-full">
                     {totalItemCount} {totalItemCount === 1 ? "item" : "items"}
                   </span>
                 )}
@@ -289,7 +289,7 @@ export function CartDrawer() {
 
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
+            className="p-1.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer"
             aria-label="Close cart"
           >
             <X className="w-4 h-4" />
@@ -298,39 +298,39 @@ export function CartDrawer() {
 
         {/* STEP PROGRESS BAR */}
         {checkoutStep !== "success" && (
-          <div className="px-5 py-2 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between text-xs">
+          <div className="px-6 py-2.5 bg-[#F5F5F7] border-b border-black/[0.05] flex items-center justify-between text-xs">
             <button
               onClick={() => setCheckoutStep("cart")}
-              className={`flex items-center gap-1.5 font-bold transition-colors ${
-                checkoutStep === "cart" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-600"
+              className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
+                checkoutStep === "cart" ? "text-[#0071E3]" : "text-[#86868B] hover:text-[#1D1D1F]"
               }`}
             >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                checkoutStep === "cart" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-semibold ${
+                checkoutStep === "cart" ? "bg-[#0071E3] text-white" : "bg-black/[0.08] text-[#6E6E73]"
               }`}>1</span>
-              <span>Cart</span>
+              <span>Bag</span>
             </button>
-            <span className="text-slate-300">/</span>
+            <span className="text-black/[0.15]">/</span>
             <button
               onClick={() => items.length > 0 && setCheckoutStep("shipping")}
               disabled={items.length === 0}
-              className={`flex items-center gap-1.5 font-bold transition-colors ${
-                checkoutStep === "shipping" ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-600"
+              className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
+                checkoutStep === "shipping" ? "text-[#0071E3]" : "text-[#86868B] hover:text-[#1D1D1F]"
               }`}
             >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                checkoutStep === "shipping" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-semibold ${
+                checkoutStep === "shipping" ? "bg-[#0071E3] text-white" : "bg-black/[0.08] text-[#6E6E73]"
               }`}>2</span>
               <span>Details</span>
             </button>
-            <span className="text-slate-300">/</span>
+            <span className="text-black/[0.15]">/</span>
             <span
-              className={`flex items-center gap-1.5 font-bold ${
-                checkoutStep === "payment" ? "text-[#0284C7]" : "text-slate-400"
+              className={`flex items-center gap-1.5 font-medium ${
+                checkoutStep === "payment" ? "text-[#0071E3]" : "text-[#86868B]"
               }`}
             >
-              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                checkoutStep === "payment" ? "bg-[#0284C7] text-white" : "bg-slate-200 text-slate-600"
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-semibold ${
+                checkoutStep === "payment" ? "bg-[#0071E3] text-white" : "bg-black/[0.08] text-[#6E6E73]"
               }`}>3</span>
               <span>Payment</span>
             </span>
@@ -338,55 +338,55 @@ export function CartDrawer() {
         )}
 
         {/* MAIN DRAWER CONTENT */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           
           {/* STEP 1: CART ITEMS */}
           {checkoutStep === "cart" && (
             <>
               {items.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center mx-auto text-[#0284C7]">
-                    <ShoppingBag className="w-7 h-7" />
+                  <div className="w-14 h-14 rounded-full bg-[#F5F5F7] border border-black/[0.06] flex items-center justify-center mx-auto text-[#0071E3]">
+                    <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-serif font-bold text-slate-900">Your cart is empty</h3>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                  <h3 className="text-base font-semibold text-[#1D1D1F]">Your bag is empty</h3>
+                  <p className="text-xs text-[#6E6E73] max-w-xs mx-auto">
                     Add CA Law codexes, solved past papers, or video classes to get started.
                   </p>
                   <button
                     onClick={() => setIsCartOpen(false)}
-                    className="px-5 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-colors"
+                    className="px-6 py-2.5 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-medium text-xs shadow-xs transition-colors cursor-pointer"
                   >
                     Browse CA Books &amp; Plans
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {/* Item Cards */}
                   {items.map((item) => (
                     <div
                       key={`${item.id}-${item.format}`}
-                      className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-sky-300 transition-all space-y-2.5"
+                      className="p-4 rounded-3xl bg-[#FBFBFD] border border-black/[0.08] shadow-2xs hover:border-black/[0.16] transition-all space-y-3"
                     >
                       {/* Title & Delete */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-serif leading-snug line-clamp-1">
+                          <h4 className="text-xs sm:text-sm font-semibold text-[#1D1D1F] leading-snug line-clamp-1">
                             {item.title}
                           </h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5">{item.category}</p>
+                          <p className="text-[11px] text-[#86868B] mt-0.5">{item.category}</p>
                         </div>
                         <button
                           onClick={() => removeFromCart(item.id, item.format)}
-                          className="text-slate-400 hover:text-red-500 p-1 transition-colors"
+                          className="text-[#86868B] hover:text-rose-600 p-1 transition-colors cursor-pointer"
                           title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {/* Streamlined Format Selector (Clean Inline Pills) */}
-                      <div className="flex items-center gap-1.5 p-1 bg-slate-50 rounded-xl border border-slate-200/80 text-[10.5px]">
-                        <span className="text-slate-400 font-medium px-1.5 text-[10px] hidden sm:inline">Format:</span>
+                      {/* Streamlined Format Selector */}
+                      <div className="flex items-center gap-1.5 p-1 bg-[#F5F5F7] rounded-full border border-black/[0.04] text-[10.5px]">
+                        <span className="text-[#86868B] font-medium px-2 text-[10px] hidden sm:inline">Format:</span>
                         {(["pdf", "paperback", "combo"] as BookFormat[]).map((fmt) => {
                           const isActive = item.format === fmt;
                           const fmtPrice = Math.round(item.price * FORMAT_PRICING[fmt].multiplier);
@@ -395,14 +395,14 @@ export function CartDrawer() {
                               key={fmt}
                               type="button"
                               onClick={() => changeFormat(item.id, item.format, fmt)}
-                              className={`flex-1 py-1 px-1.5 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1 ${
+                              className={`flex-1 py-1 px-2 rounded-full font-medium transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
                                 isActive
-                                  ? "bg-white text-[#0284C7] font-bold shadow-2xs border border-sky-200"
-                                  : "text-slate-600 hover:text-slate-900"
+                                  ? "bg-white text-[#0071E3] shadow-xs border border-black/[0.04]"
+                                  : "text-[#6E6E73] hover:text-[#1D1D1F]"
                               }`}
                             >
                               <span>{fmt === "pdf" ? "PDF" : fmt === "paperback" ? "Book" : "Combo"}</span>
-                              <span className="font-mono text-[10px] text-slate-500 font-normal">₹{fmtPrice}</span>
+                              <span className="text-[10px] text-[#86868B] font-normal">₹{fmtPrice}</span>
                             </button>
                           );
                         })}
@@ -410,26 +410,26 @@ export function CartDrawer() {
 
                       {/* Quantity Stepper & Price Row */}
                       <div className="flex items-center justify-between pt-1 text-xs">
-                        <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden">
+                        <div className="flex items-center border border-black/[0.08] rounded-full bg-white overflow-hidden shadow-2xs">
                           <button
                             onClick={() => updateQuantity(item.id, item.format, item.quantity - 1)}
-                            className="px-2 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
+                            className="px-2.5 py-1 text-[#6E6E73] hover:bg-black/[0.04] transition-colors cursor-pointer"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="px-2.5 font-mono font-bold text-slate-800 text-[11px]">
+                          <span className="px-2.5 font-semibold text-[#1D1D1F] text-[11px]">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item.id, item.format, item.quantity + 1)}
-                            className="px-2 py-1 text-slate-600 hover:bg-slate-200 transition-colors"
+                            className="px-2.5 py-1 text-[#6E6E73] hover:bg-black/[0.04] transition-colors cursor-pointer"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
 
-                        <div className="text-right font-mono">
-                          <span className="text-sm font-black text-slate-900">
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-[#1D1D1F] tracking-tight">
                             ₹{item.price * item.quantity}
                           </span>
                         </div>
@@ -441,49 +441,49 @@ export function CartDrawer() {
                   <div className="pt-2 space-y-2">
                     <form onSubmit={(e) => handleApplyCoupon(e)} className="flex gap-2">
                       <div className="relative flex-1">
-                        <Tag className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Tag className="w-3.5 h-3.5 text-[#86868B] absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={inputCoupon}
                           onChange={(e) => setInputCoupon(e.target.value.toUpperCase())}
-                          placeholder="Promo code (e.g. CALAW20)"
-                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 uppercase font-mono focus:outline-none focus:border-[#0284C7]"
+                          placeholder="Enter promo code"
+                          className="w-full pl-9 pr-3 py-2 text-xs rounded-full border border-black/[0.08] bg-[#FBFBFD] uppercase font-mono text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20"
                         />
                       </div>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-2xs"
+                        className="px-5 py-2 rounded-full bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white font-medium text-xs transition-colors shadow-2xs cursor-pointer"
                       >
                         Apply
                       </button>
                     </form>
 
                     {/* Instant 1-Click Promo Pill */}
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      <span className="text-slate-400">Offer:</span>
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="text-[#86868B]">Offer:</span>
                       <button
                         type="button"
                         onClick={() => handleApplyCoupon(undefined, "CALAW20")}
-                        className="px-2 py-0.5 rounded-md bg-sky-50 hover:bg-sky-100 text-[#0284C7] font-bold border border-sky-200 transition-colors"
+                        className="px-2.5 py-0.5 rounded-full bg-[#0071E3]/[0.08] hover:bg-[#0071E3]/[0.15] text-[#0071E3] font-medium border border-[#0071E3]/20 transition-colors cursor-pointer"
                       >
                         ⚡ CALAW20 (20% OFF)
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApplyCoupon(undefined, "RANKER10")}
-                        className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition-colors"
+                        className="px-2.5 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium border border-emerald-200 transition-colors cursor-pointer"
                       >
                         🎓 RANKER10 (10% OFF)
                       </button>
                     </div>
 
                     {couponSuccess && (
-                      <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                      <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> {couponSuccess}
                       </p>
                     )}
                     {couponError && (
-                      <p className="text-[11px] text-rose-500 font-semibold">
+                      <p className="text-[11px] text-rose-500 font-medium">
                         {couponError}
                       </p>
                     )}
@@ -493,57 +493,57 @@ export function CartDrawer() {
             </>
           )}
 
-          {/* STEP 2: STUDENT DETAILS (Simplified) */}
+          {/* STEP 2: STUDENT DETAILS */}
           {checkoutStep === "shipping" && (
-            <form onSubmit={handleProceedToPayment} className="space-y-3.5 text-xs">
-              <div className="pb-1 border-b border-slate-100">
-                <h3 className="text-sm font-bold font-serif text-slate-900">Student Contact &amp; Delivery</h3>
-                <p className="text-[11px] text-slate-500">License credentials will be sent to this email &amp; WhatsApp.</p>
+            <form onSubmit={handleProceedToPayment} className="space-y-4 text-xs">
+              <div className="pb-1.5 border-b border-black/[0.05]">
+                <h3 className="text-sm font-semibold text-[#1D1D1F]">Student Contact &amp; Delivery</h3>
+                <p className="text-[11px] text-[#86868B]">License credentials will be sent to this email &amp; WhatsApp.</p>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Student Full Name</label>
+                <label className="font-medium text-[#424245] block mb-1">Student Full Name</label>
                 <input
                   type="text"
                   required
                   value={shippingData.name}
                   onChange={(e) => setShippingData({ ...shippingData, name: e.target.value })}
-                  placeholder="e.g. Rohan Deshmukh"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                  placeholder="Enter your full name"
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-black/[0.08] bg-[#FBFBFD] text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">WhatsApp Mobile</label>
+                  <label className="font-medium text-[#424245] block mb-1">WhatsApp Mobile</label>
                   <input
                     type="tel"
                     required
                     value={shippingData.phone}
                     onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                    placeholder="Enter contact number"
+                    className="w-full px-3.5 py-2.5 rounded-2xl border border-black/[0.08] bg-[#FBFBFD] font-mono text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Email Address</label>
+                  <label className="font-medium text-[#424245] block mb-1">Email Address</label>
                   <input
                     type="email"
                     required
                     value={shippingData.email}
                     onChange={(e) => setShippingData({ ...shippingData, email: e.target.value })}
-                    placeholder="student@gmail.com"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                    placeholder="Enter your email"
+                    className="w-full px-3.5 py-2.5 rounded-2xl border border-black/[0.08] bg-[#FBFBFD] text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Target Exam</label>
+                <label className="font-medium text-[#424245] block mb-1">Target Exam</label>
                 <select
                   value={shippingData.exam}
                   onChange={(e) => setShippingData({ ...shippingData, exam: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-black/[0.08] bg-[#FBFBFD] text-[#1D1D1F] focus:outline-none focus:border-[#0071E3]"
                 >
                   <option value="CA Intermediate Paper 2">CA Intermediate (Paper 2 Corporate &amp; Other Laws)</option>
                   <option value="CA Final Corporate Laws">CA Final (Corporate &amp; Economic Laws)</option>
@@ -552,11 +552,11 @@ export function CartDrawer() {
                 </select>
               </div>
 
-              {/* Physical Dispatch Address (Only if physical book is in cart) */}
+              {/* Physical Dispatch Address */}
               {hasPhysicalItem ? (
-                <div className="pt-2 border-t border-slate-100 space-y-2.5">
-                  <div className="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                    <Truck className="w-3.5 h-3.5 text-[#0284C7]" />
+                <div className="pt-2 border-t border-black/[0.05] space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-[#1D1D1F] font-semibold text-xs">
+                    <Truck className="w-3.5 h-3.5 text-[#0071E3]" />
                     <span>Courier Delivery Address:</span>
                   </div>
                   <div>
@@ -565,8 +565,8 @@ export function CartDrawer() {
                       required
                       value={shippingData.address}
                       onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
-                      placeholder="Street / Flat Address"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-[#0284C7]"
+                      placeholder="Enter street / building address"
+                      className="w-full px-3.5 py-2 rounded-xl border border-black/[0.08] bg-[#FBFBFD] text-[#1D1D1F] text-xs focus:outline-none focus:border-[#0071E3]"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -575,30 +575,30 @@ export function CartDrawer() {
                       required
                       value={shippingData.city}
                       onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                      placeholder="City"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900"
+                      placeholder="Enter city"
+                      className="w-full px-3 py-2 rounded-xl border border-black/[0.08] bg-[#FBFBFD] text-xs text-[#1D1D1F]"
                     />
                     <input
                       type="text"
                       required
                       value={shippingData.state}
                       onChange={(e) => setShippingData({ ...shippingData, state: e.target.value })}
-                      placeholder="State"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-900"
+                      placeholder="Enter state"
+                      className="w-full px-3 py-2 rounded-xl border border-black/[0.08] bg-[#FBFBFD] text-xs text-[#1D1D1F]"
                     />
                     <input
                       type="text"
                       required
                       value={shippingData.pincode}
                       onChange={(e) => setShippingData({ ...shippingData, pincode: e.target.value })}
-                      placeholder="PIN"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-900"
+                      placeholder="Enter PIN"
+                      className="w-full px-3 py-2 rounded-xl border border-black/[0.08] bg-[#FBFBFD] text-xs font-mono text-[#1D1D1F]"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 text-[11px] text-slate-700 flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#0284C7] shrink-0" />
+                <div className="p-3.5 rounded-2xl bg-[#F5F5F7] border border-black/[0.04] text-[11px] text-[#424245] flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#0071E3] shrink-0" />
                   <span>Instant digital activation in Student Portal Vault + DRM sync upon payment.</span>
                 </div>
               )}
@@ -607,13 +607,13 @@ export function CartDrawer() {
                 <button
                   type="button"
                   onClick={() => setCheckoutStep("cart")}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
+                  className="px-5 py-2.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#1D1D1F] font-medium text-xs transition-colors cursor-pointer"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-medium text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
                 >
                   <span>Proceed to Payment (₹{cartTotal})</span>
                   <ArrowRight className="w-4 h-4" />
@@ -622,35 +622,35 @@ export function CartDrawer() {
             </form>
           )}
 
-          {/* STEP 3: RAZORPAY PAYMENT */}
+          {/* STEP 3: PAYMENT */}
           {checkoutStep === "payment" && (
             <div className="space-y-4 text-xs">
-              <div className="pb-1 border-b border-slate-100">
-                <h3 className="text-sm font-bold font-serif text-slate-900">Select Payment Mode</h3>
-                <p className="text-[11px] text-slate-500">256-Bit SSL Encrypted Banking Gateway</p>
+              <div className="pb-1.5 border-b border-black/[0.05]">
+                <h3 className="text-sm font-semibold text-[#1D1D1F]">Select Payment Mode</h3>
+                <p className="text-[11px] text-[#86868B]">256-Bit SSL Encrypted Banking Gateway</p>
               </div>
 
               <div className="space-y-2.5">
                 {/* UPI Option */}
                 <div
                   onClick={() => setSelectedPayment("upi")}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                     selectedPayment === "upi"
-                      ? "bg-sky-50/80 border-[#0284C7] shadow-2xs"
-                      : "bg-white border-slate-200 hover:border-sky-300"
+                      ? "bg-[#0071E3]/[0.04] border-[#0071E3] shadow-2xs"
+                      : "bg-white border-black/[0.08] hover:border-black/[0.18]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-white border border-sky-200 flex items-center justify-center text-[#0284C7]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center text-[#0071E3]">
                         <QrCode className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">Instant UPI / QR Code</p>
-                        <p className="text-[10px] text-slate-500">Google Pay, PhonePe, Paytm, BHIM</p>
+                        <p className="text-xs font-semibold text-[#1D1D1F]">Instant UPI / QR Code</p>
+                        <p className="text-[10px] text-[#86868B]">Google Pay, PhonePe, Paytm, BHIM</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                       Fastest
                     </span>
                   </div>
@@ -659,19 +659,19 @@ export function CartDrawer() {
                 {/* Card Option */}
                 <div
                   onClick={() => setSelectedPayment("card")}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                     selectedPayment === "card"
-                      ? "bg-sky-50/80 border-[#0284C7] shadow-2xs"
-                      : "bg-white border-slate-200 hover:border-sky-300"
+                      ? "bg-[#0071E3]/[0.04] border-[#0071E3] shadow-2xs"
+                      : "bg-white border-black/[0.08] hover:border-black/[0.18]"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-white border border-sky-200 flex items-center justify-center text-[#0284C7]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center text-[#0071E3]">
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900">Debit / Credit Card</p>
-                      <p className="text-[10px] text-slate-500">Visa, Mastercard, RuPay</p>
+                      <p className="text-xs font-semibold text-[#1D1D1F]">Debit / Credit Card</p>
+                      <p className="text-[10px] text-[#86868B]">Visa, Mastercard, RuPay</p>
                     </div>
                   </div>
                 </div>
@@ -681,7 +681,7 @@ export function CartDrawer() {
                 <button
                   type="button"
                   onClick={() => setCheckoutStep("shipping")}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
+                  className="px-4 py-2.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#1D1D1F] font-medium text-xs cursor-pointer"
                 >
                   Back
                 </button>
@@ -689,7 +689,7 @@ export function CartDrawer() {
                   type="button"
                   disabled={isProcessingPayment}
                   onClick={handleCompletePayment}
-                  className="flex-1 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-medium text-xs shadow-[0_2px_8px_rgba(0,113,227,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   {isProcessingPayment ? (
                     <span>Verifying with Bank...</span>
@@ -712,37 +712,37 @@ export function CartDrawer() {
               </div>
 
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                   Payment Verified
                 </span>
-                <h3 className="text-lg font-serif font-black text-slate-900 mt-2">
+                <h3 className="text-lg font-semibold text-[#1D1D1F] mt-2">
                   Access Activated!
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Receipt sent to <span className="text-[#0284C7] font-semibold">{lastOrderDetails.email}</span>
+                <p className="text-xs text-[#86868B] mt-0.5">
+                  Receipt sent to <span className="text-[#0071E3] font-medium">{lastOrderDetails.email}</span>
                 </p>
               </div>
 
               {/* Credentials Box */}
-              <div className="text-left p-4 rounded-2xl bg-sky-50/80 border border-sky-200 space-y-2 text-xs">
-                <div className="flex items-center justify-between pb-1.5 border-b border-sky-100">
-                  <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-[#0284C7]" />
+              <div className="text-left p-4 rounded-3xl bg-[#FBFBFD] border border-black/[0.08] space-y-2 text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-black/[0.05]">
+                  <span className="font-semibold text-[#1D1D1F] flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-[#0071E3]" />
                     <span>Student Access Credentials</span>
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
                     Active
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-slate-700">
+                <div className="grid grid-cols-2 gap-2 text-[#424245]">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Student ID:</span>
-                    <strong className="font-mono text-slate-900">{lastOrderDetails.studentId}</strong>
+                    <span className="text-[10px] text-[#86868B] block">Student ID:</span>
+                    <strong className="font-mono text-[#1D1D1F]">{lastOrderDetails.studentId}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Password:</span>
-                    <strong className="font-mono text-slate-900">{lastOrderDetails.tempPassword}</strong>
+                    <span className="text-[10px] text-[#86868B] block">Password:</span>
+                    <strong className="font-mono text-[#1D1D1F]">{lastOrderDetails.tempPassword}</strong>
                   </div>
                 </div>
               </div>
@@ -759,7 +759,7 @@ export function CartDrawer() {
                       }
                     }
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-medium text-xs shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition-all cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4" />
                   <span>Launch Student Workspace (Auto-Login)</span>
@@ -769,9 +769,9 @@ export function CartDrawer() {
                   <button
                     type="button"
                     onClick={() => setInvoiceModalOpen(true)}
-                    className="flex-1 py-2 rounded-xl bg-white text-slate-700 hover:text-[#0284C7] font-semibold text-xs border border-slate-200 hover:border-sky-300 flex items-center justify-center gap-1.5 shadow-2xs"
+                    className="flex-1 py-2 rounded-full bg-white text-[#1D1D1F] hover:text-[#0071E3] font-medium text-xs border border-black/[0.08] hover:border-[#0071E3]/40 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                   >
-                    <Printer className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <Printer className="w-3.5 h-3.5 text-[#0071E3]" />
                     <span>Tax Invoice</span>
                   </button>
 
@@ -781,7 +781,7 @@ export function CartDrawer() {
                       setIsCartOpen(false);
                       setCheckoutStep("cart");
                     }}
-                    className="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 font-semibold text-xs"
+                    className="flex-1 py-2 rounded-full bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] font-medium text-xs cursor-pointer"
                   >
                     Close
                   </button>
@@ -791,26 +791,26 @@ export function CartDrawer() {
           )}
         </div>
 
-        {/* BOTTOM TOTAL & CHECKOUT BAR (For Step 1) */}
+        {/* BOTTOM TOTAL & CHECKOUT BAR */}
         {checkoutStep === "cart" && items.length > 0 && (
-          <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 space-y-3 shrink-0">
+          <div className="p-5 bg-[#F5F5F7] border-t border-black/[0.06] space-y-3 shrink-0">
             <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between text-slate-600">
+              <div className="flex items-center justify-between text-[#6E6E73]">
                 <span>Subtotal ({totalItemCount} items)</span>
-                <span className="font-mono text-slate-900 font-bold">₹{cartSubtotal}</span>
+                <span className="font-semibold text-[#1D1D1F]">₹{cartSubtotal}</span>
               </div>
               {couponDiscount > 0 && (
-                <div className="flex items-center justify-between text-[#0284C7] font-semibold">
+                <div className="flex items-center justify-between text-[#0071E3] font-medium">
                   <span>Coupon Discount ({couponCode})</span>
-                  <span className="font-mono">- ₹{Math.round((cartSubtotal * couponDiscount) / 100)}</span>
+                  <span>- ₹{Math.round((cartSubtotal * couponDiscount) / 100)}</span>
                 </div>
               )}
-              <div className="flex items-baseline justify-between pt-1.5 border-t border-slate-200 text-sm">
-                <span className="font-bold text-slate-900 font-serif">Total Payable:</span>
+              <div className="flex items-baseline justify-between pt-2 border-t border-black/[0.06] text-sm">
+                <span className="font-semibold text-[#1D1D1F]">Total Payable:</span>
                 <div className="text-right">
-                  <span className="text-xl font-black text-[#0284C7] font-mono">₹{cartTotal}</span>
+                  <span className="text-xl font-bold text-[#1D1D1F] tracking-tight">₹{cartTotal}</span>
                   {cartSavings > 0 && (
-                    <span className="block text-[10px] text-emerald-700 font-bold">
+                    <span className="block text-[10px] text-emerald-700 font-medium">
                       Saved ₹{cartSavings}
                     </span>
                   )}
@@ -826,7 +826,7 @@ export function CartDrawer() {
                   setCheckoutStep("payment");
                 }
               }}
-              className="w-full py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
+              className="w-full py-3 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-medium text-xs shadow-[0_2px_8px_rgba(0,113,227,0.25)] transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
             >
               <span>Proceed to Checkout ({totalItemCount} {totalItemCount === 1 ? "Item" : "Items"})</span>
               <ArrowRight className="w-4 h-4" />
@@ -837,69 +837,69 @@ export function CartDrawer() {
 
       {/* Printable Tax Invoice Modal */}
       {invoiceModalOpen && lastOrderDetails && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-4 text-slate-800 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-slate-200 pb-3">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-black/[0.08] shadow-2xl p-6 space-y-4 text-[#1D1D1F] animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-black/[0.05] pb-3">
               <div>
-                <span className="text-[10px] font-bold uppercase text-[#0284C7] bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                <span className="text-[10px] font-semibold uppercase text-[#0071E3] bg-[#0071E3]/[0.08] px-2.5 py-0.5 rounded-full border border-[#0071E3]/20">
                   TAX INVOICE
                 </span>
-                <h3 className="text-base font-serif font-black text-slate-900 mt-1">THE LAW KAKSHA</h3>
-                <p className="text-[10.5px] text-slate-500">GSTIN: 27AABCT1928C1Z4 • Educational Publishing</p>
+                <h3 className="text-base font-semibold text-[#1D1D1F] mt-1.5">THE LAW KAKSHA</h3>
+                <p className="text-[10.5px] text-[#86868B]">GSTIN: 27AABCT1928C1Z4 • Educational Publishing</p>
               </div>
               <button
                 onClick={() => setInvoiceModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                className="p-1 rounded-full text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/[0.04] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-2 gap-3 text-xs bg-[#F5F5F7] p-3.5 rounded-2xl border border-black/[0.04]">
               <div>
-                <span className="text-[10px] font-bold uppercase text-slate-400 block">Student:</span>
-                <strong className="text-slate-900">{lastOrderDetails.studentName}</strong>
-                <p className="text-slate-600 text-[11px]">{lastOrderDetails.email}</p>
+                <span className="text-[10px] font-semibold uppercase text-[#86868B] block">Student:</span>
+                <strong className="text-[#1D1D1F]">{lastOrderDetails.studentName}</strong>
+                <p className="text-[#6E6E73] text-[11px]">{lastOrderDetails.email}</p>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold uppercase text-slate-400 block">Invoice:</span>
-                <p className="font-mono font-bold text-slate-900">{lastOrderDetails.orderId}</p>
-                <p className="text-slate-600 text-[10.5px]">{lastOrderDetails.date}</p>
+                <span className="text-[10px] font-semibold uppercase text-[#86868B] block">Invoice:</span>
+                <p className="font-mono font-semibold text-[#1D1D1F]">{lastOrderDetails.orderId}</p>
+                <p className="text-[#6E6E73] text-[10.5px]">{lastOrderDetails.date}</p>
               </div>
             </div>
 
-            <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <div className="border border-black/[0.06] rounded-2xl overflow-hidden text-xs">
               <table className="w-full text-left">
-                <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+                <thead className="bg-[#F5F5F7] text-[#6E6E73] font-semibold uppercase text-[10px]">
                   <tr>
-                    <th className="p-2.5">Item</th>
-                    <th className="p-2.5 text-center">Format</th>
-                    <th className="p-2.5 text-right">Amount</th>
+                    <th className="p-3">Item</th>
+                    <th className="p-3 text-center">Format</th>
+                    <th className="p-3 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-[11px]">
+                <tbody className="divide-y divide-black/[0.04] text-[11px]">
                   {lastOrderDetails.items.map((it: any, iIdx: number) => (
                     <tr key={iIdx}>
-                      <td className="p-2.5 font-medium">{it.title}</td>
-                      <td className="p-2.5 text-center uppercase font-mono text-[10px]">
+                      <td className="p-3 font-medium">{it.title}</td>
+                      <td className="p-3 text-center uppercase font-mono text-[10px]">
                         {it.format === "pdf" ? "PDF" : it.format === "paperback" ? "Book" : "Combo"}
                       </td>
-                      <td className="p-2.5 text-right font-mono font-bold">₹{it.price * it.quantity}</td>
+                      <td className="p-3 text-right font-semibold">₹{it.price * it.quantity}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-sky-50 rounded-xl border border-sky-200 text-xs">
-              <span className="font-bold text-slate-900">Total Paid:</span>
-              <span className="text-lg font-black text-slate-900 font-mono">₹{lastOrderDetails.totalAmount}</span>
+            <div className="flex items-center justify-between p-3.5 bg-[#FBFBFD] rounded-2xl border border-black/[0.06] text-xs">
+              <span className="font-semibold text-[#1D1D1F]">Total Paid:</span>
+              <span className="text-lg font-bold text-[#1D1D1F] tracking-tight">₹{lastOrderDetails.totalAmount}</span>
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setInvoiceModalOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold"
+                className="px-4 py-1.5 rounded-full bg-black/[0.04] text-[#6E6E73] text-xs font-medium cursor-pointer"
               >
                 Close
               </button>
@@ -907,7 +907,7 @@ export function CartDrawer() {
                 onClick={() => {
                   if (typeof window !== "undefined") window.print();
                 }}
-                className="px-4 py-1.5 rounded-lg bg-[#0284C7] text-white text-xs font-bold flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded-full bg-[#0071E3] text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print</span>

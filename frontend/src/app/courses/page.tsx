@@ -196,45 +196,45 @@ export default function CoursesCatalogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between text-[#1D1D1F]">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[#0284C7] text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F5F5F7] border border-black/[0.06] text-[#0071E3] text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" /> ICAI 2026-2027 Scheme Aligned
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-serif">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
             CA Law Question Banks, Books &amp; Test Series
           </h1>
-          <p className="text-sm sm:text-base text-slate-600">
-            Master CA Corporate &amp; Other Laws with Pearl Dsouza Ma&apos;am&apos;s exam-tested materials, statutory codices, and 1-on-1 copy evaluations.
+          <p className="text-sm text-[#6E6E73] leading-relaxed">
+            Master CA Corporate &amp; Other Laws with comprehensive statutory codices, examination question banks, and 1-on-1 copy evaluations.
           </p>
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-4">
+        <div className="bg-white border border-black/[0.08] rounded-3xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative w-full md:w-96">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86868B]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by topic, section, or subject..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-xs sm:text-sm text-slate-900 bg-white"
+                className="w-full pl-10 pr-4 py-2 rounded-full border border-black/[0.08] bg-[#FBFBFD] focus:outline-none focus:ring-2 focus:ring-[#0071E3]/20 focus:border-[#0071E3] text-xs sm:text-sm text-[#1D1D1F]"
               />
             </div>
 
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Sort by:</span>
+              <span className="text-xs text-[#86868B] font-medium whitespace-nowrap">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:border-[#0284C7]"
+                className="px-3.5 py-2 rounded-full border border-black/[0.08] text-xs font-medium text-[#1D1D1F] bg-[#FBFBFD] focus:outline-none focus:border-[#0071E3]"
               >
                 <option value="popular">Most Popular</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -247,50 +247,50 @@ export default function CoursesCatalogPage() {
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
             <button
               onClick={() => setSelectedType("all")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedType === "all"
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#1D1D1F] text-white shadow-2xs"
+                  : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08]"
               }`}
             >
               All Items ({products.length})
             </button>
             <button
               onClick={() => setSelectedType("book")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedType === "book"
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#1D1D1F] text-white shadow-2xs"
+                  : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08]"
               }`}
             >
               Statutory Codices &amp; Revision Maps
             </button>
             <button
               onClick={() => setSelectedType("mcq")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedType === "mcq"
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#1D1D1F] text-white shadow-2xs"
+                  : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08]"
               }`}
             >
               1,200+ MCQ Banks
             </button>
             <button
               onClick={() => setSelectedType("video")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedType === "video"
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#1D1D1F] text-white shadow-2xs"
+                  : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08]"
               }`}
             >
               HD Video Masterclasses
             </button>
             <button
               onClick={() => setSelectedType("evaluation")}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedType === "evaluation"
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#1D1D1F] text-white shadow-2xs"
+                  : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08]"
               }`}
             >
               Mains Copy Checking Desk
@@ -300,16 +300,16 @@ export default function CoursesCatalogPage() {
 
         {/* Product Cards Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3">
-            <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No courses or books matched your filter</h3>
-            <p className="text-xs text-slate-500">Try searching with a different keyword or reset the category filters.</p>
+          <div className="bg-white border border-black/[0.08] rounded-3xl p-12 text-center space-y-3">
+            <BookOpen className="w-10 h-10 text-[#86868B] mx-auto" />
+            <h3 className="text-base font-semibold text-[#1D1D1F]">No courses or books matched your filter</h3>
+            <p className="text-xs text-[#6E6E73]">Try searching with a different keyword or reset the category filters.</p>
             <button
               onClick={() => {
                 setSearch("");
                 setSelectedType("all");
               }}
-              className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold cursor-pointer"
+              className="px-5 py-2 rounded-full bg-[#1D1D1F] text-white text-xs font-medium cursor-pointer"
             >
               Reset Filters
             </button>
@@ -319,22 +319,22 @@ export default function CoursesCatalogPage() {
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white border border-sky-100 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 hover:-translate-y-1 relative group"
+                className="bg-white border border-black/[0.08] rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] hover:border-black/[0.16] transition-all duration-300 flex flex-col justify-between space-y-5 hover:-translate-y-1 relative group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-[#0284C7] border border-sky-200 text-[11px] font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/15 text-[11px] font-medium">
                       {product.badge || "Featured"}
                     </span>
-                    <span className="text-xs font-semibold text-slate-500">
+                    <span className="text-xs font-medium text-[#86868B]">
                       {product.pages_or_duration}
                     </span>
                   </div>
 
                   {product.cover_image && (
                     <div className="relative mx-auto my-1.5 w-full flex items-center justify-center py-1">
-                      <div className="relative group/book rounded-xl overflow-hidden shadow-[0_6px_18px_rgba(2,132,199,0.12)] border border-slate-200/90 bg-white transition-all duration-300 group-hover:shadow-[0_10px_24px_rgba(2,132,199,0.2)]">
-                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                      <div className="relative group/book rounded-2xl overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.08)] border border-black/[0.06] bg-white transition-all duration-300 group-hover:shadow-[0_12px_24px_rgba(0,113,227,0.18)]">
+                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/20 via-white/20 to-transparent z-10 pointer-events-none" />
                         <Image
                           src={product.cover_image}
                           alt={product.title}
@@ -346,39 +346,39 @@ export default function CoursesCatalogPage() {
                     </div>
                   )}
 
-                  <Link href={`/product/${product.id}`} className="block group-hover:text-[#0284C7] transition-colors">
-                    <h3 className="text-base font-bold text-slate-900 leading-snug font-serif">
+                  <Link href={`/product/${product.id}`} className="block group-hover:text-[#0071E3] transition-colors">
+                    <h3 className="text-base font-semibold text-[#1D1D1F] leading-snug">
                       {product.title}
                     </h3>
                   </Link>
 
-                  <p className="text-xs text-slate-600 line-clamp-2">
+                  <p className="text-xs text-[#6E6E73] line-clamp-2 leading-relaxed">
                     {product.subtitle}
                   </p>
 
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                  <div className="space-y-1.5 pt-2 border-t border-black/[0.05]">
                     {(product.highlights || []).slice(0, 3).map((hl, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-700">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7] shrink-0 mt-0.5" />
+                      <div key={idx} className="flex items-start gap-2 text-xs text-[#424245]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0071E3] shrink-0 mt-0.5" />
                         <span className="line-clamp-1">{hl}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-3 border-t border-slate-100">
+                <div className="space-y-3 pt-3 border-t border-black/[0.05]">
                   <div className="flex items-baseline justify-between">
                     <div>
-                      <span className="text-xl font-extrabold text-slate-900">
+                      <span className="text-xl font-bold text-[#1D1D1F] tracking-tight">
                         ₹{product.price}
                       </span>
                       {product.original_price > product.price && (
-                        <span className="ml-2 text-xs text-slate-400 line-through">
+                        <span className="ml-2 text-xs text-[#86868B] line-through">
                           ₹{product.original_price}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                    <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                       Instant Access
                     </span>
                   </div>
@@ -386,14 +386,14 @@ export default function CoursesCatalogPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => handleOpenPreview(product)}
-                      className="py-2 px-3 rounded-xl border border-slate-200 hover:border-sky-300 hover:bg-sky-50 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 rounded-full border border-black/[0.08] hover:border-black/[0.18] bg-black/[0.02] hover:bg-black/[0.06] text-[#1D1D1F] text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Eye className="w-3.5 h-3.5 text-[#0284C7]" />
+                      <Eye className="w-3.5 h-3.5 text-[#0071E3]" />
                       <span>Preview</span>
                     </button>
                     <button
                       onClick={() => handleBuyNow(product)}
-                      className="py-2 px-3 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] hover:from-[#0369A1] hover:to-[#0284C7] text-white text-xs font-bold shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-medium shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <span>Buy Now</span>
                       <ArrowRight className="w-3.5 h-3.5" />

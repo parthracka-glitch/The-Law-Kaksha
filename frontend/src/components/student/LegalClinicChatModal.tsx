@@ -31,18 +31,18 @@ const INITIAL_MESSAGES: ILegalClinicMessage[] = [
   {
     id: "msg-1",
     senderId: "mentor-1",
-    senderName: "Adv. Rahul Sharma Sir (Faculty)",
+    senderName: "Faculty Directorate (Corporate Law)",
     senderRole: "mentor",
-    text: "Namaste Rohan! Welcome to the Law Kaksha Legal Clinic. You can ask any doubts regarding Companies Act 2013, ROC circulars, or ICAI examination case laws.",
+    text: "Welcome to the Law Kaksha Legal Clinic. You can ask any questions regarding Companies Act 2013, MCA circulars, or examination case laws.",
     timestamp: new Date(Date.now() - 3600000),
     isDelivered: true,
   },
   {
     id: "msg-2",
     senderId: "student-1",
-    senderName: "Rohan Deshmukh",
+    senderName: "Enrolled Candidate",
     senderRole: "student",
-    text: "Sir, in Section 103(1) for public companies, if 15 members are personally present within 30 minutes, but 2 of them are proxies, does the quorum hold?",
+    text: "In Section 103(1) for public companies, if 15 members are personally present within 30 minutes, but 2 of them are proxies, does the quorum hold?",
     statuteRef: "Section 103 (Quorum for Meetings)",
     timestamp: new Date(Date.now() - 1800000),
     isDelivered: true,
@@ -50,9 +50,9 @@ const INITIAL_MESSAGES: ILegalClinicMessage[] = [
   {
     id: "msg-3",
     senderId: "mentor-1",
-    senderName: "Adv. Rahul Sharma Sir (Faculty)",
+    senderName: "Faculty Directorate (Corporate Law)",
     senderRole: "mentor",
-    text: "Great question! Section 103(1) explicitly mandates 'personally present'. Proxies are NOT counted towards quorum under Section 103, although authorized representatives of bodies corporate under Section 113 ARE counted. So 13 personally present would fall short if the slab required 15.",
+    text: "Section 103(1) explicitly mandates 'personally present'. Proxies are NOT counted towards quorum under Section 103, although authorized representatives under Section 113 ARE counted. Thus 13 personally present would fall short if the slab required 15.",
     statuteRef: "Section 103 read with Section 113",
     timestamp: new Date(Date.now() - 600000),
     isDelivered: true,
@@ -110,9 +110,9 @@ export function LegalClinicChatModal({
       const mentorReply: ILegalClinicMessage = {
         id: `msg-${Date.now() + 1}`,
         senderId: "mentor-1",
-        senderName: "Adv. Rahul Sharma Sir (Faculty)",
+        senderName: "Faculty Directorate (Corporate Law)",
         senderRole: "mentor",
-        text: "Understood! I am reviewing your query with the MCA 2026 notification handbook. Stand by for the precise ratio.",
+        text: "Understood. The academic desk is reviewing your query with the MCA notification handbook.",
         timestamp: new Date(),
         isDelivered: true,
       };
@@ -151,7 +151,7 @@ export function LegalClinicChatModal({
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Adv. Rahul Sharma (Online)</span>
+                  <span>Faculty Directorate (Online)</span>
                 </span>
               </div>
               <p className="text-xs text-slate-500">
@@ -238,7 +238,7 @@ export function LegalClinicChatModal({
               {isMentorTyping && (
                 <div className="flex items-center gap-2 text-xs text-slate-500 italic bg-white px-3.5 py-2 rounded-2xl border border-slate-200 max-w-xs shadow-2xs">
                   <span className="w-2 h-2 bg-[#0284C7] rounded-full animate-ping" />
-                  <span>Adv. Rahul Sharma is reviewing &amp; typing...</span>
+                  <span>Faculty Directorate is reviewing &amp; typing...</span>
                 </div>
               )}
 
@@ -324,7 +324,7 @@ export function LegalClinicChatModal({
                     required
                     value={ticketSubject}
                     onChange={(e) => setTicketSubject(e.target.value)}
-                    placeholder="e.g. Conflict between Sec 185(1) and Sec 186(2) for WOS"
+                    placeholder="Subject Summary"
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7]"
                   />
                 </div>
@@ -392,7 +392,7 @@ export function LegalClinicChatModal({
                 <div>
                   <span className="font-mono text-[#0284C7] font-bold text-[11px] block">TKT-CA-LAW-8941</span>
                   <span className="font-bold text-slate-900 block">Section 185 vs 186 Inter-Corporate Loans</span>
-                  <span className="text-[11px] text-slate-500">Resolved by Adv. Pearl Dsouza • Audio note attached</span>
+                  <span className="text-[11px] text-slate-500">Resolved by Senior Legal Faculty • Audio note attached</span>
                 </div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                   Resolved

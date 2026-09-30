@@ -33,14 +33,14 @@ export default function CheckoutPage() {
   } = useCart();
 
   const [shippingData, setShippingData] = useState({
-    name: "Rohan Deshmukh",
-    email: "rohan.deshmukh@gmail.com",
-    phone: "+91 98765 43210",
+    name: "",
+    email: "",
+    phone: "",
     exam: "CA Intermediate Paper 2: Corporate & Other Laws",
-    address: "B-402, Shanti Heights, Shivaji Nagar",
-    city: "Pune",
-    state: "Maharashtra",
-    pincode: "411005",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
 
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "card">("upi");
@@ -271,6 +271,7 @@ export default function CheckoutPage() {
                       type="text"
                       name="name"
                       required
+                      placeholder="Enter your full name"
                       value={shippingData.name}
                       onChange={handleInputChange}
                       className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -285,6 +286,7 @@ export default function CheckoutPage() {
                       type="email"
                       name="email"
                       required
+                      placeholder="Enter your email"
                       value={shippingData.email}
                       onChange={handleInputChange}
                       className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -299,6 +301,7 @@ export default function CheckoutPage() {
                       type="tel"
                       name="phone"
                       required
+                      placeholder="Enter your contact number"
                       value={shippingData.phone}
                       onChange={handleInputChange}
                       className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -312,6 +315,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       name="exam"
+                      placeholder="Enter target exam"
                       value={shippingData.exam}
                       onChange={handleInputChange}
                       className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -341,6 +345,7 @@ export default function CheckoutPage() {
                         type="text"
                         name="address"
                         required={hasPhysicalItem}
+                        placeholder="Enter street / building address"
                         value={shippingData.address}
                         onChange={handleInputChange}
                         className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -355,6 +360,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           name="city"
+                          placeholder="Enter city"
                           value={shippingData.city}
                           onChange={handleInputChange}
                           className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -367,6 +373,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           name="state"
+                          placeholder="Enter state"
                           value={shippingData.state}
                           onChange={handleInputChange}
                           className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"
@@ -379,6 +386,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           name="pincode"
+                          placeholder="Enter PIN"
                           value={shippingData.pincode}
                           onChange={handleInputChange}
                           className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white"

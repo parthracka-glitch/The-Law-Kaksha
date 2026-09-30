@@ -197,33 +197,33 @@ export function ExamCountdownsAndQOTD() {
   };
 
   return (
-    <section id="countdown-qotd" className="py-7 sm:py-9 bg-gradient-to-b from-[#F0F9FF]/90 via-[#F8FAFC] to-[#F0F9FF]/90 border-y border-sky-200/70 relative">
+    <section id="countdown-qotd" className="py-8 sm:py-12 bg-[#FBFBFD] border-y border-black/[0.05] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* ======================================================== */}
-          {/* LEFT: ICAI CA EXAM COUNTDOWNS & RADAR                   */}
+          {/* LEFT: ICAI CA EXAM COUNTDOWNS                           */}
           {/* ======================================================== */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_4px_24px_-4px_rgba(2,132,199,0.06)] flex flex-col justify-between space-y-4">
+          <div className="lg:col-span-5 bg-white rounded-3xl border border-black/[0.08] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4">
             
             {/* Header: Title + Alert Button */}
-            <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-100">
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/[0.05]">
               <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
+                <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#0284C7]"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0071E3]"></span>
                 </span>
-                <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-slate-900">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1D1D1F]">
                   ICAI CA Exam Timers 2026-27
                 </h3>
               </div>
 
               <button
                 onClick={() => toggleAlert(selectedExamId)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
                   alertSet[selectedExamId]
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-sky-50 text-[#0284C7] hover:bg-sky-100/80 border border-sky-200/80"
+                    : "bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.06]"
                 }`}
                 title="Receive ICAI calendar alerts"
               >
@@ -234,7 +234,7 @@ export function ExamCountdownsAndQOTD() {
                   </>
                 ) : (
                   <>
-                    <Bell className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <Bell className="w-3.5 h-3.5 text-[#0071E3]" />
                     <span>Alert Me</span>
                   </>
                 )}
@@ -242,34 +242,34 @@ export function ExamCountdownsAndQOTD() {
             </div>
 
             {/* 2x2 Exam Selector Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {EXAMS.map((exam) => {
                 const isSelected = exam.id === selectedExamId;
                 return (
                   <button
                     key={exam.id}
                     onClick={() => setSelectedExamId(exam.id)}
-                    className={`text-left p-2.5 sm:p-3 rounded-xl border transition-all duration-200 relative ${
+                    className={`text-left p-3 rounded-2xl border transition-all duration-200 relative cursor-pointer ${
                       isSelected
-                        ? "bg-sky-50/60 border-[#0284C7] shadow-xs ring-1 ring-[#0284C7]/20"
-                        : "bg-white border-slate-200/90 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                        ? "bg-[#F5F5F7] border-black/[0.2] shadow-xs"
+                        : "bg-white border-black/[0.06] text-[#6E6E73] hover:border-black/[0.12] hover:bg-[#FBFBFD]"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <p
-                        className={`text-xs font-bold leading-snug line-clamp-1 ${
-                          isSelected ? "text-slate-900" : "text-slate-700"
+                        className={`text-xs font-semibold leading-snug line-clamp-1 ${
+                          isSelected ? "text-[#1D1D1F]" : "text-[#424245]"
                         }`}
                       >
                         {exam.name}
                       </p>
                       {isSelected && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] shrink-0 mt-1"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3] shrink-0 mt-1"></span>
                       )}
                     </div>
                     <p
                       className={`text-[11px] mt-0.5 ${
-                        isSelected ? "text-[#0284C7] font-semibold" : "text-slate-500"
+                        isSelected ? "text-[#0071E3] font-medium" : "text-[#86868B]"
                       }`}
                     >
                       {exam.tagline}
@@ -280,49 +280,49 @@ export function ExamCountdownsAndQOTD() {
             </div>
 
             {/* Countdown Display Card */}
-            <div className="rounded-xl bg-slate-50/80 border border-slate-200/80 p-3.5 sm:p-4 text-center space-y-3">
-              <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600">
-                <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
+            <div className="rounded-2xl bg-[#F5F5F7] border border-black/[0.04] p-4 text-center space-y-3">
+              <div className="flex items-center justify-center gap-1.5 text-xs text-[#6E6E73]">
+                <Clock className="w-3.5 h-3.5 text-[#0071E3]" />
                 <span>
                   Time Remaining for{" "}
-                  <strong className="text-slate-900 font-semibold">{activeExam.name}</strong>
+                  <strong className="text-[#1D1D1F] font-semibold">{activeExam.name}</strong>
                 </span>
               </div>
 
               {/* 4 Digit Boxes */}
-              <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
-                <div className="bg-white rounded-xl border border-slate-200/80 py-2 px-1 shadow-xs">
-                  <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+              <div className="grid grid-cols-4 gap-2">
+                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
+                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
                     {String(timeLeft.days).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5 block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
                     Days
                   </span>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-200/80 py-2 px-1 shadow-xs">
-                  <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
+                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
                     {String(timeLeft.hours).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5 block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
                     Hours
                   </span>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-200/80 py-2 px-1 shadow-xs">
-                  <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
+                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
                     {String(timeLeft.minutes).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5 block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
                     Mins
                   </span>
                 </div>
 
-                <div className="bg-white rounded-xl border border-sky-200/90 py-2 px-1 shadow-xs">
-                  <span className="block text-2xl sm:text-3xl font-black text-[#0284C7] font-mono tracking-tight">
+                <div className="bg-white rounded-xl border border-[#0071E3]/20 py-2 px-1 shadow-2xs">
+                  <span className="block text-2xl font-bold text-[#0071E3] tracking-tight">
                     {String(timeLeft.seconds).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0284C7] mt-0.5 block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#0071E3] mt-0.5 block">
                     Secs
                   </span>
                 </div>
@@ -330,10 +330,10 @@ export function ExamCountdownsAndQOTD() {
             </div>
 
             {/* Bottom Status Footer */}
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5">
-              <span className="font-medium text-slate-700">{activeExam.seats}</span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0284C7]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0284C7]"></span>
+            <div className="flex items-center justify-between text-xs text-[#86868B] pt-1">
+              <span className="font-medium text-[#424245]">{activeExam.seats}</span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0071E3]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]"></span>
                 {activeExam.status}
               </span>
             </div>
@@ -342,13 +342,13 @@ export function ExamCountdownsAndQOTD() {
           {/* ======================================================== */}
           {/* RIGHT: DAILY ICAI CASE SCENARIO MCQ CHALLENGE           */}
           {/* ======================================================== */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-[0_4px_24px_-4px_rgba(2,132,199,0.06)] space-y-3.5">
+          <div className="lg:col-span-7 bg-white rounded-3xl border border-black/[0.08] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4">
             
             {/* Header: Title + Subject Tag + Bookmark Button */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/[0.05]">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#0284C7]" />
-                <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-slate-900">
+                <Sparkles className="w-4 h-4 text-[#0071E3]" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1D1D1F]">
                   Daily CA Case-Scenario MCQ
                 </h3>
               </div>
@@ -356,16 +356,16 @@ export function ExamCountdownsAndQOTD() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleBookmark(activeMCQ.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                     bookmarkedList[activeMCQ.id]
-                      ? "bg-sky-50 text-[#0284C7] border border-sky-200"
-                      : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
+                      ? "bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20"
+                      : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.06]"
                   }`}
                   title="Bookmark for Last Day Revision (LDR)"
                 >
                   <Bookmark
                     className={`w-3.5 h-3.5 ${
-                      bookmarkedList[activeMCQ.id] ? "fill-current text-[#0284C7]" : "text-slate-400"
+                      bookmarkedList[activeMCQ.id] ? "fill-current text-[#0071E3]" : "text-[#86868B]"
                     }`}
                   />
                   <span>
@@ -377,17 +377,17 @@ export function ExamCountdownsAndQOTD() {
 
             {/* Subject Pill & Question Index Switcher */}
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center text-[11px] font-semibold text-[#0284C7] bg-sky-50 border border-sky-100 px-2.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center text-[11px] font-medium text-[#0071E3] bg-[#0071E3]/[0.08] border border-[#0071E3]/15 px-2.5 py-0.5 rounded-full">
                 {activeMCQ.subject}
               </span>
 
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5 text-xs text-[#86868B]">
                 <span>
                   Q{activeQuestionIdx + 1} of {MCQ_POOL.length}
                 </span>
                 <button
                   onClick={handleNextQuestion}
-                  className="text-slate-600 hover:text-[#0284C7] p-1 rounded hover:bg-slate-100 transition-colors"
+                  className="text-[#6E6E73] hover:text-[#0071E3] p-1 rounded-full hover:bg-black/[0.04] transition-colors cursor-pointer"
                   title="Next CA Scenario"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -396,7 +396,7 @@ export function ExamCountdownsAndQOTD() {
             </div>
 
             {/* Question Text */}
-            <h4 className="text-xs sm:text-sm font-serif font-medium text-slate-900 leading-relaxed">
+            <h4 className="text-xs sm:text-sm font-medium text-[#1D1D1F] leading-relaxed">
               {activeMCQ.question}
             </h4>
 
@@ -407,21 +407,21 @@ export function ExamCountdownsAndQOTD() {
                 const letter = String.fromCharCode(65 + idx);
 
                 let cardClasses =
-                  "relative overflow-hidden w-full text-left p-2.5 sm:p-3 rounded-xl border text-xs transition-all duration-200 cursor-pointer ";
+                  "relative overflow-hidden w-full text-left p-3 rounded-2xl border text-xs transition-all duration-200 cursor-pointer ";
 
                 if (!isAnswered) {
                   cardClasses +=
-                    "bg-white border-slate-200/90 text-slate-800 hover:border-sky-300 hover:bg-sky-50/30";
+                    "bg-white border-black/[0.08] text-[#1D1D1F] hover:border-black/[0.2] hover:bg-[#FBFBFD]";
                 } else {
                   if (opt.isCorrect) {
                     cardClasses +=
-                      "bg-emerald-50/80 border-emerald-400 text-emerald-950 font-semibold";
+                      "bg-emerald-50/80 border-emerald-500/40 text-emerald-950 font-medium";
                   } else if (isSelected && !opt.isCorrect) {
                     cardClasses +=
-                      "bg-rose-50/80 border-rose-400 text-rose-950 font-semibold";
+                      "bg-rose-50/80 border-rose-500/40 text-rose-950 font-medium";
                   } else {
                     cardClasses +=
-                      "bg-slate-50/60 border-slate-200 text-slate-500 opacity-80";
+                      "bg-[#F5F5F7] border-black/[0.04] text-[#86868B] opacity-75";
                   }
                 }
 
@@ -438,7 +438,7 @@ export function ExamCountdownsAndQOTD() {
                     {/* Background Poll Bar when answered */}
                     {isAnswered && (
                       <div
-                        className={`absolute top-0 bottom-0 left-0 transition-all duration-700 opacity-20 ${
+                        className={`absolute top-0 bottom-0 left-0 transition-all duration-700 opacity-15 ${
                           opt.isCorrect
                             ? "bg-emerald-500"
                             : isSelected
@@ -452,14 +452,14 @@ export function ExamCountdownsAndQOTD() {
                     <div className="relative z-10 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
                         <span
-                          className={`w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] font-bold shrink-0 transition-colors ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 transition-colors ${
                             isAnswered
                               ? opt.isCorrect
                                 ? "bg-emerald-600 text-white"
                                 : isSelected
                                 ? "bg-rose-600 text-white"
-                                : "bg-slate-200 text-slate-600"
-                              : "bg-slate-100 text-slate-700 border border-slate-300"
+                                : "bg-black/[0.08] text-[#6E6E73]"
+                              : "bg-black/[0.04] text-[#424245] border border-black/[0.08]"
                           }`}
                         >
                           {letter}
@@ -470,7 +470,7 @@ export function ExamCountdownsAndQOTD() {
                       {/* Right feedback icon & percentage */}
                       {isAnswered && (
                         <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                          <span className="text-[11px] font-mono font-semibold">
+                          <span className="text-[11px] font-mono font-medium">
                             {opt.pct}%
                           </span>
                           {opt.isCorrect ? (
@@ -488,32 +488,32 @@ export function ExamCountdownsAndQOTD() {
 
             {/* Statutory Explanation Card */}
             {isAnswered && (
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="p-4 rounded-2xl bg-[#F5F5F7] border border-black/[0.06] space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-[#0284C7]" />
-                    <span className="text-xs font-bold font-serif text-slate-900">
+                    <BookOpen className="w-3.5 h-3.5 text-[#0071E3]" />
+                    <span className="text-xs font-semibold text-[#1D1D1F]">
                       {activeMCQ.explanationTitle}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#0284C7] bg-sky-50 px-2 py-0.5 rounded border border-sky-100 font-semibold">
+                  <span className="text-[10px] font-mono text-[#0071E3] bg-[#0071E3]/[0.08] px-2 py-0.5 rounded-full border border-[#0071E3]/15 font-medium">
                     {activeMCQ.statutoryRef}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-700 leading-relaxed">
+                <p className="text-xs text-[#424245] leading-relaxed">
                   {activeMCQ.explanation}
                 </p>
 
-                <div className="pt-1 text-[11px] text-slate-600 border-t border-slate-200/70 flex items-start gap-1.5">
-                  <span className="font-semibold text-slate-800 shrink-0">ICAI Examiner Rule:</span>
+                <div className="pt-1.5 text-[11px] text-[#6E6E73] border-t border-black/[0.05] flex items-start gap-1.5">
+                  <span className="font-semibold text-[#1D1D1F] shrink-0">ICAI Examiner Rule:</span>
                   <span>{activeMCQ.keyDistinction}</span>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-slate-200/60">
+                <div className="pt-2 flex items-center justify-between border-t border-black/[0.05]">
                   <button
                     onClick={handleResetQuestion}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Try Again</span>
@@ -521,7 +521,7 @@ export function ExamCountdownsAndQOTD() {
 
                   <button
                     onClick={handleNextQuestion}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0284C7] hover:text-sky-700 transition-colors"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0071E3] hover:text-[#0077ED] transition-colors cursor-pointer"
                   >
                     <span>Next CA Case Scenario</span>
                     <ArrowRight className="w-3.5 h-3.5" />

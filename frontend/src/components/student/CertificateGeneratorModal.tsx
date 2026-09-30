@@ -152,10 +152,10 @@ export function CertificateGeneratorModal({
             {/* Left Signature */}
             <div className="text-left space-y-1">
               <div className="font-serif italic font-bold text-slate-800 text-sm">
-                Rahul Sharma
+                Faculty Directorate
               </div>
               <div className="h-0.5 bg-slate-300 w-28" />
-              <span className="text-[10px] text-slate-500 block">CA / CS Rahul Sharma</span>
+              <span className="text-[10px] text-slate-500 block">Chairperson, Academic Council</span>
               <span className="text-[9.5px] text-slate-400 block font-medium">Head of Legal Academics</span>
             </div>
 
@@ -172,11 +172,11 @@ export function CertificateGeneratorModal({
             {/* Right Signature */}
             <div className="text-right space-y-1">
               <div className="font-serif italic font-bold text-slate-800 text-sm">
-                Pearl Dsouza
+                Examination Board
               </div>
               <div className="h-0.5 bg-slate-300 w-28 ml-auto" />
-              <span className="text-[10px] text-slate-500 block">Adv. Pearl Dsouza</span>
-              <span className="text-[9.5px] text-slate-400 block font-medium">Senior Judicial Evaluator</span>
+              <span className="text-[10px] text-slate-500 block">Director of Legal Evaluation</span>
+              <span className="text-[9.5px] text-slate-400 block font-medium">Academic Examination Board</span>
             </div>
           </div>
 

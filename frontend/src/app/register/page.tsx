@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LawKakshaLogo } from "@/components/LawKakshaLogo";
-import { Lock, Mail, User, Phone, BookOpen, ArrowRight, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Lock, Mail, User, Phone, BookOpen, ArrowRight, AlertCircle, CheckCircle2, ShieldCheck, Check } from "lucide-react";
 import { apiRequest, setAuthSession } from "@/lib/api";
 
 export default function RegisterPage() {
@@ -56,28 +56,26 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-6">
           <div className="text-center space-y-2">
-            <div className="flex justify-center mb-2">
+            <div className="flex justify-center mb-3">
               <LawKakshaLogo variant="light" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-serif">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#1D1D1F] tracking-tight">
               Join The Law Kaksha
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-[#86868B]">
               Create your account to receive your official Student ID &amp; access course materials
             </p>
           </div>
 
-          <div className="bg-white border border-sky-100 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-
+          <div className="bg-white border border-black/[0.06] rounded-3xl p-8 sm:p-10 shadow-[0_2px_16px_rgba(0,0,0,0.04)] relative overflow-hidden">
             {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+              <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
                 <span>{error}</span>
               </div>
@@ -85,69 +83,69 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
                   Full Name *
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
                   <input
                     type="text"
                     name="name"
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Rohan Deshmukh"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-sm text-slate-900 placeholder:text-slate-400 bg-white"
+                    placeholder="Enter your full name"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-sm text-[#1D1D1F] placeholder:text-black/30 bg-[#FBFBFD] focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
                   Email Address *
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
                   <input
                     type="email"
                     name="email"
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="student@gmail.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-sm text-slate-900 placeholder:text-slate-400 bg-white"
+                    placeholder="Enter your email"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-sm text-[#1D1D1F] placeholder:text-black/30 bg-[#FBFBFD] focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
                   WhatsApp Contact Number
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+91 98765 43210"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-sm text-slate-900 placeholder:text-slate-400 bg-white"
+                    placeholder="Enter your contact number"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-sm text-[#1D1D1F] placeholder:text-black/30 bg-[#FBFBFD] focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
                   Target CA Examination
                 </label>
                 <div className="relative">
-                  <BookOpen className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <BookOpen className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none" />
                   <select
                     name="targetExam"
                     value={formData.targetExam}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-xs sm:text-sm text-slate-900 bg-white appearance-none cursor-pointer"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-xs sm:text-sm text-[#1D1D1F] bg-[#FBFBFD] focus:bg-white transition-all cursor-pointer"
                   >
                     <option value="CA Intermediate Paper 2: Corporate & Other Laws (Nov'26)">
                       CA Intermediate Paper 2 (Nov&apos;26 Scheme)
@@ -166,19 +164,19 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
                   Create Password *
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
                   <input
                     type="password"
                     name="password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Minimum 6 characters"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 focus:border-[#0284C7] text-sm text-slate-900 placeholder:text-slate-400 bg-white"
+                    placeholder="Enter password (minimum 6 characters)"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-sm text-[#1D1D1F] placeholder:text-black/30 bg-[#FBFBFD] focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -187,7 +185,7 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] hover:from-[#0369A1] hover:to-[#0284C7] text-white text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+                  className="w-full py-3 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs sm:text-sm font-medium shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer active:scale-[0.98]"
                 >
                   {loading ? (
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -201,19 +199,19 @@ export default function RegisterPage() {
               </div>
             </form>
 
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-600">
+            <div className="mt-6 pt-5 border-t border-black/[0.06] text-center">
+              <p className="text-xs text-[#86868B]">
                 Already registered?{" "}
                 <Link
                   href="/login"
-                  className="font-bold text-[#0284C7] hover:underline"
+                  className="font-semibold text-[#0071E3] hover:underline"
                 >
                   Log in with credentials
                 </Link>
               </p>
             </div>
 
-            <div className="mt-4 p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 text-[11px] text-emerald-800 flex items-center gap-2">
+            <div className="mt-5 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-[11px] text-emerald-800 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Instantly generates unique <strong>LRK-2026-XXXXXX</strong> credentials</span>
             </div>

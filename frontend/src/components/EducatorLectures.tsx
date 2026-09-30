@@ -20,8 +20,8 @@ export function EducatorLectures() {
     {
       id: 1,
       title: "Judiciary (PCS-J) Comprehensive Criminal Law Batch",
-      faculty: "Adv. Arvind Sharma",
-      credentials: "22+ Yrs Bar Experience • Criminal Procedure Expert",
+      faculty: "Faculty of Criminal Jurisprudence",
+      credentials: "Senior Bar Practitioner • Criminal Procedure Lead",
       subject: "BNS, BNSS & Bharatiya Sakshya Adhiniyam",
       price: "6,999",
       badge: "Flagship Batch",
@@ -31,8 +31,8 @@ export function EducatorLectures() {
     {
       id: 2,
       title: "Constitutional Law & Landmark Precedents Masterclass",
-      faculty: "Adv. Rajeshwari Sen",
-      credentials: "Former High Court Research Scholar • NLU Alum",
+      faculty: "Constitutional Bench Academic Directorate",
+      credentials: "High Court Research Scholar • Constitutional Law Lead",
       subject: "Constitutional Bench Analysis & Jurisprudence",
       price: "4,499",
       badge: "CLAT PG & Judiciary",
@@ -42,7 +42,7 @@ export function EducatorLectures() {
     {
       id: 3,
       title: "Corporate & Securities Laws (Companies Act, SEBI, IBC)",
-      faculty: "CS Meenakshi Rao",
+      faculty: "Corporate & Economic Law Faculty",
       credentials: "Fellow Company Secretary & Corporate Consultant",
       subject: "Company Law & Economic Legislation",
       price: "5,499",
@@ -53,8 +53,8 @@ export function EducatorLectures() {
     {
       id: 4,
       title: "Judiciary Mains Answer Writing & Judgment Drafting",
-      faculty: "Prof. Vikram Malhotra",
-      credentials: "Author of 5 Legal Reviewers • Judicial Mentor",
+      faculty: "Mains Answer Evaluation Faculty",
+      credentials: "Legal Reviewer Directorate • Judicial Mentor",
       subject: "Pleadings, Charge Framing & Order Writing",
       price: "3,999",
       badge: "Answer Evaluation Included",
@@ -64,8 +64,8 @@ export function EducatorLectures() {
     {
       id: 5,
       title: "CLAT UG Legal Reasoning & Critical Thinking Masterclass",
-      faculty: "Adv. Ananya Deshmukh",
-      credentials: "NLU Gold Medalist • AIR 7 in CLAT PG",
+      faculty: "Legal Aptitude & Reasoning Faculty",
+      credentials: "National Law University Merit Scholar",
       subject: "Passage Analysis & Deductive Legal Reasoning",
       price: "3,499",
       badge: "Passage Drills",

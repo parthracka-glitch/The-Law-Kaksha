@@ -22,6 +22,7 @@ import {
   Truck,
   Zap,
   Lock,
+  Check,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -51,10 +52,10 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#0284C7] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#0071E3] border-t-transparent rounded-full animate-spin" />
         </div>
         <Footer />
       </div>
@@ -63,15 +64,17 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between">
         <Navbar />
-        <div className="flex-1 max-w-xl mx-auto px-4 py-20 text-center space-y-4">
-          <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
-          <h1 className="text-xl font-bold text-slate-900">Product Not Found</h1>
-          <p className="text-sm text-slate-500">The requested course or book does not exist or has been archived.</p>
+        <div className="flex-1 max-w-xl mx-auto px-4 py-24 text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-black/[0.03] border border-black/[0.06] flex items-center justify-center mx-auto text-[#86868B]">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-[#1D1D1F]">Product Not Found</h1>
+          <p className="text-sm text-[#86868B]">The requested course or book does not exist or has been archived.</p>
           <Link
             href="/courses"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#1D1D1F] hover:bg-black text-white text-xs font-medium transition-all active:scale-[0.98]"
           >
             <span>Back to All Courses</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -114,27 +117,27 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-10">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs text-slate-500">
-          <Link href="/" className="hover:text-slate-900">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <Link href="/courses" className="hover:text-slate-900">Courses</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-900 font-semibold truncate max-w-xs">{product.title}</span>
+        <nav className="flex items-center gap-2 text-xs text-[#86868B]">
+          <Link href="/" className="hover:text-[#1D1D1F] transition-colors">Home</Link>
+          <ChevronRight className="w-3 h-3 text-black/30" />
+          <Link href="/courses" className="hover:text-[#1D1D1F] transition-colors">Courses &amp; Codices</Link>
+          <ChevronRight className="w-3 h-3 text-black/30" />
+          <span className="text-[#1D1D1F] font-medium truncate max-w-xs">{product.title}</span>
         </nav>
 
         {/* Product Hero Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white border border-sky-100 rounded-3xl p-6 sm:p-8 shadow-xs">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
           {/* Left Column: Cover & Preview Trigger */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="rounded-3xl bg-slate-50/80 border border-slate-200/90 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-xs">
-              <div className="relative group/book rounded-2xl overflow-hidden shadow-[0_16px_40px_rgba(2,132,199,0.18)] border border-slate-200 bg-white max-w-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(2,132,199,0.25)] hover:-translate-y-1">
+          <div className="lg:col-span-5 space-y-5 flex flex-col items-center">
+            <div className="w-full rounded-3xl bg-[#F5F5F7] border border-black/[0.04] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="relative group/book rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-black/[0.06] bg-white max-w-[280px] sm:max-w-[320px] transition-all duration-300 hover:shadow-[0_28px_50px_rgba(0,0,0,0.16)] hover:-translate-y-1">
                 {/* 3D Spine Lighting highlight */}
-                <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/20 via-white/20 to-transparent z-10 pointer-events-none" />
                 <Image
                   src={
                     product.id.includes("vol-2")
@@ -155,87 +158,87 @@ export default function ProductDetailPage() {
             {/* 2-Page Sample Preview Trigger */}
             <button
               onClick={() => setSampleModalOpen(true)}
-              className="w-full py-3 px-4 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0284C7] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-3 px-5 rounded-full border border-black/[0.08] bg-[#F5F5F7] hover:bg-black/[0.06] text-[#1D1D1F] font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4 text-[#0071E3]" />
               <span>Read 2-3 Page Free Sample Chapter</span>
             </button>
           </div>
 
           {/* Right Column: Details & Purchase Options */}
           <div className="lg:col-span-7 space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <span className="text-xs font-bold text-[#0284C7] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0071E3] tracking-wide uppercase">
                   {product.category}
                 </span>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-serif mt-1">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1D1D1F] tracking-tight mt-1.5 leading-tight">
                   {product.title}
                 </h1>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className="text-sm text-[#86868B] mt-2.5 leading-relaxed font-normal">
                   {product.description}
                 </p>
               </div>
 
               {/* Format Switcher */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Select Format
+              <div className="space-y-2.5 pt-4 border-t border-black/[0.06]">
+                <label className="block text-xs font-semibold text-[#1D1D1F] tracking-tight">
+                  Select Format Edition
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedFormat("pdf")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedFormat === "pdf"
-                        ? "border-[#0284C7] bg-sky-50/60 ring-2 ring-[#0284C7]/20"
-                        : "border-slate-200 hover:border-slate-300 bg-white"
+                        ? "border-[#0071E3] bg-[#0071E3]/[0.03] ring-1 ring-[#0071E3]"
+                        : "border-black/[0.08] hover:border-black/[0.16] bg-white"
                     }`}
                   >
-                    <div className="font-bold text-xs text-slate-900">Encrypted PDF</div>
-                    <div className="text-[11px] text-slate-500">Instant Student Vault</div>
-                    <div className="font-extrabold text-xs text-[#0284C7] mt-1">₹{basePrice}</div>
+                    <div className="font-semibold text-xs text-[#1D1D1F]">Encrypted PDF</div>
+                    <div className="text-[11px] text-[#86868B] mt-0.5">Instant Student Vault</div>
+                    <div className="font-semibold text-xs text-[#0071E3] mt-2">₹{basePrice}</div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedFormat("paperback")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedFormat === "paperback"
-                        ? "border-[#0284C7] bg-sky-50/60 ring-2 ring-[#0284C7]/20"
-                        : "border-slate-200 hover:border-slate-300 bg-white"
+                        ? "border-[#0071E3] bg-[#0071E3]/[0.03] ring-1 ring-[#0071E3]"
+                        : "border-black/[0.08] hover:border-black/[0.16] bg-white"
                     }`}
                   >
-                    <div className="font-bold text-xs text-slate-900">Deluxe Book</div>
-                    <div className="text-[11px] text-slate-500">Doorstep Dispatch</div>
-                    <div className="font-extrabold text-xs text-[#0284C7] mt-1">₹{Math.round(basePrice * 1.8)}</div>
+                    <div className="font-semibold text-xs text-[#1D1D1F]">Deluxe Book</div>
+                    <div className="text-[11px] text-[#86868B] mt-0.5">Doorstep Dispatch</div>
+                    <div className="font-semibold text-xs text-[#0071E3] mt-2">₹{Math.round(basePrice * 1.8)}</div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedFormat("combo")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedFormat === "combo"
-                        ? "border-[#0284C7] bg-sky-50/60 ring-2 ring-[#0284C7]/20"
-                        : "border-slate-200 hover:border-slate-300 bg-white"
+                        ? "border-[#0071E3] bg-[#0071E3]/[0.03] ring-1 ring-[#0071E3]"
+                        : "border-black/[0.08] hover:border-black/[0.16] bg-white"
                     }`}
                   >
-                    <div className="font-bold text-xs text-slate-900">Mastermind Combo</div>
-                    <div className="text-[11px] text-slate-500">PDF + Book + Mock Pass</div>
-                    <div className="font-extrabold text-xs text-[#0284C7] mt-1">₹{Math.round(basePrice * 2.2)}</div>
+                    <div className="font-semibold text-xs text-[#1D1D1F]">Mastermind Combo</div>
+                    <div className="text-[11px] text-[#86868B] mt-0.5">PDF + Book + Pass</div>
+                    <div className="font-semibold text-xs text-[#0071E3] mt-2">₹{Math.round(basePrice * 2.2)}</div>
                   </button>
                 </div>
               </div>
 
               {/* Highlights */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <div className="space-y-2.5 pt-4 border-t border-black/[0.06]">
+                <label className="block text-xs font-semibold text-[#1D1D1F] tracking-tight">
                   What&apos;s Included
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {(product.highlights || []).map((hl: string, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs text-slate-700">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7] shrink-0 mt-0.5" />
+                    <div key={idx} className="flex items-start gap-2 text-xs text-[#515154]">
+                      <Check className="w-3.5 h-3.5 text-[#0071E3] shrink-0 mt-0.5" />
                       <span>{hl}</span>
                     </div>
                   ))}
@@ -244,35 +247,35 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Price & Action CTA */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="space-y-4 pt-6 border-t border-black/[0.06]">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="text-3xl font-extrabold text-slate-900">
+                  <span className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
                     ₹{currentPrice}
                   </span>
-                  <span className="ml-2 text-sm text-slate-400 line-through">
+                  <span className="ml-2.5 text-sm text-[#86868B] line-through">
                     ₹{originalPrice}
                   </span>
-                  <span className="ml-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  <span className="ml-2.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     Save ₹{originalPrice - currentPrice}
                   </span>
                 </div>
-                <div className="text-xs text-slate-500 flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5 text-slate-400" /> Free Pan-India Delivery
+                <div className="text-xs text-[#86868B] flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-[#86868B]" /> Free Pan-India Delivery
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <button
                   onClick={handleAddToCart}
-                  className="py-3 px-4 rounded-xl border border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="py-3 px-4 rounded-full border border-black/[0.1] hover:bg-black/[0.04] text-[#1D1D1F] text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                 >
-                  <ShoppingBag className="w-4 h-4 text-[#0284C7]" />
-                  <span>Add to Basket</span>
+                  <ShoppingBag className="w-4 h-4 text-[#0071E3]" />
+                  <span>Add to Bag</span>
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="py-3 px-4 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0EA5E9] hover:from-[#0369A1] hover:to-[#0284C7] text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="py-3 px-4 rounded-full bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs sm:text-sm font-medium shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                 >
                   <span>Buy Now</span>
                   <ArrowRight className="w-4 h-4" />
@@ -284,31 +287,31 @@ export default function ProductDetailPage() {
 
         {/* Detailed Chapter Syllabus */}
         {product.syllabus && product.syllabus.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 font-serif">
+                <h3 className="text-lg sm:text-xl font-semibold text-[#1D1D1F] tracking-tight">
                   Chapter-Wise Table of Contents
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#86868B] mt-0.5">
                   Comprehensive Bare Act synthesis &amp; statutory breakdown
                 </p>
               </div>
-              <span className="text-xs font-bold text-[#0284C7] bg-sky-50 px-2.5 py-1 rounded-full">
+              <span className="self-start sm:self-auto text-xs font-medium text-[#0071E3] bg-[#0071E3]/[0.08] px-3 py-1 rounded-full">
                 {product.syllabus.length} Chapters / Modules
               </span>
             </div>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-black/[0.04]">
               {product.syllabus.map((ch: any, idx: number) => (
-                <div key={idx} className="py-3 flex items-center justify-between text-xs sm:text-sm">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-[#0284C7] w-20 shrink-0">
+                <div key={idx} className="py-3.5 flex items-center justify-between text-xs sm:text-sm">
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono text-xs font-semibold text-[#0071E3] w-24 shrink-0">
                       {ch.chapter}
                     </span>
-                    <span className="font-medium text-slate-800">{ch.title}</span>
+                    <span className="font-medium text-[#1D1D1F]">{ch.title}</span>
                   </div>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 </div>
               ))}
             </div>

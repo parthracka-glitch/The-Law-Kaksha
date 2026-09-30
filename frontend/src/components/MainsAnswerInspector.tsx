@@ -118,39 +118,39 @@ export function MainsAnswerInspector() {
     MAINS_CASES.find((c) => c.id === activeCaseId) || MAINS_CASES[0];
 
   return (
-    <section id="mains-inspector" className="py-12 sm:py-16 bg-white text-slate-800 border-b border-slate-100">
+    <section id="mains-inspector" className="py-12 sm:py-16 bg-white text-[#1D1D1F] border-b border-black/[0.05]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-100/80 text-[11px] font-semibold tracking-wide uppercase text-[#0284C7] mb-3">
-            <Sparkles className="w-3 h-3 text-[#0284C7]" />
-            ICAI Scoring Rubric Matrix
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F5F5F7] border border-black/[0.06] text-xs font-medium text-[#1D1D1F] mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#0071E3]" />
+            <span>ICAI Scoring Rubric Matrix</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
             Mains Answer Architecture
           </h2>
-          <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+          <p className="mt-2 text-xs sm:text-sm text-[#6E6E73] leading-relaxed">
             See the exact difference between an average draft and a rank-grade 4-pillar model solution evaluated against ICAI examiner rubrics.
           </p>
         </div>
 
         {/* Minimalist Segmented Tabs */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60 shadow-xs">
+        <div className="flex justify-center mb-7">
+          <div className="inline-flex p-1 bg-[#F5F5F7] rounded-full border border-black/[0.06] shadow-2xs">
             {MAINS_CASES.map((c) => {
               const isActive = activeCaseId === c.id;
               return (
                 <button
                   key={c.id}
                   onClick={() => setActiveCaseId(c.id)}
-                  className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 sm:px-5 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer ${
                     isActive
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                      ? "bg-white text-[#1D1D1F] shadow-xs border border-black/[0.04]"
+                      : "text-[#6E6E73] hover:text-[#1D1D1F]"
                   }`}
                 >
-                  <FileText className={`w-3.5 h-3.5 ${isActive ? "text-[#0284C7]" : "text-slate-400"}`} />
+                  <FileText className={`w-3.5 h-3.5 ${isActive ? "text-[#0071E3]" : "text-[#86868B]"}`} />
                   <span>{c.subject}</span>
                 </button>
               );
@@ -159,22 +159,22 @@ export function MainsAnswerInspector() {
         </div>
 
         {/* Question Prompt Card */}
-        <div className="rounded-2xl bg-slate-50/70 border border-slate-200/80 p-5 sm:p-6 mb-8 transition-colors">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-200/60">
+        <div className="rounded-3xl bg-[#FBFBFD] border border-black/[0.08] p-6 mb-8 transition-colors shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-black/[0.05]">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#86868B]">
                 ICAI Exam Problem
               </span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-800 text-[11px] font-semibold">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-black/[0.04] text-[#1D1D1F] text-[11px] font-medium border border-black/[0.06]">
                 {currentCase.marks}
               </span>
             </div>
-            <span className="text-xs font-mono text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200/60">
+            <span className="text-xs font-mono text-[#6E6E73] bg-white px-2.5 py-1 rounded-full border border-black/[0.06]">
               {currentCase.topic}
             </span>
           </div>
-          <blockquote className="border-l-2 border-slate-300 pl-3.5 my-1">
-            <p className="text-xs sm:text-sm text-slate-800 font-serif leading-relaxed italic">
+          <blockquote className="border-l-2 border-[#0071E3]/40 pl-4 my-1">
+            <p className="text-xs sm:text-sm text-[#1D1D1F] leading-relaxed italic">
               &ldquo;{currentCase.question}&rdquo;
             </p>
           </blockquote>
@@ -184,38 +184,38 @@ export function MainsAnswerInspector() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           
           {/* LEFT: AVERAGE ASPIRANT DRAFT */}
-          <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 flex flex-col justify-between hover:border-slate-300 transition-colors">
+          <div className="rounded-3xl bg-white border border-black/[0.08] p-6 sm:p-7 flex flex-col justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-black/[0.14] transition-all">
             <div className="space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.05]">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block text-[10px]">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#86868B] block text-[10px]">
                     Comparative Draft
                   </span>
-                  <span className="text-sm font-bold text-slate-800">
+                  <span className="text-sm font-semibold text-[#1D1D1F]">
                     Average Aspirant Draft
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-medium">
                   <XCircle className="w-3.5 h-3.5 text-rose-500" />
                   <span>{currentCase.averageAnswer.score}</span>
                 </div>
               </div>
 
               {/* Draft text */}
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-line">
+              <div className="p-4 rounded-2xl bg-[#F5F5F7] border border-black/[0.04] text-xs text-[#6E6E73] leading-relaxed whitespace-pre-line">
                 {currentCase.averageAnswer.text}
               </div>
 
               {/* Examiner Critique List */}
               <div className="space-y-2.5 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 block">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-600 block">
                   Examiner Critique &amp; Negative Deductions:
                 </span>
                 <div className="space-y-2">
                   {currentCase.averageAnswer.critiquePoints.map((critique, idx) => {
                     const cleanText = critique.replace(/^❌\s*/, "");
                     return (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-600">
+                      <div key={idx} className="flex items-start gap-2 text-xs text-[#6E6E73]">
                         <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                         <span className="leading-snug">{cleanText}</span>
                       </div>
@@ -227,18 +227,18 @@ export function MainsAnswerInspector() {
           </div>
 
           {/* RIGHT: THE LAW KAKSHA MODEL SOLUTION */}
-          <div className="rounded-2xl bg-gradient-to-b from-sky-50/30 via-white to-white border border-sky-200/80 p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:border-sky-300 transition-colors">
+          <div className="rounded-3xl bg-white border border-[#0071E3]/30 p-6 sm:p-7 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,113,227,0.06)] hover:border-[#0071E3]/50 transition-all">
             <div className="space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-sky-100">
+              <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.05]">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#0284C7] block text-[10px]">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#0071E3] block text-[10px]">
                     ICAI Ranker Framework
                   </span>
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-semibold text-[#1D1D1F]">
                     The Law Kaksha Model Solution
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>{currentCase.lawKakshaAnswer.score}</span>
                 </div>
@@ -248,44 +248,44 @@ export function MainsAnswerInspector() {
               <div className="space-y-2.5 text-xs">
                 
                 {/* Pillar 1 */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                <div className="p-3.5 rounded-2xl bg-[#FBFBFD] border border-black/[0.06] shadow-2xs hover:border-black/[0.12] transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-[#0071E3]/10 text-[#0071E3] text-[10px] font-bold flex items-center justify-center">
                       1
                     </span>
-                    <strong className="text-slate-900 font-semibold">Formulated Legal Issue</strong>
+                    <strong className="text-[#1D1D1F] font-semibold">Formulated Legal Issue</strong>
                   </div>
-                  <p className="text-slate-600 pl-5.5 leading-relaxed">
+                  <p className="text-[#6E6E73] pl-6 leading-relaxed">
                     {currentCase.lawKakshaAnswer.issue}
                   </p>
                 </div>
 
                 {/* Pillar 2 */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                <div className="p-3.5 rounded-2xl bg-[#FBFBFD] border border-black/[0.06] shadow-2xs hover:border-black/[0.12] transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-[#0071E3]/10 text-[#0071E3] text-[10px] font-bold flex items-center justify-center">
                       2
                     </span>
-                    <strong className="text-slate-900 font-semibold">Statutory Framework</strong>
+                    <strong className="text-[#1D1D1F] font-semibold">Statutory Framework</strong>
                   </div>
-                  <p className="text-slate-600 pl-5.5 leading-relaxed">
+                  <p className="text-[#6E6E73] pl-6 leading-relaxed">
                     {currentCase.lawKakshaAnswer.statutoryBasis}
                   </p>
                 </div>
 
                 {/* Pillar 3 */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200/70 shadow-2xs hover:border-sky-200 transition-colors">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-4 h-4 rounded-full bg-sky-100 text-[#0284C7] text-[10px] font-bold flex items-center justify-center">
+                <div className="p-3.5 rounded-2xl bg-[#FBFBFD] border border-black/[0.06] shadow-2xs hover:border-black/[0.12] transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-[#0071E3]/10 text-[#0071E3] text-[10px] font-bold flex items-center justify-center">
                       3
                     </span>
-                    <strong className="text-slate-900 font-semibold">Supreme Court Precedents &amp; Rules</strong>
+                    <strong className="text-[#1D1D1F] font-semibold">Supreme Court Precedents &amp; Rules</strong>
                   </div>
-                  <div className="pl-5.5 space-y-1">
+                  <div className="pl-6 space-y-1">
                     {currentCase.lawKakshaAnswer.landmarkCases.map((cs, idx) => (
-                      <p key={idx} className="text-slate-600 leading-relaxed">
-                        <strong className="text-slate-800">{cs.name}</strong>{" "}
-                        <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
+                      <p key={idx} className="text-[#6E6E73] leading-relaxed">
+                        <strong className="text-[#1D1D1F]">{cs.name}</strong>{" "}
+                        <span className="font-mono text-[10px] text-[#6E6E73] bg-black/[0.04] px-1 py-0.5 rounded">
                           {cs.citation}
                         </span>
                         : {cs.rule}
@@ -295,14 +295,14 @@ export function MainsAnswerInspector() {
                 </div>
 
                 {/* Pillar 4 */}
-                <div className="p-3 rounded-xl bg-sky-50/50 border border-sky-200/80 shadow-2xs">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-4 h-4 rounded-full bg-[#0284C7] text-white text-[10px] font-bold flex items-center justify-center">
+                <div className="p-3.5 rounded-2xl bg-[#0071E3]/[0.04] border border-[#0071E3]/20 shadow-2xs">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 rounded-full bg-[#0071E3] text-white text-[10px] font-bold flex items-center justify-center">
                       4
                     </span>
-                    <strong className="text-slate-900 font-semibold">Conclusion &amp; Ruling</strong>
+                    <strong className="text-[#1D1D1F] font-semibold">Conclusion &amp; Ruling</strong>
                   </div>
-                  <p className="text-slate-700 pl-5.5 leading-relaxed font-medium">
+                  <p className="text-[#1D1D1F] pl-6 leading-relaxed font-medium">
                     {currentCase.lawKakshaAnswer.conclusion}
                   </p>
                 </div>
@@ -310,7 +310,7 @@ export function MainsAnswerInspector() {
               </div>
 
               {/* Examiner Remarks Note */}
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600 flex items-center gap-2">
+              <div className="p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.06] text-[11px] text-[#6E6E73] flex items-center gap-2">
                 <span className="text-amber-500 font-bold">★</span>
                 <span>{currentCase.lawKakshaAnswer.examinerRemarks.replace(/^⭐\s*/, "")}</span>
               </div>

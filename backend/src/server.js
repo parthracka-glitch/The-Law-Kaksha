@@ -24,6 +24,7 @@ const catalogRoutes = require("./routes/catalogRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const contentRoutes = require("./routes/contentRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +59,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", catalogRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", contentRoutes);
+app.use("/api", quizRoutes);
 app.use("/api/admin", adminRoutes);
 
 // -----------------------------------------------------------------------------

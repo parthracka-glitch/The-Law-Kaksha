@@ -205,50 +205,50 @@ export function SmartChoicePricing() {
   ];
 
   return (
-    <section id="pricing" className="py-8 sm:py-10 bg-white text-slate-800 border-b border-slate-200/80 relative overflow-hidden">
-      {/* Ambient background accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-72 bg-gradient-to-b from-sky-100/40 via-sky-50/20 to-transparent blur-3xl pointer-events-none -z-10" />
+    <section id="pricing" className="py-10 sm:py-16 bg-white text-[#1D1D1F] border-b border-black/[0.05] relative overflow-hidden">
+      {/* Minimal ambient light */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 bg-gradient-to-b from-sky-50/40 via-slate-50/10 to-transparent blur-3xl pointer-events-none -z-10" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[11px] font-semibold text-[#0284C7] mb-2 shadow-xs">
-            <Sparkles className="w-3 h-3 text-[#0284C7]" />
-            <span className="uppercase tracking-wider">Choose Your CA Study Plan</span>
+        <div className="text-center max-w-2xl mx-auto mb-6">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F5F5F7] border border-black/[0.06] text-xs font-medium text-[#1D1D1F] mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#0071E3]" />
+            <span className="tracking-[-0.01em]">Choose Your CA Study Plan</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight">
-            Transparent Options for <span className="text-[#0284C7]">CA Aspirants</span>
+          <h2 className="text-2xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
+            Transparent Options for <span className="text-[#0071E3]">CA Aspirants</span>
           </h2>
-          <p className="mt-1.5 text-xs sm:text-sm text-slate-600">
+          <p className="mt-2 text-xs sm:text-sm text-[#6E6E73] leading-relaxed">
             Select between our acclaimed <strong>2-Volume CA Law Book Sets</strong> or specialized <strong>CA Course Subscriptions</strong>.
           </p>
         </div>
 
-        {/* Master Mode Switcher (2-Volume Books vs CA Course Subscriptions) */}
-        <div className="flex justify-center mb-7">
-          <div className="inline-flex p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1 shadow-xs max-w-md w-full sm:w-auto">
+        {/* Apple Segmented Control Switcher */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex p-1 rounded-full bg-[#F5F5F7] border border-black/[0.06] gap-1 shadow-2xs max-w-md w-full sm:w-auto">
             <button
               onClick={() => setActiveMode("books")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-initial px-5 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                 activeMode === "books"
-                  ? "bg-white text-slate-900 font-bold shadow-xs border border-slate-200/90 text-[#0284C7]"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  ? "bg-white text-[#1D1D1F] shadow-xs border border-black/[0.04]"
+                  : "text-[#6E6E73] hover:text-[#1D1D1F]"
               }`}
             >
-              <BookOpen className="w-4 h-4 text-[#0284C7]" />
+              <BookOpen className="w-4 h-4 text-[#0071E3]" />
               <span>2-Volume CA Books (2 Books)</span>
             </button>
 
             <button
               onClick={() => setActiveMode("courses")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-initial px-5 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                 activeMode === "courses"
-                  ? "bg-white text-slate-900 font-bold shadow-xs border border-slate-200/90 text-[#0284C7]"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  ? "bg-white text-[#1D1D1F] shadow-xs border border-black/[0.04]"
+                  : "text-[#6E6E73] hover:text-[#1D1D1F]"
               }`}
             >
-              <GraduationCap className="w-4 h-4 text-[#0284C7]" />
-              <span>CA &amp; CS Subscriptions (CA Notes vs CS MCQs)</span>
+              <GraduationCap className="w-4 h-4 text-[#0071E3]" />
+              <span>CA &amp; CS Subscriptions</span>
             </button>
           </div>
         </div>
@@ -259,104 +259,104 @@ export function SmartChoicePricing() {
         {activeMode === "books" && (
           <div className="space-y-6 animate-in fade-in duration-300">
             {/* 2-Volume Highlight Banner */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-sky-50/60 border border-sky-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#0284C7] text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-xs">
+            <div className="p-4 rounded-2xl bg-[#FBFBFD] border border-black/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#0071E3] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                   2V
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">
+                  <p className="text-xs font-semibold text-[#1D1D1F]">
                     The Law Kaksha 2-Volume CA Flagship Law Reviewer (Single Volumes &amp; Box Sets)
                   </p>
-                  <p className="text-[11px] text-slate-600">
+                  <p className="text-[11px] text-[#6E6E73]">
                     Choose between <strong>Volume 1 (MCQs)</strong>, <strong>Volume 2 (RTPs &amp; Solved)</strong>, <strong>Both Volumes Digital</strong>, or <strong>Physical Hardcopies</strong>.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-[#0284C7] bg-white px-3 py-1 rounded-lg border border-sky-200 shrink-0">
+              <div className="flex items-center gap-2 text-[11px] font-medium text-[#0071E3] bg-white px-3.5 py-1.5 rounded-full border border-black/[0.06] shadow-2xs shrink-0">
                 <Truck className="w-3.5 h-3.5" />
                 <span>Free Pan-India Courier on Physical Sets</span>
               </div>
             </div>
 
             {/* 4 Book Format Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
               {bookPackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 relative ${
+                  className={`rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 relative bg-white ${
                     pkg.popular
-                      ? "bg-white border-2 border-[#0284C7] shadow-[0_8px_28px_-6px_rgba(2,132,199,0.12)]"
-                      : "bg-white border border-slate-200/90 hover:border-slate-300"
+                      ? "border-2 border-[#0071E3] shadow-[0_12px_36px_-6px_rgba(0,113,227,0.14)]"
+                      : "border border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-black/[0.16] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]"
                   }`}
                 >
                   <div>
                     {/* Badge */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span
-                        className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
                           pkg.popular
-                            ? "bg-sky-50 text-[#0284C7] border border-sky-200"
-                            : "bg-slate-100 text-slate-600"
+                            ? "bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20"
+                            : "bg-black/[0.04] text-[#6E6E73]"
                         }`}
                       >
                         {pkg.badge}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         {pkg.discount}
                       </span>
                     </div>
 
                     {/* Book Front Cover 3D Display */}
                     <div className="relative mx-auto mb-4 w-full flex items-center justify-center py-1">
-                      <div className="relative group/book rounded-xl overflow-hidden shadow-[0_8px_20px_rgba(2,132,199,0.12)] border border-slate-200/90 bg-white transition-all duration-300 hover:shadow-[0_12px_28px_rgba(2,132,199,0.22)] hover:-translate-y-1">
+                      <div className="relative group/book rounded-2xl overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-black/[0.06] bg-white transition-all duration-300 hover:shadow-[0_16px_32px_rgba(0,113,227,0.18)] hover:-translate-y-1">
                         {/* 3D Spine Lighting highlight */}
-                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/25 via-white/20 to-transparent z-10 pointer-events-none" />
+                        <div className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/20 via-white/20 to-transparent z-10 pointer-events-none" />
                         <Image
                           src={pkg.coverImage}
                           alt={pkg.title}
                           width={260}
                           height={390}
-                          className="h-44 sm:h-48 w-auto object-cover object-top transition-transform duration-300 group-hover/book:scale-[1.03]"
+                          className="h-44 sm:h-48 w-auto object-cover object-top transition-transform duration-300 group-hover/book:scale-[1.02]"
                         />
                       </div>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900 mb-1 leading-snug">
+                    <h3 className="text-base font-semibold text-[#1D1D1F] mb-1 leading-snug">
                       {pkg.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mb-3">{pkg.subtitle}</p>
+                    <p className="text-xs text-[#86868B] mb-3 leading-relaxed">{pkg.subtitle}</p>
 
                     {/* Price */}
-                    <div className="flex items-baseline gap-2 py-2.5 border-y border-slate-100 mb-3.5">
-                      <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+                    <div className="flex items-baseline gap-2 py-2.5 border-y border-black/[0.05] mb-3.5">
+                      <span className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
                         ₹{pkg.price}
                       </span>
-                      <span className="text-xs text-slate-400 line-through font-mono">
+                      <span className="text-xs text-[#86868B] line-through">
                         ₹{pkg.originalPrice}
                       </span>
-                      <span className="text-[10px] text-slate-400 ml-auto">One-time purchase</span>
+                      <span className="text-[10px] text-[#86868B] ml-auto">One-time purchase</span>
                     </div>
 
                     {/* Included Volumes Box */}
-                    <div className="space-y-1.5 mb-3.5 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <div className="space-y-1.5 mb-3.5 p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86868B]">
                         Included in this Edition:
                       </p>
                       {pkg.includedVolumes.map((v, vIdx) => (
-                        <div key={vIdx} className="flex items-start gap-1.5 text-xs text-slate-700">
-                          <span className="font-bold text-[#0284C7] shrink-0 text-[11px]">{v.vol}:</span>
+                        <div key={vIdx} className="flex items-start gap-1.5 text-xs text-[#424245]">
+                          <span className="font-semibold text-[#0071E3] shrink-0 text-[11px]">{v.vol}:</span>
                           <span className="text-[11px] leading-tight">{v.name}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Features List */}
-                    <ul className="space-y-2 text-xs text-slate-600 mb-5">
+                    <ul className="space-y-2 text-xs text-[#6E6E73] mb-5">
                       {pkg.features.map((feat, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7] shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0071E3] shrink-0 mt-0.5" />
                           <span className="leading-snug">{feat}</span>
                         </li>
                       ))}
@@ -368,9 +368,9 @@ export function SmartChoicePricing() {
                     <button
                       type="button"
                       onClick={() => handleOpenSample(pkg.title, pkg.id, pkg.price)}
-                      className="w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-slate-700 bg-slate-50 hover:bg-sky-50 hover:text-[#0284C7] border border-slate-200 hover:border-sky-300"
+                      className="w-full py-2 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition-all text-[#1D1D1F] bg-black/[0.04] hover:bg-black/[0.07] border border-black/[0.06] cursor-pointer"
                     >
-                      <Eye className="w-3.5 h-3.5 text-[#0284C7]" />
+                      <Eye className="w-3.5 h-3.5 text-[#0071E3]" />
                       <span>Preview Sample PDF</span>
                     </button>
 
@@ -386,10 +386,10 @@ export function SmartChoicePricing() {
                           badge: pkg.badge,
                         })
                       }
-                      className={`w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs ${
+                      className={`w-full py-2.5 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer ${
                         pkg.popular
-                          ? "bg-[#0284C7] hover:bg-[#0369A1] text-white shadow-md shadow-sky-500/20"
-                          : "bg-slate-900 hover:bg-slate-800 text-white"
+                          ? "bg-[#0071E3] hover:bg-[#0077ED] text-white shadow-[0_2px_8px_rgba(0,113,227,0.3)]"
+                          : "bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white"
                       }`}
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
@@ -408,22 +408,22 @@ export function SmartChoicePricing() {
         {activeMode === "courses" && (
           <div className="space-y-6 animate-in fade-in duration-300">
             {/* Course Subscription Banner */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-sky-50/60 border border-sky-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#0284C7] text-white flex items-center justify-center font-serif font-black text-xs shrink-0 shadow-xs">
+            <div className="p-4 rounded-2xl bg-[#FBFBFD] border border-black/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#0071E3] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                   🎓
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">
+                  <p className="text-xs font-semibold text-[#1D1D1F]">
                     Targeted CA Business Law (Main Notes) &amp; CS Specialization (MCQs Bank)
                   </p>
-                  <p className="text-[11px] text-slate-600">
+                  <p className="text-[11px] text-[#6E6E73]">
                     <strong>CA Plan:</strong> 5 statutory acts (ICA, LLP, Companies Act, SOGA, NI Act) &bull; <strong>CS Plan:</strong> Comprehensive MCQs in Business Law, Management &amp; Communication.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-[#0284C7] bg-white px-3 py-1 rounded-lg border border-sky-200 shrink-0">
+              <div className="flex items-center gap-2 text-[11px] font-medium text-[#0071E3] bg-white px-3.5 py-1.5 rounded-full border border-black/[0.06] shadow-2xs shrink-0">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>ICAI &amp; ICSI Curriculum Certified</span>
               </div>
@@ -436,71 +436,71 @@ export function SmartChoicePricing() {
                 return (
                   <div
                     key={plan.id}
-                    className={`rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 relative ${
+                    className={`rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 relative bg-white ${
                       plan.popular
-                        ? "bg-white border-2 border-[#0284C7] shadow-[0_8px_30px_-6px_rgba(2,132,199,0.12)]"
-                        : "bg-white border border-slate-200/90 hover:border-slate-300 shadow-xs"
+                        ? "border-2 border-[#0071E3] shadow-[0_12px_36px_-6px_rgba(0,113,227,0.14)]"
+                        : "border border-black/[0.08] shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-black/[0.16] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]"
                     }`}
                   >
                     <div>
                       {/* Top Row: Icon, Badge & Discount */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center justify-between gap-2 mb-3.5">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-lg ${plan.popular ? "bg-sky-100 text-[#0284C7]" : "bg-slate-100 text-slate-700"}`}>
+                          <div className={`p-1.5 rounded-xl ${plan.popular ? "bg-[#0071E3]/[0.08] text-[#0071E3]" : "bg-black/[0.04] text-[#424245]"}`}>
                             <PlanIcon className="w-4 h-4" />
                           </div>
                           <span
-                            className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+                            className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
                               plan.popular
-                                ? "bg-sky-50 text-[#0284C7] border border-sky-200"
-                                : "bg-slate-100 text-slate-700"
+                                ? "bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20"
+                                : "bg-black/[0.04] text-[#6E6E73]"
                             }`}
                           >
                             {plan.badge}
                           </span>
                         </div>
 
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                           {plan.discount}
                         </span>
                       </div>
 
                       {/* Title & Target */}
-                      <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900 mb-0.5">
+                      <h3 className="text-lg font-semibold text-[#1D1D1F] mb-0.5">
                         {plan.title}
                       </h3>
-                      <p className="text-xs font-semibold text-[#0284C7] mb-2">{plan.targetExam}</p>
-                      <p className="text-xs text-slate-600 leading-relaxed mb-3 line-clamp-2">{plan.tagline}</p>
+                      <p className="text-xs font-medium text-[#0071E3] mb-2">{plan.targetExam}</p>
+                      <p className="text-xs text-[#6E6E73] leading-relaxed mb-3.5 line-clamp-2">{plan.tagline}</p>
 
                       {/* Price Strip */}
-                      <div className="flex items-baseline gap-2 py-2.5 border-y border-slate-100 mb-3.5">
-                        <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+                      <div className="flex items-baseline gap-2 py-2.5 border-y border-black/[0.05] mb-3.5">
+                        <span className="text-2xl sm:text-3xl font-bold text-[#1D1D1F] tracking-tight">
                           ₹{plan.price}
                         </span>
-                        <span className="text-xs text-slate-400 line-through font-mono">
+                        <span className="text-xs text-[#86868B] line-through">
                           ₹{plan.originalPrice}
                         </span>
-                        <span className="text-[11px] font-semibold text-[#0284C7] ml-auto">
+                        <span className="text-[11px] font-medium text-[#0071E3] ml-auto">
                           {plan.duration}
                         </span>
                       </div>
 
                       {/* Core Modules Breakdown Box */}
-                      <div className="space-y-2 mb-3.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                          <Layers className="w-3 h-3 text-[#0284C7]" />
+                      <div className="space-y-2 mb-3.5 p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86868B] flex items-center gap-1">
+                          <Layers className="w-3 h-3 text-[#0071E3]" />
                           <span>ICAI Syllabus Modules:</span>
                         </p>
 
                         {plan.coreModules.map((mod, mIdx) => (
                           <div key={mIdx} className="space-y-1">
-                            <span className="text-[11px] font-bold text-slate-800 block">
+                            <span className="text-[11px] font-semibold text-[#1D1D1F] block">
                               {mod.title}
                             </span>
                             <ul className="space-y-0.5 pl-1">
                               {mod.topics.map((top, tIdx) => (
-                                <li key={tIdx} className="text-[10.5px] text-slate-600 flex items-start gap-1 leading-snug">
-                                  <span className="text-[#0284C7] font-bold">•</span>
+                                <li key={tIdx} className="text-[10.5px] text-[#424245] flex items-start gap-1 leading-snug">
+                                  <span className="text-[#0071E3] font-bold">•</span>
                                   <span>{top}</span>
                                 </li>
                               ))}
@@ -511,12 +511,12 @@ export function SmartChoicePricing() {
 
                       {/* Features Checklist */}
                       <div className="space-y-1.5 mb-5">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#86868B]">
                           Course Inclusions:
                         </p>
                         {plan.features.map((feat, i) => (
-                          <div key={i} className="flex items-start gap-1.5 text-xs text-slate-700">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7] shrink-0 mt-0.5" />
+                          <div key={i} className="flex items-start gap-1.5 text-xs text-[#6E6E73]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#0071E3] shrink-0 mt-0.5" />
                             <span className="leading-snug">{feat}</span>
                           </div>
                         ))}
@@ -524,13 +524,13 @@ export function SmartChoicePricing() {
                     </div>
 
                     {/* Dual Action: Sample & Enroll */}
-                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
                       <button
                         type="button"
                         onClick={() => handleOpenSample(plan.title, plan.id, plan.price)}
-                        className="flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-slate-700 bg-slate-50 hover:bg-sky-50 hover:text-[#0284C7] border border-slate-200 hover:border-sky-300"
+                        className="flex-1 py-2.5 rounded-full text-xs font-medium flex items-center justify-center gap-1.5 transition-all text-[#1D1D1F] bg-black/[0.04] hover:bg-black/[0.07] border border-black/[0.06] cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5 text-[#0284C7]" />
+                        <Eye className="w-3.5 h-3.5 text-[#0071E3]" />
                         <span>Preview Sample PDF</span>
                       </button>
 
@@ -546,10 +546,10 @@ export function SmartChoicePricing() {
                             badge: plan.badge,
                           })
                         }
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs ${
+                        className={`flex-1 py-2.5 rounded-full text-xs font-medium flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer ${
                           plan.popular
-                            ? "bg-[#0284C7] hover:bg-[#0369A1] text-white shadow-md shadow-sky-500/20"
-                            : "bg-slate-900 hover:bg-slate-800 text-white"
+                            ? "bg-[#0071E3] hover:bg-[#0077ED] text-white shadow-[0_2px_8px_rgba(0,113,227,0.3)]"
+                            : "bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white"
                         }`}
                       >
                         <GraduationCap className="w-4 h-4" />

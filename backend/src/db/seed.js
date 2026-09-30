@@ -232,13 +232,13 @@ async function seed() {
 
     const studentUser = usersTable.insert({
       id: "usr-student-001",
-      student_id: "LRK-2026-068942",
-      name: "Rohan Deshmukh",
-      email: "rohan.deshmukh@gmail.com",
+      student_id: "LK-STU-084201",
+      name: "Enrolled Candidate",
+      email: "student@thelawkaksha.com",
       phone: "+91 98765 43210",
       password_hash: studentPasswordHash,
       role: "student",
-      target_exam: "CA Intermediate Paper 2: Corporate & Other Laws (Nov'26)",
+      target_exam: "CA Intermediate Paper 2: Corporate & Other Laws (Nov 2026)",
       is_active: 1,
     });
 
@@ -248,14 +248,14 @@ async function seed() {
       user_id: studentUser.id,
       total_amount: 399,
       discount_amount: 100,
-      coupon_code: "LAW20",
+      coupon_code: "CALAW20",
       payment_status: "PAID",
       payment_gateway: "razorpay",
       gateway_order_id: "order_mock_982100",
       gateway_payment_id: "pay_mock_982100",
       gateway_signature: "sig_mock_verified",
-      shipping_name: "Rohan Deshmukh",
-      shipping_email: "rohan.deshmukh@gmail.com",
+      shipping_name: "Enrolled Candidate",
+      shipping_email: "student@thelawkaksha.com",
       shipping_phone: "+91 98765 43210",
       shipping_address: "Flat 402, Nariman Point, Mumbai, Maharashtra - 400021",
       tracking_number: "INSTANT-DRM-VAULT",
@@ -289,19 +289,19 @@ async function seed() {
       {
         id: "rev-001",
         product_id: "book-vol-1",
-        student_name: "Ananya Singhal",
-        student_rank: "AIR 3 — CA Intermediate (Nov'25)",
+        student_name: "AIR 03 Candidate",
+        student_rank: "CA Intermediate (Nov Attempt)",
         rating: 5,
         title: "Scored 74 in Law! Volume 1 is unmatched.",
         comment:
-          "The way Section 96 to 103 are broken down with practical AGM and quorum tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from Pearl Ma'am's book!",
+          "The way Section 96 to 103 are broken down with practical AGM and quorum tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from The Law Kaksha statutory codex!",
         is_approved: 1,
       },
       {
         id: "rev-002",
         product_id: "book-mcq",
-        student_name: "Karan Mehta",
-        student_rank: "AIR 14 — CA Inter",
+        student_name: "AIR 14 Candidate",
+        student_rank: "CA Inter",
         rating: 5,
         title: "Full 30/30 in MCQ section thanks to this Question Bank.",
         comment:
@@ -311,8 +311,8 @@ async function seed() {
       {
         id: "rev-003",
         product_id: "book-ldr",
-        student_name: "Siddharth Jain",
-        student_rank: "CA Final Candidate",
+        student_name: "CA Final Candidate",
+        student_rank: "Corporate & Economic Laws",
         rating: 5,
         title: "Life-saver during the 1.5-day exam gap.",
         comment:
@@ -322,7 +322,7 @@ async function seed() {
       {
         id: "rev-004",
         product_id: "mains-evaluation",
-        student_name: "Pooja Hegde",
+        student_name: "Exemption Candidate",
         student_rank: "Cleared CA Inter with 68 in Law",
         rating: 5,
         title: "The 1-on-1 copy checking boosted my score by 22 marks.",
@@ -336,6 +336,283 @@ async function seed() {
     console.log("[Seeder] Reviews seeded successfully.");
   }
 
+  // 4. Seed Quizzes if empty
+  const quizzesTable = Database.table("quizzes");
+  if (quizzesTable.count() === 0) {
+    console.log("[Seeder] Seeding statutory legal quizzes...");
+
+    const initialQuizzes = [
+      {
+        id: "quiz-daily-01",
+        title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        subtitle: "10 Timed Statutory Scenario Questions • Free for All Registered Candidates",
+        level: "CA Intermediate Paper 2",
+        subject: "Corporate & Other Laws",
+        chapter: "Chapter VII: Management & Administration (Sections 96 to 122)",
+        time_limit_minutes: 15,
+        total_marks: 20,
+        positive_marks: 2,
+        negative_marks: 0.5,
+        is_free: 1,
+        status: "ACTIVE",
+        questions: [
+          {
+            id: "q-101",
+            question:
+              "Under Section 96 of the Companies Act, 2013, what is the statutory time gap allowed between two consecutive Annual General Meetings (AGMs) of a company?",
+            options: [
+              "Not more than 12 months",
+              "Not more than 15 months",
+              "Not more than 18 months",
+              "Not more than 6 months from close of financial year only",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 96(1) of the Companies Act, 2013",
+            explanation:
+              "Section 96(1) mandates that not more than 15 months shall elapse between the date of one AGM and that of the next, subject to the closing of the financial year timeline (6 months).",
+          },
+          {
+            id: "q-102",
+            question:
+              "A Public Company has 1,850 members as on the date of its General Meeting. As per Section 103(1)(a)(ii), what is the statutory minimum quorum required?",
+            options: [
+              "5 members personally present",
+              "15 members personally present",
+              "30 members personally present",
+              "15 members present personally or by proxy",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 103(1)(a)(ii) of the Companies Act, 2013",
+            explanation:
+              "Under Section 103(1)(a)(ii), if the number of members is more than 1,000 but up to 5,000, the statutory quorum is 15 members personally present. Proxies are strictly excluded from quorum calculation.",
+          },
+          {
+            id: "q-103",
+            question:
+              "Which of the following business items CANNOT be transacted through a Postal Ballot under Section 110 of the Companies Act, 2013 read with Rule 22?",
+            options: [
+              "Alteration of Memorandum of Association (MOA) objects clause",
+              "Ordinary Business at an Annual General Meeting",
+              "Issue of shares with differential voting rights",
+              "Buy-back of own shares by the company",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 110(1) & Rule 22 of Companies (Management and Administration) Rules, 2014",
+            explanation:
+              "Ordinary business items at an AGM (Adoption of accounts, dividend declaration, director appointments, auditor appointment) and items where directors/auditors have a right to be heard cannot be passed through postal ballot.",
+          },
+          {
+            id: "q-104",
+            question:
+              "Under Section 100(2), what is the minimum voting power required for members of a company having share capital to requisition an Extraordinary General Meeting (EGM)?",
+            options: [
+              "Not less than 5% of paid-up share capital",
+              "Not less than 1/10th (10%) of paid-up share capital carrying voting rights",
+              "Not less than 25% of paid-up share capital",
+              "At least 50 members holding voting rights",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 100(2)(a) of the Companies Act, 2013",
+            explanation:
+              "Section 100(2)(a) specifies that members holding not less than one-tenth of such of the paid-up share capital of the company as carries the right of voting can validly requisition an EGM.",
+          },
+          {
+            id: "q-105",
+            question:
+              "What is the statutory length of clear notice required to call an Annual General Meeting under Section 101(1) of the Companies Act, 2013?",
+            options: [
+              "14 clear days",
+              "21 clear days",
+              "30 clear days",
+              "21 days including the date of sending and date of meeting",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 101(1) of the Companies Act, 2013",
+            explanation:
+              "Section 101(1) stipulates that a general meeting of a company may be called by giving not less than clear 21 days notice either in writing or through electronic mode.",
+          },
+        ],
+      },
+      {
+        id: "quiz-contract-01",
+        title: "ICAI Case Scenario Drill: The Indian Contract Act, 1872",
+        subtitle: "Essential Elements, Legality of Object & Discharge of Contracts",
+        level: "CA Foundation & Inter",
+        subject: "Business Laws",
+        chapter: "The Indian Contract Act, 1872 (Units 1 to 9)",
+        time_limit_minutes: 20,
+        total_marks: 20,
+        positive_marks: 2,
+        negative_marks: 0.5,
+        is_free: 1,
+        status: "ACTIVE",
+        questions: [
+          {
+            id: "q-201",
+            question:
+              "An agreement made without consideration is void under Section 25. Which of the following is a recognized statutory exception under Section 25(1)?",
+            options: [
+              "Agreement in restraint of trade",
+              "Agreement in writing and registered made on account of natural love and affection between parties standing in near relation",
+              "Oral promise to compensate past voluntary services",
+              "Promise to pay a time-barred debt signed without witnesses",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 25(1) of The Indian Contract Act, 1872",
+            explanation:
+              "Under Section 25(1), an agreement expressed in writing and registered under the law for the time being in force, made on account of natural love and affection between parties in a near relation, is enforceable without consideration.",
+          },
+          {
+            id: "q-202",
+            question:
+              "Under Section 68 of the Indian Contract Act, 1872, if a person incapable of entering into a contract is supplied with necessaries suited to his condition in life:",
+            options: [
+              "The minor is personally liable to pay from his pocket",
+              "The supplier is entitled to be reimbursed from the property of such incapable person",
+              "The contract is completely void and no reimbursement can be claimed",
+              "The parents of the minor are strictly personally liable",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 68 of The Indian Contract Act, 1872",
+            explanation:
+              "Under Section 68, the person furnishing necessaries is entitled to be reimbursed from the property of the minor/incapable person. There is zero personal liability on the minor.",
+          },
+        ],
+      },
+      {
+        id: "quiz-other-laws-01",
+        title: "Corporate Law Master Mock: Board Meetings & Audit Provisions",
+        subtitle: "Sections 134, 139, 149 & 173 Deep-Dive Examination Simulation",
+        level: "CA Intermediate Paper 2",
+        subject: "Corporate & Other Laws",
+        chapter: "Board of Directors, Audit & Financial Statements",
+        time_limit_minutes: 30,
+        total_marks: 30,
+        positive_marks: 3,
+        negative_marks: 1.0,
+        is_free: 0,
+        status: "ACTIVE",
+        questions: [
+          {
+            id: "q-301",
+            question:
+              "Under Section 139(2) of the Companies Act, 2013, what is the maximum consecutive term an individual auditor can serve in a prescribed company before mandatory cooling-off?",
+            options: [
+              "One term of 3 consecutive years",
+              "One term of 5 consecutive years",
+              "Two terms of 5 consecutive years",
+              "Ten consecutive years without cooling-off",
+            ],
+            correct_option_index: 1,
+            bare_act_citation: "Section 139(2)(a) of the Companies Act, 2013",
+            explanation:
+              "Under Section 139(2)(a), no listed company or prescribed class of companies shall appoint or re-appoint an individual as auditor for more than one term of five consecutive years.",
+          },
+        ],
+      },
+    ];
+
+    initialQuizzes.forEach((q) => quizzesTable.insert(q));
+    console.log("[Seeder] Quizzes seeded successfully.");
+  }
+
+  // 5. Seed Quiz Attempts for All-India Leaderboard if empty
+  const attemptsTable = Database.table("quiz_attempts");
+  if (attemptsTable.count() === 0) {
+    console.log("[Seeder] Seeding initial All-India leaderboard submissions...");
+
+    const initialAttempts = [
+      {
+        id: "att-seed-001",
+        quiz_id: "quiz-daily-01",
+        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        user_id: "usr-ranker-001",
+        candidate_name: "AIR 01 Candidate",
+        student_id: "LK-AIR-001",
+        score: 20,
+        total_marks: 20,
+        accuracy: 100.0,
+        correct_count: 5,
+        incorrect_count: 0,
+        unattempted_count: 0,
+        time_taken_seconds: 245,
+        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 1, "q-105": 1 },
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      },
+      {
+        id: "att-seed-002",
+        quiz_id: "quiz-daily-01",
+        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        user_id: "usr-ranker-002",
+        candidate_name: "AIR 02 Candidate",
+        student_id: "LK-AIR-002",
+        score: 18,
+        total_marks: 20,
+        accuracy: 90.0,
+        correct_count: 4,
+        incorrect_count: 1,
+        unattempted_count: 0,
+        time_taken_seconds: 310,
+        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 1, "q-105": 0 },
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+      },
+      {
+        id: "att-seed-003",
+        quiz_id: "quiz-daily-01",
+        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        user_id: "usr-ranker-003",
+        candidate_name: "AIR 03 Candidate",
+        student_id: "LK-AIR-003",
+        score: 17.5,
+        total_marks: 20,
+        accuracy: 88.0,
+        correct_count: 4,
+        incorrect_count: 1,
+        unattempted_count: 0,
+        time_taken_seconds: 340,
+        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 0, "q-105": 1 },
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+      },
+      {
+        id: "att-seed-004",
+        quiz_id: "quiz-daily-01",
+        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        user_id: "usr-student-001",
+        candidate_name: "Enrolled Candidate",
+        student_id: "LK-STU-084201",
+        score: 16,
+        total_marks: 20,
+        accuracy: 80.0,
+        correct_count: 4,
+        incorrect_count: 1,
+        unattempted_count: 0,
+        time_taken_seconds: 420,
+        answers: { "q-101": 1, "q-102": 1, "q-103": 0, "q-104": 1, "q-105": 1 },
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+      },
+      {
+        id: "att-seed-005",
+        quiz_id: "quiz-daily-01",
+        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
+        user_id: "usr-ranker-005",
+        candidate_name: "Exemption Candidate",
+        student_id: "LK-EXM-005",
+        score: 14,
+        total_marks: 20,
+        accuracy: 75.0,
+        correct_count: 3,
+        incorrect_count: 1,
+        unattempted_count: 1,
+        time_taken_seconds: 480,
+        answers: { "q-101": 1, "q-102": 1, "q-103": 1 },
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+      },
+    ];
+
+    initialAttempts.forEach((a) => attemptsTable.insert(a));
+    console.log("[Seeder] Leaderboard attempts seeded successfully.");
+  }
+
   console.log("[Seeder] Seeding completed!");
 }
 
@@ -345,3 +622,4 @@ module.exports = seed;
 if (require.main === module) {
   seed();
 }
+

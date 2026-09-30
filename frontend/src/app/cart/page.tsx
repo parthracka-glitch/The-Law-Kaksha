@@ -176,7 +176,7 @@ export default function CartPage() {
                         type="text"
                         value={inputCode}
                         onChange={(e) => setInputCode(e.target.value)}
-                        placeholder="Discount Code"
+                        placeholder="Enter promo code"
                         className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 uppercase font-semibold focus:outline-none focus:border-[#0284C7]"
                       />
                     </div>
