@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   X,
-  Lock,
   ChevronLeft,
   ChevronRight,
   ZoomIn,
@@ -19,9 +18,8 @@ import {
   List,
   Bookmark,
   RotateCw,
-  Clock,
   HelpCircle,
-  ShieldCheck,
+  FileText,
 } from "lucide-react";
 
 interface SecurePdfReaderProps {
@@ -35,143 +33,10 @@ interface SecurePdfReaderProps {
 
 type ReaderTheme = "dark" | "sepia" | "light" | "oled";
 
-interface UnitChapter {
-  unit: number;
+interface PdfOutlineItem {
   title: string;
-  act: string;
-  startPage: number;
-  weightage?: string;
-  keyTopics?: string[];
+  page: number;
 }
-
-const VOL1_CHAPTERS: UnitChapter[] = [
-  {
-    unit: 1,
-    title: "Indian Contract Act, 1872",
-    act: "Offer, Acceptance, Consideration & Remedies",
-    startPage: 1,
-    weightage: "20 - 25 Marks",
-    keyTopics: ["Essentials of Valid Contract", "Free Consent (Sec 13-22)", "Breach & Section 73 Damages"],
-  },
-  {
-    unit: 2,
-    title: "Sale of Goods Act, 1930",
-    act: "Conditions, Warranties & Caveat Emptor",
-    startPage: 2,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Sale vs Agreement to Sell", "Doctrine of Caveat Emptor", "Rights of Unpaid Seller (Sec 45-54)"],
-  },
-  {
-    unit: 3,
-    title: "Indian Partnership Act, 1932",
-    act: "Mutual Agency, Holding Out & Dissolution",
-    startPage: 4,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Cox v. Hickman True Test", "Doctrine of Holding Out (Sec 28)", "Section 69 Non-Registration"],
-  },
-  {
-    unit: 4,
-    title: "Limited Liability Partnership Act, 2008",
-    act: "LLP Framework & Designated Partners",
-    startPage: 6,
-    weightage: "5 - 10 Marks",
-    keyTopics: ["Hybrid Structure Benefits", "Designated Partners Liability", "Incorporation & Annual Compliances"],
-  },
-  {
-    unit: 5,
-    title: "Elements of Company Law (2013)",
-    act: "Corporate Veil, MOA, AOA & Ultra Vires",
-    startPage: 8,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Salomon v. Salomon Doctrine", "Doctrine of Ultra Vires", "Indoor Management Exception"],
-  },
-  {
-    unit: 6,
-    title: "Negotiable Instruments Act, 1881",
-    act: "Cheques, Bills & Section 138 Penalties",
-    startPage: 9,
-    weightage: "10 - 15 Marks",
-    keyTopics: ["Holder in Due Course", "Crossing of Cheques", "Section 138 Dishonour & Cognizance"],
-  },
-];
-
-const VOL2_CHAPTERS: UnitChapter[] = [
-  {
-    unit: 7,
-    title: "General Principles of Management",
-    act: "Henri Fayol's 14 Principles & Scientific Management",
-    startPage: 1,
-    weightage: "25 - 30 Marks",
-    keyTopics: ["Fayol's 14 Principles", "F.W. Taylor Scientific Management", "Functions: PODSCORB & Leadership"],
-  },
-  {
-    unit: 8,
-    title: "Business Environment & Ethics",
-    act: "PESTLE Analysis, Corporate Governance & CSR",
-    startPage: 42,
-    weightage: "20 - 25 Marks",
-    keyTopics: ["Micro vs Macro Environments", "PESTLE Framework", "Corporate Social Responsibility (CSR)"],
-  },
-];
-
-const CA_CHAPTERS: UnitChapter[] = [
-  {
-    unit: 1,
-    title: "Indian Regulatory Framework",
-    act: "Overview of Indian Legal System & Hierarchy of Courts",
-    startPage: 1,
-    weightage: "5 - 10 Marks",
-    keyTopics: ["Hierarchy of Courts", "Sources of Law", "Role of Regulatory Bodies"],
-  },
-  {
-    unit: 2,
-    title: "The Indian Contract Act, 1872",
-    act: "Formation, Consideration, Free Consent, Performance & Breach",
-    startPage: 19,
-    weightage: "20 - 25 Marks",
-    keyTopics: ["Essentials of Valid Contract", "Free Consent (§13-22)", "Section 73 Damages"],
-  },
-  {
-    unit: 3,
-    title: "The Sale of Goods Act, 1930",
-    act: "Formation, Conditions, Warranties & Caveat Emptor",
-    startPage: 75,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Caveat Emptor Exception", "Priest v. Last", "Unpaid Seller Rights"],
-  },
-  {
-    unit: 4,
-    title: "The Indian Partnership Act, 1932",
-    act: "General Nature, Relations of Partners & Dissolution",
-    startPage: 130,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Cox v. Hickman True Test", "Doctrine of Holding Out (§28)", "Section 69 Non-Registration"],
-  },
-  {
-    unit: 5,
-    title: "The Limited Liability Partnership Act, 2008",
-    act: "LLP Architecture, Incorporation & Designated Partners",
-    startPage: 175,
-    weightage: "5 - 10 Marks",
-    keyTopics: ["Designated Partners", "Perpetual Succession", "Conversion & Compliances"],
-  },
-  {
-    unit: 6,
-    title: "The Companies Act, 2013",
-    act: "Corporate Veil, Types, MOA/AOA & Ultra Vires",
-    startPage: 205,
-    weightage: "15 - 20 Marks",
-    keyTopics: ["Salomon v. Salomon", "Doctrine of Ultra Vires", "Indoor Management"],
-  },
-  {
-    unit: 7,
-    title: "The Negotiable Instruments Act, 1881",
-    act: "Promissory Notes, Bills of Exchange & Section 138",
-    startPage: 245,
-    weightage: "10 - 15 Marks",
-    keyTopics: ["Section 138 Penalties", "Crossing of Cheques", "Holder in Due Course"],
-  },
-];
 
 function base64ToUint8Array(base64: string): Uint8Array {
   const binaryString = window.atob(base64);
@@ -196,12 +61,13 @@ export function SecurePdfReader({
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [pdfOutline, setPdfOutline] = useState<PdfOutlineItem[]>([]);
   const [scale, setScale] = useState(1.1);
   const [rotation, setRotation] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<ReaderTheme>("dark");
-  const [sidebarTab, setSidebarTab] = useState<"units" | "bookmarks" | "shortcuts" | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"contents" | "bookmarks" | "shortcuts" | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [readingTime, setReadingTime] = useState(0);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
@@ -269,48 +135,20 @@ export function SecurePdfReader({
     };
   }, [isOpen]);
 
-  const formatReadingDuration = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    if (mins < 1) return "< 1 min";
-    return `${mins} min`;
-  };
-
-  // Determine chapter outlines based on book title or url
-  const chaptersList = useMemo(() => {
-    if (pdfUrl.includes("management") || title.toLowerCase().includes("management")) {
-      return VOL2_CHAPTERS;
-    }
-    if (pdfUrl.includes("ca-foundation") || title.toLowerCase().includes("ca foundation")) {
-      return CA_CHAPTERS;
-    }
-    return VOL1_CHAPTERS;
-  }, [pdfUrl, title]);
-
-  // Clean filename from URL
   const cleanFilename = useMemo(() => {
-    return pdfUrl.split("?")[0].split("/").pop() || "cseet-business-law-full.pdf";
+    return pdfUrl.split("?")[0].split("/").pop() || "study-codex.pdf";
   }, [pdfUrl]);
 
-  // Find active unit for current page
-  const activeUnit = useMemo(() => {
-    let current = chaptersList[0];
-    for (const ch of chaptersList) {
-      if (currentPage >= ch.startPage) {
-        current = ch;
-      }
-    }
-    return current;
-  }, [chaptersList, currentPage]);
-
-  // Main PDF Loader using robust Base64 with binary fallback
+  // Main PDF Loader using Base64 with binary fallback + Real Outline Extraction
   const loadPdf = useCallback(async (url: string) => {
     setLoading(true);
     setError(null);
     setPdfDoc(null);
     setTotalPages(0);
     setCurrentPage(1);
+    setPdfOutline([]);
 
-    const filename = url.split("?")[0].split("/").pop() || "cseet-business-law-full.pdf";
+    const filename = url.split("?")[0].split("/").pop() || "study-codex.pdf";
 
     try {
       const pdfjsLib = await import("pdfjs-dist");
@@ -347,6 +185,33 @@ export function SecurePdfReader({
       const doc = await loadingTask.promise;
       setPdfDoc(doc);
       setTotalPages(doc.numPages);
+
+      // Extract real embedded outline from the actual PDF file
+      try {
+        const rawOutline = await doc.getOutline();
+        if (rawOutline && Array.isArray(rawOutline) && rawOutline.length > 0) {
+          const resolved: PdfOutlineItem[] = [];
+          for (const item of rawOutline) {
+            let pNum = 1;
+            if (typeof item.dest === "string") {
+              const dest = await doc.getDestination(item.dest);
+              if (dest && dest[0]) {
+                pNum = (await doc.getPageIndex(dest[0])) + 1;
+              }
+            } else if (Array.isArray(item.dest) && item.dest[0]) {
+              pNum = (await doc.getPageIndex(item.dest[0])) + 1;
+            }
+            if (pNum >= 1 && pNum <= doc.numPages) {
+              resolved.push({ title: item.title || `Section (Page ${pNum})`, page: pNum });
+            }
+          }
+          setPdfOutline(resolved);
+        } else {
+          setPdfOutline([]);
+        }
+      } catch (e) {
+        setPdfOutline([]);
+      }
     } catch (err: any) {
       console.error("PDF Base64 load failed, attempting binary fallback:", err);
 
@@ -371,6 +236,28 @@ export function SecurePdfReader({
         const doc = await fallbackTask.promise;
         setPdfDoc(doc);
         setTotalPages(doc.numPages);
+
+        try {
+          const rawOutline = await doc.getOutline();
+          if (rawOutline && Array.isArray(rawOutline) && rawOutline.length > 0) {
+            const resolved: PdfOutlineItem[] = [];
+            for (const item of rawOutline) {
+              let pNum = 1;
+              if (typeof item.dest === "string") {
+                const dest = await doc.getDestination(item.dest);
+                if (dest && dest[0]) {
+                  pNum = (await doc.getPageIndex(dest[0])) + 1;
+                }
+              } else if (Array.isArray(item.dest) && item.dest[0]) {
+                pNum = (await doc.getPageIndex(item.dest[0])) + 1;
+              }
+              if (pNum >= 1 && pNum <= doc.numPages) {
+                resolved.push({ title: item.title || `Section (Page ${pNum})`, page: pNum });
+              }
+            }
+            setPdfOutline(resolved);
+          }
+        } catch (e) {}
       } catch (retryErr: any) {
         console.error("PDF all load attempts failed:", retryErr);
         setError("Unable to load the study book. Please click Retry below.");
@@ -652,7 +539,6 @@ export function SecurePdfReader({
     },
   }[theme];
 
-  const readingProgress = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
   const isBookmarked = bookmarks.includes(currentPage);
 
   // 1-Tap Minimal Theme Switcher
@@ -677,43 +563,45 @@ export function SecurePdfReader({
         }
       `}</style>
 
-      {/* 1. ULTRA-MINIMAL TOP BAR (EXECUTIVE STREAMLINED) */}
+      {/* 1. ULTRA-MINIMAL TOP BAR (100% REAL & STREAMLINED) */}
       <header
         className={`h-12 sm:h-13 px-3 sm:px-5 border-b shrink-0 z-30 flex items-center justify-between transition-colors ${themeStyles.headerBg}`}
       >
-        {/* LEFT: MINIMAL TOC BUTTON + TITLE */}
+        {/* LEFT: TOC / CONTENTS BUTTON + REAL TITLE */}
         <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
           <button
-            onClick={() => setSidebarTab(sidebarTab ? null : "units")}
+            onClick={() => setSidebarTab(sidebarTab ? null : "contents")}
             className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
               sidebarTab ? themeStyles.btnActive : themeStyles.btnGhost
             }`}
-            title="Table of Contents"
+            title="Document Contents & Pages"
           >
             <List className="w-4 h-4" />
             <span className="hidden sm:inline text-xs font-medium">Contents</span>
+            {totalPages > 0 && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-400 font-mono font-medium">
+                {totalPages} {totalPages === 1 ? "Page" : "Pages"}
+              </span>
+            )}
           </button>
 
           <div className="w-px h-4 bg-current opacity-10 hidden sm:block" />
 
-          {/* Book Title & Chapter Subtitle */}
-          <div className="min-w-0 flex items-baseline gap-2 truncate">
+          {/* Book Title */}
+          <div className="min-w-0 flex items-center gap-2 truncate">
             <h1 className="text-xs sm:text-sm font-semibold tracking-tight truncate">
               {title}
             </h1>
-            <span className="text-[11px] opacity-50 truncate hidden xs:inline font-normal">
-              {activeUnit.title}
-            </span>
           </div>
         </div>
 
-        {/* RIGHT: MINIMAL 1-TAP ICONS */}
+        {/* RIGHT: 1-TAP ICONS */}
         <div className="flex items-center gap-1 shrink-0">
           {/* 1-Tap Theme Toggle */}
           <button
             onClick={cycleTheme}
             className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs ${themeStyles.btnGhost}`}
-            title={`Reading Mode: ${theme.toUpperCase()} (Tap to switch)`}
+            title={`Theme: ${theme.toUpperCase()} (Tap to switch)`}
           >
             {theme === "dark" && <Moon className="w-4 h-4 text-violet-300" />}
             {theme === "sepia" && <Coffee className="w-4 h-4 text-amber-500" />}
@@ -775,7 +663,7 @@ export function SecurePdfReader({
           />
         )}
 
-        {/* COLLAPSIBLE SIDEBAR DRAWER (UNITS / BOOKMARKS / SHORTCUTS) */}
+        {/* COLLAPSIBLE SIDEBAR DRAWER (100% REAL CONTENTS / BOOKMARKS / GUIDE) */}
         {sidebarTab && (
           <aside
             className={`fixed md:relative inset-y-0 left-0 w-[85vw] max-w-sm md:w-80 shrink-0 border-r flex flex-col z-40 shadow-2xl animate-in slide-in-from-left duration-200 ${themeStyles.tocBg}`}
@@ -784,12 +672,12 @@ export function SecurePdfReader({
             <div className="p-3 border-b border-inherit flex items-center justify-between gap-1">
               <div className="flex items-center gap-1 bg-black/10 rounded-xl p-1 w-full">
                 <button
-                  onClick={() => setSidebarTab("units")}
+                  onClick={() => setSidebarTab("contents")}
                   className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    sidebarTab === "units" ? "bg-violet-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
+                    sidebarTab === "contents" ? "bg-violet-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
-                  Curriculum
+                  {pdfOutline.length > 0 ? "Sections" : "Pages"}
                 </button>
                 <button
                   onClick={() => setSidebarTab("bookmarks")}
@@ -819,55 +707,82 @@ export function SecurePdfReader({
               </button>
             </div>
 
-            {/* TAB 1: UNITS & CHAPTERS LIST */}
-            {sidebarTab === "units" && (
+            {/* TAB 1: 100% REAL CONTENTS OR REAL PAGE INDEX */}
+            {sidebarTab === "contents" && (
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                <div className="flex items-center justify-between px-1 mb-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
-                    Curriculum Units
-                  </span>
-                  <span className="text-[10px] font-medium opacity-60">
-                    {chaptersList.length} Units Available
-                  </span>
-                </div>
+                {pdfOutline.length > 0 ? (
+                  // REAL EMBEDDED PDF OUTLINE
+                  <>
+                    <div className="flex items-center justify-between px-1 mb-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                        Document Sections
+                      </span>
+                      <span className="text-[10px] font-mono opacity-60">
+                        {pdfOutline.length} items
+                      </span>
+                    </div>
 
-                {chaptersList.map((ch) => {
-                  const isActive = activeUnit.unit === ch.unit;
-
-                  return (
-                    <div
-                      key={ch.unit}
-                      onClick={() => {
-                        setCurrentPage(Math.min(ch.startPage, totalPages || 1));
-                        if (typeof window !== "undefined" && window.innerWidth < 768) {
-                          setSidebarTab(null);
-                        }
-                      }}
-                      className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer ${
-                        isActive
-                          ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20"
-                          : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-85 hover:opacity-100"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span
-                          className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                            isActive ? "bg-white/20 text-white" : "bg-violet-500/15 text-violet-400"
+                    {pdfOutline.map((item, idx) => {
+                      const isActive = currentPage === item.page;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setCurrentPage(item.page);
+                            if (typeof window !== "undefined" && window.innerWidth < 768) {
+                              setSidebarTab(null);
+                            }
+                          }}
+                          className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                            isActive
+                              ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20 font-semibold"
+                              : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-85 hover:opacity-100 font-normal"
                           }`}
                         >
-                          Unit {ch.unit}
-                        </span>
-
-                        <span className="text-[11px] font-mono opacity-80">
-                          Pg {ch.startPage}
-                        </span>
-                      </div>
-
-                      <h4 className="text-xs font-semibold leading-snug">{ch.title}</h4>
-                      <p className="text-[11px] opacity-70 mt-0.5 line-clamp-1">{ch.act}</p>
+                          <span className="text-xs leading-snug truncate flex-1">{item.title}</span>
+                          <span className="text-[11px] font-mono opacity-75 shrink-0">Pg {item.page}</span>
+                        </button>
+                      );
+                    })}
+                  </>
+                ) : (
+                  // REAL EXACT PAGES LIST (NO ASSUMPTIONS)
+                  <>
+                    <div className="flex items-center justify-between px-1 mb-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                        All Pages ({totalPages})
+                      </span>
+                      <span className="text-[10px] opacity-60">
+                        Tap any page to jump
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => {
+                        const isActive = currentPage === pNum;
+                        return (
+                          <button
+                            key={pNum}
+                            onClick={() => {
+                              setCurrentPage(pNum);
+                              if (typeof window !== "undefined" && window.innerWidth < 768) {
+                                setSidebarTab(null);
+                              }
+                            }}
+                            className={`p-3 rounded-2xl border text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                              isActive
+                                ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20 font-bold"
+                                : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-80 hover:opacity-100 font-medium"
+                            }`}
+                          >
+                            <FileText className="w-3.5 h-3.5 opacity-60" />
+                            <span className="text-xs font-mono">Page {pNum}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -1015,7 +930,7 @@ export function SecurePdfReader({
             </div>
           )}
 
-          {/* LOADED PDF PAGE WITH DRUG-SHIELD WATERMARK */}
+          {/* LOADED PDF PAGE WITH SECURITY WATERMARK */}
           {!loading && !error && (
             <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20 max-w-full">
               <div
