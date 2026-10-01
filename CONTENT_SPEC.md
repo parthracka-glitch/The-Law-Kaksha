@@ -14,12 +14,12 @@ This document provides a concise, structured mapping of every screen in the syst
 * **Hero Section (FINAL - Source of Truth)**:
   * Badge: `★ ICAI EXCELLENCE • 2026 BATCH` (Pill fill, Royal Blue)
   * H1 Heading: `Master CA Law With India's Leading Doctrine Faculty`
-  * Subtitle: `Comprehensive smart question banks, high-definition video masterclasses, and encrypted DRM study materials engineered for AIR aspirants.`
-  * CTA Group: `Explore 2026 Batches` [Primary Blue Pill], `Read Free Sample Chapter` [Secondary Outline Pill]
+  * Subtitle: `Comprehensive smart question banks, high-definition video masterclasses, and encrypted DRM study materials engineered for law aspirants.`
+  * CTA Group: `Explore Batches` [Primary Blue Pill], `Read Free Sample Chapter` [Secondary Outline Pill]
   * Trust Stats Bar:
     * `12,000+` Students Enrolled
     * `98.4%` Clear Rate in Law
-    * `AIR 1, 4, 7` in Nov 2024 Exam
+    * `Rank 1, 4, 7` in Examination Batches
   * Visual Asset: 3D perspective book cover (`Smart Question Bank - Corporate & Economic Laws`) with soft leaf watermark in background.
 * **Hero Carousel Slides**:
   * Slide 2 (CA Final): `Advanced Economic & Corporate Laws for CA Final` — `Complete coverage of FEMA, SEBI, PMLA & Corporate Restructuring with past 15-year statutory analysis.`

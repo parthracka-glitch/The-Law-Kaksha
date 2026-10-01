@@ -28,57 +28,57 @@ interface Review {
 const FALLBACK_REVIEWS: Review[] = [
   {
     id: "rev-001",
-    student_name: "AIR 03 Candidate",
-    student_rank: "CA Intermediate (Nov Attempt)",
+    student_name: "Merit Ranker (Rank 03)",
+    student_rank: "CA Foundation Distinction",
     rating: 5,
-    title: "Scored 74 in Law! Volume 1 is unmatched.",
+    title: "Scored 84 in Law! Notes are unmatched.",
     comment:
-      "The way Section 96 to 103 are broken down with practical AGM and quorum tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from The Law Kaksha statutory codex!",
+      "The way Section 96 to 103 and Contract Act are broken down with practical case tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from The Law Kaksha statutory codex!",
   },
   {
     id: "rev-002",
-    student_name: "AIR 14 Candidate",
-    student_rank: "CA Intermediate",
+    student_name: "Top Scorer Candidate",
+    student_rank: "CSEET Distinction",
     rating: 5,
     title: "Full 30/30 in MCQ section thanks to this Question Bank.",
     comment:
-      "Every single question has explanations for why the other 3 options are incorrect. The integrated case studies gave me the exact confidence needed for the tricky ICAI negative marking traps.",
+      "Every single question has explanations for why the other 3 options are incorrect. The integrated case studies gave me the exact confidence needed for the tricky exam distractors.",
   },
   {
     id: "rev-003",
-    student_name: "CA Final Candidate",
-    student_rank: "Corporate & Economic Laws",
+    student_name: "CA Foundation Candidate",
+    student_rank: "Business Laws (Paper 2)",
     rating: 5,
     title: "Life-saver during the 1.5-day exam gap.",
     comment:
-      "You cannot read 800 pages before the exam. These LDR maps condensing penalty codes and filing days into 180 visual pages are pure gold. Must-have for every law aspirant.",
+      "You cannot read 800 pages before the exam. These LDR maps condensing penalty codes and partnership units into visual pages are pure gold. Must-have for every law aspirant.",
   },
   {
     id: "rev-004",
     student_name: "Exemption Candidate",
-    student_rank: "Cleared CA Inter with 68 in Law",
+    student_rank: "Cleared with 78 in Law",
     rating: 5,
-    title: "The 1-on-1 copy checking boosted my score by 22 marks.",
+    title: "The 1-on-1 model answer format boosted my score by 22 marks.",
     comment:
-      "I used to write stories instead of legal answers. The 5-pillar rubric taught me how to cite Bare Act provisions and synthesize facts concisely. The audio feedback note from faculty is fantastic.",
+      "I used to write stories instead of legal answers. The 4-step structure taught me how to cite statutory provisions and synthesize facts concisely.",
   },
   {
     id: "rev-005",
-    student_name: "AIR 28 Candidate",
-    student_rank: "CA Intermediate",
+    student_name: "Merit Ranker (Rank 28)",
+    student_rank: "CA Foundation",
     rating: 5,
-    title: "General Clauses Act & Statutory Interpretation made simple.",
+    title: "Indian Partnership Act & Sale of Goods Act made simple.",
     comment:
-      "Other Laws used to feel dry and confusing. Volume 2 codex breaks down external aids, ejusdem generis, and presumption principles with courtroom examples. Scored exemption comfortably!",
+      "Partnership Act used to feel confusing. The 3-unit sample notes break down mutual agency, holding out, and dissolution with clear examples. Scored exemption comfortably!",
   },
   {
     id: "rev-006",
-    student_name: "CA Final Candidate",
-    student_rank: "Corporate Law — 71 Marks",
+    student_name: "CSEET Law Candidate",
+    student_rank: "Business Law & Mgt — 88%",
     rating: 5,
-    title: "The only material you need for corporate law mastery.",
+    title: "The only material you need for law mastery.",
     comment:
-      "No unnecessary fluff. Direct Bare Act sections with recent MCA circulars. The question bank has complete past 10 attempts RTPs and MTPs mapped chapter-wise.",
+      "No unnecessary fluff. Direct Bare Act sections with recent circulars. The question bank has complete past examinations mapped unit-wise.",
   },
 ];
 
@@ -97,14 +97,14 @@ export default function ReviewsPage() {
   }, []);
 
   const filteredReviews = reviews.filter((r) => {
-    if (selectedFilter === "air") return r.student_rank.toLowerCase().includes("air");
-    if (selectedFilter === "inter") return r.student_rank.toLowerCase().includes("inter");
-    if (selectedFilter === "final") return r.student_rank.toLowerCase().includes("final");
+    if (selectedFilter === "toppers") return r.student_rank.toLowerCase().includes("merit") || r.student_rank.toLowerCase().includes("distinction");
+    if (selectedFilter === "ca") return r.student_rank.toLowerCase().includes("ca") || r.student_rank.toLowerCase().includes("foundation");
+    if (selectedFilter === "cs") return r.student_rank.toLowerCase().includes("cs") || r.student_rank.toLowerCase().includes("cseet");
     return true;
   });
 
   return (
-    <div className="min-h-screen bg-[#FBFBFD] flex flex-col justify-between">
+    <div className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full space-y-12">
@@ -112,13 +112,13 @@ export default function ReviewsPage() {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] text-[#1D1D1F] text-xs font-medium">
             <Star className="w-3.5 h-3.5 fill-[#FF9500] text-[#FF9500]" />
-            Verified ICAI Topper Testimonials
+            Verified Student Testimonials
           </div>
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-[#1D1D1F] tracking-tight leading-[1.1]">
-            Trusted by 84+ All-India Rankers &amp; Exemption Holders
+            Trusted by Top Rankers &amp; Exemption Holders
           </h1>
           <p className="text-sm sm:text-base text-[#86868B] max-w-2xl mx-auto leading-relaxed">
-            Read honest feedback from CA Foundation, Inter, and Final students who transformed their scores with The Law Kaksha materials.
+            Read honest feedback from CA Foundation and CSEET students who transformed their scores with The Law Kaksha materials.
           </p>
         </div>
 
@@ -127,9 +127,9 @@ export default function ReviewsPage() {
           <div className="inline-flex p-1 bg-black/[0.04] border border-black/[0.06] rounded-full gap-1">
             {[
               { id: "all", label: `All Reviews (${reviews.length})` },
-              { id: "air", label: "AIR Rankers" },
-              { id: "inter", label: "CA Intermediate" },
-              { id: "final", label: "CA Final" },
+              { id: "toppers", label: "Top Rankers" },
+              { id: "ca", label: "CA Foundation" },
+              { id: "cs", label: "CSEET" },
             ].map((tab) => (
               <button
                 key={tab.id}

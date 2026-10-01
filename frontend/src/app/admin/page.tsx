@@ -1,1971 +1,2194 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
-  Home,
-  Award,
-  Truck,
-  Users,
+  LayoutDashboard,
+  CreditCard,
   BookOpen,
-  Video,
-  Layers,
-  FileText,
-  HelpCircle,
+  Users,
+  Flame,
+  Sparkles,
   Percent,
-  ShieldCheck,
+  Calendar,
   Search,
   Plus,
-  Edit,
+  Edit3,
   Trash2,
   CheckCircle2,
   Clock,
-  Printer,
   X,
-  Send,
-  Eye,
   Lock,
   Unlock,
-  RotateCcw,
-  BarChart3,
-  Calendar,
-  DollarSign,
-  ShoppingBag,
-  ExternalLink,
+  LogOut,
+  ShieldCheck,
   ChevronRight,
-  Filter,
+  TrendingUp,
+  ExternalLink,
+  BookMarked,
+  Key,
+  Menu,
 } from "lucide-react";
-import { LawKakshaLogo } from "@/components/LawKakshaLogo";
-import { AdminDispatchSlipModal, DispatchOrder } from "@/components/AdminDispatchSlipModal";
-import { apiRequest } from "@/lib/api";
 
-// Product / Course Interface
-interface ProductItem {
+// --- DATA INTERFACES ---
+export interface ProductItem {
   id: string;
   title: string;
-  type: "book" | "course" | "mcq" | "evaluation";
-  category: string;
-  format: string;
+  subtitle: string;
+  category: "CA Foundation" | "CSEET" | "Both";
+  format: "Digital Codex (In-Web DRM)" | "Complete Access Pass";
   price: number;
   originalPrice: number;
-  pagesOrHours: string;
-  stockOrSeats: string;
-  status: "Active" | "Draft" | "Archived";
-  features: string[];
+  pages: string;
+  status: "Active" | "Draft";
+  pdfUrl: string;
+  description: string;
+  units: string[];
 }
 
-// Student User Interface
-interface StudentItem {
+export interface SubscriptionRecord {
+  id: string;
+  studentName: string;
+  studentRoll: string;
+  email: string;
+  phone: string;
+  item: string;
+  targetExam: string;
+  amount: string;
+  date: string;
+  paymentMode: string;
+  accessStatus: "Active" | "Pending" | "Revoked";
+}
+
+export interface StudentRecord {
   id: string;
   student_id: string;
   name: string;
   email: string;
   phone: string;
   target_exam: string;
-  is_active: number;
-  deviceStatus: string;
-  device: string;
-  enrolledPlan: string;
+  is_active: boolean;
+  drm_access: boolean;
+  enrolled_books: string[];
+  joined_date: string;
 }
 
-// Academic Batch Interface
-interface AcademicBatch {
+export interface CaseStudyItem {
   id: string;
-  name: string;
-  level: string;
-  target_attempt: string;
-  status: "ACTIVE" | "UPCOMING" | "COMPLETED";
-  enrolled_count: number;
-  schedule: string;
-}
-
-// Live Session Interface
-interface LiveSession {
-  id: string;
-  batch_name: string;
-  topic: string;
-  date: string;
-  time: string;
-  duration_minutes: number;
-  meeting_link: string;
-  status: "UPCOMING" | "LIVE" | "COMPLETED";
-}
-
-// Answer Copy Submission Interface
-interface AnswerSubmission {
-  id: string;
-  studentName: string;
-  studentRoll: string;
-  testTitle: string;
-  submittedOn: string;
-  totalMarks: number;
-  scoredMarks: number | null;
-  status: "Pending Review" | "Evaluated & Sent";
-  feedback?: string;
-}
-
-// Admin Quiz Interfaces
-interface AdminQuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correct_option_index: number;
-  bare_act_citation: string;
-  explanation: string;
-}
-
-interface AdminQuizItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  level: string;
+  day: string;
+  badge: string;
   subject: string;
-  chapter: string;
-  time_limit_minutes: number;
-  total_marks: number;
-  positive_marks: number;
-  negative_marks: number;
-  is_free: number;
-  status: string;
-  question_count?: number;
-  attempts_count?: number;
-  average_score?: number;
-  questions?: AdminQuizQuestion[];
+  title: string;
+  scenario: string;
+  modelAnswer: string;
+  precedent: string;
+  marks: string;
 }
 
-interface QuizAttemptItem {
+export interface McqQuestionItem {
   id: string;
-  quiz_id: string;
-  quiz_title: string;
-  candidate_name: string;
-  student_id: string;
-  score: number;
-  total_marks: number;
-  accuracy: number;
-  time_taken_seconds: number;
-  created_at: string;
-}
-
-interface DoubtTicket {
-  id: string;
-  studentName: string;
-  studentRoll: string;
   subject: string;
   section: string;
   question: string;
-  status: "Under Review" | "Resolved";
-  date: string;
-  facultyAnswer?: string;
+  options: string[];
+  correctOption: number;
+  explanation: string;
 }
 
-interface CouponItem {
+export interface CouponRecord {
   id: string;
   code: string;
   discountPercent: number;
+  minOrder: number;
   maxUses: number;
   usedCount: number;
   expiryDate: string;
   status: "Active" | "Expired" | "Disabled";
 }
 
-export default function AdminPortalPage() {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "quizzes" | "orders" | "students" | "catalog" | "batches" | "evaluations" | "doubts" | "coupons" | "system"
-  >("overview");
+export interface ExamCountdownSetting {
+  id: string;
+  exam: string;
+  date: string;
+  session: string;
+}
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+export interface QotdSetting {
+  id: string;
+  question: string;
+  act: string;
+  section: string;
+  options: string[];
+  correctOption: number;
+  explanation: string;
+}
 
-  // Orders State
-  const [ordersList, setOrdersList] = useState<DispatchOrder[]>([
-    {
-      id: "LK-ORD-2026-9901",
-      customer: "Candidate A. Sharma",
-      phone: "+91 98765 43210",
-      item: "Volume 1 & 2 Physical Book Combo + Digital Codex Access",
-      state: "Maharashtra",
-      address: "Flat 402, Shanti Heights, Senapati Bapat Road, Pune",
-      pincode: "411016",
-      amount: "₹498",
-      date: "28 Sep 2026",
-      status: "Dispatched",
-      tracking: "DEL-88421092",
-      courier: "Delhivery Express",
-    },
-    {
-      id: "LK-ORD-2026-9902",
-      customer: "Candidate R. Verma",
-      phone: "+91 98123 45678",
-      item: "ICAI Case Scenarios & 30-Mark MCQ Practice Bank",
-      state: "Delhi NCR",
-      address: "B-12, Sector 62, Noida",
-      pincode: "201309",
-      amount: "₹249",
-      date: "27 Sep 2026",
-      status: "Processing",
-      tracking: "Pending Assignment",
-      courier: "BlueDart Express",
-    },
-    {
-      id: "LK-ORD-2026-9903",
-      customer: "Candidate P. Kulkarni",
-      phone: "+91 97654 32109",
-      item: "Volume 1: Companies Act 2013 (Sec 1-148) Physical Codex",
-      state: "Karnataka",
-      address: "88, 4th Cross, Indiranagar, Bengaluru",
-      pincode: "560038",
-      amount: "₹249",
-      date: "26 Sep 2026",
-      status: "Delivered",
-      tracking: "DEL-88421000",
-      courier: "Delhivery Express",
-    },
-  ]);
-  const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
-
-  // Quizzes State
-  const [adminQuizzes, setAdminQuizzes] = useState<AdminQuizItem[]>([
-    {
-      id: "quiz-companies-act-1",
-      title: "Companies Act 2013: Management & Administration (Sec 88-122)",
-      subtitle: "ICAI Case-Scenario MCQs on AGMs, Quorum, Postal Ballot & Resolutions",
-      level: "CA Intermediate",
-      subject: "Corporate & Other Laws",
-      chapter: "Chapter 7: Management & Administration",
-      time_limit_minutes: 25,
-      total_marks: 30,
-      positive_marks: 2,
-      negative_marks: 0.5,
-      is_free: 1,
-      status: "PUBLISHED",
-      question_count: 15,
-      attempts_count: 420,
-      average_score: 22.4,
-    },
-    {
-      id: "quiz-general-clauses-1",
-      title: "General Clauses Act 1897 & Interpretation of Statutes",
-      subtitle: "Statutory Definitions, Repeal Effects & Harmonious Construction",
-      level: "CA Intermediate",
-      subject: "Corporate & Other Laws",
-      chapter: "Other Laws: General Clauses Act",
-      time_limit_minutes: 20,
-      total_marks: 20,
-      positive_marks: 2,
-      negative_marks: 0.5,
-      is_free: 0,
-      status: "PUBLISHED",
-      question_count: 10,
-      attempts_count: 285,
-      average_score: 15.8,
-    },
-  ]);
-  const [quizAttempts, setQuizAttempts] = useState<QuizAttemptItem[]>([
-    {
-      id: "att-001",
-      quiz_id: "quiz-companies-act-1",
-      quiz_title: "Companies Act 2013: Management & Administration",
-      candidate_name: "Candidate A. Sharma",
-      student_id: "LK-STU-9921",
-      score: 30,
-      total_marks: 30,
-      accuracy: 100,
-      time_taken_seconds: 480,
-      created_at: "2026-09-30T10:00:00Z",
-    },
-    {
-      id: "att-002",
-      quiz_id: "quiz-companies-act-1",
-      quiz_title: "Companies Act 2013: Management & Administration",
-      candidate_name: "Candidate R. Verma",
-      student_id: "LK-STU-8842",
-      score: 28,
-      total_marks: 30,
-      accuracy: 93,
-      time_taken_seconds: 520,
-      created_at: "2026-09-30T11:15:00Z",
-    },
-  ]);
-  const [newQuizModalOpen, setNewQuizModalOpen] = useState(false);
-  const [quizForm, setQuizForm] = useState({
-    title: "",
-    subtitle: "",
-    level: "CA Intermediate",
-    subject: "Corporate & Other Laws",
-    chapter: "",
-    time_limit_minutes: 20,
-    positive_marks: 2,
-    negative_marks: 0.5,
-    is_free: 0,
-  });
-  const [newQuizQuestions, setNewQuizQuestions] = useState<AdminQuizQuestion[]>([
-    {
-      id: "q-1",
-      question: "Under Section 101 of the Companies Act 2013, how many clear days notice is required for calling an Annual General Meeting (AGM)?",
-      options: ["14 Clear Days", "21 Clear Days", "30 Clear Days", "7 Clear Days"],
-      correct_option_index: 1,
-      bare_act_citation: "Section 101(1) of the Companies Act, 2013",
-      explanation: "A general meeting of a company may be called by giving not less than clear twenty-one days notice in writing or through electronic mode.",
-    },
-  ]);
-
-  // Students Roster State
-  const [studentsList, setStudentsList] = useState<StudentItem[]>([
-    {
-      id: "std-001",
-      student_id: "LK-STU-084201",
-      name: "Candidate A. Sharma",
-      email: "candidate.sharma@lawkaksha.edu",
-      phone: "+91 98765 43210",
-      target_exam: "CA Intermediate (Nov 2026)",
-      is_active: 1,
-      deviceStatus: "Bound",
-      device: "Windows PC (HWID: LK-W11-8842)",
-      enrolledPlan: "Volume 1 & 2 Combo",
-    },
-    {
-      id: "std-002",
-      student_id: "LK-STU-084202",
-      name: "Candidate R. Verma",
-      email: "candidate.verma@lawkaksha.edu",
-      phone: "+91 98123 45678",
-      target_exam: "CA Intermediate (Nov 2026)",
-      is_active: 1,
-      deviceStatus: "Bound",
-      device: "MacBook Pro M2 (HWID: LK-MAC-9912)",
-      enrolledPlan: "Full Video + Question Bank",
-    },
-    {
-      id: "std-003",
-      student_id: "LK-STU-084203",
-      name: "Candidate P. Kulkarni",
-      email: "candidate.kulkarni@lawkaksha.edu",
-      phone: "+91 97654 32109",
-      target_exam: "CA Final (May 2027)",
-      is_active: 1,
-      deviceStatus: "Unbound Request",
-      device: "Windows Laptop (HWID: LK-W10-4410)",
-      enrolledPlan: "CA Final Corporate & Economic Laws",
-    },
-  ]);
-  const [addStudentModalOpen, setAddStudentModalOpen] = useState(false);
-  const [studentForm, setStudentForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    target_exam: "CA Intermediate (Nov 2026)",
-    enrolledPlan: "Volume 1 & 2 Combo",
-  });
-
-  // Catalog State
-  const [catalogList, setCatalogList] = useState<ProductItem[]>([
-    {
-      id: "book-vol-1",
-      title: "Volume 1: Companies Act 2013 (Sec 1-148) Master Codex",
-      type: "book",
-      category: "CA Intermediate",
-      format: "Physical Book + Digital DRM",
-      price: 249,
-      originalPrice: 449,
-      pagesOrHours: "540 Pages",
-      stockOrSeats: "1,450 Units",
-      status: "Active",
-      features: ["Sections 1-148 Solved", "10-Attempt RTP/MTPs", "Examiner Rubric"],
-    },
-    {
-      id: "book-vol-2",
-      title: "Volume 2: General Clauses & Interpretation of Statutes",
-      type: "book",
-      category: "CA Intermediate",
-      format: "Physical Book + Digital DRM",
-      price: 249,
-      originalPrice: 449,
-      pagesOrHours: "480 Pages",
-      stockOrSeats: "1,200 Units",
-      status: "Active",
-      features: ["General Clauses Act 1897", "Interpretation Rules", "Past Questions"],
-    },
-    {
-      id: "book-mcq",
-      title: "ICAI Case Scenarios & 30-Mark MCQ Practice Bank",
-      type: "mcq",
-      category: "CA Intermediate",
-      format: "Digital Interactive Vault",
-      price: 249,
-      originalPrice: 449,
-      pagesOrHours: "260 Pages",
-      stockOrSeats: "Unlimited Cloud",
-      status: "Active",
-      features: ["1,200+ Caselet MCQs", "Reasoning for 4 Options", "30-Mark Drills"],
-    },
-    {
-      id: "video-classes",
-      title: "HD Video Masterclasses: Full Law Lecture Series",
-      type: "course",
-      category: "CA Intermediate",
-      format: "45+ Hours Streaming",
-      price: 999,
-      originalPrice: 1899,
-      pagesOrHours: "45+ Hours",
-      stockOrSeats: "500 Seats",
-      status: "Active",
-      features: ["32 Chapter Masterclasses", "Timestamped Notes", "1.5x Playback"],
-    },
-  ]);
-  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
-  const [productForm, setProductForm] = useState({
-    title: "",
-    type: "book" as "book" | "course" | "mcq" | "evaluation",
-    category: "CA Intermediate",
-    format: "Physical Book + Digital DRM",
+// --- INITIAL SEED DATA (100% DIGITAL IN-WEB STUDY PLATFORM) ---
+const INITIAL_PRODUCTS: ProductItem[] = [
+  {
+    id: "prod-vol1",
+    title: "Business Law (CSEET & CA Foundation)",
+    subtitle: "Volume 1 • Digital Statutory Codex (Units 1 to 6)",
+    category: "CSEET",
+    format: "Digital Codex (In-Web DRM)",
     price: 249,
-    originalPrice: 449,
-    pagesOrHours: "500 Pages",
-    stockOrSeats: "1000 Units",
+    originalPrice: 499,
+    pages: "180+ Pages",
+    status: "Active",
+    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
+    description: "Complete master codex covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, LLP Act 2008, Companies Act 2013, and Negotiable Instruments Act 1881 with DRM in-web reader access.",
+    units: ["Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
+  },
+  {
+    id: "prod-vol2",
+    title: "Business Law & Management",
+    subtitle: "Volume 2 • Digital Management Codex (Units 7 & 8)",
+    category: "CSEET",
+    format: "Digital Codex (In-Web DRM)",
+    price: 249,
+    originalPrice: 499,
+    pages: "120+ Pages",
+    status: "Active",
+    pdfUrl: "/api/pdf/cseet-management-full.pdf",
+    description: "In-depth study codex for General Principles of Management (Henri Fayol & FW Taylor) and Business Environment & Corporate Ethics (PESTLE & CSR).",
+    units: ["General Principles of Management", "Business Environment & Ethics"],
+  },
+  {
+    id: "prod-combo",
+    title: "Complete 2-Volume Master Digital Access Pass",
+    subtitle: "Volume 1 & 2 Full Study Codices + In-Web DRM Reader Access",
+    category: "Both",
+    format: "Complete Access Pass",
+    price: 449,
+    originalPrice: 899,
+    pages: "300+ Pages",
+    status: "Active",
+    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
+    description: "All 8 statutory law acts + management theories + case studies & MCQ evaluation tests with instant in-web reader access.",
+    units: ["All 8 Units • CA Foundation & CSEET"],
+  },
+];
+
+const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
+  {
+    id: "LK-SUB-2026-9901",
+    studentName: "Aarav Sharma",
+    studentRoll: "LRK-2026-004182",
+    email: "aarav.sharma@thelawkaksha.com",
+    phone: "+91 98765 43210",
+    item: "Volume 1 & 2 Master Digital Pass",
+    targetExam: "CA Foundation Paper 2",
+    amount: "₹449",
+    date: "28 Sep 2026",
+    paymentMode: "UPI / Razorpay",
+    accessStatus: "Active",
+  },
+  {
+    id: "LK-SUB-2026-9902",
+    studentName: "Ananya Verma",
+    studentRoll: "LRK-2026-009821",
+    email: "ananya.verma@thelawkaksha.com",
+    phone: "+91 98123 45678",
+    item: "Volume 1: Business Law Digital Codex",
+    targetExam: "CSEET Law & Management",
+    amount: "₹249",
+    date: "29 Sep 2026",
+    paymentMode: "Card / Netbanking",
+    accessStatus: "Active",
+  },
+  {
+    id: "LK-SUB-2026-9903",
+    studentName: "Priya Kulkarni",
+    studentRoll: "LRK-2026-005541",
+    email: "priya.kulkarni@thelawkaksha.com",
+    phone: "+91 97654 32109",
+    item: "Volume 2: Management & Ethics Digital Codex",
+    targetExam: "CSEET Law & Management",
+    amount: "₹249",
+    date: "26 Sep 2026",
+    paymentMode: "UPI / GPay",
+    accessStatus: "Active",
+  },
+  {
+    id: "LK-SUB-2026-9904",
+    studentName: "Rohan Mehta",
+    studentRoll: "LRK-2026-003319",
+    email: "rohan.mehta@thelawkaksha.com",
+    phone: "+91 98333 11223",
+    item: "Volume 1 & 2 Master Digital Pass",
+    targetExam: "CA Foundation Paper 2",
+    amount: "₹449",
+    date: "30 Sep 2026",
+    paymentMode: "UPI / Paytm",
+    accessStatus: "Active",
+  },
+];
+
+const INITIAL_STUDENTS: StudentRecord[] = [
+  {
+    id: "std-1",
+    student_id: "LRK-2026-004182",
+    name: "Aarav Sharma",
+    email: "aarav.sharma@thelawkaksha.com",
+    phone: "+91 98765 43210",
+    target_exam: "CA Foundation Paper 2",
+    is_active: true,
+    drm_access: true,
+    enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
+    joined_date: "15 Aug 2026",
+  },
+  {
+    id: "std-2",
+    student_id: "LRK-2026-009821",
+    name: "Ananya Verma",
+    email: "ananya.verma@thelawkaksha.com",
+    phone: "+91 98123 45678",
+    target_exam: "CSEET Law & Management",
+    is_active: true,
+    drm_access: true,
+    enrolled_books: ["Business Law (Volume 1)"],
+    joined_date: "20 Aug 2026",
+  },
+  {
+    id: "std-3",
+    student_id: "LRK-2026-003319",
+    name: "Rohan Mehta",
+    email: "rohan.mehta@thelawkaksha.com",
+    phone: "+91 98333 11223",
+    target_exam: "CA Foundation Paper 2",
+    is_active: true,
+    drm_access: true,
+    enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
+    joined_date: "01 Sep 2026",
+  },
+  {
+    id: "std-4",
+    student_id: "LRK-2026-005541",
+    name: "Priya Kulkarni",
+    email: "priya.kulkarni@thelawkaksha.com",
+    phone: "+91 97654 32109",
+    target_exam: "CSEET Law & Management",
+    is_active: true,
+    drm_access: true,
+    enrolled_books: ["Business Law & Management (Volume 2)"],
+    joined_date: "10 Sep 2026",
+  },
+];
+
+const INITIAL_CASES: CaseStudyItem[] = [
+  {
+    id: "case-1",
+    day: "Monster Monday",
+    badge: "High Difficulty",
+    subject: "Indian Contract Act, 1872",
+    title: "The Anticipatory Breach & Measure of Damages",
+    scenario: "A agreed to supply 500 MT of industrial chemicals to B at Rs.20,000/MT on 1st November. On 15th October, A informed B that he would not deliver. Market price on 15th October was Rs.22,000/MT but B waited until 1st November when market price surged to Rs.26,000/MT. B sued for Rs.30,00,000 damages. Decide quantum of damages under Section 73.",
+    modelAnswer: "Under Section 73 of Indian Contract Act 1872 (and Frost v. Knight), B has two options: (1) Treat contract as rescinded on 15th Oct and claim difference (Rs.2,000/MT = Rs.10 Lakhs), OR (2) Keep contract alive till 1st Nov and claim difference on date of performance (Rs.6,000/MT = Rs.30 Lakhs). Since contract was kept alive, B is entitled to Rs.30 Lakhs.",
+    precedent: "Frost v. Knight (1872) L.R. 7 Ex. 111",
+    marks: "6/6 Marks",
+  },
+  {
+    id: "case-2",
+    day: "Midweek Law Madness",
+    badge: "Statutory Trap",
+    subject: "Indian Partnership Act, 1932",
+    title: "Retirement without Notice & Doctrine of Holding Out",
+    scenario: "Karan, partner in M/s Apex Builders, retired in January but no public notice was given in the Official Gazette. In March, firm borrowed Rs.15 Lakhs from Indus Bank. Karan was unaware. Is Karan personally liable to Indus Bank?",
+    modelAnswer: "Under Section 32(3) read with Section 28 of Indian Partnership Act 1932, a retired partner continues to be liable to third parties unless public notice is published in the Official Gazette and at least one local language newspaper. Karan is personally liable to Indus Bank under the doctrine of Holding Out.",
+    precedent: "Scarf v. Jardine (1882) 7 App Cas 345",
+    marks: "6/6 Marks",
+  },
+  {
+    id: "case-3",
+    day: "Final Boss Friday",
+    badge: "Exam Simulation",
+    subject: "Companies Act, 2013",
+    title: "Ultra Vires Borrowing & Subrogation Remedy",
+    scenario: "A company's MOA authorizes borrowing up to Rs.1 Crore. The Directors borrowed Rs.2.5 Crores from a private financier without member approval. The entire Rs.2.5 Crores was used to pay off lawful trade debts of the company. Can the lender recover money from the company?",
+    modelAnswer: "The loan is Ultra Vires the borrowing powers of the company and void ab initio (Ashbury Railway Carriage Co. v. Riche). However, under the equitable doctrine of Subrogation (Sinclair v. Brougham), since the money was used to discharge lawful intra-vires liabilities, the lender stands in shoes of discharged creditors and can recover the debt.",
+    precedent: "Sinclair v. Brougham [1914] AC 398",
+    marks: "6/6 Marks",
+  },
+];
+
+const INITIAL_MCQS: McqQuestionItem[] = [
+  {
+    id: "mcq-1",
+    subject: "Sale of Goods Act, 1930",
+    section: "Section 16(1)",
+    question: "Under Section 16(1) of the Sale of Goods Act, 1930, when is an implied condition as to quality or fitness created without an express declaration by the buyer?",
+    options: [
+      "When the good is capable of only one obvious normal use and buyer relies on seller's judgment.",
+      "Whenever the goods are purchased from any retail store.",
+      "Only when a written warranty card is stamped by the manufacturer.",
+      "Never, because Caveat Emptor applies strictly to all sales.",
+    ],
+    correctOption: 0,
+    explanation: "Under Priest v. Last, where goods have only one customary use, disclosure of purpose is implied, creating an exception to Caveat Emptor.",
+  },
+  {
+    id: "mcq-2",
+    subject: "Indian Contract Act, 1872",
+    section: "Section 2(d)",
+    question: "According to the Indian Contract Act 1872, consideration may move from:",
+    options: [
+      "The promisee only.",
+      "The promisor only.",
+      "The promisee or any other third person (Chinnaya v. Ramayya).",
+      "Only a person with registered power of attorney.",
+    ],
+    correctOption: 2,
+    explanation: "In India, unlike English Law, consideration can proceed from a stranger to the contract (Chinnaya v. Ramayya), though a stranger to contract cannot sue.",
+  },
+  {
+    id: "mcq-3",
+    subject: "Companies Act, 2013",
+    section: "Section 8",
+    question: "What is the minimum paid-up share capital requirement for incorporating a Section 8 (Non-Profit) Company?",
+    options: [
+      "Rs. 1,00,000",
+      "Rs. 5,00,000",
+      "No minimum paid-up capital prescribed",
+      "Rs. 10,00,000",
+    ],
+    correctOption: 2,
+    explanation: "The Companies Act 2013 removed minimum paid-up capital requirements for Private, Public, and Section 8 companies.",
+  },
+];
+
+const INITIAL_COUPONS: CouponRecord[] = [
+  { id: "cp-1", code: "EXEMPTION2026", discountPercent: 20, minOrder: 200, maxUses: 500, usedCount: 142, expiryDate: "2026-12-31", status: "Active" },
+  { id: "cp-2", code: "FIRST50", discountPercent: 15, minOrder: 150, maxUses: 100, usedCount: 88, expiryDate: "2026-11-30", status: "Active" },
+  { id: "cp-3", code: "RANKERS", discountPercent: 25, minOrder: 400, maxUses: 50, usedCount: 47, expiryDate: "2026-10-31", status: "Active" },
+];
+
+export default function AdminPortalPage() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+
+  type TabType = "overview" | "subscriptions" | "products" | "students" | "cases" | "mcq" | "coupons" | "qotd";
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+
+  // Entities state with LocalStorage persistence
+  const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(INITIAL_SUBSCRIPTIONS);
+  const [students, setStudents] = useState<StudentRecord[]>(INITIAL_STUDENTS);
+  const [cases, setCases] = useState<CaseStudyItem[]>(INITIAL_CASES);
+  const [mcqs, setMcqs] = useState<McqQuestionItem[]>(INITIAL_MCQS);
+  const [coupons, setCoupons] = useState<CouponRecord[]>(INITIAL_COUPONS);
+  const [examSettings, setExamSettings] = useState<ExamCountdownSetting[]>([
+    { id: "ex-1", exam: "CSEET Paper 2 (Business Law & Management)", date: "2026-11-12", session: "November 2026 Attempt" },
+    { id: "ex-2", exam: "CA Foundation Paper 2 (Business Laws)", date: "2026-12-20", session: "December 2026 Attempt" },
+  ]);
+  const [qotd, setQotd] = useState<QotdSetting>({
+    id: "qotd-1",
+    act: "Indian Partnership Act, 1932",
+    section: "Section 28",
+    question: "When a retired partner's name is retained on the letterhead without public notice, third parties can sue under:",
+    options: ["Doctrine of Subrogation", "Doctrine of Holding Out", "Doctrine of Ultra Vires", "Doctrine of Estoppel in Pais"],
+    correctOption: 1,
+    explanation: "Under Section 28 of the Indian Partnership Act 1932, anyone who represents or allows himself to be represented as a partner is liable as a partner by Holding Out.",
   });
 
-  // Batches & Live Masterclasses State
-  const [batchesList, setBatchesList] = useState<AcademicBatch[]>([
-    {
-      id: "batch-ca-inter-nov26",
-      name: "CA Intermediate Regular Master Batch (Nov 2026)",
-      level: "CA Intermediate",
-      target_attempt: "November 2026",
-      status: "ACTIVE",
-      enrolled_count: 342,
-      schedule: "Tuesday & Thursday • 07:00 PM - 09:00 PM",
-    },
-    {
-      id: "batch-ca-final-may27",
-      name: "CA Final Corporate & Economic Laws Fast Track",
-      level: "CA Final",
-      target_attempt: "May 2027",
-      status: "UPCOMING",
-      enrolled_count: 184,
-      schedule: "Saturday & Sunday • 10:00 AM - 01:00 PM",
-    },
-  ]);
-  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([
-    {
-      id: "sess-101",
-      batch_name: "CA Intermediate Regular Master Batch",
-      topic: "Section 135 CSR Ratios & Practical Compliance Calculations",
-      date: "04 Oct 2026",
-      time: "07:00 PM IST",
-      duration_minutes: 90,
-      meeting_link: "https://classroom.lawkaksha.edu/live/session-101",
-      status: "UPCOMING",
-    },
-    {
-      id: "sess-102",
-      batch_name: "CA Intermediate Regular Master Batch",
-      topic: "Management & Administration (Sec 88-122) Problem Solving",
-      date: "28 Sep 2026",
-      time: "07:00 PM IST",
-      duration_minutes: 120,
-      meeting_link: "https://classroom.lawkaksha.edu/live/session-102",
-      status: "COMPLETED",
-    },
-  ]);
-  const [newSessionModalOpen, setNewSessionModalOpen] = useState(false);
-  const [sessionForm, setSessionForm] = useState({
-    batch_name: "CA Intermediate Regular Master Batch",
-    topic: "",
-    date: "",
-    time: "",
-    duration_minutes: 90,
-    meeting_link: "",
-  });
+  // CRUD Modals
+  const [productModal, setProductModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<ProductItem> }>({ open: false, mode: "add", data: {} });
+  const [studentModal, setStudentModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<StudentRecord> }>({ open: false, mode: "add", data: {} });
+  const [subModal, setSubModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<SubscriptionRecord> }>({ open: false, mode: "add", data: {} });
+  const [caseModal, setCaseModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CaseStudyItem> }>({ open: false, mode: "add", data: {} });
+  const [mcqModal, setMcqModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<McqQuestionItem> }>({ open: false, mode: "add", data: {} });
+  const [couponModal, setCouponModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CouponRecord> }>({ open: false, mode: "add", data: {} });
 
-  // Mains Evaluation Desk State
-  const [evaluationsList, setEvaluationsList] = useState<AnswerSubmission[]>([
-    {
-      id: "eval-001",
-      studentName: "Candidate A. Sharma",
-      studentRoll: "LK-STU-084201",
-      testTitle: "Test Paper 1: Corporate Law Descriptive (100 Marks)",
-      submittedOn: "28 Sep 2026",
-      totalMarks: 100,
-      scoredMarks: 76,
-      status: "Evaluated & Sent",
-      feedback: "Strong statutory citation. Improve sub-headings under Section 135 calculation.",
-    },
-    {
-      id: "eval-002",
-      studentName: "Candidate R. Verma",
-      studentRoll: "LK-STU-084202",
-      testTitle: "Test Paper 2: General Clauses & Interpretation (50 Marks)",
-      submittedOn: "29 Sep 2026",
-      totalMarks: 50,
-      scoredMarks: null,
-      status: "Pending Review",
-    },
-  ]);
-  const [evaluateModalOpen, setEvaluateModalOpen] = useState(false);
-  const [activeEvalItem, setActiveEvalItem] = useState<AnswerSubmission | null>(null);
-  const [evalScoreInput, setEvalScoreInput] = useState("");
-  const [evalFeedbackInput, setEvalFeedbackInput] = useState("");
+  // Load from LocalStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const adminSession = localStorage.getItem("lawkaksha_admin_session");
+      if (!adminSession) {
+        setIsAuthorized(false);
+        setIsCheckingAuth(false);
+        router.push("/login");
+        return;
+      }
+      setIsAuthorized(true);
+      setIsCheckingAuth(false);
 
-  // Doubts State
-  const [adminDoubts, setAdminDoubts] = useState<DoubtTicket[]>([
-    {
-      id: "dbt-101",
-      studentName: "Candidate A. Sharma",
-      studentRoll: "LK-STU-084201",
-      subject: "Companies Act 2013",
-      section: "Section 135 (CSR)",
-      question: "Is CSR spending mandatory if net profit before tax is exactly ₹5 Crore in preceding financial year?",
-      status: "Resolved",
-      date: "28 Sep 2026",
-      facultyAnswer: "Under Section 135(1), the net profit threshold of ₹5 Crore refers to 'net profit' calculated in accordance with Section 198. If it equals or exceeds ₹5 Crore, CSR committee constitution and 2% CSR allocation become mandatory.",
-    },
-    {
-      id: "dbt-102",
-      studentName: "Candidate R. Verma",
-      studentRoll: "LK-STU-084202",
-      subject: "General Clauses Act 1897",
-      section: "Section 6 (Effect of Repeal)",
-      question: "How does repeal of a statute affect pending investigation under the repealed enactment?",
-      status: "Under Review",
-      date: "29 Sep 2026",
-    },
-  ]);
-  const [replyDoubtModalOpen, setReplyDoubtModalOpen] = useState(false);
-  const [selectedDoubtForReply, setSelectedDoubtForReply] = useState<DoubtTicket | null>(null);
-  const [doubtReplyText, setDoubtReplyText] = useState("");
+      try {
+        localStorage.removeItem("lawkaksha_admin_orders");
+        const p = localStorage.getItem("lawkaksha_admin_products");
+        if (p) setProducts(JSON.parse(p));
+        const sub = localStorage.getItem("lawkaksha_admin_subs");
+        if (sub) setSubscriptions(JSON.parse(sub));
+        const s = localStorage.getItem("lawkaksha_admin_students");
+        if (s) setStudents(JSON.parse(s));
+        const c = localStorage.getItem("lawkaksha_admin_cases");
+        if (c) setCases(JSON.parse(c));
+        const m = localStorage.getItem("lawkaksha_admin_mcqs");
+        if (m) setMcqs(JSON.parse(m));
+        const cp = localStorage.getItem("lawkaksha_admin_coupons");
+        if (cp) setCoupons(JSON.parse(cp));
+      } catch (e) {}
+    }
+  }, [router]);
 
-  // Coupons State
-  const [couponsList, setCouponsList] = useState<CouponItem[]>([
-    {
-      id: "cpn-1",
-      code: "ICAI2026",
-      discountPercent: 15,
-      maxUses: 500,
-      usedCount: 248,
-      expiryDate: "31 Dec 2026",
-      status: "Active",
-    },
-    {
-      id: "cpn-2",
-      code: "EARLYBIRD",
-      discountPercent: 20,
-      maxUses: 200,
-      usedCount: 198,
-      expiryDate: "15 Oct 2026",
-      status: "Active",
-    },
-    {
-      id: "cpn-3",
-      code: "RANKER10",
-      discountPercent: 10,
-      maxUses: 1000,
-      usedCount: 812,
-      expiryDate: "30 Nov 2026",
-      status: "Active",
-    },
-  ]);
-  const [newCouponModalOpen, setNewCouponModalOpen] = useState(false);
-  const [couponForm, setCouponForm] = useState({
-    code: "",
-    discountPercent: 15,
-    maxUses: 500,
-    expiryDate: "31 Dec 2026",
-  });
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
   };
 
-  // Handlers
-  const handleAddQuiz = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quizForm.title.trim()) return;
-    const newQuiz: AdminQuizItem = {
-      id: `quiz-${Date.now()}`,
-      title: quizForm.title,
-      subtitle: quizForm.subtitle || "ICAI Pattern Objective Caselet Drill",
-      level: quizForm.level,
-      subject: quizForm.subject,
-      chapter: quizForm.chapter || "Corporate Law Section",
-      time_limit_minutes: Number(quizForm.time_limit_minutes) || 20,
-      total_marks: newQuizQuestions.length * Number(quizForm.positive_marks),
-      positive_marks: Number(quizForm.positive_marks),
-      negative_marks: Number(quizForm.negative_marks),
-      is_free: Number(quizForm.is_free),
-      status: "PUBLISHED",
-      question_count: newQuizQuestions.length,
-      attempts_count: 0,
-      average_score: 0,
-      questions: newQuizQuestions,
-    };
-    setAdminQuizzes([newQuiz, ...adminQuizzes]);
-    setNewQuizModalOpen(false);
-    triggerToast("New quiz published successfully.");
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("lawkaksha_admin_session");
+      localStorage.removeItem("lawkaksha_token");
+      window.dispatchEvent(new Event("storage"));
+      router.push("/login");
+    }
   };
 
-  const handleAddStudent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!studentForm.name.trim()) return;
-    const newStd: StudentItem = {
-      id: `std-${Date.now()}`,
-      student_id: `LK-STU-0${Math.floor(10000 + Math.random() * 90000)}`,
-      name: studentForm.name,
-      email: studentForm.email,
-      phone: studentForm.phone,
-      target_exam: studentForm.target_exam,
-      is_active: 1,
-      deviceStatus: "Bound",
-      device: "Pending First Login",
-      enrolledPlan: studentForm.enrolledPlan,
-    };
-    setStudentsList([newStd, ...studentsList]);
-    setAddStudentModalOpen(false);
-    triggerToast("Student enrolled and credentials generated.");
-  };
+  // Calculations
+  const totalRevenue = useMemo(() => {
+    return subscriptions.reduce((acc, curr) => {
+      const num = parseInt(curr.amount.replace(/[^0-9]/g, "")) || 0;
+      return acc + num;
+    }, 0);
+  }, [subscriptions]);
 
-  const handleUnbindDevice = (studentId: string) => {
-    setStudentsList((prev) =>
-      prev.map((s) => (s.id === studentId ? { ...s, deviceStatus: "Unbound", device: "None (Reset by Admin)" } : s))
+  const activeStudentsCount = useMemo(() => students.filter((s) => s.is_active).length, [students]);
+  const activeSubsCount = useMemo(() => subscriptions.filter((s) => s.accessStatus === "Active").length, [subscriptions]);
+
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#F6F5FF] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="w-9 h-9 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-semibold text-slate-700">Verifying administrator authorization...</p>
+      </div>
     );
-    triggerToast("Single-device hardware lock reset successfully.");
-  };
+  }
 
-  const handleAddProduct = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!productForm.title.trim()) return;
-    const newProd: ProductItem = {
-      id: `prod-${Date.now()}`,
-      title: productForm.title,
-      type: productForm.type,
-      category: productForm.category,
-      format: productForm.format,
-      price: Number(productForm.price),
-      originalPrice: Number(productForm.originalPrice),
-      pagesOrHours: productForm.pagesOrHours,
-      stockOrSeats: productForm.stockOrSeats,
-      status: "Active",
-      features: ["ICAI Aligned", "Official Editorial Content"],
-    };
-    setCatalogList([newProd, ...catalogList]);
-    setAddProductModalOpen(false);
-    triggerToast("Product added to catalog.");
-  };
-
-  const handleAddSession = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!sessionForm.topic.trim()) return;
-    const newSess: LiveSession = {
-      id: `sess-${Date.now()}`,
-      batch_name: sessionForm.batch_name,
-      topic: sessionForm.topic,
-      date: sessionForm.date || "Tomorrow",
-      time: sessionForm.time || "07:00 PM IST",
-      duration_minutes: Number(sessionForm.duration_minutes) || 90,
-      meeting_link: sessionForm.meeting_link || "https://classroom.lawkaksha.edu/live/new",
-      status: "UPCOMING",
-    };
-    setLiveSessions([newSess, ...liveSessions]);
-    setNewSessionModalOpen(false);
-    triggerToast("Live Masterclass scheduled.");
-  };
-
-  const handleSaveEvaluation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeEvalItem) return;
-    setEvaluationsList((prev) =>
-      prev.map((ev) =>
-        ev.id === activeEvalItem.id
-          ? {
-              ...ev,
-              scoredMarks: Number(evalScoreInput),
-              status: "Evaluated & Sent",
-              feedback: evalFeedbackInput,
-            }
-          : ev
-      )
-    );
-    setEvaluateModalOpen(false);
-    triggerToast(`Evaluation score ${evalScoreInput}/${activeEvalItem.totalMarks} sent to candidate.`);
-  };
-
-  const handleSendDoubtReply = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDoubtForReply || !doubtReplyText.trim()) return;
-    setAdminDoubts((prev) =>
-      prev.map((d) =>
-        d.id === selectedDoubtForReply.id
-          ? { ...d, status: "Resolved", facultyAnswer: doubtReplyText }
-          : d
-      )
-    );
-    setReplyDoubtModalOpen(false);
-    setDoubtReplyText("");
-    triggerToast("Official statutory opinion published to candidate doubt desk.");
-  };
-
-  const handleAddCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!couponForm.code.trim()) return;
-    const newCpn: CouponItem = {
-      id: `cpn-${Date.now()}`,
-      code: couponForm.code.toUpperCase(),
-      discountPercent: Number(couponForm.discountPercent),
-      maxUses: Number(couponForm.maxUses),
-      usedCount: 0,
-      expiryDate: couponForm.expiryDate,
-      status: "Active",
-    };
-    setCouponsList([newCpn, ...couponsList]);
-    setNewCouponModalOpen(false);
-    triggerToast(`Promo code ${couponForm.code.toUpperCase()} activated.`);
-  };
+  const NAV_TABS = [
+    { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
+    { id: "subscriptions" as TabType, label: "Subscriptions & Access", icon: CreditCard, badge: subscriptions.length },
+    { id: "products" as TabType, label: "Study Books & Codices", icon: BookOpen, badge: products.length },
+    { id: "students" as TabType, label: "Students & DRM Rights", icon: Users, badge: students.length },
+    { id: "cases" as TabType, label: "Weekly Cases", icon: Flame },
+    { id: "mcq" as TabType, label: "MCQ Test Bank", icon: Sparkles },
+    { id: "coupons" as TabType, label: "Coupons & Offers", icon: Percent },
+    { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0A192F] flex flex-col antialiased">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0A192F] text-white px-5 py-3 rounded-lg shadow-lg border border-slate-700 text-sm font-medium flex items-center gap-3 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
+    <div className="min-h-screen bg-[#F6F5FF] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* TOAST NOTIFICATION */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Left Sidebar - Clean Matte Design */}
-        <aside className="w-full md:w-64 bg-white border-r border-slate-200 shrink-0 flex flex-col">
-          {/* Logo & Platform Info */}
-          <div className="p-4 border-b border-slate-200">
-            <Link href="/" className="inline-block">
-              <LawKakshaLogo size="sm" showTagline={false} />
+      {/* MOBILE SIDEBAR BACKDROP */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* 1. SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-100 flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        {/* LOGO & ADMIN BADGE */}
+        <div className="px-4 pt-5 pb-4 border-b border-slate-100">
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/" className="flex items-center shrink-0">
+              <div className="relative h-8 w-28">
+                <Image src="/assets/logo-transparent.png" alt="The Law Kaksha" fill className="object-contain object-left" priority />
+              </div>
             </Link>
-            <div className="mt-2.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center justify-between">
-              <span>Admin Portal</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500" title="System Online" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 border border-violet-100">
+              <ShieldCheck className="w-3.5 h-3.5 text-violet-600" />
+              <span className="text-[11px] font-bold text-violet-900">Admin</span>
             </div>
           </div>
+        </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
-            {[
-              { id: "overview", label: "Overview", icon: Home },
-              { id: "quizzes", label: "Quizzes & Tests", icon: Award, badge: `${adminQuizzes.length}` },
-              { id: "orders", label: "Orders & Dispatches", icon: Truck, badge: `${ordersList.length}` },
-              { id: "students", label: "Students & DRM", icon: Users, badge: `${studentsList.length}` },
-              { id: "catalog", label: "Catalog & Books", icon: BookOpen, badge: `${catalogList.length}` },
-              { id: "batches", label: "Batches & Live Classes", icon: Video },
-              { id: "evaluations", label: "Mains Copy Checking", icon: FileText, badge: `${evaluationsList.filter((e) => e.status === "Pending Review").length}` },
-              { id: "doubts", label: "Doubt Clearance Desk", icon: HelpCircle, badge: `${adminDoubts.filter((d) => d.status === "Under Review").length}` },
-              { id: "coupons", label: "Coupons & Discounts", icon: Percent },
-              { id: "system", label: "System Status & Logs", icon: ShieldCheck },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    isActive
-                      ? "bg-[#0A192F] text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-500"}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                        isActive ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+        {/* NAVIGATION ITEMS */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {NAV_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSearchQuery("");
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer text-left min-h-[44px] ${
+                  isActive
+                    ? "bg-violet-50 text-violet-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                }`}
+              >
+                <Icon className={`shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`} style={{ width: 18, height: 18 }} />
+                <span className="truncate">{tab.label}</span>
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span className={`ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    isActive ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
-          {/* Admin User Card in Sidebar */}
-          <div className="p-3 border-t border-slate-200 bg-slate-50">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#0A192F] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                AD
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-800 truncate">Administrator</p>
-                <p className="text-[10px] text-slate-500 truncate">Academic Controller</p>
-              </div>
+        {/* BOTTOM ADMIN PROFILE */}
+        <div className="p-3.5 border-t border-slate-100">
+          <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-100">
+            <div className="w-8 h-8 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+              AD
             </div>
-            <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
-              <span className="text-emerald-700 font-semibold">100% Operational</span>
-              <Link href="/student" className="text-[#005A9C] font-semibold hover:underline">
-                Student View →
-              </Link>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-800 truncate">Academic Admin</p>
+              <p className="text-[10px] text-slate-400 leading-none mt-0.5">The Law Kaksha Hub</p>
             </div>
+            <button
+              onClick={handleLogout}
+              title="Log Out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+            >
+              <LogOut style={{ width: 14, height: 14 }} />
+            </button>
           </div>
-        </aside>
+        </div>
+      </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-y-auto">
-          {/* Top Header Bar */}
-          <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      {/* 2. MAIN CONTENT AREA */}
+      <main className="flex-1 min-w-0 overflow-auto">
+        {/* STICKY TOP HEADER */}
+        <header className="sticky top-0 z-20 bg-[#F6F5FF]/80 backdrop-blur-sm border-b border-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
             <div>
-              <h1 className="text-base sm:text-lg font-bold text-[#0A192F]">
-                {activeTab === "overview" && "Executive Command Center"}
-                {activeTab === "quizzes" && "Quizzes, Case Scenarios & Test Engine"}
-                {activeTab === "orders" && "Physical Orders & Courier Dispatch Desk"}
-                {activeTab === "students" && "Enrolled Students & Single-Device DRM Registry"}
-                {activeTab === "catalog" && "Course Books, Video Lectures & Catalog"}
-                {activeTab === "batches" && "Academic Batches & Live Masterclasses"}
-                {activeTab === "evaluations" && "Mains Descriptive Copy Checking Desk"}
-                {activeTab === "doubts" && "Student Doubt Clearance Queue"}
-                {activeTab === "coupons" && "Promotional Coupons & Discount Codes"}
-                {activeTab === "system" && "Platform Security & System Health"}
-              </h1>
-              <p className="text-xs text-slate-500">
-                The Law Kaksha Institutional Administration
-              </p>
+            <h1 className="text-base font-semibold text-slate-800">
+              {NAV_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
+            </h1>
+            <p className="text-[11px] text-slate-400 leading-none mt-0.5">
+              DRM Protection, Student Subscriptions, Course Notes &amp; Portal Operations
+            </p>
             </div>
+          </div>
 
-            {/* Top Search & Live Pill */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/student"
+              target="_blank"
+              className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-violet-700 hover:border-violet-200 shadow-xs flex items-center gap-1.5 transition-all"
+            >
+              <span>Student View</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </header>
+
+        {/* TAB WORKSPACES */}
+        <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === "overview" && (
+            <div className="space-y-6">
+              {/* TOP HERO BANNER */}
+              <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-violet-200">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-violet-200">Executive Control Center</span>
+                  <h2 className="text-2xl font-bold">The Law कक्षा Portal Management</h2>
+                  <p className="text-violet-100 text-xs sm:text-sm leading-relaxed max-w-lg">
+                    100% In-Web DRM digital learning platform for CA Foundation &amp; CSEET statutory law codices and evaluation tests.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
+                    <TrendingUp className="w-5 h-5 text-emerald-300 mx-auto mb-1" />
+                    <p className="text-xl font-extrabold">₹{totalRevenue.toLocaleString()}</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Gross Subscriptions</p>
+                  </div>
+                  <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
+                    <Key className="w-5 h-5 text-amber-300 mx-auto mb-1" />
+                    <p className="text-xl font-extrabold">{activeSubsCount}</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Active DRM Passes</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* STAT CARDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-3">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">Digital Codices</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Master Books</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Volumes 1 &amp; 2 Active</p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">Enrolled Students</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{students.length} Candidates</h3>
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">{activeStudentsCount} Active Portals</p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">Purchased Subscriptions</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Passes</h3>
+                  <p className="text-[11px] text-amber-600 font-medium mt-1">Instant Vault Activation</p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">DRM In-Web Protection</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">100% Protected</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Copy/Print Bypasses Blocked</p>
+                </div>
+              </div>
+
+              {/* RECENT SUBSCRIPTIONS TABLE */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">Recent Student Access Grants &amp; Purchases</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Instant online access to statutory codices across CA &amp; CSEET</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("subscriptions")}
+                    className="text-xs font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>View All Subscriptions</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-slate-400 font-semibold">
+                        <th className="py-2.5 px-3">Sub ID</th>
+                        <th className="py-2.5 px-3">Student Name</th>
+                        <th className="py-2.5 px-3">Enrolled Codex / Pass</th>
+                        <th className="py-2.5 px-3">Amount</th>
+                        <th className="py-2.5 px-3">Access Status</th>
+                        <th className="py-2.5 px-3">Payment</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {subscriptions.slice(0, 4).map((sub) => (
+                        <tr key={sub.id} className="hover:bg-slate-50/50">
+                          <td className="py-3 px-3 font-mono font-bold text-slate-700">{sub.id}</td>
+                          <td className="py-3 px-3 font-medium text-slate-800">{sub.studentName}</td>
+                          <td className="py-3 px-3 text-slate-600 truncate max-w-xs">{sub.item}</td>
+                          <td className="py-3 px-3 font-bold text-slate-800">{sub.amount}</td>
+                          <td className="py-3 px-3">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              sub.accessStatus === "Active"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                : "bg-amber-50 text-amber-700 border border-amber-100"
+                            }`}>
+                              {sub.accessStatus}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-500 font-medium">{sub.paymentMode}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SUBSCRIPTIONS & ACCESS PURCHASES */}
+          {activeTab === "subscriptions" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Student Subscriptions &amp; In-Web Access Purchases</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage digital pass authorizations and grant instant in-web reader access.</p>
+                </div>
+                <button
+                  onClick={() => setSubModal({ open: true, mode: "add", data: { accessStatus: "Active", paymentMode: "UPI / Razorpay", targetExam: "CSEET Law & Management" } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Grant Manual Access</span>
+                </button>
+              </div>
+
+              {/* SEARCH BAR */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
+                <Search className="w-4 h-4 text-slate-400" />
                 <input
                   type="text"
+                  placeholder="Search by subscription ID, student name, roll number or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Enter search query..."
-                  className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#005A9C] w-48 sm:w-64"
+                  className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-md text-xs font-semibold text-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>ICAI Server Active</span>
+              {/* SUBSCRIPTIONS LIST */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
+                      <tr>
+                        <th className="py-3 px-4">Sub ID &amp; Date</th>
+                        <th className="py-3 px-4">Student &amp; Roll Number</th>
+                        <th className="py-3 px-4">Enrolled Codex / Pass</th>
+                        <th className="py-3 px-4">Fee Paid</th>
+                        <th className="py-3 px-4">DRM Vault Status</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {subscriptions
+                        .filter((s) =>
+                          s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.studentRoll.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .map((sub) => (
+                          <tr key={sub.id} className="hover:bg-slate-50/50">
+                            <td className="py-3.5 px-4">
+                              <p className="font-mono font-bold text-slate-800">{sub.id}</p>
+                              <p className="text-[10px] text-slate-400">{sub.date}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <p className="font-bold text-slate-800">{sub.studentName}</p>
+                              <p className="text-[11px] text-violet-600 font-mono">{sub.studentRoll}</p>
+                              <p className="text-[10px] text-slate-400">{sub.email}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <p className="text-slate-800 font-semibold">{sub.item}</p>
+                              <p className="text-[10px] text-slate-400">{sub.targetExam}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <p className="text-xs font-bold text-violet-700">{sub.amount}</p>
+                              <p className="text-[10px] text-slate-400">{sub.paymentMode}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <button
+                                onClick={() => {
+                                  const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
+                                  const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus as any } : item));
+                                  setSubscriptions(updated);
+                                  localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
+                                  showToast(`Access ${nextStatus} for ${sub.studentName}`);
+                                }}
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                                  sub.accessStatus === "Active"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : "bg-rose-50 text-rose-700 border border-rose-200"
+                                }`}
+                              >
+                                {sub.accessStatus === "Active" ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                <span>{sub.accessStatus === "Active" ? "Active In-Web DRM" : "Access Revoked"}</span>
+                              </button>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setSubModal({ open: true, mode: "edit", data: sub })}
+                                  title="Edit Subscription"
+                                  className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete subscription record for ${sub.studentName}?`)) {
+                                      const filtered = subscriptions.filter((s) => s.id !== sub.id);
+                                      setSubscriptions(filtered);
+                                      localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(filtered));
+                                      showToast(`Subscription ${sub.id} deleted.`);
+                                    }
+                                  }}
+                                  title="Delete Subscription"
+                                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </header>
+          )}
 
-          {/* Canvas Body */}
-          <div className="p-6 space-y-6 flex-1">
-            {/* 1. OVERVIEW DESK */}
-            {activeTab === "overview" && (
-              <div className="space-y-6">
-                {/* 4 Matte Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Total Registered Candidates</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">{studentsList.length * 1280 + 38400}</span>
-                      <Users className="w-5 h-5 text-[#005A9C]" />
-                    </div>
-                    <span className="text-[11px] text-emerald-600 font-medium mt-1 block">Active across India</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Active Quizzes &amp; Drills</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">{adminQuizzes.length}</span>
-                      <Award className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">705 attempts today</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Orders Pending Dispatch</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-amber-700">
-                        {ordersList.filter((o) => o.status === "Processing").length}
-                      </span>
-                      <Truck className="w-5 h-5 text-amber-600" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">Courier waybill ready</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Pending Doubts</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">
-                        {adminDoubts.filter((d) => d.status === "Under Review").length}
-                      </span>
-                      <HelpCircle className="w-5 h-5 text-blue-500" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">Avg response: 3.2 hrs</span>
-                  </div>
+          {/* TAB 3: BOOKS & STUDY CODICES */}
+          {activeTab === "products" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Master Study Books &amp; In-Web Codices</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage in-web DRM digital books, curriculum statutory units, pricing &amp; PDF stream endpoints.</p>
                 </div>
-
-                {/* Dispatch Queue + Recent Quiz Attempts */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Dispatch Action Card */}
-                  <div className="lg:col-span-6 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <h3 className="text-sm font-bold text-[#0A192F] flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-[#005A9C]" />
-                        <span>Logistics &amp; Dispatch Desk</span>
-                      </h3>
-                      <button
-                        onClick={() => setDispatchModalOpen(true)}
-                        className="px-3 py-1.5 rounded-md bg-[#0A192F] hover:bg-[#005A9C] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Printer className="w-3.5 h-3.5" />
-                        <span>Print Shipping Slips</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {ordersList.slice(0, 3).map((ord) => (
-                        <div key={ord.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
-                          <div>
-                            <p className="font-bold text-slate-800">{ord.customer}</p>
-                            <p className="text-slate-500 text-[11px] truncate max-w-xs">{ord.item}</p>
-                          </div>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              ord.status === "Dispatched"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : ord.status === "Processing"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                : "bg-slate-200 text-slate-700"
-                            }`}
-                          >
-                            {ord.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recent Quiz Attempts */}
-                  <div className="lg:col-span-6 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <h3 className="text-sm font-bold text-[#0A192F] flex items-center gap-2">
-                        <Award className="w-4 h-4 text-amber-500" />
-                        <span>Live Quiz Submissions</span>
-                      </h3>
-                      <button
-                        onClick={() => setActiveTab("quizzes")}
-                        className="text-xs font-semibold text-[#005A9C] hover:underline"
-                      >
-                        View All Submissions →
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {quizAttempts.slice(0, 3).map((att) => (
-                        <div key={att.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
-                          <div>
-                            <p className="font-bold text-slate-800">{att.candidate_name}</p>
-                            <p className="text-slate-500 text-[11px] truncate max-w-xs">{att.quiz_title}</p>
-                          </div>
-                          <span className="font-bold text-[#005A9C] font-mono">
-                            {att.score}/{att.total_marks} ({att.accuracy}%)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <button
+                  onClick={() => setProductModal({ open: true, mode: "add", data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CSEET" } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Codex</span>
+                </button>
               </div>
-            )}
 
-            {/* 2. QUIZZES & TESTS DESK */}
-            {activeTab === "quizzes" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">ICAI Timed Quizzes &amp; Objective Case Scenarios</h2>
-                    <p className="text-xs text-slate-500">Create, edit, publish and evaluate chapter-wise test drills.</p>
-                  </div>
-                  <button
-                    onClick={() => setNewQuizModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create New Quiz</span>
-                  </button>
-                </div>
-
-                {/* Quizzes Table */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Quiz Title</th>
-                          <th className="py-3 px-4">Level &amp; Chapter</th>
-                          <th className="py-3 px-4">Questions</th>
-                          <th className="py-3 px-4">Time Limit</th>
-                          <th className="py-3 px-4">Attempts</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {adminQuizzes.map((q) => (
-                          <tr key={q.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4 font-bold text-slate-900">{q.title}</td>
-                            <td className="py-3.5 px-4">
-                              <span className="block font-semibold text-slate-700">{q.level}</span>
-                              <span className="text-[11px] text-slate-500">{q.chapter}</span>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono">{q.question_count || 15} Qs</td>
-                            <td className="py-3.5 px-4 font-mono">{q.time_limit_minutes} Mins</td>
-                            <td className="py-3.5 px-4 font-mono">{q.attempts_count || 0}</td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                {q.status}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right space-x-2">
-                              <button
-                                onClick={() => {
-                                  triggerToast("Quiz edit loaded.");
-                                }}
-                                className="p-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-                                title="Edit Quiz"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setAdminQuizzes(adminQuizzes.filter((x) => x.id !== q.id));
-                                  triggerToast("Quiz deleted.");
-                                }}
-                                className="p-1.5 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
-                                title="Delete Quiz"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 3. ORDERS & DISPATCHES DESK */}
-            {activeTab === "orders" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Physical Orders &amp; Waybill Dispatch Management</h2>
-                    <p className="text-xs text-slate-500">Track shipments, generate official Delhivery/BlueDart shipping slips.</p>
-                  </div>
-                  <button
-                    onClick={() => setDispatchModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#0A192F] hover:bg-[#005A9C] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Print Batch Shipping Slips</span>
-                  </button>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Order ID</th>
-                          <th className="py-3 px-4">Customer Name &amp; Contact</th>
-                          <th className="py-3 px-4">Purchased Items</th>
-                          <th className="py-3 px-4">Amount</th>
-                          <th className="py-3 px-4">Courier &amp; AWB</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {ordersList.map((ord) => (
-                          <tr key={ord.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-[#005A9C]">{ord.id}</td>
-                            <td className="py-3.5 px-4">
-                              <p className="font-bold text-slate-900">{ord.customer}</p>
-                              <p className="text-[11px] text-slate-500 font-mono">{ord.phone}</p>
-                            </td>
-                            <td className="py-3.5 px-4 text-slate-700 max-w-xs">{ord.item}</td>
-                            <td className="py-3.5 px-4 font-bold text-slate-900">{ord.amount}</td>
-                            <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">
-                              {ord.courier} • {ord.tracking}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  ord.status === "Dispatched"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : ord.status === "Processing"
-                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                    : "bg-slate-100 text-slate-700 border border-slate-200"
-                                }`}
-                              >
-                                {ord.status}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <button
-                                onClick={() => {
-                                  setOrdersList((prev) =>
-                                    prev.map((o) =>
-                                      o.id === ord.id
-                                        ? { ...o, status: "Dispatched", tracking: "DEL-88421099" }
-                                        : o
-                                    )
-                                  );
-                                  triggerToast(`Order ${ord.id} marked as Dispatched.`);
-                                }}
-                                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold cursor-pointer"
-                              >
-                                Mark Dispatched
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 4. STUDENTS & DRM DESK */}
-            {activeTab === "students" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Student Registry &amp; DRM Hardware ID Management</h2>
-                    <p className="text-xs text-slate-500">Monitor active student licenses, reset single-device locks, add students.</p>
-                  </div>
-                  <button
-                    onClick={() => setAddStudentModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add New Student</span>
-                  </button>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Roll Number</th>
-                          <th className="py-3 px-4">Student Name</th>
-                          <th className="py-3 px-4">Email &amp; Phone</th>
-                          <th className="py-3 px-4">Target Exam</th>
-                          <th className="py-3 px-4">Hardware Binding</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {studentsList.map((std) => (
-                          <tr key={std.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-[#005A9C]">{std.student_id}</td>
-                            <td className="py-3.5 px-4 font-bold text-slate-900">{std.name}</td>
-                            <td className="py-3.5 px-4">
-                              <p className="text-slate-800">{std.email}</p>
-                              <p className="text-[11px] text-slate-500 font-mono">{std.phone}</p>
-                            </td>
-                            <td className="py-3.5 px-4 text-slate-700">{std.target_exam}</td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  std.deviceStatus === "Bound"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-amber-50 text-amber-700 border border-amber-200"
-                                }`}
-                              >
-                                {std.deviceStatus}
-                              </span>
-                              <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-xs">{std.device}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                Active
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right space-x-2">
-                              <button
-                                onClick={() => handleUnbindDevice(std.id)}
-                                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold cursor-pointer"
-                                title="Reset Single Device Binding"
-                              >
-                                Unbind HWID
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 5. CATALOG & BOOKS DESK */}
-            {activeTab === "catalog" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Course Books &amp; Study Resources Catalog</h2>
-                    <p className="text-xs text-slate-500">Manage pricing, inventory, digital vault codex files.</p>
-                  </div>
-                  <button
-                    onClick={() => setAddProductModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add New Course / Book</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {catalogList.map((prod) => (
-                    <div key={prod.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+              {/* PRODUCT CARDS GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((prod) => (
+                  <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div className="p-6 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-[#005A9C] uppercase">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
                           {prod.category}
                         </span>
-                        <span className="text-xs font-bold text-slate-900">₹{prod.price}</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#0A192F]">{prod.title}</h3>
-                      <p className="text-xs text-slate-500">{prod.format} • {prod.pagesOrHours} • Stock: {prod.stockOrSeats}</p>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
                           {prod.status}
                         </span>
-                        <button
-                          onClick={() => triggerToast(`Product ${prod.title} updated.`)}
-                          className="text-xs font-semibold text-[#005A9C] hover:underline cursor-pointer"
-                        >
-                          Edit Pricing &amp; Stock
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 6. BATCHES & LIVE CLASSES DESK */}
-            {activeTab === "batches" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Academic Batches &amp; Live Masterclasses</h2>
-                    <p className="text-xs text-slate-500">Manage CA Intermediate &amp; CA Final academic batches and schedule live rooms.</p>
-                  </div>
-                  <button
-                    onClick={() => setNewSessionModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Schedule Masterclass</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {batchesList.map((batch) => (
-                    <div key={batch.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-[#005A9C]">
-                          {batch.level}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-500">
-                          {batch.enrolled_count} Candidates Enrolled
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#0A192F]">{batch.name}</h3>
-                      <p className="text-xs text-slate-500">{batch.schedule}</p>
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                          {batch.status}
-                        </span>
-                        <button
-                          onClick={() => triggerToast(`Batch ${batch.name} schedule updated.`)}
-                          className="text-xs font-semibold text-[#005A9C] hover:underline cursor-pointer"
-                        >
-                          Manage Batch Roster
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 7. MAINS EVALUATION DESK */}
-            {activeTab === "evaluations" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Mains Descriptive Test Series Copy Checking Desk</h2>
-                    <p className="text-xs text-slate-500">Grade handwritten student test papers using ICAI 5-pillar rubric.</p>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                    {evaluationsList.filter((e) => e.status === "Pending Review").length} Papers Pending Evaluation
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Student Name</th>
-                          <th className="py-3 px-4">Test Title</th>
-                          <th className="py-3 px-4">Submitted Date</th>
-                          <th className="py-3 px-4">Score</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {evaluationsList.map((ev) => (
-                          <tr key={ev.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4">
-                              <p className="font-bold text-slate-900">{ev.studentName}</p>
-                              <p className="text-[11px] text-slate-500 font-mono">{ev.studentRoll}</p>
-                            </td>
-                            <td className="py-3.5 px-4 font-medium text-slate-800">{ev.testTitle}</td>
-                            <td className="py-3.5 px-4 text-slate-500">{ev.submittedOn}</td>
-                            <td className="py-3.5 px-4 font-bold text-[#005A9C]">
-                              {ev.scoredMarks !== null ? `${ev.scoredMarks} / ${ev.totalMarks}` : "—"}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  ev.status === "Evaluated & Sent"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-amber-50 text-amber-700 border border-amber-200"
-                                }`}
-                              >
-                                {ev.status}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <button
-                                onClick={() => {
-                                  setActiveEvalItem(ev);
-                                  setEvalScoreInput(ev.scoredMarks !== null ? String(ev.scoredMarks) : "");
-                                  setEvalFeedbackInput(ev.feedback || "");
-                                  setEvaluateModalOpen(true);
-                                }}
-                                className="px-3 py-1.5 rounded bg-[#005A9C] text-white text-xs font-semibold hover:bg-[#00487D] cursor-pointer"
-                              >
-                                Evaluate Paper
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 8. DOUBT DESK */}
-            {activeTab === "doubts" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Student Legal Doubt Clearance Queue</h2>
-                    <p className="text-xs text-slate-500">Review and answer legal interpretation questions from enrolled candidates.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {adminDoubts.map((dbt) => (
-                    <div key={dbt.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-bold text-slate-900 text-xs">{dbt.studentName} ({dbt.studentRoll})</span>
-                          <span className="text-xs text-[#005A9C] ml-3 font-semibold">{dbt.section}</span>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            dbt.status === "Resolved"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
-                        >
-                          {dbt.status}
-                        </span>
                       </div>
 
-                      <p className="text-xs text-slate-800 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                        {dbt.question}
+                      <div>
+                        <h3 className="text-base font-bold text-slate-800 leading-snug">{prod.title}</h3>
+                        <p className="text-xs text-violet-600 font-medium mt-0.5">{prod.subtitle}</p>
+                      </div>
+
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                        {prod.description}
                       </p>
 
-                      {dbt.facultyAnswer && (
-                        <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100 text-xs text-slate-700">
-                          <span className="font-bold text-[#005A9C] block mb-0.5">Faculty Statutory Opinion:</span>
-                          <p>{dbt.facultyAnswer}</p>
+                      <div className="pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Statutory Units</p>
+                        <div className="flex flex-wrap gap-1">
+                          {prod.units?.map((u, i) => (
+                            <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
+                              {u}
+                            </span>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    </div>
 
-                      <div className="flex items-center justify-end">
+                    {/* CARD FOOTER */}
+                    <div className="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-base font-extrabold text-slate-900">₹{prod.price}</span>
+                          <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">{prod.pages} • In-Web DRM</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
+                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => {
-                            setSelectedDoubtForReply(dbt);
-                            setDoubtReplyText(dbt.facultyAnswer || "");
-                            setReplyDoubtModalOpen(true);
+                            if (confirm(`Delete product ${prod.title}?`)) {
+                              const filtered = products.filter((p) => p.id !== prod.id);
+                              setProducts(filtered);
+                              localStorage.setItem("lawkaksha_admin_products", JSON.stringify(filtered));
+                              showToast(`Deleted ${prod.title}`);
+                            }
                           }}
-                          className="px-3 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold cursor-pointer"
+                          className="p-2 rounded-xl bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
                         >
-                          {dbt.status === "Resolved" ? "Update Opinion" : "Reply to Candidate"}
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 9. COUPONS DESK */}
-            {activeTab === "coupons" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Promotional Coupons &amp; Discount Codes</h2>
-                    <p className="text-xs text-slate-500">Configure promotional discounts and maximum usage limits.</p>
                   </div>
-                  <button
-                    onClick={() => setNewCouponModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create Promo Code</span>
-                  </button>
-                </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Coupon Code</th>
-                          <th className="py-3 px-4">Discount %</th>
-                          <th className="py-3 px-4">Usage Count</th>
-                          <th className="py-3 px-4">Expiry Date</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {couponsList.map((cpn) => (
-                          <tr key={cpn.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-[#005A9C] text-sm">{cpn.code}</td>
-                            <td className="py-3.5 px-4 font-bold text-slate-900">{cpn.discountPercent}% OFF</td>
-                            <td className="py-3.5 px-4 font-mono">{cpn.usedCount} / {cpn.maxUses}</td>
-                            <td className="py-3.5 px-4 text-slate-500">{cpn.expiryDate}</td>
+          {/* TAB 4: STUDENTS & DRM ENROLLMENTS */}
+          {activeTab === "students" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Enrolled Students &amp; DRM Authorizations</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage registered candidates, grant in-web book reading rights, and reset student credentials.</p>
+                </div>
+                <button
+                  onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CSEET Law & Management" } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Student</span>
+                </button>
+              </div>
+
+              {/* SEARCH BAR */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
+                <Search className="w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search students by name, roll number, email or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* STUDENTS TABLE */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
+                      <tr>
+                        <th className="py-3 px-4">Candidate &amp; Roll Number</th>
+                        <th className="py-3 px-4">Target Exam</th>
+                        <th className="py-3 px-4">Contact Info</th>
+                        <th className="py-3 px-4">DRM In-Web Access</th>
+                        <th className="py-3 px-4">Enrolled Books</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {students
+                        .filter((s) =>
+                          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.email.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .map((std) => (
+                          <tr key={std.id} className="hover:bg-slate-50/50">
                             <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                {cpn.status}
+                              <p className="font-bold text-slate-800">{std.name}</p>
+                              <p className="text-[10px] font-mono text-violet-600 font-bold">{std.student_id}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-100">
+                                {std.target_exam}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 text-right">
+                            <td className="py-3.5 px-4">
+                              <p className="text-slate-700">{std.email}</p>
+                              <p className="text-[10px] font-mono text-slate-400">{std.phone}</p>
+                            </td>
+                            <td className="py-3.5 px-4">
                               <button
                                 onClick={() => {
-                                  setCouponsList(couponsList.filter((c) => c.id !== cpn.id));
-                                  triggerToast(`Promo code ${cpn.code} deactivated.`);
+                                  const updated = students.map((s) => (s.id === std.id ? { ...s, drm_access: !s.drm_access } : s));
+                                  setStudents(updated);
+                                  localStorage.setItem("lawkaksha_admin_students", JSON.stringify(updated));
+                                  showToast(`DRM access ${std.drm_access ? "Revoked" : "Granted"} for ${std.name}`);
                                 }}
-                                className="p-1.5 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
-                                title="Delete Coupon"
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                                  std.drm_access
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : "bg-rose-50 text-rose-700 border border-rose-200"
+                                }`}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                {std.drm_access ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                <span>{std.drm_access ? "Active Codex Access" : "Revoked"}</span>
                               </button>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <p className="text-[11px] text-slate-600">{std.enrolled_books?.join(", ") || "None"}</p>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
+                                  title="Edit Student"
+                                  className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete student record for ${std.name}?`)) {
+                                      const filtered = students.filter((s) => s.id !== std.id);
+                                      setStudents(filtered);
+                                      localStorage.setItem("lawkaksha_admin_students", JSON.stringify(filtered));
+                                      showToast(`Deleted student ${std.name}`);
+                                    }
+                                  }}
+                                  title="Delete Student"
+                                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 10. SYSTEM STATUS & LOGS DESK */}
-            {activeTab === "system" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-                  <h2 className="text-sm font-bold text-[#0A192F]">Platform Security &amp; Database Health</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">System status, DRM cryptography, daily database backup integrity.</p>
+          {/* TAB 5: WEEKLY CASE STUDIES */}
+          {activeTab === "cases" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Weekly High-Yield Case Studies</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Monster Monday, Midweek Law Madness, and Final Boss Friday real-exam problems.</p>
                 </div>
+                <button
+                  onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", marks: "6/6 Marks" } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Case Study</span>
+                </button>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                    <h3 className="text-xs font-bold text-[#005A9C] uppercase tracking-wider">System Services</h3>
-                    <div className="space-y-2 text-xs">
-                      {[
-                        { name: "PostgreSQL Production DB", status: "ONLINE", uptime: "99.99%" },
-                        { name: "Single-Device DRM Hardware Token Service", status: "ACTIVE", uptime: "100.0%" },
-                        { name: "Live Leaderboard Score Ingestion", status: "ONLINE", uptime: "99.98%" },
-                        { name: "Delhivery Logistics Webhook API", status: "CONNECTED", uptime: "99.95%" },
-                      ].map((srv, idx) => (
-                        <div key={idx} className="p-2.5 rounded bg-slate-50 flex items-center justify-between">
-                          <span className="font-semibold text-slate-800">{srv.name}</span>
-                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                            {srv.status} ({srv.uptime})
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {cases.map((cs) => (
+                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-violet-600 uppercase tracking-wide">{cs.day}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                        {cs.badge}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-1">{cs.subject}</span>
+                      <h3 className="text-sm font-bold text-slate-800 leading-snug">{cs.title}</h3>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600 leading-relaxed italic">
+                      &ldquo;{cs.scenario}&rdquo;
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">Model Answer</span>
+                      <p className="text-xs text-slate-500 leading-relaxed">{cs.modelAnswer}</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="font-mono text-slate-400 text-[11px]">{cs.precedent}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })}
+                          className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Delete this case study?")) {
+                              const filtered = cases.filter((c) => c.id !== cs.id);
+                              setCases(filtered);
+                              localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(filtered));
+                              showToast("Case study deleted.");
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: MCQ QUESTION BANK */}
+          {activeTab === "mcq" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">MCQ Test Question Bank</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Objective evaluation questions for weekly 30-minute timed mock tests.</p>
+                </div>
+                <button
+                  onClick={() => setMcqModal({ open: true, mode: "add", data: { options: ["", "", "", ""], correctOption: 0 } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Question</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {mcqs.map((q, idx) => (
+                  <div key={q.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-800">Question {idx + 1} • {q.subject}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-violet-50 text-violet-700 font-bold">{q.section}</span>
+                        <button
+                          onClick={() => setMcqModal({ open: true, mode: "edit", data: q })}
+                          className="p-1.5 rounded-lg hover:bg-violet-50 text-violet-600 cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Delete this question?")) {
+                              const filtered = mcqs.filter((m) => m.id !== q.id);
+                              setMcqs(filtered);
+                              localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(filtered));
+                              showToast("Question deleted.");
+                            }
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-slate-800 font-medium leading-relaxed">{q.question}</p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      {q.options.map((opt, oIdx) => (
+                        <div
+                          key={oIdx}
+                          className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                            q.correctOption === oIdx
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold"
+                              : "bg-slate-50 border-slate-100 text-slate-600"
+                          }`}
+                        >
+                          <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center font-bold text-[10px] shadow-xs shrink-0">
+                            {String.fromCharCode(65 + oIdx)}
                           </span>
+                          <span className="truncate">{opt}</span>
                         </div>
                       ))}
                     </div>
-                  </div>
 
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                    <h3 className="text-xs font-bold text-[#005A9C] uppercase tracking-wider">Audit Actions</h3>
-                    <p className="text-xs text-slate-600">Perform maintenance checks and automated database snapshot exports.</p>
-                    <div className="pt-2 space-y-2">
+                    <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+                      <strong>Bare Act Citation / Explanation:</strong> {q.explanation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: COUPONS & DISCOUNTS */}
+          {activeTab === "coupons" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Discount Coupons &amp; Promotions</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage promo codes applied at checkout for digital codex access passes.</p>
+                </div>
+                <button
+                  onClick={() => setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 20, minOrder: 200, maxUses: 100 } })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Coupon</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {coupons.map((cp) => (
+                  <div key={cp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-xl bg-violet-100 text-violet-800 font-mono font-extrabold text-sm tracking-wider">
+                        {cp.code}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        {cp.status}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-2xl font-extrabold text-slate-800">{cp.discountPercent}% OFF</p>
+                      <p className="text-xs text-slate-400">Min. cart order of ₹{cp.minOrder}</p>
+                    </div>
+
+                    <div className="space-y-1 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                      <div className="flex justify-between">
+                        <span>Used Count:</span>
+                        <span className="font-bold text-slate-800">{cp.usedCount} / {cp.maxUses}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Valid Until:</span>
+                        <span className="font-bold text-slate-800">{cp.expiryDate}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
                       <button
-                        onClick={() => triggerToast("Database snapshot initiated and encrypted.")}
-                        className="w-full py-2.5 rounded-md bg-[#0A192F] text-white text-xs font-semibold hover:bg-[#005A9C] transition-colors cursor-pointer"
+                        onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })}
+                        className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
                       >
-                        Create Encrypted Backup Snapshot
+                        <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => triggerToast("DRM token cache purged and re-indexed.")}
-                        className="w-full py-2.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors cursor-pointer"
+                        onClick={() => {
+                          if (confirm(`Delete coupon ${cp.code}?`)) {
+                            const filtered = coupons.filter((c) => c.id !== cp.id);
+                            setCoupons(filtered);
+                            localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(filtered));
+                            showToast(`Deleted coupon ${cp.code}`);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
                       >
-                        Purge Stale Hardware DRM Sessions
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: EXAM DATES & QUESTION OF THE DAY (QOTD) */}
+          {activeTab === "qotd" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">Exam Countdown Dates &amp; Daily QOTD</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Configure the countdown clocks and live Question of the Day shown across the homepage.</p>
+              </div>
+
+              {/* EXAM DATES */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                <h3 className="text-sm font-bold text-slate-800">Target Examination Dates</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {examSettings.map((ex, idx) => (
+                    <div key={ex.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                      <p className="text-xs font-bold text-slate-800">{ex.exam}</p>
+                      <p className="text-[11px] text-slate-400">{ex.session}</p>
+                      <div className="flex items-center gap-2 pt-2">
+                        <input
+                          type="date"
+                          value={ex.date}
+                          onChange={(e) => {
+                            const next = [...examSettings];
+                            next[idx].date = e.target.value;
+                            setExamSettings(next);
+                            showToast("Updated target exam date.");
+                          }}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold outline-none focus:border-violet-500"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-        </main>
-      </div>
 
-      {/* MODALS */}
-      {/* 1. Dispatch Shipping Slip Modal */}
-      <AdminDispatchSlipModal
-        isOpen={dispatchModalOpen}
-        onClose={() => setDispatchModalOpen(false)}
-        orders={ordersList}
-      />
+              {/* QUESTION OF THE DAY EDIT */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                <h3 className="text-sm font-bold text-slate-800">Live Question of the Day (QOTD)</h3>
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Question Text</label>
+                    <textarea
+                      rows={2}
+                      value={qotd.question}
+                      onChange={(e) => setQotd({ ...qotd, question: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                    />
+                  </div>
 
-      {/* 2. Create New Quiz Modal */}
-      {newQuizModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 my-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Statutory Act</label>
+                      <input
+                        type="text"
+                        value={qotd.act}
+                        onChange={(e) => setQotd({ ...qotd, act: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Section Citation</label>
+                      <input
+                        type="text"
+                        value={qotd.section}
+                        onChange={(e) => setQotd({ ...qotd, section: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Explanation</label>
+                    <textarea
+                      rows={2}
+                      value={qotd.explanation}
+                      onChange={(e) => setQotd({ ...qotd, explanation: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={() => showToast("Question of the Day updated successfully!")}
+                      className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                    >
+                      Save QOTD Updates
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      {/* --- CRUD MODALS --- */}
+
+      {/* SUBSCRIPTION ADD / EDIT MODAL */}
+      {subModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Create New ICAI Pattern Mock Quiz</h3>
-              <button onClick={() => setNewQuizModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
+              <h3 className="text-sm font-bold text-slate-800">
+                {subModal.mode === "add" ? "Grant In-Web Access Pass" : "Update Subscription Record"}
+              </h3>
+              <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleAddQuiz} className="space-y-4 text-xs">
+            <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Quiz Title</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Student Name *</label>
                   <input
                     type="text"
-                    required
-                    value={quizForm.title}
-                    onChange={(e) => setQuizForm({ ...quizForm, title: e.target.value })}
-                    placeholder="Enter quiz title..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    value={subModal.data.studentName || ""}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentName: e.target.value } })}
+                    placeholder="e.g. Aarav Sharma"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Chapter / Statutory Section</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Roll / Student ID *</label>
                   <input
                     type="text"
-                    required
-                    value={quizForm.chapter}
-                    onChange={(e) => setQuizForm({ ...quizForm, chapter: e.target.value })}
-                    placeholder="Enter chapter name..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    value={subModal.data.studentRoll || ""}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentRoll: e.target.value } })}
+                    placeholder="LRK-2026-004182"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Time Limit (Mins)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
                   <input
-                    type="number"
-                    value={quizForm.time_limit_minutes}
-                    onChange={(e) => setQuizForm({ ...quizForm, time_limit_minutes: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    type="email"
+                    value={subModal.data.email || ""}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, email: e.target.value } })}
+                    placeholder="student@thelawkaksha.com"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Positive Marks</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Phone Number</label>
                   <input
-                    type="number"
-                    value={quizForm.positive_marks}
-                    onChange={(e) => setQuizForm({ ...quizForm, positive_marks: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    type="text"
+                    value={subModal.data.phone || ""}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, phone: e.target.value } })}
+                    placeholder="+91 98765 43210"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Enrolled Codex / Pass *</label>
+                <select
+                  value={subModal.data.item || "Volume 1 & 2 Master Digital Pass"}
+                  onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, item: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                >
+                  <option value="Volume 1 & 2 Master Digital Pass">Volume 1 &amp; 2 Master Digital Pass (All Units)</option>
+                  <option value="Volume 1: Business Law Digital Codex">Volume 1: Business Law Digital Codex (Units 1 to 6)</option>
+                  <option value="Volume 2: Management & Ethics Digital Codex">Volume 2: Management &amp; Ethics Digital Codex (Units 7 &amp; 8)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Fee Amount (₹)</label>
+                  <input
+                    type="text"
+                    value={subModal.data.amount || "₹449"}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, amount: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-bold text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Free Trial Access</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Payment Method</label>
                   <select
-                    value={quizForm.is_free}
-                    onChange={(e) => setQuizForm({ ...quizForm, is_free: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    value={subModal.data.paymentMode || "UPI / Razorpay"}
+                    onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, paymentMode: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   >
-                    <option value={0}>Enrolled Only</option>
-                    <option value={1}>Free for All</option>
+                    <option value="UPI / Razorpay">UPI / Razorpay</option>
+                    <option value="Card / Netbanking">Card / Netbanking</option>
+                    <option value="Admin Direct Grant (Free)">Admin Direct Grant (Free)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-800 block">Question 1 Definition</span>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">DRM In-Web Access Status</label>
+                <select
+                  value={subModal.data.accessStatus || "Active"}
+                  onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, accessStatus: e.target.value as any } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                >
+                  <option value="Active">Active (Instant DRM Reader Access)</option>
+                  <option value="Pending">Pending Verification</option>
+                  <option value="Revoked">Revoked / Suspended</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setSubModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!subModal.data.studentName) return alert("Please enter student name");
+                  if (subModal.mode === "add") {
+                    const newSub: SubscriptionRecord = {
+                      id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                      studentName: subModal.data.studentName || "",
+                      studentRoll: subModal.data.studentRoll || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
+                      email: subModal.data.email || "student@thelawkaksha.com",
+                      phone: subModal.data.phone || "+91 98000 00000",
+                      item: subModal.data.item || "Volume 1 & 2 Master Digital Pass",
+                      targetExam: subModal.data.targetExam || "CSEET Law & Management",
+                      amount: subModal.data.amount || "₹449",
+                      date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                      paymentMode: subModal.data.paymentMode || "UPI / Razorpay",
+                      accessStatus: subModal.data.accessStatus || "Active",
+                    };
+                    const next = [...subscriptions, newSub];
+                    setSubscriptions(next);
+                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
+                    showToast("Access pass granted successfully!");
+                  } else {
+                    const next = subscriptions.map((s) => (s.id === subModal.data.id ? { ...s, ...subModal.data } : s));
+                    setSubscriptions(next as any);
+                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
+                    showToast("Subscription updated!");
+                  }
+                  setSubModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Subscription
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCT MODAL */}
+      {productModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {productModal.mode === "add" ? "Add New Digital Codex" : "Edit Codex Details"}
+              </h3>
+              <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Codex Title *</label>
+                <input
+                  type="text"
+                  value={productModal.data.title || ""}
+                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, title: e.target.value } })}
+                  placeholder="e.g. Business Law (CSEET & CA Foundation)"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Subtitle / Volume Details *</label>
+                <input
+                  type="text"
+                  value={productModal.data.subtitle || ""}
+                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, subtitle: e.target.value } })}
+                  placeholder="e.g. Volume 1 • Statutory Codex (Units 1 to 6)"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Access Price (₹) *</label>
+                  <input
+                    type="number"
+                    value={productModal.data.price || 0}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, price: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Original Price (₹)</label>
+                  <input
+                    type="number"
+                    value={productModal.data.originalPrice || 0}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, originalPrice: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Target Category</label>
+                  <select
+                    value={productModal.data.category || "CSEET"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  >
+                    <option value="CSEET">CSEET</option>
+                    <option value="CA Foundation">CA Foundation</option>
+                    <option value="Both">Both (ICAI &amp; ICSI)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Status</label>
+                  <select
+                    value={productModal.data.status || "Active"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, status: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Description</label>
                 <textarea
                   rows={2}
-                  value={newQuizQuestions[0].question}
-                  onChange={(e) => {
-                    const q = [...newQuizQuestions];
-                    q[0].question = e.target.value;
-                    setNewQuizQuestions(q);
-                  }}
-                  className="w-full p-2 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-[#005A9C]"
+                  value={productModal.data.description || ""}
+                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, description: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setNewQuizModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Publish Quiz
-                </button>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">In-Web Digital PDF URL</label>
+                <input
+                  type="text"
+                  value={productModal.data.pdfUrl || ""}
+                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pdfUrl: e.target.value } })}
+                  placeholder="/api/pdf/cseet-business-law-full.pdf"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                />
               </div>
-            </form>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setProductModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!productModal.data.title) return alert("Please enter a title");
+                  if (productModal.mode === "add") {
+                    const newProd: ProductItem = {
+                      id: `prod-${Date.now()}`,
+                      title: productModal.data.title || "Untitled Book",
+                      subtitle: productModal.data.subtitle || "",
+                      category: productModal.data.category || "CSEET",
+                      format: "Digital Codex (In-Web DRM)",
+                      price: productModal.data.price || 249,
+                      originalPrice: productModal.data.originalPrice || 499,
+                      pages: productModal.data.pages || "150 Pages",
+                      status: productModal.data.status || "Active",
+                      pdfUrl: productModal.data.pdfUrl || "/api/pdf/cseet-business-law-full.pdf",
+                      description: productModal.data.description || "",
+                      units: ["Unit 1", "Unit 2"],
+                    };
+                    const next = [...products, newProd];
+                    setProducts(next);
+                    localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
+                    showToast("Digital Codex added successfully!");
+                  } else {
+                    const next = products.map((p) => (p.id === productModal.data.id ? { ...p, ...productModal.data } : p));
+                    setProducts(next as any);
+                    localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
+                    showToast("Codex details updated!");
+                  }
+                  setProductModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Codex
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 3. Add Student Modal */}
-      {addStudentModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+      {/* STUDENT MODAL */}
+      {studentModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Register New Candidate</h3>
-              <button onClick={() => setAddStudentModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
+              <h3 className="text-sm font-bold text-slate-800">
+                {studentModal.mode === "add" ? "Enroll New Student" : "Edit Student Info"}
+              </h3>
+              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleAddStudent} className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Full Name</label>
+                <label className="block font-semibold text-slate-700 mb-1">Student Full Name *</label>
                 <input
                   type="text"
-                  required
-                  value={studentForm.name}
-                  onChange={(e) => setStudentForm({ ...studentForm, name: e.target.value })}
-                  placeholder="Enter full name..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  value={studentModal.data.name || ""}
+                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, name: e.target.value } })}
+                  placeholder="e.g. Aarav Sharma"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Registered Email</label>
+                <label className="block font-semibold text-slate-700 mb-1">Student / Roll Number *</label>
+                <input
+                  type="text"
+                  value={studentModal.data.student_id || ""}
+                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, student_id: e.target.value } })}
+                  placeholder="LRK-2026-009821"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Email Address *</label>
                 <input
                   type="email"
-                  required
-                  value={studentForm.email}
-                  onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
-                  placeholder="Enter registered email address..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Mobile Number</label>
-                <input
-                  type="text"
-                  required
-                  value={studentForm.phone}
-                  onChange={(e) => setStudentForm({ ...studentForm, phone: e.target.value })}
-                  placeholder="Enter 10-digit mobile number..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  value={studentModal.data.email || ""}
+                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, email: e.target.value } })}
+                  placeholder="student@thelawkaksha.com"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAddStudentModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Enroll Student
-                </button>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Phone Number</label>
+                <input
+                  type="text"
+                  value={studentModal.data.phone || ""}
+                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, phone: e.target.value } })}
+                  placeholder="+91 98765 43210"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                />
               </div>
-            </form>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Target Exam</label>
+                <select
+                  value={studentModal.data.target_exam || "CSEET Law & Management"}
+                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, target_exam: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                >
+                  <option value="CSEET Law & Management">CSEET Law &amp; Management</option>
+                  <option value="CA Foundation Paper 2">CA Foundation Paper 2 (Business Laws)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setStudentModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!studentModal.data.name) return alert("Please enter student name");
+                  if (studentModal.mode === "add") {
+                    const newStd: StudentRecord = {
+                      id: `std-${Date.now()}`,
+                      student_id: studentModal.data.student_id || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
+                      name: studentModal.data.name || "",
+                      email: studentModal.data.email || "",
+                      phone: studentModal.data.phone || "+91 98000 00000",
+                      target_exam: studentModal.data.target_exam || "CSEET Law & Management",
+                      is_active: true,
+                      drm_access: true,
+                      enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
+                      joined_date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                    };
+                    const next = [...students, newStd];
+                    setStudents(next);
+                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
+                    showToast("Student enrolled successfully!");
+                  } else {
+                    const next = students.map((s) => (s.id === studentModal.data.id ? { ...s, ...studentModal.data } : s));
+                    setStudents(next as any);
+                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
+                    showToast("Student info updated!");
+                  }
+                  setStudentModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Student
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 4. Add Product Modal */}
-      {addProductModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+      {/* CASE STUDY MODAL */}
+      {caseModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Add Course / Book to Catalog</h3>
-              <button onClick={() => setAddProductModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
+              <h3 className="text-sm font-bold text-slate-800">
+                {caseModal.mode === "add" ? "Add Weekly Case Study" : "Edit Case Study Problem"}
+              </h3>
+              <button onClick={() => setCaseModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Feature Day</label>
+                  <select
+                    value={caseModal.data.day || "Monster Monday"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, day: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  >
+                    <option value="Monster Monday">Monster Monday</option>
+                    <option value="Midweek Law Madness">Midweek Law Madness</option>
+                    <option value="Final Boss Friday">Final Boss Friday</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Difficulty Badge</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.badge || "High Difficulty"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, badge: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Title</label>
+                <label className="block font-semibold text-slate-700 mb-1">Statutory Subject / Act *</label>
                 <input
                   type="text"
-                  required
-                  value={productForm.title}
-                  onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
-                  placeholder="Enter book or course title..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  value={caseModal.data.subject || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, subject: e.target.value } })}
+                  placeholder="e.g. Indian Contract Act, 1872"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Selling Price (₹)</label>
-                  <input
-                    type="number"
-                    value={productForm.price}
-                    onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Original Price (₹)</label>
-                  <input
-                    type="number"
-                    value={productForm.originalPrice}
-                    onChange={(e) => setProductForm({ ...productForm, originalPrice: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAddProductModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Add to Catalog
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 5. Mains Evaluation Score Modal */}
-      {evaluateModalOpen && activeEvalItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Evaluate Candidate Answer Sheet</h3>
-              <button onClick={() => setEvaluateModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEvaluation} className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <p className="font-bold text-slate-900">{activeEvalItem.studentName}</p>
-                <p className="text-slate-500">{activeEvalItem.testTitle}</p>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">
-                  Marks Awarded (Out of {activeEvalItem.totalMarks})
-                </label>
+                <label className="block font-semibold text-slate-700 mb-1">Case Title *</label>
                 <input
-                  type="number"
-                  required
-                  value={evalScoreInput}
-                  onChange={(e) => setEvalScoreInput(e.target.value)}
-                  placeholder="Enter marks awarded..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  type="text"
+                  value={caseModal.data.title || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, title: e.target.value } })}
+                  placeholder="e.g. The Anticipatory Breach & Measure of Damages"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Evaluator Feedback Notes</label>
+                <label className="block font-semibold text-slate-700 mb-1">Case Scenario / Problem Statement *</label>
                 <textarea
                   rows={3}
-                  value={evalFeedbackInput}
-                  onChange={(e) => setEvalFeedbackInput(e.target.value)}
-                  placeholder="Enter detailed statutory citation and answer presentation feedback..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  value={caseModal.data.scenario || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, scenario: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setEvaluateModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Submit Score
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Reply to Doubt Modal */}
-      {replyDoubtModalOpen && selectedDoubtForReply && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Provide Official Statutory Opinion</h3>
-              <button onClick={() => setReplyDoubtModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSendDoubtReply} className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1">
-                <p className="font-bold text-slate-900">{selectedDoubtForReply.studentName} • {selectedDoubtForReply.section}</p>
-                <p className="text-slate-700">{selectedDoubtForReply.question}</p>
-              </div>
-
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Faculty Opinion &amp; Bare Act Citation</label>
+                <label className="block font-semibold text-slate-700 mb-1">Model Answer (4-Step Statutory Structure) *</label>
                 <textarea
-                  rows={4}
-                  required
-                  value={doubtReplyText}
-                  onChange={(e) => setDoubtReplyText(e.target.value)}
-                  placeholder="Enter official statutory analysis, case law citations, and practical guidance..."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                  rows={3}
+                  value={caseModal.data.modelAnswer || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, modelAnswer: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setReplyDoubtModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Publish Opinion
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Legal Precedent / Citation</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.precedent || ""}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, precedent: e.target.value } })}
+                    placeholder="e.g. Frost v. Knight (1872)"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Evaluation Marks</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.marks || "6/6 Marks"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, marks: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
               </div>
-            </form>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setCaseModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!caseModal.data.title || !caseModal.data.scenario) return alert("Please fill title and scenario");
+                  if (caseModal.mode === "add") {
+                    const newCase: CaseStudyItem = {
+                      id: `case-${Date.now()}`,
+                      day: caseModal.data.day || "Monster Monday",
+                      badge: caseModal.data.badge || "High Difficulty",
+                      subject: caseModal.data.subject || "Indian Contract Act, 1872",
+                      title: caseModal.data.title || "",
+                      scenario: caseModal.data.scenario || "",
+                      modelAnswer: caseModal.data.modelAnswer || "",
+                      precedent: caseModal.data.precedent || "Standard Citation",
+                      marks: caseModal.data.marks || "6/6 Marks",
+                    };
+                    const next = [...cases, newCase];
+                    setCases(next);
+                    localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                    showToast("Case study added!");
+                  } else {
+                    const next = cases.map((c) => (c.id === caseModal.data.id ? { ...c, ...caseModal.data } : c));
+                    setCases(next as any);
+                    localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                    showToast("Case study updated!");
+                  }
+                  setCaseModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Case
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 7. Create Coupon Modal */}
-      {newCouponModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+      {/* MCQ MODAL */}
+      {mcqModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F]">Create Promo Discount Code</h3>
-              <button onClick={() => setNewCouponModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
+              <h3 className="text-sm font-bold text-slate-800">
+                {mcqModal.mode === "add" ? "Add MCQ Question" : "Edit MCQ Question"}
+              </h3>
+              <button onClick={() => setMcqModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleAddCoupon} className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
+                  <input
+                    type="text"
+                    value={mcqModal.data.subject || ""}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, subject: e.target.value } })}
+                    placeholder="e.g. Sale of Goods Act, 1930"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Section Reference</label>
+                  <input
+                    type="text"
+                    value={mcqModal.data.section || ""}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, section: e.target.value } })}
+                    placeholder="e.g. Section 16(1)"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Coupon Code</label>
+                <label className="block font-semibold text-slate-700 mb-1">Question Text *</label>
+                <textarea
+                  rows={2}
+                  value={mcqModal.data.question || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, question: e.target.value } })}
+                  placeholder="Enter the objective question statement..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block font-semibold text-slate-700">Options (Select radio for Correct Option) *</label>
+                {[0, 1, 2, 3].map((optIdx) => (
+                  <div key={optIdx} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="correctOption"
+                      checked={mcqModal.data.correctOption === optIdx}
+                      onChange={() => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, correctOption: optIdx } })}
+                      className="w-5 h-5 accent-violet-600 cursor-pointer shrink-0"
+                    />
+                    <span className="font-bold font-mono w-4">{String.fromCharCode(65 + optIdx)}.</span>
+                    <input
+                      type="text"
+                      value={mcqModal.data.options?.[optIdx] || ""}
+                      onChange={(e) => {
+                        const nextOpts = [...(mcqModal.data.options || ["", "", "", ""])];
+                        nextOpts[optIdx] = e.target.value;
+                        setMcqModal({ ...mcqModal, data: { ...mcqModal.data, options: nextOpts } });
+                      }}
+                      placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                      className="flex-1 p-2 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Bare Act Citation / Explanation</label>
+                <textarea
+                  rows={2}
+                  value={mcqModal.data.explanation || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, explanation: e.target.value } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setMcqModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!mcqModal.data.question) return alert("Please enter question text");
+                  if (mcqModal.mode === "add") {
+                    const newMcq: McqQuestionItem = {
+                      id: `mcq-${Date.now()}`,
+                      subject: mcqModal.data.subject || "Business Law",
+                      section: mcqModal.data.section || "General",
+                      question: mcqModal.data.question || "",
+                      options: mcqModal.data.options || ["", "", "", ""],
+                      correctOption: mcqModal.data.correctOption || 0,
+                      explanation: mcqModal.data.explanation || "",
+                    };
+                    const next = [...mcqs, newMcq];
+                    setMcqs(next);
+                    localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
+                    showToast("Question added to bank!");
+                  } else {
+                    const next = mcqs.map((m) => (m.id === mcqModal.data.id ? { ...m, ...mcqModal.data } : m));
+                    setMcqs(next as any);
+                    localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
+                    showToast("Question updated!");
+                  }
+                  setMcqModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Question
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COUPON MODAL */}
+      {couponModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {couponModal.mode === "add" ? "Create Discount Coupon" : "Edit Coupon"}
+              </h3>
+              <button onClick={() => setCouponModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Coupon Code (e.g. EXEMPTION2026) *</label>
                 <input
                   type="text"
-                  required
-                  value={couponForm.code}
-                  onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })}
-                  placeholder="Enter coupon code (e.g. DISCOUNT20)..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C] uppercase font-mono"
+                  value={couponModal.data.code || ""}
+                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, code: e.target.value.toUpperCase() } })}
+                  placeholder="EXEMPTION2026"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono font-bold uppercase text-base sm:text-xs min-h-[44px] sm:min-h-0"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Discount %</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Discount (% Off) *</label>
                   <input
                     type="number"
-                    required
-                    value={couponForm.discountPercent}
-                    onChange={(e) => setCouponForm({ ...couponForm, discountPercent: Number(e.target.value) })}
-                    placeholder="Enter discount percentage..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    value={couponModal.data.discountPercent || 20}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, discountPercent: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Max Usages</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Min. Order (₹)</label>
                   <input
                     type="number"
-                    required
-                    value={couponForm.maxUses}
-                    onChange={(e) => setCouponForm({ ...couponForm, maxUses: Number(e.target.value) })}
-                    placeholder="Enter maximum uses..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:border-[#005A9C]"
+                    value={couponModal.data.minOrder || 200}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, minOrder: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setNewCouponModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#005A9C] text-white font-semibold rounded-md hover:bg-[#00487D] cursor-pointer"
-                >
-                  Activate Coupon
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Max Usages</label>
+                  <input
+                    type="number"
+                    value={couponModal.data.maxUses || 100}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, maxUses: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={couponModal.data.expiryDate || "2026-12-31"}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, expiryDate: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  />
+                </div>
               </div>
-            </form>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Status</label>
+                <select
+                  value={couponModal.data.status || "Active"}
+                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as any } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Disabled">Disabled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setCouponModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!couponModal.data.code) return alert("Please enter coupon code");
+                  if (couponModal.mode === "add") {
+                    const newCoupon: CouponRecord = {
+                      id: `cp-${Date.now()}`,
+                      code: couponModal.data.code || "DISCOUNT",
+                      discountPercent: couponModal.data.discountPercent || 20,
+                      minOrder: couponModal.data.minOrder || 200,
+                      maxUses: couponModal.data.maxUses || 100,
+                      usedCount: 0,
+                      expiryDate: couponModal.data.expiryDate || "2026-12-31",
+                      status: couponModal.data.status || "Active",
+                    };
+                    const next = [...coupons, newCoupon];
+                    setCoupons(next);
+                    localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
+                    showToast(`Created coupon ${newCoupon.code}`);
+                  } else {
+                    const next = coupons.map((c) => (c.id === couponModal.data.id ? { ...c, ...couponModal.data } : c));
+                    setCoupons(next as any);
+                    localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
+                    showToast(`Updated coupon ${couponModal.data.code}`);
+                  }
+                  setCouponModal({ open: false, mode: "add", data: {} });
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Save Coupon
+              </button>
+            </div>
           </div>
         </div>
       )}

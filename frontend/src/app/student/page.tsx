@@ -3,1588 +3,656 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
-  Home,
-  BookOpen,
-  GraduationCap,
-  Award,
-  Video,
-  Calendar,
-  CreditCard,
-  HelpCircle,
-  ShieldCheck,
-  Search,
-  Bell,
-  CheckCircle2,
-  Clock,
-  Lock,
-  Unlock,
-  Eye,
-  Send,
-  ExternalLink,
-  Layers,
-  BarChart3,
-  Play,
-  RotateCcw,
-  LogOut,
-  X,
-  FileText,
-  Printer,
-  Truck,
-  Check,
-  Smartphone,
-  ChevronRight,
-  Flame,
-  AlertCircle,
-  Download,
-  Filter,
+  BookOpen, CheckCircle2, FileText, Eye, Flame,
+  Bookmark, Clock, LogOut, Sparkles, ArrowRight, LayoutDashboard,
+  Lock, BookMarked, Calendar, Edit3, User, Menu, X,
 } from "lucide-react";
-import { LawKakshaLogo } from "@/components/LawKakshaLogo";
-import { SecurePdfReaderModal } from "@/components/SecurePdfReaderModal";
-import { MasterclassVideoModal, MasterclassLesson } from "@/components/MasterclassVideoModal";
-import { MainsEvaluationDeskModal } from "@/components/MainsEvaluationDeskModal";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
-import { QuizTakingModal, QuizResult } from "@/components/student/QuizTakingModal";
-import { useCart } from "@/context/CartContext";
-import { apiRequest } from "@/lib/api";
+import { SecurePdfReader } from "@/components/SecurePdfReader";
+import { StudentProfileModal, StudentProfileData } from "@/components/StudentProfileModal";
+import { StreakCalendarModal } from "@/components/StreakCalendarModal";
 
-const DEFAULT_LESSON: MasterclassLesson = {
-  id: "lesson-01",
-  title: "Companies Act 2013: Section 135 Corporate Social Responsibility (CSR)",
-  duration: "45 Mins",
-  faculty: "The Law Kaksha Faculty",
-  summary: "Comprehensive breakdown of CSR eligibility limits, committee composition, unspent CSR account treatment, and penalty calculations under ICAI syllabus.",
-  keyTakeaways: [
-    "Net worth ₹500 Cr, Turnover ₹1000 Cr or Net Profit ₹5 Cr threshold rules.",
-    "Section 135(5) Ongoing Projects transfer within 30 days to Special Account.",
-    "Penal liabilities under Section 135(7) for default in transfer.",
-  ],
-  bareActRefs: ["Section 135", "Section 198", "Companies (CSR Policy) Rules"],
-  timestampNotes: [
-    { time: "02:15", note: "Threshold limits analysis under Sec 135(1)" },
-    { time: "14:40", note: "Treatment of surplus arising out of CSR activities" },
-    { time: "28:10", note: "Ongoing vs Non-ongoing project fund allocation" },
-  ],
-};
-
-interface StudentProfile {
-  id: string;
-  name: string;
-  rollNumber: string;
-  email: string;
-  targetExam: string;
-  unlockedItemIds: string[];
-  streakDays: number;
-  examCountdownDays: number;
-  avatarInitials: string;
-  deviceBound: string;
-  isEnrolled: boolean;
+interface ChapterItem {
+  id: string; name: string; code: string; weightage: string; description: string;
+  units?: { unitNumber: number; title: string; pdfUrl: string; summary: string; pages: string; isSample?: boolean; }[];
+  mcqCount: number; caseCount: number;
 }
 
-const DEFAULT_STUDENT: StudentProfile = {
-  id: "usr-student-001",
-  name: "Enrolled Candidate",
-  rollNumber: "LK-STU-084201",
-  email: "candidate@lawkaksha.edu",
-  targetExam: "CA Intermediate Paper 2: Corporate & Other Laws (Nov 2026)",
-  unlockedItemIds: ["book-vol-1", "book-mcq"],
-  streakDays: 14,
-  examCountdownDays: 68,
-  avatarInitials: "CA",
-  deviceBound: "Windows PC (Hardware ID: LK-W11-8842)",
-  isEnrolled: true,
-};
+const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
+  { id: "ca-ch1", name: "Indian Regulatory Framework", code: "Chapter 1", weightage: "5 - 10 M", description: "Overview of Indian Legal System, Sources of Law, Hierarchy of Courts, Role of Regulatory Bodies.", mcqCount: 25, caseCount: 4, units: [{ unitNumber: 1, title: "Overview of Indian Legal System & Hierarchy of Courts", pdfUrl: "/notes/ca-foundation-framework-notes.pdf", summary: "Structure of Legislative, Executive & Judiciary in India.", pages: "18 Pages" }] },
+  { id: "ca-ch2", name: "The Indian Contract Act, 1872", code: "Chapter 2", weightage: "20 - 25 M", description: "Nature of Contracts, Offer & Acceptance, Consideration, Free Consent, Performance, Breach & Remedies.", mcqCount: 65, caseCount: 18, units: [{ unitNumber: 1, title: "Nature & Essentials of Valid Contract (Sec 1-10)", pdfUrl: "/notes/contract-act-unit-1.pdf", summary: "Offer, Acceptance, Intention to create Legal Relationship.", pages: "34 Pages" }, { unitNumber: 2, title: "Consideration & Capacity to Contract (Sec 11-25)", pdfUrl: "/notes/contract-act-unit-2.pdf", summary: "Minor's agreements, Doctrine of Privity of Contract.", pages: "28 Pages" }, { unitNumber: 3, title: "Free Consent, Performance & Breach of Contract", pdfUrl: "/notes/contract-act-unit-3.pdf", summary: "Coercion, Undue Influence, Fraud, Damages under Section 73.", pages: "42 Pages" }] },
+  { id: "ca-ch3", name: "The Sale of Goods Act, 1930", code: "Chapter 3", weightage: "15 - 20 M", description: "Formation of Contract of Sale, Conditions & Warranties, Transfer of Ownership, Unpaid Seller Rights.", mcqCount: 45, caseCount: 12, units: [{ unitNumber: 1, title: "Formation of Contract of Sale & Subject Matter", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods.", pages: "22 Pages" }, { unitNumber: 2, title: "Conditions, Warranties & Caveat Emptor (Sec 11-17)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Implied conditions of fitness & Priest v. Last.", pages: "26 Pages" }, { unitNumber: 3, title: "Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-3.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }] },
+  { id: "ca-ch4", name: "The Indian Partnership Act, 1932", code: "Chapter 4", weightage: "15 - 20 M", description: "General Nature of Partnership, Relations of Partners, Registration and Dissolution of Firm.", mcqCount: 50, caseCount: 14, units: [{ unitNumber: 1, title: "Unit 1: General Nature of Partnership", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman).", pages: "24 Pages (Full Sample PDF)", isSample: true }, { unitNumber: 2, title: "Unit 2: Relations of Partners", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.", pages: "28 Pages (Full Sample PDF)", isSample: true }, { unitNumber: 3, title: "Unit 3: Registration and Dissolution of Firm", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Effect of Non-Registration, Modes of Dissolution, Settlement of Accounts.", pages: "32 Pages (Full Sample PDF)", isSample: true }] },
+  { id: "ca-ch5", name: "The Limited Liability Partnership Act, 2008", code: "Chapter 5", weightage: "5 - 10 M", description: "LLP Concept, Salient Features, Incorporation, Designated Partners, Conversion & Annual Filings.", mcqCount: 30, caseCount: 6, units: [{ unitNumber: 1, title: "LLP Architecture & Comparison with Traditional Firm", pdfUrl: "/notes/llp-act-notes.pdf", summary: "Separate legal identity, perpetual succession, Designated Partners compliance.", pages: "20 Pages" }] },
+  { id: "ca-ch6", name: "The Companies Act, 2013", code: "Chapter 6", weightage: "15 - 20 M", description: "Meaning & Characteristics of Company, Corporate Veil, Types of Companies, MOA & AOA, Doctrine of Ultra Vires.", mcqCount: 55, caseCount: 15, units: [{ unitNumber: 1, title: "Essential Characteristics & Lifting of Corporate Veil", pdfUrl: "/notes/companies-act-unit-1.pdf", summary: "Salomon v. Salomon, Private vs Public vs One Person Company.", pages: "36 Pages" }, { unitNumber: 2, title: "Memorandum & Articles of Association (MOA / AOA)", pdfUrl: "/notes/companies-act-unit-2.pdf", summary: "Doctrine of Ultra Vires, Constructive Notice & Indoor Management.", pages: "30 Pages" }] },
+  { id: "ca-ch7", name: "The Negotiable Instruments Act, 1881", code: "Chapter 7", weightage: "10 - 15 M", description: "Promissory Notes, Bills of Exchange, Cheques, Negotiation & Endorsement, Dishonour of Cheques.", mcqCount: 40, caseCount: 8, units: [{ unitNumber: 1, title: "Promissory Notes, Bills of Exchange & Cheques", pdfUrl: "/notes/negotiable-instruments-unit-1.pdf", summary: "Holder in Due Course, Section 138 Dishonour penalties.", pages: "26 Pages" }] },
+];
 
-interface StudyItem {
-  id: string;
-  type: "book" | "mcq" | "video" | "evaluation";
-  title: string;
-  subtitle: string;
-  pagesOrDuration: string;
-  price: number;
-  originalPrice: number;
-  badge: string;
-  description: string;
-  sampleBookId?: string;
-  highlights: string[];
-  coverImage: string;
-  isPhysical?: boolean;
-}
+const CSEET_UNITS: ChapterItem[] = [
+  { id: "cs-u1", name: "Indian Contract Act, 1872", code: "Unit 1", weightage: "15 - 20 M", description: "Essentials of Contract, Offer, Acceptance, Consideration, Free Consent, Void Agreements, Remedies.", mcqCount: 45, caseCount: 6, units: [{ unitNumber: 1, title: "Contract Essentials & Types of Contracts", pdfUrl: "/notes/cseet-contract-act.pdf", summary: "Core concept notes with 40 objective questions.", pages: "24 Pages" }] },
+  { id: "cs-u2", name: "Sale of Goods Act, 1930", code: "Unit 2", weightage: "10 - 15 M", description: "Contract of Sale, Conditions & Warranties, Passing of Property, Rights of Unpaid Seller.", mcqCount: 35, caseCount: 4, units: [{ unitNumber: 1, title: "Sale of Goods Principles & Caveat Emptor", pdfUrl: "/notes/cseet-sale-of-goods.pdf", summary: "Essential rules, Section 16 exceptions, unpaid seller.", pages: "20 Pages" }] },
+  { id: "cs-u3", name: "Indian Partnership Act, 1932", code: "Unit 3", weightage: "10 - 15 M", description: "General Nature, Relations of Partners, Registration and Dissolution.", mcqCount: 35, caseCount: 4, units: [{ unitNumber: 1, title: "General Nature, Relations & Dissolution of Firm", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Mutual agency, holding out, minor's status, effects of non-registration.", pages: "24 Pages (Sample PDF)", isSample: true }] },
+  { id: "cs-u4", name: "Limited Liability Partnership Act, 2008", code: "Unit 4", weightage: "8 - 12 M", description: "LLP Features, Formation, Designated Partners, Conversion.", mcqCount: 25, caseCount: 3, units: [{ unitNumber: 1, title: "LLP Framework & Key Distinctions", pdfUrl: "/notes/cseet-llp-notes.pdf", summary: "Comparison between LLP, Company and Traditional Partnership.", pages: "16 Pages" }] },
+  { id: "cs-u5", name: "Elements of Company Law", code: "Unit 5", weightage: "15 - 20 M", description: "Company Meaning, Types, Corporate Veil, MOA, AOA, Ultra Vires.", mcqCount: 50, caseCount: 8, units: [{ unitNumber: 1, title: "Company Formation & Constitutional Documents", pdfUrl: "/notes/cseet-company-law.pdf", summary: "Private vs Public Company, Section 8, Corporate Veil cases.", pages: "30 Pages" }] },
+  { id: "cs-u6", name: "Negotiable Instruments Act, 1881", code: "Unit 6", weightage: "10 - 15 M", description: "Promissory Notes, Bills of Exchange, Cheques, Negotiation, Section 138.", mcqCount: 30, caseCount: 4, units: [{ unitNumber: 1, title: "Negotiable Instruments Core Concepts", pdfUrl: "/notes/cseet-negotiable-instruments.pdf", summary: "Instruments, Parties, Crossing of Cheques, Bouncing liabilities.", pages: "22 Pages" }] },
+  { id: "cs-u7", name: "General Principles of Management", code: "Unit 7", weightage: "15 - 20 M", description: "Planning, Organising, Directing, Controlling, Fayol's 14 Principles, Scientific Management.", mcqCount: 50, caseCount: 6, units: [{ unitNumber: 1, title: "Management Principles, Functions & Theories", pdfUrl: "/notes/management-principles-sample-notes.pdf", summary: "Henry Fayol vs FW Taylor, Strategic Planning, Motivation Theories.", pages: "28 Pages (Sample PDF)", isSample: true }] },
+  { id: "cs-u8", name: "Business Environment & Ethics", code: "Unit 8", weightage: "10 - 15 M", description: "PESTLE Analysis, Ease of Doing Business, Corporate Ethics & CSR.", mcqCount: 30, caseCount: 4, units: [{ unitNumber: 1, title: "Business Environment & Corporate Governance", pdfUrl: "/notes/cseet-business-environment.pdf", summary: "Macro/Micro factors, Ethical decision-making in business.", pages: "18 Pages" }] },
+];
 
-const ALL_STUDY_ITEMS: StudyItem[] = [
+const WEEKLY_CASES = [
+  { id: "monster-monday", day: "Monster Monday", badge: "High Difficulty", badgeColor: "bg-rose-100 text-rose-700 border-rose-200", subject: "Indian Contract Act, 1872", title: "The Anticipatory Breach & Measure of Damages", scenario: "A agreed to supply 500 MT of industrial chemicals to B at Rs.20,000/MT on 1st November. On 15th October, A informed B that he would not deliver. Market price on 15th October was Rs.22,000/MT but B waited until 1st November when market price surged to Rs.26,000/MT. B sued for Rs.30,00,000 damages. Decide the quantum of damages under Section 73.", modelAnswer: "Under Section 73 of Indian Contract Act 1872 (and Frost v. Knight), B has two options: (1) Treat contract as rescinded on 15th Oct and claim difference (Rs.2,000/MT = Rs.10 Lakhs), OR (2) Keep contract alive till 1st Nov and claim difference on date of performance (Rs.6,000/MT = Rs.30 Lakhs). Since contract was kept alive, B is entitled to Rs.30 Lakhs.", precedent: "Frost v. Knight (1872) L.R. 7 Ex. 111" },
+  { id: "midweek-madness", day: "Midweek Law Madness", badge: "Statutory Trap", badgeColor: "bg-amber-100 text-amber-700 border-amber-200", subject: "Indian Partnership Act, 1932", title: "Retirement without Notice & Doctrine of Holding Out", scenario: "Karan, partner in M/s Apex Builders, retired in January but no public notice was given in the Official Gazette. In March, firm borrowed Rs.15 Lakhs from Indus Bank. Karan was unaware. Is Karan personally liable to Indus Bank?", modelAnswer: "Under Section 32(3) read with Section 28 of Indian Partnership Act 1932, a retired partner continues to be liable to third parties unless public notice is published in the Official Gazette and at least one local language newspaper. Karan is personally liable to Indus Bank under the doctrine of Holding Out.", precedent: "Scarf v. Jardine (1882) 7 App Cas 345" },
+  { id: "final-boss-friday", day: "Final Boss Friday", badge: "Exam Simulation", badgeColor: "bg-violet-100 text-violet-700 border-violet-200", subject: "Companies Act, 2013", title: "Ultra Vires Borrowing & Subrogation Remedy", scenario: "A company's MOA authorizes borrowing up to Rs.1 Crore. The Directors borrowed Rs.2.5 Crores from a private financier without member approval. The entire Rs.2.5 Crores was used to pay off lawful trade debts of the company. Can the lender recover money from the company?", modelAnswer: "The loan is Ultra Vires the borrowing powers of the company and void ab initio (Ashbury Railway Carriage Co. v. Riche). However, under the equitable doctrine of Subrogation (Sinclair v. Brougham), since the money was used to discharge lawful intra-vires liabilities, the lender stands in shoes of discharged creditors and can recover the debt.", precedent: "Sinclair v. Brougham [1914] AC 398" },
+];
+
+// The 2 books available for in-web reading
+const CSEET_BOOKS = [
   {
-    id: "book-vol-1",
-    type: "book",
-    title: "Volume 1: The Indian Contract Act & Companies Act (Sec 1-148)",
-    subtitle: "Complete Section-by-Section Smart Revision Question Bank",
-    coverImage: "/covers/vol1-codex.webp",
-    pagesOrDuration: "540 Pages",
-    price: 249,
-    originalPrice: 449,
-    badge: "Volume 1",
-    description: "Official The Law Kaksha Smart Revision Question Bank for Companies Act 2013 with practical boardroom case studies and model answers.",
-    sampleBookId: "ca-inter",
-    highlights: ["Sections 1 to 148 In-Depth", "10-Attempt RTP & MTP Solved Papers", "Examiner Keyword Scoring Rubric"],
-    isPhysical: true,
+    id: "cseet-business-law",
+    title: "Business Law",
+    volume: "Volume 1",
+    subtitle: "CSEET Paper 2 • Units 1 to 6",
+    badge: "Volume 1 • 6 Acts",
+    description: "Complete master study notes covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, LLP Act 2008, Elements of Company Law 2013 & Negotiable Instruments Act 1881.",
+    unitsList: [
+      "Unit 1: Indian Contract Act, 1872",
+      "Unit 2: Sale of Goods Act, 1930",
+      "Unit 3: Indian Partnership Act, 1932",
+      "Unit 4: Limited Liability Partnership Act, 2008",
+      "Unit 5: Elements of Company Law (Companies Act 2013)",
+      "Unit 6: Negotiable Instruments Act, 1881"
+    ],
+    coverImage: "/covers/vol1-codex.png",
+    coverGradient: "from-violet-600 to-indigo-700",
+    tagBg: "bg-violet-50 text-violet-700 border-violet-100",
+    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
+    totalPages: "180+ Pages",
   },
   {
-    id: "book-vol-2",
-    type: "book",
-    title: "Volume 2: General Clauses Act & Interpretation of Statutes",
-    subtitle: "General Clauses, Interpretation of Statutes & FCRA Codex",
-    coverImage: "/covers/vol2-codex.webp",
-    pagesOrDuration: "480 Pages",
-    price: 249,
-    originalPrice: 449,
-    badge: "Volume 2",
-    description: "Exhaustive legal interpretation guidelines, presumption rules, and previous ICAI descriptive examination questions.",
-    sampleBookId: "ca-inter-vol2",
-    highlights: ["General Clauses Act 1897", "Rules of Statutory Interpretation", "Previous 10 Attempts Questions"],
-    isPhysical: true,
-  },
-  {
-    id: "book-mcq",
-    type: "mcq",
-    title: "ICAI Case Scenarios & 30-Mark MCQ Bank (1,200+ Qs)",
-    subtitle: "Mandatory 30-mark section with detailed statutory reasoning",
-    coverImage: "/covers/vol1-codex.webp",
-    pagesOrDuration: "260 Pages",
-    price: 249,
-    originalPrice: 449,
-    badge: "Practice Drill",
-    description: "Practice chapter-wise ICAI case scenarios, negative marking prevention drills, and MCA amendment MCQs.",
-    sampleBookId: "ca-inter",
-    highlights: ["1,200+ Curated Caselet MCQs", "Statutory Reasoning for All Options", "30-Mark Integrated Case Studies"],
-  },
-  {
-    id: "video-classes",
-    type: "video",
-    title: "HD Video Masterclasses: Full Law Lecture Series",
-    subtitle: "32 in-depth chapter masterclasses with timestamped notes",
-    coverImage: "/covers/vol2-codex.webp",
-    pagesOrDuration: "45+ Hours",
-    price: 999,
-    originalPrice: 1899,
-    badge: "Video Course",
-    description: "Detailed video breakdown of tricky corporate law sections with practical boardroom case studies.",
-    highlights: ["32 Chapter Masterclasses", "Timestamped Digital Notes", "1.25x / 1.5x Playback"],
-  },
-  {
-    id: "mains-evaluation",
-    type: "evaluation",
-    title: "1-on-1 Descriptive Test Series & Copy Checking Desk",
-    subtitle: "Submit handwritten answer sheets for 5-pillar ICAI rubric grading",
-    coverImage: "/covers/vol1-codex.webp",
-    pagesOrDuration: "8 Full Papers",
-    price: 699,
-    originalPrice: 1299,
-    badge: "Copy Checking",
-    description: "Get detailed line-by-line checking of your law descriptive papers within 48 hours to boost scores.",
-    highlights: ["8 Full ICAI Model Papers", "5-Pillar Rubric Grading", "Detailed Evaluator Feedback Notes"],
+    id: "cseet-management",
+    title: "Business Law & Management",
+    volume: "Volume 2",
+    subtitle: "CSEET Paper 2 • Units 7 & 8",
+    badge: "Volume 2 • Management & Ethics",
+    description: "In-depth conceptual notes covering General Principles of Management (Henri Fayol's 14 Principles, F.W. Taylor Scientific Management) and Business Environment & Corporate Ethics (PESTLE analysis & CSR).",
+    unitsList: [
+      "Unit 7: General Principles of Management",
+      "Unit 8: Business Environment & Ethics"
+    ],
+    coverImage: "/covers/vol2-codex.png",
+    coverGradient: "from-sky-600 to-blue-700",
+    tagBg: "bg-sky-50 text-sky-700 border-sky-100",
+    pdfUrl: "/api/pdf/cseet-management-full.pdf",
+    totalPages: "120+ Pages",
   },
 ];
 
-interface QuizItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  level: string;
-  subject: string;
-  chapter: string;
-  time_limit_minutes: number;
-  total_marks: number;
-  positive_marks: number;
-  negative_marks: number;
-  is_free: number;
-  question_count: number;
-  status: string;
-}
-
-interface LeaderboardItem {
-  rank: number;
-  badge: string;
-  attempt_id: string;
-  quiz_id: string;
-  quiz_title: string;
-  candidate_name: string;
-  student_id: string;
-  score: number;
-  total_marks: number;
-  accuracy: number;
-  time_taken_seconds: number;
-  created_at: string;
-}
-
-interface DoubtItem {
-  id: string;
-  subject: string;
-  section: string;
-  question: string;
-  status: "Resolved" | "Under Review";
-  date: string;
-  facultyAnswer?: string;
-}
-
+type TabType = "home" | "chapters" | "cases" | "mcqtest" | "ldr";
+const NAV_ITEMS: { id: TabType; label: string; icon: any }[] = [
+  { id: "home", label: "Dashboard", icon: LayoutDashboard },
+  { id: "chapters", label: "Chapter Notes", icon: BookOpen },
+  { id: "cases", label: "Case Studies", icon: Flame },
+  { id: "mcqtest", label: "MCQ Test", icon: Sparkles },
+  { id: "ldr", label: "Last Day Revision", icon: Bookmark },
+];
 export default function StudentDashboardPage() {
-  const { addToCart, setIsCartOpen } = useCart();
-
-  // Navigation State
-  const [activeNav, setActiveNav] = useState<
-    "home" | "library" | "quizzes" | "leaderboard" | "curricula" | "live" | "schedule" | "invoices" | "doubts" | "security"
-  >("home");
-
-  const [student, setStudent] = useState<StudentProfile>(DEFAULT_STUDENT);
-  const [unlockedItemIds, setUnlockedItemIds] = useState<string[]>(DEFAULT_STUDENT.unlockedItemIds);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [libraryFilter, setLibraryFilter] = useState<"all" | "book" | "mcq" | "video" | "evaluation">("all");
-
-  // Quizzes & Leaderboard Data
-  const [quizzesList, setQuizzesList] = useState<QuizItem[]>([]);
-  const [leaderboardList, setLeaderboardList] = useState<LeaderboardItem[]>([]);
-  const [selectedQuizIdForTaking, setSelectedQuizIdForTaking] = useState<string | null>(null);
-  const [quizModalOpen, setQuizModalOpen] = useState(false);
-
-  // Modals & Triggers
-  const [sampleModalOpen, setSampleModalOpen] = useState(false);
-  const [sampleBookId, setSampleBookId] = useState("ca-inter");
-  const [samplePrice, setSamplePrice] = useState(249);
-  const [doubtText, setDoubtText] = useState("");
-  const [doubtSection, setDoubtSection] = useState("Companies Act 2013 - Section 135 (CSR)");
-  const [doubtsList, setDoubtsList] = useState<DoubtItem[]>([
-    {
-      id: "dbt-101",
-      subject: "Companies Act 2013",
-      section: "Section 135 (CSR)",
-      question: "Is CSR spending mandatory if net profit before tax is exactly ₹5 Crore in preceding financial year?",
-      status: "Resolved",
-      date: "28 Sep 2026",
-      facultyAnswer: "Under Section 135(1), the net profit threshold of ₹5 Crore refers to 'net profit' calculated in accordance with Section 198. If it equals or exceeds ₹5 Crore, CSR committee constitution and 2% CSR allocation become mandatory.",
-    },
-    {
-      id: "dbt-102",
-      subject: "General Clauses Act 1897",
-      section: "Section 6 (Effect of Repeal)",
-      question: "How does repeal of a statute affect pending investigation under the repealed enactment?",
-      status: "Resolved",
-      date: "25 Sep 2026",
-      facultyAnswer: "As per Section 6(e) of The General Clauses Act, repeal does not affect any investigation, legal proceeding or remedy in respect of any right, privilege, obligation, liability, penalty or forfeiture unless a different intention appears.",
-    },
-  ]);
-
-  const [readerOpen, setReaderOpen] = useState(false);
-  const [selectedBookForReader, setSelectedBookForReader] = useState({
-    id: "book-vol-1",
-    title: "Volume 1: CA Corporate Law Master Codex (2026-2027)",
-    subject: "Companies Act 2013 (Sections 1 to 148)",
-    pages: "540 Pages",
-    fileSize: "19.2 MB",
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [activeCourse, setActiveCourse] = useState<"ca" | "cs">("ca");
+  const [activeTab, setActiveTab] = useState<TabType>("home");
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch4");
+  const [sampleModalOpen, setSampleModalOpen] = useState<boolean>(false);
+  const [sampleBookTitle, setSampleBookTitle] = useState<string>("Indian Partnership Act 1932 Master Notes");
+  const [sampleBookId, setSampleBookId] = useState<string>("ca-foundation");
+  const [testActive, setTestActive] = useState<boolean>(false);
+  const [testTimeLeft, setTestTimeLeft] = useState<number>(1800);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [testSubmitted, setTestSubmitted] = useState<boolean>(false);
+  const [streak, setStreak] = useState<number>(1);
+  const [studentName, setStudentName] = useState("Aarav Sharma");
+  const [studentProfile, setStudentProfile] = useState<StudentProfileData>({
+    name: "Aarav Sharma",
+    email: "aarav.sharma@thelawkaksha.com",
+    targetExam: "CSEET Law & Management",
+    student_id: "LAW-2026-9821",
+    avatarColor: "violet",
   });
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [mainsEvalModalOpen, setMainsEvalModalOpen] = useState(false);
-  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
+  const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
+  // purchased books: derived from session / treat as purchased for logged-in students
+  const [purchasedBooks, setPurchasedBooks] = useState<string[]>(["cseet-business-law", "cseet-management"]);
+  // PDF viewer modal
+  const [pdfViewer, setPdfViewer] = useState<{ open: boolean; url: string; title: string }>({ open: false, url: "", title: "" });
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  // Fetch live quizzes & leaderboard on mount
   useEffect(() => {
-    async function loadData() {
-      try {
-        const qRes = await apiRequest<{ success: boolean; data: QuizItem[] }>("/api/quizzes");
-        if (qRes && qRes.success && Array.isArray(qRes.data)) {
-          setQuizzesList(qRes.data);
-        } else {
-          // Fallback static quizzes
-          setQuizzesList([
-            {
-              id: "quiz-companies-act-1",
-              title: "Companies Act 2013: Management & Administration (Sec 88-122)",
-              subtitle: "ICAI Case-Scenario MCQs on AGMs, Quorum, Postal Ballot & Resolutions",
-              level: "CA Intermediate",
-              subject: "Corporate & Other Laws",
-              chapter: "Chapter 7: Management & Administration",
-              time_limit_minutes: 25,
-              total_marks: 30,
-              positive_marks: 2,
-              negative_marks: 0.5,
-              is_free: 1,
-              question_count: 15,
-              status: "PUBLISHED",
-            },
-            {
-              id: "quiz-general-clauses-1",
-              title: "General Clauses Act 1897 & Interpretation of Statutes",
-              subtitle: "Statutory Definitions, Repeal Effects & Harmonious Construction",
-              level: "CA Intermediate",
-              subject: "Corporate & Other Laws",
-              chapter: "Other Laws: General Clauses Act",
-              time_limit_minutes: 20,
-              total_marks: 20,
-              positive_marks: 2,
-              negative_marks: 0.5,
-              is_free: 0,
-              question_count: 10,
-              status: "PUBLISHED",
-            },
-            {
-              id: "quiz-contract-act-1",
-              title: "Indian Contract Act 1872: Special Contracts (Indemnity & Guarantee)",
-              subtitle: "Surety Rights, Discharge of Surety & Bailment Ratios",
-              level: "CA Intermediate",
-              subject: "Corporate & Other Laws",
-              chapter: "Special Contracts: Indemnity & Guarantee",
-              time_limit_minutes: 25,
-              total_marks: 25,
-              positive_marks: 2,
-              negative_marks: 0.5,
-              is_free: 0,
-              question_count: 12,
-              status: "PUBLISHED",
-            },
-          ]);
-        }
-
-        const lRes = await apiRequest<{ success: boolean; data: LeaderboardItem[] }>("/api/leaderboard");
-        if (lRes && lRes.success && Array.isArray(lRes.data)) {
-          setLeaderboardList(lRes.data);
-        } else {
-          // Fallback static leaderboard
-          setLeaderboardList([
-            {
-              rank: 1,
-              badge: "GOLD",
-              attempt_id: "att-001",
-              quiz_id: "quiz-companies-act-1",
-              quiz_title: "Companies Act 2013: Management & Administration",
-              candidate_name: "Candidate A. Sharma",
-              student_id: "LK-STU-9921",
-              score: 30,
-              total_marks: 30,
-              accuracy: 100,
-              time_taken_seconds: 480,
-              created_at: "2026-09-30T10:00:00Z",
-            },
-            {
-              rank: 2,
-              badge: "SILVER",
-              attempt_id: "att-002",
-              quiz_id: "quiz-companies-act-1",
-              quiz_title: "Companies Act 2013: Management & Administration",
-              candidate_name: "Candidate R. Verma",
-              student_id: "LK-STU-8842",
-              score: 28,
-              total_marks: 30,
-              accuracy: 93,
-              time_taken_seconds: 520,
-              created_at: "2026-09-30T11:15:00Z",
-            },
-            {
-              rank: 3,
-              badge: "BRONZE",
-              attempt_id: "att-003",
-              quiz_id: "quiz-companies-act-1",
-              quiz_title: "Companies Act 2013: Management & Administration",
-              candidate_name: "Candidate P. Kulkarni",
-              student_id: "LK-STU-7721",
-              score: 26,
-              total_marks: 30,
-              accuracy: 87,
-              time_taken_seconds: 610,
-              created_at: "2026-09-30T12:00:00Z",
-            },
-          ]);
-        }
-      } catch (err) {
-        console.error("Dashboard init error:", err);
+    if (typeof window !== "undefined") {
+      const studentSession = localStorage.getItem("lawkaksha_student_session");
+      const adminSession = localStorage.getItem("lawkaksha_admin_session");
+      if (!studentSession && !adminSession) { setIsAuthorized(false); setIsCheckingAuth(false); router.push("/login"); return; }
+      setIsAuthorized(true); setIsCheckingAuth(false);
+      const params = new URLSearchParams(window.location.search);
+      const courseParam = params.get("course");
+      if (courseParam === "cs") { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }
+      else if (courseParam === "ca") { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); }
+      if (studentSession) {
+        try {
+          const p = JSON.parse(studentSession);
+          if (p.name) setStudentName(p.name);
+          setStudentProfile((prev) => ({ ...prev, ...p }));
+        } catch (e) {}
+      } else if (adminSession) {
+        try {
+          const p = JSON.parse(adminSession);
+          if (p.name) setStudentName(p.name);
+          setStudentProfile((prev) => ({ ...prev, ...p }));
+        } catch (e) {}
       }
+      try {
+        const storedStreak = localStorage.getItem("lawkaksha_streak");
+        const lastLogin = localStorage.getItem("lawkaksha_last_login");
+        const today = new Date().toDateString();
+        if (lastLogin === today) { setStreak(storedStreak ? parseInt(storedStreak) : 1); }
+        else {
+          const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+          const isConsecutive = lastLogin === yesterday.toDateString();
+          const newStreak = isConsecutive ? (storedStreak ? parseInt(storedStreak) + 1 : 1) : 1;
+          setStreak(newStreak);
+          localStorage.setItem("lawkaksha_streak", String(newStreak));
+          localStorage.setItem("lawkaksha_last_login", today);
+        }
+      } catch (e) { setStreak(1); }
     }
-    loadData();
-  }, []);
+  }, [router]);
 
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  const handleStartQuiz = (quizId: string) => {
-    setSelectedQuizIdForTaking(quizId);
-    setQuizModalOpen(true);
-  };
-
-  const handleSubmitDoubt = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!doubtText.trim()) return;
-    const newDoubt: DoubtItem = {
-      id: `dbt-${Date.now()}`,
-      subject: "Companies Act 2013",
-      section: doubtSection,
-      question: doubtText,
-      status: "Under Review",
-      date: "Just now",
-      facultyAnswer: "Your legal doubt has been submitted to The Law Kaksha Academic Board. A senior corporate law evaluator will post the statutory analysis within 4 to 6 working hours.",
-    };
-    setDoubtsList([newDoubt, ...doubtsList]);
-    setDoubtText("");
-    triggerToast("Doubt submitted successfully to Academic Desk.");
-  };
-
-  const filteredLibrary = ALL_STUDY_ITEMS.filter((item) => {
-    if (libraryFilter !== "all" && item.type !== libraryFilter) return false;
-    if (searchQuery.trim()) {
-      return (
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("lawkaksha_student_session");
+      localStorage.removeItem("lawkaksha_active_student");
+      localStorage.removeItem("lawkaksha_token");
+      window.dispatchEvent(new Event("storage"));
+      router.push("/login");
     }
-    return true;
-  });
+  };
+
+  useEffect(() => {
+    let timer: any = null;
+    if (testActive && !testSubmitted && testTimeLeft > 0) { timer = setInterval(() => setTestTimeLeft((p) => p - 1), 1000); }
+    return () => clearInterval(timer);
+  }, [testActive, testSubmitted, testTimeLeft]);
+
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#F8F7FF] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-9 h-9 border-2 border-violet-400 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-semibold text-slate-700">Verifying session...</p>
+      </div>
+    );
+  }
+
+  const chaptersList = activeCourse === "ca" ? CA_FOUNDATION_CHAPTERS : CSEET_UNITS;
+  const currentChapter = chaptersList.find((c) => c.id === selectedChapterId) || chaptersList[0];
+  const formatTimer = (secs: number) => `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
+  const initials = studentName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "AS";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0A192F] flex flex-col antialiased">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0A192F] text-white px-5 py-3 rounded-lg shadow-lg border border-slate-700 text-sm font-medium flex items-center gap-3 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+    <div className="min-h-screen bg-[#F6F5FF] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Left Sidebar - Clean Matte Design */}
-        <aside className="w-full md:w-64 bg-white border-r border-slate-200 shrink-0 flex flex-col">
-          {/* Logo & Platform Info */}
-          <div className="p-4 border-b border-slate-200">
-            <Link href="/" className="inline-block">
-              <LawKakshaLogo size="sm" showTagline={false} />
-            </Link>
-            <div className="mt-2.5 px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center justify-between">
-              <span>Student Portal</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500" title="System Online" />
-            </div>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
-            {[
-              { id: "home", label: "Overview", icon: Home },
-              { id: "library", label: "My Library & Vault", icon: BookOpen },
-              { id: "quizzes", label: "Quizzes & Tests", icon: Award, badge: quizzesList.length ? `${quizzesList.length}` : undefined },
-              { id: "leaderboard", label: "All-India Ranks", icon: BarChart3 },
-              { id: "curricula", label: "Curricula & Modules", icon: Layers },
-              { id: "live", label: "Live Masterclasses", icon: Video },
-              { id: "schedule", label: "Study Timetable", icon: Calendar },
-              { id: "invoices", label: "Orders & Invoices", icon: CreditCard },
-              { id: "doubts", label: "Doubt Desk", icon: HelpCircle, badge: doubtsList.length ? `${doubtsList.length}` : undefined },
-              { id: "security", label: "Device & Security", icon: ShieldCheck },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeNav === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveNav(item.id as any)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                    isActive
-                      ? "bg-[#0A192F] text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-500"}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                        isActive ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Student Status Card in Sidebar */}
-          <div className="p-3 border-t border-slate-200 bg-slate-50">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#005A9C] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                {student.avatarInitials}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-800 truncate">{student.name}</p>
-                <p className="text-[10px] text-slate-500 font-mono truncate">{student.rollNumber}</p>
-              </div>
-            </div>
-            <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
-              <span>{student.isEnrolled ? "Enrolled Candidate" : "Free Trial Mode"}</span>
-              <button
-                onClick={() => {
-                  setStudent((prev) => ({ ...prev, isEnrolled: !prev.isEnrolled }));
-                  triggerToast(
-                    student.isEnrolled ? "Switched to Free Account preview." : "Switched to Enrolled Candidate mode."
-                  );
-                }}
-                className="text-[#005A9C] font-semibold hover:underline cursor-pointer"
-              >
-                Switch Mode
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-y-auto">
-          {/* Top Header Bar */}
-          <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-base sm:text-lg font-bold text-[#0A192F]">
-                {activeNav === "home" && "Student Dashboard Overview"}
-                {activeNav === "library" && "My Study Vault & Book Shelf"}
-                {activeNav === "quizzes" && "Timed ICAI Mock Tests & Case Scenarios"}
-                {activeNav === "leaderboard" && "All-India Candidate Leaderboard"}
-                {activeNav === "curricula" && "Syllabus Tracker & Section Index"}
-                {activeNav === "live" && "Live Case Study Masterclasses"}
-                {activeNav === "schedule" && "Exam Timetable & Daily Study Checklist"}
-                {activeNav === "invoices" && "Tax Invoices & Dispatch Orders"}
-                {activeNav === "doubts" && "Academic Doubt Clearance Desk"}
-                {activeNav === "security" && "Hardware ID & DRM Protection"}
-              </h1>
-              <p className="text-xs text-slate-500">
-                Target: {student.targetExam}
-              </p>
-            </div>
-
-            {/* Top Search & Actions */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Enter search query..."
-                  className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#005A9C] w-48 sm:w-64"
-                />
-              </div>
-
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-xs font-semibold text-[#005A9C]">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{student.examCountdownDays} Days to ICAI Exam</span>
-              </div>
-            </div>
-          </header>
-
-          {/* Canvas Body */}
-          <div className="p-6 space-y-6 flex-1">
-            {/* 1. OVERVIEW / HOME TAB */}
-            {activeNav === "home" && (
-              <div className="space-y-6">
-                {/* 4 Matte Stat Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Current Daily Streak</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">{student.streakDays} Days</span>
-                      <Flame className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <span className="text-[11px] text-emerald-600 font-medium mt-1 block">Consistent study record</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Unlocked Study Materials</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">{unlockedItemIds.length} / {ALL_STUDY_ITEMS.length}</span>
-                      <BookOpen className="w-5 h-5 text-[#005A9C]" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">Full Codex access ready</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">All-India Rank Position</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-[#0A192F]">Top 5%</span>
-                      <Award className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">National Percentile: 95.8%</span>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                    <span className="text-xs font-medium text-slate-500 block">Hardware DRM Binding</span>
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <span className="text-sm font-bold text-emerald-700">Verified Secure</span>
-                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <span className="text-[11px] text-slate-500 mt-1 block">Single device active</span>
-                  </div>
-                </div>
-
-                {/* Main Feature Highlight Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Active Course Codex Progress */}
-                  <div className="lg:col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div>
-                        <span className="text-[11px] font-bold text-[#005A9C] uppercase tracking-wider block">
-                          Current Active Module
-                        </span>
-                        <h2 className="text-base font-bold text-[#0A192F] mt-0.5">
-                          Companies Act 2013 (Management, Administration & Audit)
-                        </h2>
-                      </div>
-                      <span className="px-2.5 py-1 rounded bg-blue-50 text-[#005A9C] text-xs font-bold font-mono">
-                        72% Completed
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-[#005A9C] h-full rounded-full" style={{ width: "72%" }} />
-                    </div>
-
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      You are currently revising Chapter 7 (Management &amp; Administration, Sections 88 to 122). Complete the 15-question case scenario drill to maintain your streak.
-                    </p>
-
-                    <div className="pt-2 flex flex-wrap items-center gap-3">
-                      <button
-                        onClick={() => {
-                          setSelectedBookForReader({
-                            id: "book-vol-1",
-                            title: "Volume 1: CA Corporate Law Master Codex (2026-2027)",
-                            subject: "Companies Act 2013 (Sections 1 to 148)",
-                            pages: "540 Pages",
-                            fileSize: "19.2 MB",
-                          });
-                          setReaderOpen(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#0A192F] hover:bg-[#005A9C] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-                      >
-                        <BookOpen className="w-4 h-4" />
-                        <span>Open Codex Reader</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleStartQuiz(quizzesList[0]?.id || "quiz-companies-act-1")}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-50 hover:bg-blue-100 text-[#005A9C] border border-blue-200 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        <Play className="w-4 h-4" />
-                        <span>Take Chapter Quiz</span>
-                      </button>
-
-                      <button
-                        onClick={() => setVideoModalOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        <Video className="w-4 h-4" />
-                        <span>Watch Masterclass</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Quick Notice Board */}
-                  <div className="lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4">
-                    <div>
-                      <h3 className="text-sm font-bold text-[#0A192F] flex items-center gap-2">
-                        <Bell className="w-4 h-4 text-[#005A9C]" />
-                        <span>Academic Announcements</span>
-                      </h3>
-                      <div className="mt-3 space-y-3">
-                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                          <p className="text-xs font-bold text-slate-800">ICAI Nov 2026 RTP Released</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            All statutory amendments for Companies Act included in Volume 1.
-                          </p>
-                        </div>
-                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                          <p className="text-xs font-bold text-slate-800">Sunday Live Case Study Session</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            Focus: Section 185 Loans to Directors &amp; Section 186 Investments.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setActiveNav("schedule")}
-                      className="w-full py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer text-center"
-                    >
-                      View Full Schedule
-                    </button>
-                  </div>
-                </div>
-
-                {/* Leaderboard Podium Preview */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-[#0A192F]">All-India Top Performers (Mock Drills)</h3>
-                      <p className="text-xs text-slate-500">Live rankings based on accuracy, score &amp; completion speed</p>
-                    </div>
-                    <button
-                      onClick={() => setActiveNav("leaderboard")}
-                      className="text-xs font-semibold text-[#005A9C] hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Full Leaderboard</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                    {leaderboardList.slice(0, 3).map((lb) => (
-                      <div
-                        key={lb.rank}
-                        className={`p-4 rounded-xl border ${
-                          lb.rank === 1
-                            ? "bg-amber-50/50 border-amber-200"
-                            : lb.rank === 2
-                            ? "bg-slate-50 border-slate-200"
-                            : "bg-orange-50/40 border-orange-200"
-                        } flex items-center gap-3.5`}
-                      >
-                        <div
-                          className={`w-10 h-10 rounded-full font-bold text-sm flex items-center justify-center shrink-0 ${
-                            lb.rank === 1
-                              ? "bg-amber-500 text-white"
-                              : lb.rank === 2
-                              ? "bg-slate-400 text-white"
-                              : "bg-amber-700 text-white"
-                          }`}
-                        >
-                          #{lb.rank}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-slate-900 truncate">{lb.candidate_name}</p>
-                          <p className="text-[11px] text-slate-500 font-mono">
-                            Score: {lb.score}/{lb.total_marks} ({lb.accuracy}%)
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 2. MY LIBRARY & VAULT TAB */}
-            {activeNav === "library" && (
-              <div className="space-y-6">
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="inline-flex p-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-medium">
-                    {[
-                      { id: "all", label: "All Items" },
-                      { id: "book", label: "Books & Question Banks" },
-                      { id: "mcq", label: "MCQ Drills" },
-                      { id: "video", label: "Video Classes" },
-                      { id: "evaluation", label: "Test Series" },
-                    ].map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setLibraryFilter(tab.id as any)}
-                        className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-                          libraryFilter === tab.id
-                            ? "bg-[#0A192F] text-white font-semibold"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <span className="text-xs text-slate-500">
-                    Showing {filteredLibrary.length} study resources
-                  </span>
-                </div>
-
-                {/* Library Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredLibrary.map((item) => {
-                    const isUnlocked = unlockedItemIds.includes(item.id);
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col justify-between"
-                      >
-                        <div>
-                          {/* Card Header & Badge */}
-                          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-50 text-[#005A9C] border border-blue-100">
-                              {item.badge}
-                            </span>
-                            <span className="text-xs text-slate-500">{item.pagesOrDuration}</span>
-                          </div>
-
-                          {/* Body */}
-                          <div className="p-4 space-y-3">
-                            <h3 className="text-sm font-bold text-[#0A192F] leading-snug">
-                              {item.title}
-                            </h3>
-                            <p className="text-xs text-slate-600 leading-relaxed">
-                              {item.description}
-                            </p>
-
-                            <div className="space-y-1.5 pt-1">
-                              {item.highlights.map((h, hIdx) => (
-                                <div key={hIdx} className="flex items-center gap-2 text-[11px] text-slate-600">
-                                  <Check className="w-3.5 h-3.5 text-[#005A9C] shrink-0" />
-                                  <span className="truncate">{h}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Card Action Footer */}
-                        <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
-                          {isUnlocked ? (
-                            <div className="w-full flex items-center justify-between gap-2">
-                              <button
-                                onClick={() => {
-                                  if (item.type === "video") {
-                                    setVideoModalOpen(true);
-                                  } else if (item.type === "evaluation") {
-                                    setMainsEvalModalOpen(true);
-                                  } else {
-                                    setSelectedBookForReader({
-                                      id: item.id,
-                                      title: item.title,
-                                      subject: item.subtitle,
-                                      pages: item.pagesOrDuration,
-                                      fileSize: "18.4 MB",
-                                    });
-                                    setReaderOpen(true);
-                                  }
-                                }}
-                                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-md bg-[#0A192F] hover:bg-[#005A9C] text-white text-xs font-semibold transition-colors cursor-pointer"
-                              >
-                                <Unlock className="w-3.5 h-3.5" />
-                                <span>{item.type === "video" ? "Watch Video" : item.type === "evaluation" ? "Open Desk" : "Open Reader"}</span>
-                              </button>
-
-                              {item.isPhysical && (
-                                <button
-                                  onClick={() => setTrackingModalOpen(true)}
-                                  className="p-2 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors cursor-pointer"
-                                  title="Track Courier Delivery"
-                                >
-                                  <Truck className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="w-full flex items-center justify-between gap-2">
-                              <button
-                                onClick={() => {
-                                  setSampleBookId(item.sampleBookId || "ca-inter");
-                                  setSamplePrice(item.price);
-                                  setSampleModalOpen(true);
-                                }}
-                                className="inline-flex items-center gap-1 py-2 px-3 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Preview</span>
-                              </button>
-
-                              <button
-                                onClick={() => {
-                                  addToCart({
-                                    id: item.id,
-                                    title: item.title,
-                                    format: item.type === "book" ? "combo" : "pdf",
-                                    category: "CA Intermediate",
-                                    price: item.price,
-                                    originalPrice: item.originalPrice,
-                                    badge: item.badge,
-                                  });
-                                  setIsCartOpen(true);
-                                }}
-                                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold transition-colors cursor-pointer"
-                              >
-                                <Lock className="w-3.5 h-3.5" />
-                                <span>Enroll ₹{item.price}</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* 3. QUIZZES & TESTS TAB */}
-            {activeNav === "quizzes" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">ICAI Pattern Timed MCQ Practice Drills</h2>
-                    <p className="text-xs text-slate-500">
-                      Standard format: +2 marks for correct answer, -0.5 negative marking per ICAI guidelines.
-                    </p>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1 rounded bg-blue-50 text-[#005A9C] border border-blue-200">
-                    {quizzesList.length} Active Drills Available
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {quizzesList.map((quiz) => (
-                    <div
-                      key={quiz.id}
-                      className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-slate-300 transition-colors"
-                    >
-                      <div className="space-y-1.5 max-w-2xl">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 uppercase">
-                            {quiz.level}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#005A9C]">
-                            {quiz.chapter}
-                          </span>
-                          {quiz.is_free === 1 && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              Free Trial
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="text-sm font-bold text-[#0A192F]">{quiz.title}</h3>
-                        <p className="text-xs text-slate-500">{quiz.subtitle}</p>
-
-                        <div className="flex items-center gap-4 text-xs text-slate-500 pt-1">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            {quiz.time_limit_minutes} Minutes
-                          </span>
-                          <span>•</span>
-                          <span>{quiz.question_count} Questions</span>
-                          <span>•</span>
-                          <span>{quiz.total_marks} Marks</span>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0">
-                        <button
-                          onClick={() => handleStartQuiz(quiz.id)}
-                          className="px-5 py-2.5 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                          <Play className="w-4 h-4" />
-                          <span>Start Timed Drill</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 4. ALL-INDIA LEADERBOARD TAB */}
-            {activeNav === "leaderboard" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">National All-India Candidate Hall of Fame</h2>
-                    <p className="text-xs text-slate-500">Live rankings updated across all registered Chartered Accountancy candidates.</p>
-                  </div>
-                  <div className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded text-xs font-semibold">
-                    ICAI Evaluation Matrix Active
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-700">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                        <tr>
-                          <th className="py-3 px-4">Rank</th>
-                          <th className="py-3 px-4">Candidate Name</th>
-                          <th className="py-3 px-4">Quiz / Module Title</th>
-                          <th className="py-3 px-4">Score</th>
-                          <th className="py-3 px-4">Accuracy</th>
-                          <th className="py-3 px-4">Time Taken</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {leaderboardList.map((row) => (
-                          <tr key={row.rank} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="py-3.5 px-4 font-bold">
-                              <span
-                                className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                                  row.rank === 1
-                                    ? "bg-amber-400 text-white"
-                                    : row.rank === 2
-                                    ? "bg-slate-300 text-slate-800"
-                                    : row.rank === 3
-                                    ? "bg-amber-600 text-white"
-                                    : "bg-slate-100 text-slate-700"
-                                }`}
-                              >
-                                {row.rank}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-bold text-slate-900">{row.candidate_name}</td>
-                            <td className="py-3.5 px-4 text-slate-600">{row.quiz_title}</td>
-                            <td className="py-3.5 px-4 font-bold text-[#005A9C]">
-                              {row.score} / {row.total_marks}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-semibold font-mono">
-                                {row.accuracy}%
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-slate-500">
-                              {Math.floor(row.time_taken_seconds / 60)}m {row.time_taken_seconds % 60}s
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 5. CURRICULA & MODULES TAB */}
-            {activeNav === "curricula" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-                  <h2 className="text-sm font-bold text-[#0A192F]">ICAI Corporate &amp; Other Laws Syllabus Tracker</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Structured mapping of all statutory sections, MCA amendment notifications, and study units.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    {
-                      part: "Part I: Companies Act, 2013 (70 Marks)",
-                      chapters: [
-                        { name: "Chapter 1: Preliminary (Sec 1-2)", done: true },
-                        { name: "Chapter 2: Incorporation of Company (Sec 3-22)", done: true },
-                        { name: "Chapter 3: Prospectus and Allotment (Sec 23-42)", done: true },
-                        { name: "Chapter 4: Share Capital and Debentures (Sec 43-72)", done: true },
-                        { name: "Chapter 5: Acceptance of Deposits (Sec 73-76A)", done: true },
-                        { name: "Chapter 6: Registration of Charges (Sec 77-87)", done: true },
-                        { name: "Chapter 7: Management and Administration (Sec 88-122)", done: false },
-                        { name: "Chapter 8: Declaration of Dividend (Sec 123-127)", done: false },
-                        { name: "Chapter 9: Accounts of Companies (Sec 128-138)", done: false },
-                        { name: "Chapter 10: Audit and Auditors (Sec 139-148)", done: false },
-                        { name: "Chapter 11: Companies Incorporated Outside India", done: false },
-                      ],
-                    },
-                    {
-                      part: "Part II: Other Laws (30 Marks)",
-                      chapters: [
-                        { name: "The General Clauses Act, 1897", done: true },
-                        { name: "Interpretation of Statutes, Deeds and Documents", done: true },
-                        { name: "The Foreign Exchange Management Act, 1999 (FEMA)", done: false },
-                        { name: "The Limited Liability Partnership Act, 2008 (LLP)", done: false },
-                      ],
-                    },
-                  ].map((group, gIdx) => (
-                    <div key={gIdx} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                      <h3 className="text-xs font-bold text-[#005A9C] uppercase tracking-wider pb-2 border-b border-slate-100">
-                        {group.part}
-                      </h3>
-                      <div className="space-y-2">
-                        {group.chapters.map((ch, cIdx) => (
-                          <div
-                            key={cIdx}
-                            className="flex items-center justify-between p-2 rounded-md hover:bg-slate-50 transition-colors text-xs"
-                          >
-                            <span className="text-slate-800 font-medium">{ch.name}</span>
-                            {ch.done ? (
-                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                                Completed
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-bold">
-                                In Progress
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 6. LIVE MASTERCLASSES TAB */}
-            {activeNav === "live" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">Live Interactive Legal Masterclasses</h2>
-                    <p className="text-xs text-slate-500">Live problem-solving sessions and past session archive.</p>
-                  </div>
-                  <button
-                    onClick={() => setVideoModalOpen(true)}
-                    className="px-4 py-2 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
-                  >
-                    <Play className="w-4 h-4" />
-                    <span>Launch Classroom Player</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    {
-                      title: "Live Masterclass: Sec 135 CSR Ratios & Penalty Case Laws",
-                      date: "Upcoming • Sunday, 10:00 AM",
-                      duration: "90 Minutes",
-                      status: "SCHEDULED",
-                    },
-                    {
-                      title: "Archive: Section 185 Loans to Directors & Inter-Corporate Loans",
-                      date: "Completed • Recorded HD Available",
-                      duration: "75 Minutes",
-                      status: "RECORDED",
-                    },
-                    {
-                      title: "Archive: Statutory Presumptions in General Clauses Act 1897",
-                      date: "Completed • Recorded HD Available",
-                      duration: "60 Minutes",
-                      status: "RECORDED",
-                    },
-                    {
-                      title: "Live Masterclass: Examiner Drafting Workshop (Descriptive Answers)",
-                      date: "Upcoming • Wednesday, 7:00 PM",
-                      duration: "120 Minutes",
-                      status: "SCHEDULED",
-                    },
-                  ].map((sess, sIdx) => (
-                    <div key={sIdx} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                            sess.status === "SCHEDULED"
-                              ? "bg-blue-50 text-[#005A9C] border border-blue-200"
-                              : "bg-slate-100 text-slate-700 border border-slate-200"
-                          }`}
-                        >
-                          {sess.status}
-                        </span>
-                        <span className="text-xs text-slate-500">{sess.duration}</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#0A192F]">{sess.title}</h3>
-                      <p className="text-xs text-slate-500">{sess.date}</p>
-                      <button
-                        onClick={() => setVideoModalOpen(true)}
-                        className="w-full py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors cursor-pointer text-center"
-                      >
-                        {sess.status === "SCHEDULED" ? "Add to Calendar" : "Watch Recording"}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 7. STUDY TIMETABLE TAB */}
-            {activeNav === "schedule" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-                  <h2 className="text-sm font-bold text-[#0A192F]">60-Day ICAI Examination Revision Schedule</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Recommended daily discipline for scoring 70+ in CA Law papers.
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs divide-y divide-slate-100">
-                  {[
-                    { day: "Day 1 - 10", topic: "Companies Act Sections 1 to 72 (Incorporation, Prospectus, Capital & Debentures)", status: "Completed" },
-                    { day: "Day 11 - 25", topic: "Companies Act Sections 73 to 122 (Deposits, Charges, Management & AGMs)", status: "Completed" },
-                    { day: "Day 26 - 38", topic: "Companies Act Sections 123 to 148 (Dividends, Accounts, CSR & Audit)", status: "In Progress" },
-                    { day: "Day 39 - 48", topic: "Other Laws (General Clauses Act 1897 & Interpretation of Statutes)", status: "Pending" },
-                    { day: "Day 49 - 55", topic: "Foreign Exchange Management Act 1999 (FEMA) & LLP Act 2008", status: "Pending" },
-                    { day: "Day 56 - 60", topic: "Full 100-Mark Model Exam Mock Papers (3 Rounds)", status: "Pending" },
-                  ].map((sch, idx) => (
-                    <div key={idx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                      <div className="space-y-1">
-                        <span className="font-bold text-[#005A9C] font-mono block">{sch.day}</span>
-                        <p className="text-slate-800 font-medium">{sch.topic}</p>
-                      </div>
-                      <span
-                        className={`self-start sm:self-center px-2.5 py-1 rounded text-[11px] font-bold ${
-                          sch.status === "Completed"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : sch.status === "In Progress"
-                            ? "bg-blue-50 text-[#005A9C] border border-blue-200"
-                            : "bg-slate-100 text-slate-500 border border-slate-200"
-                        }`}
-                      >
-                        {sch.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 8. ORDERS & INVOICES TAB */}
-            {activeNav === "invoices" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#0A192F]">GST Tax Invoices &amp; Physical Dispatches</h2>
-                    <p className="text-xs text-slate-500">Official tax invoices and courier tracking records.</p>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 shadow-2xs divide-y divide-slate-100">
-                  {[
-                    {
-                      orderId: "LK-ORD-2026-9901",
-                      item: "Volume 1 & 2 Physical Book Combo + Digital Codex Access",
-                      date: "24 Sep 2026",
-                      amount: 498,
-                      taxGst: "₹89.64 (18% GST)",
-                      status: "Dispatched",
-                      courier: "Delhivery Express (AWB: DEL-88421092)",
-                    },
-                    {
-                      orderId: "LK-ORD-2026-8812",
-                      item: "ICAI Case Scenarios & 30-Mark MCQ Practice Bank",
-                      date: "12 Sep 2026",
-                      amount: 249,
-                      taxGst: "₹44.82 (18% GST)",
-                      status: "Delivered",
-                      courier: "BlueDart Express (AWB: BLU-90214811)",
-                    },
-                  ].map((inv, idx) => (
-                    <div key={idx} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-[#005A9C]">{inv.orderId}</span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {inv.status}
-                          </span>
-                        </div>
-                        <h3 className="text-sm font-bold text-slate-800">{inv.item}</h3>
-                        <p className="text-xs text-slate-500">
-                          Ordered on {inv.date} • {inv.courier}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <span className="text-base font-bold text-[#0A192F] block">₹{inv.amount}</span>
-                          <span className="text-[10px] text-slate-400">{inv.taxGst}</span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setSelectedInvoice(inv);
-                            triggerToast("Generating printable GST receipt...");
-                          }}
-                          className="px-3.5 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>Receipt</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 9. DOUBT DESK TAB */}
-            {activeNav === "doubts" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-                  <h2 className="text-sm font-bold text-[#0A192F]">Academic Legal Doubt Clearance Desk</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Ask any statutory interpretation or case study question. Evaluated directly by the Academic Board.
-                  </p>
-                </div>
-
-                {/* Submit New Doubt Form */}
-                <form onSubmit={handleSubmitDoubt} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-                  <h3 className="text-xs font-bold text-[#005A9C] uppercase tracking-wider">Submit New Legal Query</h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700 block mb-1">Select Act / Section</label>
-                      <select
-                        value={doubtSection}
-                        onChange={(e) => setDoubtSection(e.target.value)}
-                        className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-[#005A9C]"
-                      >
-                        <option value="Companies Act 2013 - Section 135 (CSR)">Companies Act 2013 - Section 135 (CSR)</option>
-                        <option value="Companies Act 2013 - Section 185 (Loans to Directors)">Companies Act 2013 - Section 185 (Loans to Directors)</option>
-                        <option value="Companies Act 2013 - Section 186 (Investments)">Companies Act 2013 - Section 186 (Investments)</option>
-                        <option value="General Clauses Act 1897 - Section 6 (Repeal)">General Clauses Act 1897 - Section 6 (Repeal)</option>
-                        <option value="Indian Contract Act 1872 - Section 124 (Indemnity)">Indian Contract Act 1872 - Section 124 (Indemnity)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 block mb-1">Your Question / Doubt Details</label>
-                    <textarea
-                      rows={3}
-                      value={doubtText}
-                      onChange={(e) => setDoubtText(e.target.value)}
-                      placeholder="Enter legal doubt details, case study facts or specific statutory query..."
-                      className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#005A9C]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-md bg-[#005A9C] hover:bg-[#00487D] text-white text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Submit Query to Academic Board</span>
-                  </button>
-                </form>
-
-                {/* Submitted Doubts List */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Submitted Questions</h3>
-                  {doubtsList.map((dbt) => (
-                    <div key={dbt.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#005A9C]">{dbt.section}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-slate-400">{dbt.date}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              dbt.status === "Resolved"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}
-                          >
-                            {dbt.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xs font-medium text-slate-900">{dbt.question}</p>
-
-                      {dbt.facultyAnswer && (
-                        <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-700 space-y-1">
-                          <span className="font-bold text-slate-900 block">Faculty Statutory Opinion:</span>
-                          <p className="leading-relaxed">{dbt.facultyAnswer}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 10. DEVICE & DRM SECURITY TAB */}
-            {activeNav === "security" && (
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
-                  <h2 className="text-sm font-bold text-[#0A192F]">Single-Device DRM Hardware Binding Status</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    To prevent illicit PDF dumping and protect institutional copyright, your student license is bound to one hardware device.
-                  </p>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4 max-w-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700">
-                      <ShieldCheck className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900">Current Bound Hardware</h3>
-                      <p className="text-xs text-slate-500">{student.deviceBound}</p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-100 space-y-2 text-xs text-slate-600">
-                    <p>• Watermarking with Roll No ({student.rollNumber}) and IP is applied on all viewing sessions.</p>
-                    <p>• Only 1 device transfer request is permitted per academic semester.</p>
-                  </div>
-
-                  <button
-                    onClick={() => triggerToast("Hardware unbind request submitted to Admin Desk.")}
-                    className="px-4 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    Request Device Unbind / Migration
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-
-      {/* MODALS */}
-      {/* 1. Timed Quiz Taking Modal */}
-      {selectedQuizIdForTaking && (
-        <QuizTakingModal
-          isOpen={quizModalOpen}
-          onClose={() => setQuizModalOpen(false)}
-          quizId={selectedQuizIdForTaking}
-          candidateName={student.name}
-          studentId={student.rollNumber}
-          onComplete={(res?: QuizResult) => {
-            if (res) {
-              triggerToast(`Drill completed! Scored ${res.score}/${res.total_marks} (${res.accuracy}% accuracy)`);
-            } else {
-              triggerToast("Drill completed!");
-            }
-          }}
+      {/* MOBILE SIDEBAR BACKDROP */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* 2. Sample Chapter Reader Modal */}
-      <EnhancedSampleChapterModal
-        isOpen={sampleModalOpen}
-        onClose={() => setSampleModalOpen(false)}
-        bookTitle="The Law Kaksha Smart Revision Codex"
-        bookId={sampleBookId}
-        bookPrice={samplePrice}
-      />
-
-      {/* 3. Secure DRM PDF Reader Modal */}
-      <SecurePdfReaderModal
-        isOpen={readerOpen}
-        onClose={() => setReaderOpen(false)}
-        book={selectedBookForReader}
-        student={{
-          name: student.name,
-          rollNumber: student.rollNumber,
-          email: student.email,
-        }}
-      />
-
-      {/* 4. Video Masterclass Player Modal */}
-      <MasterclassVideoModal
-        isOpen={videoModalOpen}
-        onClose={() => setVideoModalOpen(false)}
-        courseTitle="CA Corporate Law Masterclass Series (2026-2027)"
-        activeLesson={DEFAULT_LESSON}
-        studentName={student.name}
-        rollNumber={student.rollNumber}
-      />
-
-      {/* 5. Mains Evaluation Desk Modal */}
-      <MainsEvaluationDeskModal
-        isOpen={mainsEvalModalOpen}
-        onClose={() => setMainsEvalModalOpen(false)}
-        studentName={student.name}
-        rollNumber={student.rollNumber}
-      />
-
-      {/* 6. Physical Courier Tracking Modal */}
-      {trackingModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#0A192F] flex items-center gap-2">
-                <Truck className="w-4 h-4 text-[#005A9C]" />
-                <span>Live Courier Tracking</span>
-              </h3>
-              <button
-                onClick={() => setTrackingModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-1 text-xs">
-              <p className="font-bold text-slate-900">Delhivery Express Surface</p>
-              <p className="font-mono text-slate-500">AWB: DEL-88421092 • Volume 1 &amp; 2 Books</p>
-            </div>
-
-            {/* Timeline */}
-            <div className="space-y-3 pt-2 text-xs">
-              {[
-                { time: "28 Sep, 02:30 PM", text: "Out for Delivery at Destination Hub", done: true },
-                { time: "26 Sep, 08:15 PM", text: "In Transit from Central Warehouse", done: true },
-                { time: "24 Sep, 11:00 AM", text: "Dispatched from The Law Kaksha Logistics Center", done: true },
-                { time: "24 Sep, 09:30 AM", text: "Order Packed & Shipping Label Generated", done: true },
-              ].map((step, sIdx) => (
-                <div key={sIdx} className="flex items-start gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
-                  <div>
-                    <p className="font-semibold text-slate-800">{step.text}</p>
-                    <p className="text-[11px] text-slate-400 font-mono">{step.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
+      {/* SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-100 flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        {/* TOP: LOGO + STUDENT NAME AT THE SIDE */}
+        <div className="px-4 pt-5 pb-4 border-b border-slate-100">
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/" className="flex items-center shrink-0">
+              <div className="relative h-8 w-28">
+                <Image src="/assets/logo-transparent.png" alt="The Law Kaksha" fill className="object-contain object-left" priority />
+              </div>
+            </Link>
             <button
-              onClick={() => setTrackingModalOpen(false)}
-              className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-md transition-colors cursor-pointer"
+              onClick={() => setProfileModalOpen(true)}
+              title="Click to view & edit your student profile"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-100 text-left transition-all cursor-pointer group min-w-0"
             >
-              Close
+              <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs">
+                {initials}
+              </div>
+              <span className="text-xs font-bold text-violet-800 truncate max-w-[75px] group-hover:text-violet-950">
+                {studentName.split(" ")[0]}
+              </span>
             </button>
           </div>
         </div>
-      )}
 
-      {/* 7. Printable GST Receipt Modal */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-bold text-[#0A192F]">Tax Invoice / Official Receipt</h3>
-                <p className="text-[11px] font-mono text-slate-500">{selectedInvoice.orderId}</p>
-              </div>
-              <button
-                onClick={() => setSelectedInvoice(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer text-left min-h-[44px] ${isActive ? "bg-violet-50 text-violet-700 font-semibold" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"}`}>
+                <Icon className={`shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`} style={{ width: 18, height: 18 }} />
+                <span>{item.label}</span>
+                {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-500" />}
               </button>
-            </div>
+            );
+          })}
+        </nav>
 
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Student Name:</span>
-                <span className="font-bold text-slate-800">{student.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Roll Number:</span>
-                <span className="font-mono text-slate-800">{student.rollNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Item Purchased:</span>
-                <span className="font-medium text-slate-800 text-right">{selectedInvoice.item}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200 font-bold text-sm">
-                <span>Total Amount Paid (Incl. GST):</span>
-                <span className="text-[#005A9C]">₹{selectedInvoice.amount}</span>
-              </div>
+        {/* BOTTOM SECTION: STREAK CALENDAR BUTTON + DETAILED PROFILE TRIGGER */}
+        <div className="p-3.5 border-t border-slate-100 space-y-2.5">
+          {/* STREAK CARD WITH ANIMATED POPUP CALENDAR TRIGGER */}
+          <button
+            type="button"
+            onClick={() => setStreakModalOpen(true)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50/80 border border-amber-200/80 hover:border-amber-300 hover:shadow-xs transition-all duration-150 cursor-pointer text-left group"
+            title="Click to open Streak Calendar"
+          >
+            <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Flame className="w-4 h-4 text-amber-100 animate-pulse" />
             </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-amber-900 leading-tight">{streak} Day Streak</p>
+                <Calendar className="w-3 h-3 text-amber-600 group-hover:text-amber-800 transition-colors" />
+              </div>
+              <p className="text-[10px] text-amber-600 leading-none mt-0.5">Keep it going! · View Calendar</p>
+            </div>
+          </button>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="px-4 py-2 bg-[#005A9C] text-white text-xs font-semibold rounded-md flex items-center gap-1.5 cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Tax Invoice</span>
-              </button>
-              <button
-                onClick={() => setSelectedInvoice(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md cursor-pointer"
-              >
-                Close
-              </button>
+          {/* AS / AARAV SHARMA / ACTIVE STUDENT -> OPENS PROFILE DETAIL & EDIT PAGE */}
+          <div
+            onClick={() => setProfileModalOpen(true)}
+            className="flex items-center gap-2.5 p-2 rounded-2xl hover:bg-violet-50/80 border border-transparent hover:border-violet-100 transition-all duration-150 cursor-pointer group"
+            title="Click to view and edit student profile details"
+          >
+            <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              {initials}
             </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1">
+                <p className="text-xs font-bold text-slate-800 truncate group-hover:text-violet-700 transition-colors">
+                  {studentName}
+                </p>
+                <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </div>
+              <p className="text-[10px] text-slate-400 leading-none mt-0.5">Active Student · Edit Profile</p>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLogout();
+              }}
+              title="Log Out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+              aria-label="Log Out"
+            >
+              <LogOut style={{ width: 14, height: 14 }} />
+            </button>
           </div>
         </div>
-      )}
+      </aside>
+
+      {/* MAIN */}
+      <main className="flex-1 min-w-0 overflow-auto">
+        <header className="sticky top-0 z-20 bg-[#F6F5FF]/80 backdrop-blur-sm border-b border-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+            <h1 className="text-base font-semibold text-slate-800">{NAV_ITEMS.find((n) => n.id === activeTab)?.label || "Dashboard"}</h1>
+            <p className="text-[11px] text-slate-400 leading-none mt-0.5">{activeCourse === "ca" ? "CA Foundation - Business Laws" : "CSEET - Business Law & Management"}</p>
+            </div>
+          </div>
+          <div className="inline-flex p-1 rounded-full bg-white border border-slate-200 shadow-sm">
+            <button type="button" onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); }}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "ca" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+              CA Foundation
+            </button>
+            <button type="button" onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "cs" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+              CSEET
+            </button>
+          </div>
+        </header>
+
+        <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+
+          {/* HOME */}
+          {activeTab === "home" && (
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-violet-200">
+                <div className="space-y-1">
+                  <p className="text-violet-200 text-xs font-medium">Welcome back</p>
+                  <h2 className="text-xl font-bold">{studentName}</h2>
+                  <p className="text-violet-200 text-sm leading-relaxed max-w-md">{activeCourse === "ca" ? "CA Foundation Business Laws - 7 Chapters ready to explore." : "CSEET Business Law & Management - 8 Units ready to explore."}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-center bg-white/10 rounded-2xl p-4">
+                    <Flame className="w-6 h-6 text-amber-300 mx-auto mb-1" />
+                    <p className="text-2xl font-bold">{streak}</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Day Streak</p>
+                  </div>
+                  <div className="text-center bg-white/10 rounded-2xl p-4">
+                    <BookOpen className="w-6 h-6 text-sky-300 mx-auto mb-1" />
+                    <p className="text-2xl font-bold">{chaptersList.length}</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Chapters</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {([
+                  { tab: "chapters" as TabType, icon: BookOpen, iconBg: "bg-sky-100", iconColor: "text-sky-600", title: "Chapter Notes", desc: `${chaptersList.length} acts & notes` },
+                  { tab: "cases" as TabType, icon: Flame, iconBg: "bg-rose-100", iconColor: "text-rose-500", title: "Case Studies", desc: "3 weekly high-yield cases" },
+                  { tab: "mcqtest" as TabType, icon: Sparkles, iconBg: "bg-amber-100", iconColor: "text-amber-500", title: "MCQ Test", desc: "30-question timed test" },
+                  { tab: "ldr" as TabType, icon: Bookmark, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", title: "Last Day Revision", desc: "Flowcharts & quick notes" },
+                ] as const).map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <button key={card.tab} onClick={() => setActiveTab(card.tab)}
+                      className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer group">
+                      <div className={`w-10 h-10 rounded-xl ${card.iconBg} flex items-center justify-center mb-3`}>
+                        <Icon className={`w-5 h-5 ${card.iconColor}`} />
+                      </div>
+                      <h3 className="text-sm font-semibold text-slate-800 group-hover:text-violet-700 transition-colors">{card.title}</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">{card.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="bg-white rounded-2xl border border-emerald-100 p-5 flex items-center gap-4 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0"><CheckCircle2 className="w-5 h-5 text-emerald-600" /></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800">Subscription Active</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Full access to all notes, case studies and MCQ tests.</p>
+                </div>
+                <button onClick={() => { setSampleBookTitle(activeCourse === "ca" ? "CA Foundation Business Laws Codex" : "CSEET Business Law & Management Codex"); setSampleModalOpen(true); }}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-semibold transition-colors cursor-pointer">
+                  Open Codex
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* CHAPTER NOTES — DIRECT 2 BOOKS DISPLAY */}
+          {activeTab === "chapters" && (
+            <div className="space-y-6">
+              {/* HEADER */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Chapter Notes & Study Books</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Read your complete curriculum books directly in the secure in-web reader.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold self-start sm:self-auto">
+                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>In-Web Reader · Copy & Download Protected</span>
+                </div>
+              </div>
+
+              {/* 2 BOOKS CARDS */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {CSEET_BOOKS.map((book) => (
+                  <div
+                    key={book.id}
+                    className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between"
+                  >
+                    {/* Top color gradient banner */}
+                    <div className={`h-2.5 w-full bg-gradient-to-r ${book.coverGradient}`} />
+
+                    <div className="p-6 flex-1 flex flex-col">
+                      <div className="flex items-start gap-4">
+                        {/* Book Cover Thumbnail */}
+                        <div className="relative w-20 h-28 shrink-0 rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
+                          <Image
+                            src={book.coverImage}
+                            alt={book.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${book.tagBg}`}>
+                              {book.badge}
+                            </span>
+                            <span className="text-[10px] font-medium text-slate-400">
+                              {book.totalPages}
+                            </span>
+                          </div>
+                          <h3 className="text-base font-bold text-slate-800 leading-snug">
+                            {book.title}
+                          </h3>
+                          <p className="text-xs text-violet-600 font-medium mt-0.5">
+                            {book.subtitle}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-500 leading-relaxed mt-4 flex-1">
+                        {book.description}
+                      </p>
+
+                      {/* Included Units */}
+                      <div className="mt-4 pt-3 border-t border-slate-100">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Included in this Book
+                        </p>
+                        <div className="space-y-1">
+                          {book.unitsList.map((unit, uIdx) => (
+                            <div key={uIdx} className="flex items-center gap-2 text-xs text-slate-600">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              <span className="truncate">{unit}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Read Action Button */}
+                      <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>Protected In-Web View</span>
+                        </div>
+                        <button
+                          onClick={() => setPdfViewer({ open: true, url: book.pdfUrl, title: `${book.title} (${book.subtitle})` })}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition-all shadow-sm cursor-pointer hover:shadow-md hover:shadow-violet-200"
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          Read Now
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Security notice banner */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+                <Lock className="w-4 h-4 text-violet-600 shrink-0" />
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  <strong>Digital Rights Protected:</strong> These study books are accessible exclusively inside The Law कक्षा portal for registered students. Copying text, downloading files, or sharing accounts is strictly prohibited.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* CASE STUDIES */}
+          {activeTab === "cases" && (
+            <div className="space-y-6">
+              <div className="max-w-xl">
+                <span className="text-xs font-bold uppercase tracking-wider text-violet-500">Weekly Feature</span>
+                <h2 className="text-2xl font-bold text-slate-800 mt-1">High-Yield Case Studies</h2>
+                <p className="text-sm text-slate-500 mt-1">Master the 4-step answer structure: Monster Monday, Midweek Law Madness & Final Boss Friday.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {WEEKLY_CASES.map((cs) => (
+                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-violet-600 uppercase tracking-wide">{cs.day}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cs.badgeColor}`}>{cs.badge}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-1">{cs.subject}</span>
+                      <h3 className="text-sm font-bold text-slate-800 leading-snug">{cs.title}</h3>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600 leading-relaxed italic flex-1">&ldquo;{cs.scenario}&rdquo;</div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">Model Answer</span>
+                      <p className="text-xs text-slate-500 leading-relaxed">{cs.modelAnswer}</p>
+                    </div>
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <span className="font-mono text-slate-400">{cs.precedent}</span>
+                      <span className="text-emerald-600 font-bold">6/6 Marks</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MCQ TEST */}
+          {activeTab === "mcqtest" && (
+            <div className="space-y-6">
+              <div className="max-w-xl">
+                <span className="text-xs font-bold uppercase tracking-wider text-violet-500">Timed Evaluation</span>
+                <h2 className="text-2xl font-bold text-slate-800 mt-1">Weekly 30-Question MCQ Test</h2>
+                <p className="text-sm text-slate-500 mt-1">Real-time timed examination simulation across all {activeCourse === "ca" ? "7 ICAI" : "8 ICSI"} units.</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 font-mono text-sm font-bold text-slate-800 w-fit">
+                    <Clock className="w-4 h-4 text-violet-500" /><span>{formatTimer(testTimeLeft)}</span>
+                  </div>
+                  {!testActive ? (
+                    <button onClick={() => { setTestActive(true); setTestSubmitted(false); setTestTimeLeft(1800); setSelectedAnswers({}); }}
+                      className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold transition-all cursor-pointer shadow-sm">Start 30-Q Test</button>
+                  ) : (
+                    <button onClick={() => setTestSubmitted(true)}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all cursor-pointer shadow-sm">Submit & View Result</button>
+                  )}
+                </div>
+                {!testActive ? (
+                  <div className="text-center py-10 space-y-4 max-w-md mx-auto">
+                    <div className="w-16 h-16 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center mx-auto text-2xl font-bold">30</div>
+                    <h3 className="text-lg font-bold text-slate-800">Ready to test your Business Law mastery?</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">30 exam-standard questions - 30 minutes - Instant score on submission.</p>
+                    <button onClick={() => { setTestActive(true); setTestSubmitted(false); setTestTimeLeft(1800); setSelectedAnswers({}); }}
+                      className="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-all cursor-pointer shadow-sm">Start Live Test</button>
+                  </div>
+                ) : testSubmitted ? (
+                  <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-100 text-center space-y-3">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                    <h3 className="text-lg font-bold text-slate-800">Test Completed!</h3>
+                    <p className="text-sm text-slate-500">You scored <strong className="text-slate-800">27 / 30 Marks (90%)</strong></p>
+                    <button onClick={() => { setTestActive(false); setTestSubmitted(false); }}
+                      className="px-4 py-2 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-800 cursor-pointer hover:bg-emerald-50 transition-colors">Close</button>
+                  </div>
+                ) : (
+                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-100 space-y-4">
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                      <span>Question 1 of 30 - Sale of Goods Act, 1930</span>
+                      <span className="text-violet-500">Section 16(1)</span>
+                    </div>
+                    <p className="text-sm text-slate-700 leading-relaxed">Under Section 16(1) of the Sale of Goods Act, 1930, when is an implied condition as to quality or fitness created without an express declaration by the buyer?</p>
+                    <div className="space-y-2 pt-1">
+                      {["When the good is capable of only one obvious normal use and buyer relies on seller's judgment.", "Whenever the goods are purchased from any retail store.", "Only when a written warranty card is stamped by the manufacturer.", "Never, because Caveat Emptor applies strictly to all sales."].map((opt, oIdx) => (
+                        <button key={oIdx} onClick={() => setSelectedAnswers((prev) => ({ ...prev, 1: oIdx }))}
+                          className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${selectedAnswers[1] === oIdx ? "bg-violet-50 border-violet-300 text-violet-800 font-semibold" : "bg-white border-slate-100 text-slate-700 hover:bg-slate-50"}`}>
+                          <span className="font-bold mr-2">{String.fromCharCode(65 + oIdx)}.</span>{opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* LAST DAY REVISION */}
+          {activeTab === "ldr" && (
+            <div className="space-y-6">
+              <div className="max-w-xl">
+                <span className="text-xs font-bold uppercase tracking-wider text-violet-500">Last Day Revision</span>
+                <h2 className="text-2xl font-bold text-slate-800 mt-1">Exam Flowcharts & Quick Notes</h2>
+                <p className="text-sm text-slate-500 mt-1">High-speed visual recall aids for the final 36 hours before your law exam.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {[
+                  { title: "Indian Partnership Act Summary Deck", desc: "One-page flowchart covering Section 4, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, and Section 69 Non-Registration disabilities.", url: "/notes/unit-1-general-nature-of-partnership.pdf", label: "Open Flowchart", badge: "Partnership Act", badgeColor: "bg-sky-100 text-sky-700" },
+                  { title: "Sale of Goods Act - Section 16 Matrix", desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.", url: "/notes/unit-2-relations-of-partners.pdf", label: "Open Matrix", badge: "Sale of Goods", badgeColor: "bg-amber-100 text-amber-700" },
+                  { title: "Companies Act - Corporate Veil Doctrine", desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).", url: "/notes/companies-act-unit-1.pdf", label: "Open Notes", badge: "Companies Act", badgeColor: "bg-violet-100 text-violet-700" },
+                  { title: "Contract Act - Essential Checklist", desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.", url: "/notes/contract-act-unit-1.pdf", label: "Open Checklist", badge: "Contract Act", badgeColor: "bg-rose-100 text-rose-700" },
+                ].map((item, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.badgeColor}`}>{item.badge}</div>
+                      <Bookmark className="w-4 h-4 text-slate-300 shrink-0" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-slate-800">{item.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                    <a href={item.url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 hover:text-violet-800 hover:underline pt-1">
+                      <Eye className="w-3.5 h-3.5" />{item.label}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      <EnhancedSampleChapterModal isOpen={sampleModalOpen} onClose={() => setSampleModalOpen(false)} bookTitle={sampleBookTitle} bookId={sampleBookId} bookPrice={99} />
+
+      <SecurePdfReader
+        isOpen={pdfViewer.open}
+        onClose={() => setPdfViewer({ open: false, url: "", title: "" })}
+        pdfUrl={pdfViewer.url}
+        title={pdfViewer.title}
+      />
+
+      {/* DETAILED STUDENT PROFILE EDIT MODAL */}
+      <StudentProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        onProfileUpdated={(updated) => {
+          setStudentName(updated.name);
+          setStudentProfile(updated);
+        }}
+        streak={streak}
+      />
+
+      {/* ANIMATED STREAK CALENDAR POPUP MODAL */}
+      <StreakCalendarModal
+        isOpen={streakModalOpen}
+        onClose={() => setStreakModalOpen(false)}
+        streak={streak}
+        onStreakUpdate={(newStreak) => setStreak(newStreak)}
+      />
     </div>
   );
 }

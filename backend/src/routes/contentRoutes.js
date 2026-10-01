@@ -1,5 +1,5 @@
 /**
- * The Law Kaksha - Protected DRM Content & Entitlement Gate Routes
+ * The Law Kaksha - Protected Content & Subscription Entitlement Routes
  */
 
 const express = require("express");
@@ -8,44 +8,47 @@ const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// GET /api/content/:productId/access — Server-side entitlement check for course & PDF vault
-router.get("/content/:productId/access", requireAuth, (req, res) => {
+// GET /api/content/:contentId/access — Subscription entitlement check for notes and materials
+router.get("/content/:contentId/access", requireAuth, (req, res) => {
   try {
-    const { productId } = req.params;
+    const { contentId } = req.params;
     const userId = req.user.id;
 
-    const productsTable = Database.table("products");
-    const enrollmentsTable = Database.table("enrollments");
+    const contentTable = Database.table("content");
+    const subscriptionsTable = Database.table("subscriptions");
 
-    const product = productsTable.findById(productId);
-    if (!product) {
+    const item = contentTable.findById(contentId);
+    if (!item) {
       return res.status(404).json({
         success: false,
-        message: "Requested course or material does not exist.",
+        message: "Requested material does not exist.",
       });
     }
 
-    // Check Entitlement in enrollments table
-    const enrollment = enrollmentsTable.findOne(
-      (e) =>
-        e.user_id === userId &&
-        e.product_id === productId &&
-        e.access_status === "ACTIVE"
+    // Free sample items are accessible by all authenticated users
+    if (item.isSample) {
+      return res.status(200).json({
+        success: true,
+        message: "Sample material access granted.",
+        content: item,
+      });
+    }
+
+    // Check for active subscription for the course
+    const activeSub = subscriptionsTable.findOne(
+      (s) => s.userId === userId && s.courseId === item.courseId && s.status === "ACTIVE"
     );
 
-    // If user is admin, allow preview access; otherwise must be enrolled
-    if (!enrollment && req.user.role !== "admin") {
+    if (!activeSub && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
-        error: "ACCESS_DENIED",
-        message:
-          "Access denied. You have not purchased this course or your subscription has expired.",
-        productId,
-        productTitle: product.title,
+        error: "SUBSCRIPTION_REQUIRED",
+        message: "Active subscription required for this course material.",
+        courseId: item.courseId,
       });
     }
 
-    // Generate dynamic DRM watermark data tied to student's verified session
+    // Watermark metadata
     const watermark = {
       studentName: req.user.name,
       studentId: req.user.student_id,
@@ -57,17 +60,9 @@ router.get("/content/:productId/access", requireAuth, (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Access granted.",
-      product: {
-        id: product.id,
-        title: product.title,
-        subtitle: product.subtitle,
-        type: product.type,
-        pagesOrDuration: product.pages_or_duration,
-        fullFileKey: product.full_file_key,
-        syllabus: product.syllabus,
-      },
+      content: item,
+      subscription: activeSub,
       watermark,
-      sessionToken: `drm_${Buffer.from(`${req.user.id}:${productId}:${Date.now()}`).toString("base64")}`,
     });
   } catch (err) {
     console.error("[Content] Access verification error:", err);

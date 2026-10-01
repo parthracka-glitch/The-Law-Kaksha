@@ -240,7 +240,7 @@ export function BareActDecoderTool() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search section or topic..."
-                className="w-full pl-8 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0284C7]"
+                className="w-full pl-9 pr-3 py-2.5 min-h-[44px] rounded-xl bg-white border border-slate-200 text-base sm:text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0284C7]"
               />
             </div>
 
@@ -251,7 +251,7 @@ export function BareActDecoderTool() {
                   <button
                     key={sec.id}
                     onClick={() => setSelectedId(sec.id)}
-                    className={`w-full text-left p-3.5 rounded-xl border transition-all ${
+                    className={`w-full text-left p-3.5 min-h-[44px] rounded-xl border transition-all cursor-pointer ${
                       isSelected
                         ? "bg-white border-[#0284C7] text-slate-900 shadow-xs font-semibold"
                         : "bg-white/70 border-slate-200 hover:border-slate-300 text-slate-600"
@@ -272,7 +272,7 @@ export function BareActDecoderTool() {
           </div>
 
           {/* Right Column: Breakdown Inspector Card */}
-          <div className="lg:col-span-8 rounded-2xl bg-white border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="lg:col-span-8 rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-8 shadow-xs space-y-6">
             
             {/* Header of Active Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
@@ -350,7 +350,7 @@ export function BareActDecoderTool() {
             </div>
 
             {/* Clean CTA */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-bold text-slate-900">{activeSection.recommendedBookTitle}</p>
                 <p className="text-[11px] text-slate-500">Includes all 400+ statutory clauses.</p>
@@ -368,7 +368,7 @@ export function BareActDecoderTool() {
                     badge: "Decoder Match",
                   })
                 }
-                className="px-4 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs shrink-0"
+                className="w-full sm:w-auto px-4 py-2.5 min-h-[44px] rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs shrink-0 cursor-pointer"
               >
                 <span>Add Reviewer (₹{activeSection.recommendedBookPrice})</span>
                 <ArrowRight className="w-3.5 h-3.5" />

@@ -139,33 +139,43 @@ export function LegalClinicChatModal({
       <div className="relative w-full max-w-4xl h-[88vh] bg-white border border-slate-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
         
         {/* Modal Top Header */}
-        <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7] shadow-xs">
-              <Scale className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-serif font-black text-slate-900">
-                  Legal Clinic &amp; Mentorship Desk
-                </h3>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Faculty Directorate (Online)</span>
-                </span>
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[#0284C7] shadow-xs shrink-0">
+                <Scale className="w-5 h-5" />
               </div>
-              <p className="text-xs text-slate-500">
-                Direct faculty resolution for CA Law statutory queries &amp; drafting doubts
-              </p>
+              <div>
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <h3 className="text-sm sm:text-base font-serif font-black text-slate-900">
+                    Legal Clinic Desk
+                  </h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Online</span>
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500">
+                  Direct faculty resolution for CA Law statutory queries
+                </p>
+              </div>
             </div>
+
+            <button
+              onClick={onClose}
+              className="sm:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             {/* View Switcher */}
-            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-semibold">
+            <div className="flex flex-1 sm:flex-initial bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-semibold">
               <button
                 onClick={() => setActiveTab("chat")}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`flex-1 sm:flex-initial px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-lg transition-all cursor-pointer ${
                   activeTab === "chat" ? "bg-white text-[#0284C7] font-bold shadow-2xs" : "text-slate-600"
                 }`}
               >
@@ -173,7 +183,7 @@ export function LegalClinicChatModal({
               </button>
               <button
                 onClick={() => setActiveTab("tickets")}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`flex-1 sm:flex-initial px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-lg transition-all cursor-pointer ${
                   activeTab === "tickets" ? "bg-white text-[#0284C7] font-bold shadow-2xs" : "text-slate-600"
                 }`}
               >
@@ -183,7 +193,8 @@ export function LegalClinicChatModal({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-2"
+              className="hidden sm:flex p-2 min-w-[44px] min-h-[44px] items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-2 cursor-pointer"
+              aria-label="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -275,13 +286,13 @@ export function LegalClinicChatModal({
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Ask a doubt or legal query to faculty..."
-                  className="flex-1 px-4 py-2.5 rounded-2xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#0284C7]"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] rounded-2xl border border-slate-200 text-base sm:text-xs text-slate-900 focus:outline-none focus:border-[#0284C7]"
                 />
 
                 <button
                   type="submit"
                   disabled={!inputMessage.trim()}
-                  className="px-5 py-2.5 rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+                  className="px-5 py-2.5 min-h-[44px] rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                 >
                   <span>Send</span>
                   <Send className="w-3.5 h-3.5" />
@@ -292,10 +303,10 @@ export function LegalClinicChatModal({
           </div>
         ) : (
           /* Tickets Fallback Desk */
-          <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC] space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC] space-y-6">
             
             {ticketSubmitted ? (
-              <div className="p-8 bg-emerald-50 border border-emerald-200 rounded-3xl text-center space-y-3 max-w-md mx-auto">
+              <div className="p-6 sm:p-8 bg-emerald-50 border border-emerald-200 rounded-3xl text-center space-y-3 max-w-md mx-auto">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
                 <h4 className="text-base font-bold text-emerald-900 font-serif">
                   Case Query Ticket Raised!
@@ -305,7 +316,7 @@ export function LegalClinicChatModal({
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleTicketSubmit} className="max-w-2xl mx-auto bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-4 text-xs">
+              <form onSubmit={handleTicketSubmit} className="max-w-2xl mx-auto bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-4 text-xs">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 font-serif">
                     Submit a Complex Legal Case Query
@@ -325,7 +336,7 @@ export function LegalClinicChatModal({
                     value={ticketSubject}
                     onChange={(e) => setTicketSubject(e.target.value)}
                     placeholder="Subject Summary"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7]"
+                    className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7] text-base sm:text-xs"
                   />
                 </div>
 
@@ -337,7 +348,7 @@ export function LegalClinicChatModal({
                     <select
                       value={ticketChapter}
                       onChange={(e) => setTicketChapter(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7] bg-white"
+                      className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7] bg-white text-base sm:text-xs"
                     >
                       <option>Chapter XII: Meetings of Board &amp; Powers</option>
                       <option>Chapter VII: Management &amp; Administration</option>
@@ -350,7 +361,7 @@ export function LegalClinicChatModal({
                     <label className="font-bold text-slate-700 block mb-1">
                       Attach Handwritten Scan / ICAI Question (PDF/JPG)
                     </label>
-                    <div className="px-3.5 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 flex items-center justify-center gap-1.5 cursor-pointer hover:bg-slate-50">
+                    <div className="px-3.5 py-2.5 min-h-[44px] rounded-xl border border-dashed border-slate-300 text-slate-500 flex items-center justify-center gap-1.5 cursor-pointer hover:bg-slate-50">
                       <Paperclip className="w-3.5 h-3.5" />
                       <span>Choose File (Max 10MB)</span>
                     </div>
@@ -367,14 +378,14 @@ export function LegalClinicChatModal({
                     value={ticketQuery}
                     onChange={(e) => setTicketQuery(e.target.value)}
                     placeholder="Explain the specific factual situation or question where the law seems ambiguous..."
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0284C7] text-base sm:text-xs"
                   />
                 </div>
 
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                    className="w-full sm:w-auto px-6 py-2.5 min-h-[44px] rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Submit Query Ticket</span>
                     <ChevronRight className="w-3.5 h-3.5" />

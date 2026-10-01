@@ -1,6 +1,8 @@
 /**
  * The Law Kaksha - Database Seeder
- * Populates official products, default admin, verified student, and initial reviews
+ * Aligned to Word docs & CHANGES.pdf:
+ * CA Foundation Business Laws (7 Chapters) + CSEET Business Law & Management (8 Units)
+ * Subscription model at Rs. 99/month per course (Launch Offer period)
  */
 
 const bcrypt = require("bcryptjs");
@@ -10,616 +12,684 @@ async function seed() {
   console.log("[Seeder] Checking database state...");
 
   const usersTable = Database.table("users");
-  const productsTable = Database.table("products");
-  const ordersTable = Database.table("orders");
-  const enrollmentsTable = Database.table("enrollments");
-  const reviewsTable = Database.table("reviews");
+  const coursesTable = Database.table("courses");
+  const actsTable = Database.table("acts");
+  const contentTable = Database.table("content");
+  const weeklyContentTable = Database.table("weekly_content");
+  const quizzesTable = Database.table("quizzes");
+  const subscriptionsTable = Database.table("subscriptions");
 
-  // 1. Seed Products if empty
-  if (productsTable.count() === 0) {
-    console.log("[Seeder] Seeding 6 flagship CA Law products...");
+  // 1. Seed Courses
+  if (coursesTable.count() === 0) {
+    console.log("[Seeder] Seeding courses: CSEET & CA Foundation...");
 
-    const products = [
+    coursesTable.insert({
+      id: "course-ca-foundation",
+      title: "CA Foundation",
+      fullTitle: "CA Foundation Business Laws",
+      description: "Smart Revision Question Bank with Detailed Solutions for CA Foundation Business Laws",
+      tagline: "Learn. Practice. Excel.",
+      backCoverTagline: "Turn Your Understanding into Exam-Ready Practice.",
+      price: 99,
+      originalPrice: 299,
+      offerLabel: "Launch Offer — ₹99/month",
+      disclaimer: "This platform is a supplementary practice resource. Refer to the latest applicable ICAI syllabus and official study material for your examination attempt.",
+      examBody: "ICAI",
+      status: "active",
+    });
+
+    coursesTable.insert({
+      id: "course-cseet",
+      title: "CSEET",
+      fullTitle: "CSEET Business Law & Management",
+      description: "Smart Revision MCQ Question Bank for CSEET Business Law & Management",
+      tagline: "Practice. Revise. Perform.",
+      backCoverTagline: "Read the Concept. Practise the Question. Build Your Confidence.",
+      price: 99,
+      originalPrice: 299,
+      offerLabel: "Launch Offer — ₹99/month",
+      disclaimer: "This platform is a supplementary practice resource. Follow the latest applicable ICSI syllabus and official study material for your examination attempt.",
+      examBody: "ICSI",
+      status: "active",
+    });
+
+    console.log("[Seeder] Courses seeded.");
+  }
+
+  // 2. Seed Acts/Units for each course according to CHANGES.pdf syllabus
+  if (actsTable.count() === 0) {
+    console.log("[Seeder] Seeding Acts/Units...");
+
+    // CA Foundation Business Laws chapters exactly as per CHANGES.pdf page 1-2
+    const caFoundationActs = [
       {
-        id: "book-vol-1",
-        slug: "volume-1-ca-foundation-business-laws-contract-act",
-        type: "book",
-        title: "Part 1: The Indian Contract Act, 1872",
-        subtitle: "Units 1 - 9 • Smart Revision Question Bank with Model Answers.",
-        pages_or_duration: "540 Pages",
-        price: 249,
-        original_price: 449,
-        badge: "Volume 1",
-        category: "CA Foundation Paper 2",
-        description:
-          "Official The Law कक्षा Smart Revision Question Bank covering The Indian Contract Act 1872 (Units 1 to 9). Featuring application-based questions, previous exam problems, and examiner scoring frameworks.",
-        cover_image: "/covers/vol1-codex.webp",
-        preview_file: "sample-preview-vol-1.pdf",
-        full_file_key: "vault/ca-corp-law-vol1-full-2026.pdf",
-        highlights: [
-          "Complete Units 1 to 9 of The Indian Contract Act 1872",
-          "Application-Based Problem Solving & Case Scenarios",
-          "Questions from Previous ICAI Examination Attempts",
-          "Examiner Model Answers with Keyword Checklists",
-        ],
-        syllabus: [
-          { chapter: "Unit 1", title: "Nature of Contracts & Essential Elements (Sec 1-9)" },
-          { chapter: "Unit 2", title: "Consideration & Lawful Object Rules (Sec 23-25)" },
-          { chapter: "Unit 3", title: "Capacity to Contract & Free Consent (Sec 10-22)" },
-          { chapter: "Unit 4", title: "Void Agreements & Contingent Contracts (Sec 26-36)" },
-          { chapter: "Unit 5", title: "Performance of Contract & Joint Liabilities (Sec 37-67)" },
-          { chapter: "Unit 6", title: "Discharge of Contract & Breach Dynamics (Sec 62-75)" },
-          { chapter: "Unit 7", title: "Remedies for Breach of Contract (Sec 73-75)" },
-          { chapter: "Unit 8", title: "Contingent & Quasi Contracts Deep-Dive (Sec 68-72)" },
-          { chapter: "Unit 9", title: "Contract of Indemnity and Guarantee (Sec 124-147)" },
-        ],
+        id: "ca-ch-1",
+        courseId: "course-ca-foundation",
+        order: 1,
+        chapterNumber: 1,
+        title: "Chapter 1: Indian Regulatory Framework",
+        shortTitle: "Regulatory Framework",
+        sections: "Overview of Indian Legal System, Sources of Law, Judicial Machinery",
+        description: "Foundations of Indian law, structure of courts, process of law making in Parliament and State Legislatures."
+      },
+      {
+        id: "ca-ch-2",
+        courseId: "course-ca-foundation",
+        order: 2,
+        chapterNumber: 2,
+        title: "Chapter 2: The Indian Contract Act, 1872",
+        shortTitle: "Contract Act",
+        sections: "Sections 1-75 & Special Contracts",
+        description: "General principles of contracts: Offer, Acceptance, Consideration, Capacity, Free Consent, Legality, Performance, Discharge, and Breach."
+      },
+      {
+        id: "ca-ch-3",
+        courseId: "course-ca-foundation",
+        order: 3,
+        chapterNumber: 3,
+        title: "Chapter 3: The Sale of Goods Act, 1930",
+        shortTitle: "Sale of Goods",
+        sections: "Sections 1-66",
+        description: "Formation of Contract of Sale, Conditions & Warranties, Transfer of Ownership & Title, Performance, and Unpaid Seller's Rights."
+      },
+      {
+        id: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        order: 4,
+        chapterNumber: 4,
+        title: "Chapter 4: The Indian Partnership Act, 1932",
+        shortTitle: "Partnership Act",
+        sections: "Sections 1-69 (Units 1, 2 & 3)",
+        description: "General Nature of Partnership (Unit 1), Relations of Partners (Unit 2), Registration and Dissolution of Firm (Unit 3)."
+      },
+      {
+        id: "ca-ch-5",
+        courseId: "course-ca-foundation",
+        order: 5,
+        chapterNumber: 5,
+        title: "Chapter 5: The Limited Liability Partnership Act, 2008",
+        shortTitle: "LLP Act",
+        sections: "Salient Features, Incorporation, Partners & Financial Disclosures",
+        description: "Concept of LLP, Partners and their relations, Designated Partners, Conversion to LLP, and Winding Up."
+      },
+      {
+        id: "ca-ch-6",
+        courseId: "course-ca-foundation",
+        order: 6,
+        chapterNumber: 6,
+        title: "Chapter 6: The Companies Act, 2013",
+        shortTitle: "Companies Act",
+        sections: "Essential Features, Corporate Veil, Classes of Companies, MOA & AOA",
+        description: "Meaning of Company, Doctrine of Lifting Corporate Veil, Types of Companies, Promoters, Memorandum & Articles of Association."
+      },
+      {
+        id: "ca-ch-7",
+        courseId: "course-ca-foundation",
+        order: 7,
+        chapterNumber: 7,
+        title: "Chapter 7: The Negotiable Instruments Act, 1881",
+        shortTitle: "NI Act",
+        sections: "Promissory Notes, Bills of Exchange, Cheques, Dishonour (Sec 138)",
+        description: "Characteristics of Negotiable Instruments, Promissory Notes, Bills of Exchange, Cheques, Crossing, Endorsement, and Dishonour of Cheques."
+      },
+    ];
+
+    // CSEET Business Law & Management Units
+    const cseetUnits = [
+      { id: "cseet-unit-1", courseId: "course-cseet", order: 1, chapterNumber: 1, title: "Unit 1: Indian Contract Act, 1872", shortTitle: "Contract Act", sections: "Offer, Acceptance, Consideration & Essentials", description: "Basics of Contract law for Company Secretary aspirants." },
+      { id: "cseet-unit-2", courseId: "course-cseet", order: 2, chapterNumber: 2, title: "Unit 2: Sale of Goods Act, 1930", shortTitle: "Sale of Goods", sections: "Conditions, Warranties, Transfer of Property", description: "Sale of Goods principles, rights of buyers and sellers." },
+      { id: "cseet-unit-3", courseId: "course-cseet", order: 3, chapterNumber: 3, title: "Unit 3: Indian Partnership Act, 1932", shortTitle: "Partnership Act", sections: "Formation, Rights, Liabilities, Dissolution", description: "Law of partnership fundamentals for CSEET." },
+      { id: "cseet-unit-4", courseId: "course-cseet", order: 4, chapterNumber: 4, title: "Unit 4: Limited Liability Partnership Act, 2008", shortTitle: "LLP Act", sections: "Formation, Partners, Governance", description: "Hybrid corporate vehicle structure and regulations." },
+      { id: "cseet-unit-5", courseId: "course-cseet", order: 5, chapterNumber: 5, title: "Unit 5: Companies Act, 2013 (Basics)", shortTitle: "Companies Act", sections: "Incorporation, Members, Directors, Meetings", description: "Introduction to Corporate law and corporate governance." },
+      { id: "cseet-unit-6", courseId: "course-cseet", order: 6, chapterNumber: 6, title: "Unit 6: Negotiable Instruments Act, 1881", shortTitle: "NI Act", sections: "Promissory Notes, Bills, Cheques & Sec 138", description: "Commercial banking instruments and legal liabilities." },
+      { id: "cseet-unit-7", courseId: "course-cseet", order: 7, chapterNumber: 7, title: "Unit 7: General Principles of Management", shortTitle: "Management", sections: "Planning, Organising, Directing, Controlling", description: "Foundational concepts of management, leadership and motivation." },
+      { id: "cseet-unit-8", courseId: "course-cseet", order: 8, chapterNumber: 8, title: "Unit 8: Business Environment", shortTitle: "Business Env", sections: "Economic, Social, Technological & Legal Environment", description: "Macro and micro business environment analysis." },
+    ];
+
+    [...caFoundationActs, ...cseetUnits].forEach((act) => actsTable.insert(act));
+    console.log("[Seeder] Acts/Units seeded.");
+  }
+
+  // 3. Seed Content (Notes, Practice Questions, PYPs, Flowcharts, LDR, Case Studies)
+  if (contentTable.count() === 0) {
+    console.log("[Seeder] Seeding Act-wise content...");
+
+    const allContent = [
+      // ==========================================
+      // CA FOUNDATION — CHAPTER 4: PARTNERSHIP ACT (THE 3 SAMPLE PDF NOTES)
+      // ==========================================
+      {
+        id: "content-ca-ch4-note-1",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        unitName: "Unit 1",
+        title: "Unit 1: General Nature of Partnership — Detailed Notes",
+        description: "Complete notes covering Definition of Partnership, True Test of Partnership (Mutual Agency), Partnership vs Co-ownership vs Joint Hindu Family, and Types of Partners.",
+        fileUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+        fileName: "UNIT 1 GENERAL NATURE OF PARTNERSHIP.pdf",
+        isSample: true,
         status: "published",
       },
       {
-        id: "book-vol-2",
-        slug: "volume-2-ca-foundation-business-laws-rest-of-acts",
-        type: "book",
-        title: "Part 2: Rest of the Acts",
-        subtitle: "Sale of Goods, Partnership, LLP & Companies Act Examiner Framework.",
-        pages_or_duration: "480 Pages",
-        price: 249,
-        original_price: 449,
-        badge: "Volume 2",
-        category: "CA Foundation Paper 2",
-        description:
-          "Official The Law कक्षा Smart Revision Question Bank covering Sale of Goods Act 1930, Indian Partnership Act 1932, LLP Act 2008 & Companies Act 2013 with previous exam descriptive answers.",
-        cover_image: "/covers/vol2-codex.webp",
-        preview_file: "sample-preview-vol-2.pdf",
-        full_file_key: "vault/ca-other-laws-vol2-full-2026.pdf",
-        highlights: [
-          "General Clauses Act 1897 deep-dive with judicial precedents",
-          "Interpretation of Statutes: Primary & Secondary Rules",
-          "Foreign Contribution Regulation Act (FCRA) 2010 rules",
-          "Past 12 exam descriptive answers with marking criteria",
-        ],
-        syllabus: [
-          { chapter: "Part A", title: "The General Clauses Act, 1897 (Sections 1 to 30)" },
-          { chapter: "Part B", title: "Interpretation of Statutes, Deeds and Documents" },
-          { chapter: "Part C", title: "The Foreign Contribution (Regulation) Act, 2010 (FCRA)" },
-          { chapter: "Part D", title: "The Limited Liability Partnership Act, 2008 Overview" },
-        ],
+        id: "content-ca-ch4-note-2",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        unitName: "Unit 2",
+        title: "Unit 2: Relations of Partners — Detailed Notes",
+        description: "Complete notes covering General Duties of Partners, Rights of Partners, Property of the Firm, Relations to Third Parties, Implied Authority & Liabilities.",
+        fileUrl: "/notes/unit-2-relations-of-partners.pdf",
+        fileName: "Unit 2 RELATIONS OF PARTNERS.pdf",
+        isSample: true,
         status: "published",
       },
       {
-        id: "book-mcq",
-        slug: "icai-case-scenarios-30-mark-mcq-bank",
-        type: "mcq",
-        title: "ICAI Case Scenarios & 30-Mark MCQ Bank (1,200+ Qs)",
-        subtitle: "Mandatory 30-mark section with detailed reasoning for each option.",
-        pages_or_duration: "260 Pages",
-        price: 249,
-        original_price: 449,
-        badge: "Practice Drill",
-        category: "Practice Question Bank",
-        description:
-          "Practice chapter-wise ICAI case scenarios, negative marking prevention drills, and MCA amendment MCQs. Includes step-by-step statutory reasoning for all 4 options.",
-        cover_image: "/covers/mcq-codex.png",
-        preview_file: "sample-preview-mcq.pdf",
-        full_file_key: "vault/ca-mcq-bank-full-2026.pdf",
-        highlights: [
-          "1,200+ ICAI Curated Multiple Choice Questions",
-          "Full reasoning and Bare Act citation for every correct option",
-          "35 Integrated Case Scenarios with 5 MCQs each",
-          "Negative marking elimination techniques",
-        ],
-        syllabus: [
-          { chapter: "Section 1", title: "Corporate Law Chapter-wise Objective Drills" },
-          { chapter: "Section 2", title: "Economic & Other Laws Conceptual MCQs" },
-          { chapter: "Section 3", title: "35 Integrated Comprehensive Case Scenarios" },
-          { chapter: "Section 4", title: "Mock Test Papers Objective Section with Solutions" },
-        ],
+        id: "content-ca-ch4-note-3",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        unitName: "Unit 3",
+        title: "Unit 3: Registration and Dissolution of Firm — Detailed Notes",
+        description: "Complete notes covering Procedure of Registration, Effects of Non-Registration (Section 69), Modes of Dissolution (Sections 40-44), and Settlement of Accounts.",
+        fileUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
+        fileName: "Unit 3 REGISTRATION AND DISSOLUTION OF FIRM.pdf",
+        isSample: true,
         status: "published",
       },
       {
-        id: "book-ldr",
-        slug: "1-5-day-last-day-revision-ldr-maps",
-        type: "book",
-        title: "1.5-Day Last Day Revision (LDR) Section Maps",
-        subtitle: "Summary Flowcharts, Limit Tables & Penalty Code Tables for the last 36 hours.",
-        pages_or_duration: "180 Pages",
-        price: 199,
-        original_price: 349,
-        badge: "Quick Revision",
-        category: "CA Exam Eve Maps",
-        description:
-          "Ultra-condensed visual flowcharts and penalty summary tables designed specifically for the final 36 hours before your CA exam. Retain limits, thresholds, and timeframes.",
-        cover_image: "/covers/ldr-maps.png",
-        preview_file: "sample-preview-ldr.pdf",
-        full_file_key: "vault/ca-ldr-maps-full-2026.pdf",
-        highlights: [
-          "Complete time-limit tables (15 days, 30 days, 60 days, 90 days)",
-          "Penal provisions & compoundable vs non-compoundable offenses map",
-          "1.5-day hour-by-hour revision timetable for CA Law",
-          "Formula sheets for quorum and voting percentage calculations",
-        ],
-        syllabus: [
-          { chapter: "Map 1", title: "Incorporation & Capital Limits Map" },
-          { chapter: "Map 2", title: "Deposits & Charges Flowcharts" },
-          { chapter: "Map 3", title: "General Meetings & Quorum Master Table" },
-          { chapter: "Map 4", title: "Accounts, CSR & Audit Critical Sections Checklist" },
-        ],
+        id: "content-ca-ch4-practice",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "practice_questions",
+        title: "Partnership Act — Chapter-wise Practice Questions",
+        description: "Application and case-based questions on Mutual Agency, Minor admitted to benefits (Sec 30), Holding out (Sec 28), and Non-registration effects.",
+        isSample: false,
         status: "published",
       },
       {
-        id: "video-classes",
-        slug: "hd-video-masterclasses-full-law-lecture-series",
-        type: "video",
-        title: "HD Video Masterclasses: Full Law Lecture Series",
-        subtitle: "32 in-depth chapter masterclasses with timestamped notes and faculty drafting rubrics.",
-        pages_or_duration: "45+ Hours",
-        price: 999,
-        original_price: 1899,
-        badge: "Video Course",
-        category: "CA Foundation & Inter",
-        description:
-          "Detailed video breakdown of tricky corporate law sections with practical boardroom case studies, real MCA portal demonstrations, and drafting walk-throughs.",
-        cover_image: "/covers/video-series.png",
-        preview_file: "sample-video-preview.mp4",
-        full_file_key: "vault/masterclass-law-series-2026.m3u8",
-        highlights: [
-          "32 HD Video Masterclasses with dual speed audio (1.25x/1.5x/2.0x)",
-          "Timestamped Bare Act section navigation",
-          "Faculty drafting rubrics for high-scoring descriptive answers",
-          "Boardroom practical case study discussions",
-        ],
-        syllabus: [
-          { chapter: "Module 1", title: "Company Formation & Secretarial Compliances (8 Lectures)" },
-          { chapter: "Module 2", title: "Securities, Prospectus & Allotment Rules (6 Lectures)" },
-          { chapter: "Module 3", title: "General Meetings, Quorum & Voting Dynamics (10 Lectures)" },
-          { chapter: "Module 4", title: "Audit, CSR Mandates & Statutory Presumptions (8 Lectures)" },
-        ],
+        id: "content-ca-ch4-flowchart",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "flowchart",
+        title: "Partnership Act — Flowcharts & Revision Maps",
+        description: "Visual roadmap for Dissolution Modes (Sec 40-44), Section 69 Disabilities, and Rights of Outgoing Partners.",
+        isSample: false,
         status: "published",
       },
       {
-        id: "mains-evaluation",
-        slug: "1-on-1-descriptive-test-series-copy-checking",
-        type: "evaluation",
-        title: "1-on-1 Descriptive Test Series & Copy Checking Desk",
-        subtitle: "Submit your handwritten answer sheets for 5-pillar faculty grading and audio feedback.",
-        pages_or_duration: "8 Full Papers",
-        price: 699,
-        original_price: 1299,
-        badge: "Copy Checking",
-        category: "CA Mains Evaluation",
-        description:
-          "Get detailed line-by-line checking of your law descriptive papers within 48 hours to boost scores to 70+. Includes personalized audio feedback note and model ICAI benchmark copies.",
-        cover_image: "/covers/copy-checking.png",
-        preview_file: "sample-evaluated-copy.pdf",
-        full_file_key: "vault/test-series-papers-2026.zip",
-        highlights: [
-          "8 Full 100-Mark ICAI Model Test Papers",
-          "5-Pillar Rubric: Law citation, fact synthesis, argument & conclusion",
-          "Line-by-line red-ink annotated PDF evaluation within 48 hours",
-          "Personalized faculty voice note highlighting improvement areas",
-        ],
-        syllabus: [
-          { chapter: "Test 1 & 2", title: "Chapter-wise Tests: Sections 1 to 72 (50 Marks Each)" },
-          { chapter: "Test 3 & 4", title: "Chapter-wise Tests: Sections 73 to 148 (50 Marks Each)" },
-          { chapter: "Test 5 & 6", title: "Other Laws Comprehensive Tests (50 Marks Each)" },
-          { chapter: "Test 7 & 8", title: "Full Syllabus 100-Mark ICAI Simulation Papers" },
-        ],
+        id: "content-ca-ch4-ldr",
+        actId: "ca-ch-4",
+        courseId: "course-ca-foundation",
+        type: "ldr",
+        title: "Partnership Act — Last Day Revision (LDR) Capsule",
+        description: "Quick-fire review of Section 4 Definition, Section 6 True Test, Section 19 Implied Authority limits, and Section 48 Settlement rules.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CA FOUNDATION — CHAPTER 2: CONTRACT ACT
+      // ==========================================
+      {
+        id: "content-ca-ch2-notes",
+        actId: "ca-ch-2",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "The Indian Contract Act, 1872 — Comprehensive Notes",
+        description: "Unit-wise notes covering Nature of Contracts, Consideration, Capacity of Parties, Free Consent, Void Agreements, Performance, Discharge, and Remedies for Breach.",
+        fileUrl: "/samples/The_Law_Kaksha_Clean_PDF_Template.pdf",
+        fileName: "Contract_Act_Comprehensive_Notes.pdf",
+        isSample: true,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch2-practice",
+        actId: "ca-ch-2",
+        courseId: "course-ca-foundation",
+        type: "practice_questions",
+        title: "Contract Act — Case-Based Practice Questions & Model Solutions",
+        description: "Structured legal problems on Anticipatory Breach, Doctrine of Frustration, Liquidated Damages vs Penalty, and Minor's Agreements.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch2-flowchart",
+        actId: "ca-ch-2",
+        courseId: "course-ca-foundation",
+        type: "flowchart",
+        title: "Contract Act — Visual Flowchart Master Chart",
+        description: "Flowcharts for Communication of Offer & Acceptance (Sec 3-5), Exceptions to Consideration (Sec 25), and Types of Damages (Sec 73).",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch2-ldr",
+        actId: "ca-ch-2",
+        courseId: "course-ca-foundation",
+        type: "ldr",
+        title: "Contract Act — Last Day Revision (LDR) Summary",
+        description: "Key statutory definitions, Section 10 checklist, Case laws (Mohori Bibee, Carlill, Balfour, Chinnaya), and Section 73 rules.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CA FOUNDATION — CHAPTER 3: SALE OF GOODS ACT
+      // ==========================================
+      {
+        id: "content-ca-ch3-notes",
+        actId: "ca-ch-3",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "The Sale of Goods Act, 1930 — Detailed Notes",
+        description: "Notes on Formation of Contract of Sale, Conditions & Warranties (Sec 14-17), Transfer of Property (Sec 18-26), Rights of Unpaid Seller (Sec 45-54).",
+        fileUrl: "/samples/Smart_Question_Bank_Sample.pdf",
+        fileName: "Sale_of_Goods_Notes.pdf",
+        isSample: true,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch3-practice",
+        actId: "ca-ch-3",
+        courseId: "course-ca-foundation",
+        type: "practice_questions",
+        title: "Sale of Goods — Practice Questions & Problem Drills",
+        description: "Application problems on Caveat Emptor exceptions (Sec 16), Nemo Dat Quod Non Habet (Sec 27), and Right of Stoppage in Transit.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch3-flowchart",
+        actId: "ca-ch-3",
+        courseId: "course-ca-foundation",
+        type: "flowchart",
+        title: "Sale of Goods — Flowcharts & Summary Trees",
+        description: "Visual roadmap for Passing of Property in Ascertained vs Unascertained Goods and Unpaid Seller Remedies against Goods vs Buyer.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch3-ldr",
+        actId: "ca-ch-3",
+        courseId: "course-ca-foundation",
+        type: "ldr",
+        title: "Sale of Goods — LDR Fast Track Review",
+        description: "Section 12 Condition vs Warranty table, Section 16(1) Fitness rule, Section 26 Risk follows property, Section 50 Stoppage conditions.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CA FOUNDATION — CHAPTER 1, 5, 6, 7
+      // ==========================================
+      {
+        id: "content-ca-ch1-notes",
+        actId: "ca-ch-1",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "Indian Regulatory Framework — Summary Notes",
+        description: "Overview of Ministry of Finance, MCA, SEBI, RBI, CCI, IBBI, Supreme Court, High Courts, and NCLT hierarchy.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch5-notes",
+        actId: "ca-ch-5",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "Limited Liability Partnership Act, 2008 — Smart Notes",
+        description: "Key features: Body corporate, Perpetual succession, Designated Partners (Sec 7), Incorporation Document (Sec 11), Annual Returns.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch6-notes",
+        actId: "ca-ch-6",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "Companies Act, 2013 — Smart Revision Notes",
+        description: "Corporate personality, Lifting the veil (Salomon, Gilford, Daimler), Section 8 Non-profit companies, OPC, Small Company limits, MOA Doctrine of Ultra Vires.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-ch7-notes",
+        actId: "ca-ch-7",
+        courseId: "course-ca-foundation",
+        type: "notes",
+        title: "Negotiable Instruments Act, 1881 — Smart Notes",
+        description: "Promissory Notes (Sec 4), Bills of Exchange (Sec 5), Cheques (Sec 6), Holder & HDC (Sec 8, 9), Dishonour of Cheque Sec 138 ingredients & notice rules.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CA FOUNDATION — PREVIOUS YEAR PAPERS (LAST 4 PYPs)
+      // ==========================================
+      {
+        id: "content-ca-pyp-may-2026",
+        actId: null,
+        courseId: "course-ca-foundation",
+        type: "pyp",
+        title: "May 2026 Examination Paper with Detailed Structured Solutions",
+        description: "Complete ICAI May 2026 attempt paper with examiner keyword checklists, step-marking breakdown, and model legal answers.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-pyp-sep-2026",
+        actId: null,
+        courseId: "course-ca-foundation",
+        type: "pyp",
+        title: "September 2026 Examination Paper with Detailed Analysis",
+        description: "Complete ICAI September 2026 attempt paper solved with Section-wise references and practical application reasoning.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-pyp-nov-2025",
+        actId: null,
+        courseId: "course-ca-foundation",
+        type: "pyp",
+        title: "November 2025 Examination Paper with Analysis",
+        description: "Full question-by-question analysis of the November 2025 Business Laws exam paper.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-ca-pyp-may-2025",
+        actId: null,
+        courseId: "course-ca-foundation",
+        type: "pyp",
+        title: "May 2025 Examination Paper with Solutions",
+        description: "Solved May 2025 paper highlighting recurring testable provisions and framing guidelines.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CA FOUNDATION — MASTER LDR DESK
+      // ==========================================
+      {
+        id: "content-ca-ldr-master",
+        actId: null,
+        courseId: "course-ca-foundation",
+        type: "ldr",
+        title: "1.5-Day Master Last Day Revision (LDR) Section Maps",
+        description: "High-yield summary covering all 7 Chapters of CA Foundation Business Laws: Key sections, statutory limits, monetary penalties, and landmark case citations.",
+        isSample: false,
+        status: "published",
+      },
+
+      // ==========================================
+      // CSEET CONTENT (MANAGEMENT SAMPLE NOTES + MCQS)
+      // ==========================================
+      {
+        id: "content-cseet-unit7-notes",
+        actId: "cseet-unit-7",
+        courseId: "course-cseet",
+        type: "notes",
+        title: "General Principles of Management — Complete Notes",
+        description: "Comprehensive notes covering Planning, Organising, Directing, Controlling, Leadership Theories, and Motivation.",
+        fileUrl: "/samples/CSEET_Business_Management_Notes.pdf",
+        fileName: "CSEET_Business_Management_Notes.pdf",
+        isSample: true,
+        status: "published",
+      },
+      {
+        id: "content-cseet-unit1-notes",
+        actId: "cseet-unit-1",
+        courseId: "course-cseet",
+        type: "notes",
+        title: "Indian Contract Act — CSEET Foundation Notes",
+        description: "Concept-focused notes on Essentials of a Valid Contract, Free Consent, and Legality of Object.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-cseet-unit1-practice",
+        actId: "cseet-unit-1",
+        courseId: "course-cseet",
+        type: "practice_questions",
+        title: "Contract Act — Chapter-wise MCQ Drill (50 Questions)",
+        description: "High-speed MCQ test covering offer, acceptance, consideration, and breach.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-cseet-unit7-practice",
+        actId: "cseet-unit-7",
+        courseId: "course-cseet",
+        type: "practice_questions",
+        title: "Management Principles — Chapter-wise MCQ Practice",
+        description: "MCQ drills on Fayol's 14 principles, Taylor's Scientific Management, Maslow's hierarchy, and Herzberg theory.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-cseet-pyp-2026",
+        actId: null,
+        courseId: "course-cseet",
+        type: "pyp",
+        title: "CSEET Previous Examination Questions & Solved Paper (2026)",
+        description: "Comprehensive previous examination question bank with rationale for each correct MCQ option.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-cseet-flowchart",
+        actId: null,
+        courseId: "course-cseet",
+        type: "flowchart",
+        title: "CSEET — Flowchart & Visual Revision Book",
+        description: "Mind-maps and quick recap tables for all 8 Units of Business Law & Management.",
+        isSample: false,
+        status: "published",
+      },
+      {
+        id: "content-cseet-ldr",
+        actId: null,
+        courseId: "course-cseet",
+        type: "ldr",
+        title: "CSEET — Last Day Revision (LDR) Key Points",
+        description: "Bullet-point quick revision deck for last-minute review before the computer-based exam.",
+        isSample: false,
         status: "published",
       },
     ];
 
-    products.forEach((p) => productsTable.insert(p));
-    console.log("[Seeder] Products seeded successfully.");
+    allContent.forEach((c) => contentTable.insert(c));
+    console.log("[Seeder] Content seeded.");
   }
 
-  // 2. Seed Default Admin & Student Users if empty
+  // 4. Seed Weekly Content (Featured prominently in dashboard)
+  if (weeklyContentTable.count() === 0) {
+    console.log("[Seeder] Seeding weekly content...");
+
+    // CA Foundation — Weekly 3 Case Studies (Monster Monday, Midweek Law Madness, Final Boss Friday)
+    weeklyContentTable.insert({
+      id: "weekly-ca-current",
+      courseId: "course-ca-foundation",
+      type: "case_study",
+      weekLabel: "Week 38 (Current Week)",
+      theme: "3 new cases. Every week. Read. Think. Apply.",
+      items: [
+        {
+          id: "case-monday",
+          day: "Monday",
+          label: "Monster Monday Case",
+          badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+          title: "Anticipatory Breach & Duty to Mitigate Damages",
+          actRef: "The Indian Contract Act, 1872 — Section 39 & Section 73",
+          marks: 6,
+          facts: "Aman enters into a contract with Bharat on 1st October to supply 500 bags of premium grade Basmati Rice at ₹4,000 per bag on 1st December. On 20th October, Aman informs Bharat via registered email that market rates have escalated and he will not supply the goods. On 20th October, the prevailing market rate was ₹4,400 per bag. Bharat chooses not to rescind the contract immediately and waits until 1st December. On 1st December, the market rate reaches ₹5,000 per bag. Meanwhile, Bharat buys 500 bags from the open market at ₹5,000 per bag on 1st December and sues Aman for ₹5,00,000 damages (₹1,000 per bag).",
+          question: "Advise whether Bharat is entitled to claim damages calculated on 20th October or 1st December, and explain the legal principles governing Anticipatory Repudiation under the Indian Contract Act.",
+          modelAnswer: {
+            provision: "According to Section 39 of the Indian Contract Act, 1872, when a party to a contract has refused to perform his promise in its entirety, the promisee may put an end to the contract, unless he has signified his acquiescence in its continuance. Under Section 73, compensation for loss or damage caused by breach is measured by the difference between the contract price and market price on the date of breach.",
+            application: "In this case, when Aman repudiated on 20th October (Anticipatory Breach), Bharat had two legal options: (1) Treat the breach as immediate and sue on 20th October, measuring damages at ₹400/bag; OR (2) Keep the contract alive until the due date (1st December) for the benefit of both parties. Since Bharat waited until 1st December, the contract remained operative, and damages are measured as on 1st December: Market Price (₹5,000) minus Contract Price (₹4,000) = ₹1,000 per bag.",
+            conclusion: "Bharat is entitled to recover ₹5,00,000 (₹1,000 per bag) from Aman, provided he did not fail to take reasonable steps to mitigate avoidable losses after 1st December."
+          }
+        },
+        {
+          id: "case-wednesday",
+          day: "Wednesday",
+          label: "Midweek Law Madness",
+          badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
+          title: "Implied Condition as to Fitness for Particular Purpose",
+          actRef: "The Sale of Goods Act, 1930 — Section 16(1)",
+          marks: 6,
+          facts: "Riya informs a machinery dealer that she requires a machine for cutting 5 mm steel sheets in her workshop. The dealer recommends a particular machine, assuring her that it is suitable for the stated purpose. Riya purchases the machine relying on the dealer's recommendation. After delivery, she discovers that the machine cannot cut steel sheets of the required thickness, although it works for ordinary purposes.",
+          question: "Advise Riya whether she can claim that the seller has breached an implied condition under the Sale of Goods Act, 1930.",
+          modelAnswer: {
+            provision: "According to Section 16(1) of the Sale of Goods Act, 1930, where the buyer makes known to the seller the particular purpose for which the goods are required, thereby relying on the seller's skill or judgment, and the goods are of a description that the seller ordinarily supplies in the course of business, there is an implied condition that the goods shall be reasonably fit for that purpose.",
+            application: "In the present case, Riya informed the machinery dealer that she required a machine capable of cutting 5 mm steel sheets (communicated particular purpose). Further, the dealer recommended a machine and assured Riya of its suitability, and Riya relied on the dealer's skill or judgment. The machine failed to cut 5 mm sheets, violating fitness for purpose.",
+            conclusion: "Subject to the remaining requirements of Section 16(1) being satisfied and no patent/trade name exception applying, Riya may claim that the seller has breached the implied condition as to fitness for a particular purpose and repudiate the contract."
+          }
+        },
+        {
+          id: "case-friday",
+          day: "Friday",
+          label: "Final Boss Friday",
+          badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          title: "Implied Authority of Partner & Non-Registration Effects",
+          actRef: "The Indian Partnership Act, 1932 — Section 19 & Section 69",
+          marks: 6,
+          facts: "A, B and C are partners in an unregistered firm 'Alpha Traders' carrying on wholesale cloth business. The partnership deed contains an express clause stating that no partner shall borrow money exceeding ₹50,000 without written consent of all partners. A borrows ₹2,00,000 from D in the firm's name for purchasing silk fabrics, telling D that the money is for the firm. D was unaware of the restriction in the partnership deed. A misappropriates the money and disappears. D sues B and C for ₹2,00,000. B and C contend that (1) A had no authority beyond ₹50,000, and (2) D cannot sue because Alpha Traders is an unregistered firm.",
+          question: "Examine the validity of B & C's contentions under the Indian Partnership Act, 1932.",
+          modelAnswer: {
+            provision: "Under Section 19(1) of the Indian Partnership Act, 1932, the act of a partner done to carry on, in the usual way, business of the kind carried on by the firm, binds the firm. Borrowing money is within implied authority for a commercial/trading firm. Under Section 20, an internal restriction on implied authority does not bind third parties unless the third party had actual notice. Under Section 69, non-registration disables the firm from suing third parties, but DOES NOT prevent third parties from suing the firm or its partners.",
+            application: "(1) Cloth trading is a commercial business where borrowing is an ordinary implied power. Since D had no notice of the internal ₹50,000 cap, the firm and all partners are bound. (2) Section 69 bars suits BY an unregistered firm, but third parties (like D) have full legal rights to sue the firm and its partners.",
+            conclusion: "Both contentions of B and C fail. B and C are personally and jointly liable to pay ₹2,00,000 along with any applicable interest to D."
+          }
+        },
+      ],
+      status: "active",
+    });
+
+    // CSEET — Weekly 30-Question MCQ Test
+    weeklyContentTable.insert({
+      id: "weekly-cseet-current",
+      courseId: "course-cseet",
+      type: "mcq_test",
+      weekLabel: "Week 38 (Current Week)",
+      title: "Weekly 30-Question MCQ Test",
+      description: "Exam-pattern practice test covering Indian Contract Act, Sale of Goods Act, and Principles of Management.",
+      questionCount: 30,
+      timeLimitMinutes: 30,
+      totalMarks: 30,
+      quizId: "quiz-cseet-weekly-current",
+      status: "active",
+    });
+
+    console.log("[Seeder] Weekly content seeded.");
+  }
+
+  // 5. Seed Quizzes
+  if (quizzesTable.count() === 0) {
+    console.log("[Seeder] Seeding quizzes...");
+
+    // CSEET Weekly 30-Q Quiz
+    quizzesTable.insert({
+      id: "quiz-cseet-weekly-current",
+      courseId: "course-cseet",
+      title: "CSEET Weekly 30-Question MCQ Test — Live Attempt",
+      subtitle: "Exam-oriented MCQs covering Contract Act, Sale of Goods, Partnership & Management",
+      level: "CSEET",
+      subject: "Business Law & Management",
+      time_limit_minutes: 30,
+      total_marks: 30,
+      positive_marks: 1,
+      negative_marks: 0,
+      is_free: 0,
+      status: "ACTIVE",
+      questions: [
+        { id: "q1", question: "An agreement enforceable by law is defined as a contract under which section of the Indian Contract Act?", options: ["Section 2(h)", "Section 2(e)", "Section 10", "Section 2(a)"], correct_option_index: 0, explanation: "Section 2(h) of the Indian Contract Act, 1872 defines a contract as 'an agreement enforceable by law'." },
+        { id: "q2", question: "In a contract of sale of goods, when the seller agrees to transfer property in goods to buyer for a price at a future date, it is called a ___.", options: ["Sale", "Agreement to sell", "Hire-purchase", "Bailment"], correct_option_index: 1, explanation: "Under Section 4(3) of Sale of Goods Act, 1930, transfer at a future time or subject to condition is an 'Agreement to Sell'." },
+        { id: "q3", question: "The true test of a partnership under Section 6 of the Indian Partnership Act is ___.", options: ["Sharing of profits", "Capital contribution", "Mutual Agency", "Registered deed"], correct_option_index: 2, explanation: "Mutual agency (each partner acting as principal and agent for others) is the conclusive test of partnership (Cox v. Hickman)." },
+        { id: "q4", question: "Who propounded the 14 Principles of Management?", options: ["F.W. Taylor", "Henri Fayol", "Max Weber", "Peter Drucker"], correct_option_index: 1, explanation: "Henri Fayol, known as the Father of Modern Operational Management, propounded the 14 Principles of Management." },
+        { id: "q5", question: "Under the Companies Act 2013, an One Person Company (OPC) can have a maximum of how many directors?", options: ["1", "5", "15", "50"], correct_option_index: 2, explanation: "An OPC requires minimum 1 director and can have a maximum of 15 directors without a special resolution." },
+        { id: "q6", question: "A cheque crossed with two parallel transverse lines without any words is known as ___.", options: ["Special Crossing", "General Crossing", "Restrictive Crossing", "Non-Negotiable Crossing"], correct_option_index: 1, explanation: "Section 123 of the NI Act 1881 defines General Crossing." },
+        { id: "q7", question: "What is the minimum number of partners required to incorporate a Limited Liability Partnership (LLP)?", options: ["1", "2", "7", "10"], correct_option_index: 1, explanation: "Under Section 5 of the LLP Act 2008, any two or more persons associated for carrying on a lawful business may form an LLP." },
+        { id: "q8", question: "Which of the following is NOT an essential element of a valid contract under Section 10?", options: ["Free consent", "Competency of parties", "Written and registered deed in every case", "Lawful consideration"], correct_option_index: 2, explanation: "Contracts may be oral or in writing unless a specific statute requires writing/registration." },
+        { id: "q9", question: "According to Maslow's hierarchy of needs, which need appears at the topmost level?", options: ["Esteem needs", "Social needs", "Safety needs", "Self-Actualisation needs"], correct_option_index: 3, explanation: "Self-Actualisation is the highest level in Maslow's hierarchy of human needs." },
+        { id: "q10", question: "In Sale of Goods, 'Nemo dat quod non habet' means ___.", options: ["Buyer beware", "No one can give what he does not have", "Goods must match sample", "Price must be money"], correct_option_index: 1, explanation: "Section 27 embodies the Latin maxim 'no one can transfer a better title than he himself possesses'." },
+      ],
+    });
+
+    // CA Foundation Practice Quiz
+    quizzesTable.insert({
+      id: "quiz-ca-ch4-partnership",
+      courseId: "course-ca-foundation",
+      title: "CA Foundation — Partnership Act Unit-wise Quiz",
+      subtitle: "Exam-standard questions on General Nature, Relations & Dissolution",
+      level: "CA Foundation",
+      subject: "Business Laws",
+      chapter: "Chapter 4: The Indian Partnership Act, 1932",
+      time_limit_minutes: 20,
+      total_marks: 20,
+      positive_marks: 2,
+      negative_marks: 0.5,
+      is_free: 1,
+      status: "ACTIVE",
+      questions: [
+        { id: "ca1", question: "Under Section 30 of the Indian Partnership Act, a minor can be admitted to ___.", options: ["Full partnership liabilities", "Benefits of partnership only with consent of all partners", "Manage the firm independently", "Sign contracts on behalf of the firm"], correct_option_index: 1, explanation: "A minor cannot be a full partner, but may with consent of all existing partners be admitted to the benefits of partnership." },
+        { id: "ca2", question: "An unregistered firm cannot file a suit against a third party if the claim value exceeds ___.", options: ["₹100", "₹1,000", "₹10,000", "Any amount (complete bar under Section 69)"], correct_option_index: 0, explanation: "Section 69(3) provides a very limited exception for set-off not exceeding ₹100; otherwise suits by an unregistered firm to enforce contractual rights are barred." },
+        { id: "ca3", question: "Which mode of dissolution does NOT require an order of the Court under Section 44?", options: ["Unsoundness of mind of partner", "Permanent incapacity", "Dissolution by notice in partnership at will (Section 43)", "Persistent breach of agreement"], correct_option_index: 2, explanation: "In a partnership at will, any partner can dissolve the firm without court intervention by giving written notice to all other partners under Section 43." },
+      ],
+    });
+
+    console.log("[Seeder] Quizzes seeded.");
+  }
+
+  // 6. Seed Default Admin & Student Users with auto-activated ₹99 subscriptions
   if (usersTable.count() === 0) {
-    console.log("[Seeder] Seeding default administrator and verified student...");
+    console.log("[Seeder] Seeding default users...");
 
     const adminPasswordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
     const studentPasswordHash = await bcrypt.hash("StudentSecurePassword2026!", 10);
 
-    const adminUser = usersTable.insert({
+    usersTable.insert({
       id: "usr-admin-001",
-      student_id: "LRK-ADM-000001",
+      student_id: "LK-ADM-000001",
       name: "The Law Kaksha Admin",
       email: "admin@thelawkaksha.com",
       phone: "+91 99999 88888",
       password_hash: adminPasswordHash,
       role: "admin",
-      target_exam: "Administrator",
+      selectedCourse: null,
       is_active: 1,
     });
 
     const studentUser = usersTable.insert({
       id: "usr-student-001",
       student_id: "LK-STU-084201",
-      name: "Enrolled Candidate",
+      name: "Aarav Sharma",
       email: "student@thelawkaksha.com",
       phone: "+91 98765 43210",
       password_hash: studentPasswordHash,
       role: "student",
-      target_exam: "CA Intermediate Paper 2: Corporate & Other Laws (Nov 2026)",
+      selectedCourse: "course-ca-foundation",
       is_active: 1,
     });
 
-    // Seed Order for student
-    const sampleOrder = ordersTable.insert({
-      id: "LK-ORD-982100",
-      user_id: studentUser.id,
-      total_amount: 399,
-      discount_amount: 100,
-      coupon_code: "CALAW20",
-      payment_status: "PAID",
-      payment_gateway: "razorpay",
-      gateway_order_id: "order_mock_982100",
-      gateway_payment_id: "pay_mock_982100",
-      gateway_signature: "sig_mock_verified",
-      shipping_name: "Enrolled Candidate",
-      shipping_email: "student@thelawkaksha.com",
-      shipping_phone: "+91 98765 43210",
-      shipping_address: "Flat 402, Nariman Point, Mumbai, Maharashtra - 400021",
-      tracking_number: "INSTANT-DRM-VAULT",
+    // Give demo student an active subscription for CA Foundation (Launch Offer ₹99/mo)
+    subscriptionsTable.insert({
+      id: "sub-demo-001",
+      userId: studentUser.id,
+      courseId: "course-ca-foundation",
+      courseTitle: "CA Foundation Business Laws",
+      plan: "monthly",
+      price: 99,
+      status: "ACTIVE",
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
-    // Seed Enrollments for student (Volume 1 & MCQ bank)
-    enrollmentsTable.insert({
-      id: "enr-001",
-      user_id: studentUser.id,
-      product_id: "book-vol-1",
-      order_id: sampleOrder.id,
-      access_status: "ACTIVE",
-    });
-
-    enrollmentsTable.insert({
-      id: "enr-002",
-      user_id: studentUser.id,
-      product_id: "book-mcq",
-      order_id: sampleOrder.id,
-      access_status: "ACTIVE",
-    });
-
-    console.log("[Seeder] Users, order and enrollments seeded successfully.");
+    console.log("[Seeder] Users seeded.");
   }
 
-  // 3. Seed Reviews if empty
-  if (reviewsTable.count() === 0) {
-    console.log("[Seeder] Seeding genuine student reviews...");
-
-    const initialReviews = [
-      {
-        id: "rev-001",
-        product_id: "book-vol-1",
-        student_name: "AIR 03 Candidate",
-        student_rank: "CA Intermediate (Nov Attempt)",
-        rating: 5,
-        title: "Scored 74 in Law! Volume 1 is unmatched.",
-        comment:
-          "The way Section 96 to 103 are broken down with practical AGM and quorum tables helped me draft crystal clear 6-mark answers. In my exam, 4 descriptive questions were verbatim from The Law Kaksha statutory codex!",
-        is_approved: 1,
-      },
-      {
-        id: "rev-002",
-        product_id: "book-mcq",
-        student_name: "AIR 14 Candidate",
-        student_rank: "CA Inter",
-        rating: 5,
-        title: "Full 30/30 in MCQ section thanks to this Question Bank.",
-        comment:
-          "Every single question has explanations for why the other 3 options are incorrect. The integrated case studies gave me the exact confidence needed for the tricky ICAI negative marking traps.",
-        is_approved: 1,
-      },
-      {
-        id: "rev-003",
-        product_id: "book-ldr",
-        student_name: "CA Final Candidate",
-        student_rank: "Corporate & Economic Laws",
-        rating: 5,
-        title: "Life-saver during the 1.5-day exam gap.",
-        comment:
-          "You cannot read 800 pages before the exam. These LDR maps condensing penalty codes and filing days into 180 visual pages are pure gold. Must-have for every law aspirant.",
-        is_approved: 1,
-      },
-      {
-        id: "rev-004",
-        product_id: "mains-evaluation",
-        student_name: "Exemption Candidate",
-        student_rank: "Cleared CA Inter with 68 in Law",
-        rating: 5,
-        title: "The 1-on-1 copy checking boosted my score by 22 marks.",
-        comment:
-          "I used to write stories instead of legal answers. The 5-pillar rubric taught me how to cite Bare Act provisions and synthesize facts concisely. The audio feedback note from faculty is fantastic.",
-        is_approved: 1,
-      },
-    ];
-
-    initialReviews.forEach((r) => reviewsTable.insert(r));
-    console.log("[Seeder] Reviews seeded successfully.");
-  }
-
-  // 4. Seed Quizzes if empty
-  const quizzesTable = Database.table("quizzes");
-  if (quizzesTable.count() === 0) {
-    console.log("[Seeder] Seeding statutory legal quizzes...");
-
-    const initialQuizzes = [
-      {
-        id: "quiz-daily-01",
-        title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        subtitle: "10 Timed Statutory Scenario Questions • Free for All Registered Candidates",
-        level: "CA Intermediate Paper 2",
-        subject: "Corporate & Other Laws",
-        chapter: "Chapter VII: Management & Administration (Sections 96 to 122)",
-        time_limit_minutes: 15,
-        total_marks: 20,
-        positive_marks: 2,
-        negative_marks: 0.5,
-        is_free: 1,
-        status: "ACTIVE",
-        questions: [
-          {
-            id: "q-101",
-            question:
-              "Under Section 96 of the Companies Act, 2013, what is the statutory time gap allowed between two consecutive Annual General Meetings (AGMs) of a company?",
-            options: [
-              "Not more than 12 months",
-              "Not more than 15 months",
-              "Not more than 18 months",
-              "Not more than 6 months from close of financial year only",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 96(1) of the Companies Act, 2013",
-            explanation:
-              "Section 96(1) mandates that not more than 15 months shall elapse between the date of one AGM and that of the next, subject to the closing of the financial year timeline (6 months).",
-          },
-          {
-            id: "q-102",
-            question:
-              "A Public Company has 1,850 members as on the date of its General Meeting. As per Section 103(1)(a)(ii), what is the statutory minimum quorum required?",
-            options: [
-              "5 members personally present",
-              "15 members personally present",
-              "30 members personally present",
-              "15 members present personally or by proxy",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 103(1)(a)(ii) of the Companies Act, 2013",
-            explanation:
-              "Under Section 103(1)(a)(ii), if the number of members is more than 1,000 but up to 5,000, the statutory quorum is 15 members personally present. Proxies are strictly excluded from quorum calculation.",
-          },
-          {
-            id: "q-103",
-            question:
-              "Which of the following business items CANNOT be transacted through a Postal Ballot under Section 110 of the Companies Act, 2013 read with Rule 22?",
-            options: [
-              "Alteration of Memorandum of Association (MOA) objects clause",
-              "Ordinary Business at an Annual General Meeting",
-              "Issue of shares with differential voting rights",
-              "Buy-back of own shares by the company",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 110(1) & Rule 22 of Companies (Management and Administration) Rules, 2014",
-            explanation:
-              "Ordinary business items at an AGM (Adoption of accounts, dividend declaration, director appointments, auditor appointment) and items where directors/auditors have a right to be heard cannot be passed through postal ballot.",
-          },
-          {
-            id: "q-104",
-            question:
-              "Under Section 100(2), what is the minimum voting power required for members of a company having share capital to requisition an Extraordinary General Meeting (EGM)?",
-            options: [
-              "Not less than 5% of paid-up share capital",
-              "Not less than 1/10th (10%) of paid-up share capital carrying voting rights",
-              "Not less than 25% of paid-up share capital",
-              "At least 50 members holding voting rights",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 100(2)(a) of the Companies Act, 2013",
-            explanation:
-              "Section 100(2)(a) specifies that members holding not less than one-tenth of such of the paid-up share capital of the company as carries the right of voting can validly requisition an EGM.",
-          },
-          {
-            id: "q-105",
-            question:
-              "What is the statutory length of clear notice required to call an Annual General Meeting under Section 101(1) of the Companies Act, 2013?",
-            options: [
-              "14 clear days",
-              "21 clear days",
-              "30 clear days",
-              "21 days including the date of sending and date of meeting",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 101(1) of the Companies Act, 2013",
-            explanation:
-              "Section 101(1) stipulates that a general meeting of a company may be called by giving not less than clear 21 days notice either in writing or through electronic mode.",
-          },
-        ],
-      },
-      {
-        id: "quiz-contract-01",
-        title: "ICAI Case Scenario Drill: The Indian Contract Act, 1872",
-        subtitle: "Essential Elements, Legality of Object & Discharge of Contracts",
-        level: "CA Foundation & Inter",
-        subject: "Business Laws",
-        chapter: "The Indian Contract Act, 1872 (Units 1 to 9)",
-        time_limit_minutes: 20,
-        total_marks: 20,
-        positive_marks: 2,
-        negative_marks: 0.5,
-        is_free: 1,
-        status: "ACTIVE",
-        questions: [
-          {
-            id: "q-201",
-            question:
-              "An agreement made without consideration is void under Section 25. Which of the following is a recognized statutory exception under Section 25(1)?",
-            options: [
-              "Agreement in restraint of trade",
-              "Agreement in writing and registered made on account of natural love and affection between parties standing in near relation",
-              "Oral promise to compensate past voluntary services",
-              "Promise to pay a time-barred debt signed without witnesses",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 25(1) of The Indian Contract Act, 1872",
-            explanation:
-              "Under Section 25(1), an agreement expressed in writing and registered under the law for the time being in force, made on account of natural love and affection between parties in a near relation, is enforceable without consideration.",
-          },
-          {
-            id: "q-202",
-            question:
-              "Under Section 68 of the Indian Contract Act, 1872, if a person incapable of entering into a contract is supplied with necessaries suited to his condition in life:",
-            options: [
-              "The minor is personally liable to pay from his pocket",
-              "The supplier is entitled to be reimbursed from the property of such incapable person",
-              "The contract is completely void and no reimbursement can be claimed",
-              "The parents of the minor are strictly personally liable",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 68 of The Indian Contract Act, 1872",
-            explanation:
-              "Under Section 68, the person furnishing necessaries is entitled to be reimbursed from the property of the minor/incapable person. There is zero personal liability on the minor.",
-          },
-        ],
-      },
-      {
-        id: "quiz-other-laws-01",
-        title: "Corporate Law Master Mock: Board Meetings & Audit Provisions",
-        subtitle: "Sections 134, 139, 149 & 173 Deep-Dive Examination Simulation",
-        level: "CA Intermediate Paper 2",
-        subject: "Corporate & Other Laws",
-        chapter: "Board of Directors, Audit & Financial Statements",
-        time_limit_minutes: 30,
-        total_marks: 30,
-        positive_marks: 3,
-        negative_marks: 1.0,
-        is_free: 0,
-        status: "ACTIVE",
-        questions: [
-          {
-            id: "q-301",
-            question:
-              "Under Section 139(2) of the Companies Act, 2013, what is the maximum consecutive term an individual auditor can serve in a prescribed company before mandatory cooling-off?",
-            options: [
-              "One term of 3 consecutive years",
-              "One term of 5 consecutive years",
-              "Two terms of 5 consecutive years",
-              "Ten consecutive years without cooling-off",
-            ],
-            correct_option_index: 1,
-            bare_act_citation: "Section 139(2)(a) of the Companies Act, 2013",
-            explanation:
-              "Under Section 139(2)(a), no listed company or prescribed class of companies shall appoint or re-appoint an individual as auditor for more than one term of five consecutive years.",
-          },
-        ],
-      },
-    ];
-
-    initialQuizzes.forEach((q) => quizzesTable.insert(q));
-    console.log("[Seeder] Quizzes seeded successfully.");
-  }
-
-  // 5. Seed Quiz Attempts for All-India Leaderboard if empty
-  const attemptsTable = Database.table("quiz_attempts");
-  if (attemptsTable.count() === 0) {
-    console.log("[Seeder] Seeding initial All-India leaderboard submissions...");
-
-    const initialAttempts = [
-      {
-        id: "att-seed-001",
-        quiz_id: "quiz-daily-01",
-        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        user_id: "usr-ranker-001",
-        candidate_name: "AIR 01 Candidate",
-        student_id: "LK-AIR-001",
-        score: 20,
-        total_marks: 20,
-        accuracy: 100.0,
-        correct_count: 5,
-        incorrect_count: 0,
-        unattempted_count: 0,
-        time_taken_seconds: 245,
-        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 1, "q-105": 1 },
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      },
-      {
-        id: "att-seed-002",
-        quiz_id: "quiz-daily-01",
-        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        user_id: "usr-ranker-002",
-        candidate_name: "AIR 02 Candidate",
-        student_id: "LK-AIR-002",
-        score: 18,
-        total_marks: 20,
-        accuracy: 90.0,
-        correct_count: 4,
-        incorrect_count: 1,
-        unattempted_count: 0,
-        time_taken_seconds: 310,
-        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 1, "q-105": 0 },
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-      },
-      {
-        id: "att-seed-003",
-        quiz_id: "quiz-daily-01",
-        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        user_id: "usr-ranker-003",
-        candidate_name: "AIR 03 Candidate",
-        student_id: "LK-AIR-003",
-        score: 17.5,
-        total_marks: 20,
-        accuracy: 88.0,
-        correct_count: 4,
-        incorrect_count: 1,
-        unattempted_count: 0,
-        time_taken_seconds: 340,
-        answers: { "q-101": 1, "q-102": 1, "q-103": 1, "q-104": 0, "q-105": 1 },
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-      },
-      {
-        id: "att-seed-004",
-        quiz_id: "quiz-daily-01",
-        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        user_id: "usr-student-001",
-        candidate_name: "Enrolled Candidate",
-        student_id: "LK-STU-084201",
-        score: 16,
-        total_marks: 20,
-        accuracy: 80.0,
-        correct_count: 4,
-        incorrect_count: 1,
-        unattempted_count: 0,
-        time_taken_seconds: 420,
-        answers: { "q-101": 1, "q-102": 1, "q-103": 0, "q-104": 1, "q-105": 1 },
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-      },
-      {
-        id: "att-seed-005",
-        quiz_id: "quiz-daily-01",
-        quiz_title: "All-India Daily Legal Challenge: Companies Act, 2013 (Sec 96-122)",
-        user_id: "usr-ranker-005",
-        candidate_name: "Exemption Candidate",
-        student_id: "LK-EXM-005",
-        score: 14,
-        total_marks: 20,
-        accuracy: 75.0,
-        correct_count: 3,
-        incorrect_count: 1,
-        unattempted_count: 1,
-        time_taken_seconds: 480,
-        answers: { "q-101": 1, "q-102": 1, "q-103": 1 },
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-      },
-    ];
-
-    initialAttempts.forEach((a) => attemptsTable.insert(a));
-    console.log("[Seeder] Leaderboard attempts seeded successfully.");
-  }
-
-  console.log("[Seeder] Seeding completed!");
+  console.log("[Seeder] Seeding complete.");
 }
 
 module.exports = seed;
-
-// Run directly if invoked from command line
-if (require.main === module) {
-  seed();
-}
-

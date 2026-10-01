@@ -49,7 +49,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
@@ -59,7 +59,7 @@ export default function CartPage() {
               Shopping Basket
             </h1>
             <p className="text-xs sm:text-sm text-slate-600">
-              Review your course selections, choose digital or printed formats &amp; apply ranker coupons
+              Review your statutory law codices, apply ranker coupons &amp; unlock instant in-web reader access
             </p>
           </div>
           {items.length > 0 && (
@@ -93,30 +93,22 @@ export default function CartPage() {
             <div className="lg:col-span-8 space-y-4">
               {items.map((item) => (
                 <div
-                  key={`${item.id}-${item.format}`}
-                  className="bg-white border border-sky-100 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  key={item.id}
+                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1.5 max-w-md">
-                    <span className="text-[10px] font-bold tracking-wider text-[#0284C7] uppercase bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
-                      {item.category || "Study Material"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold tracking-wider text-[#0071E3] uppercase bg-[#0071E3]/[0.08] px-2 py-0.5 rounded-full border border-[#0071E3]/20">
+                        Encrypted PDF
+                      </span>
+                      <span className="text-xs text-slate-500">{item.category}</span>
+                    </div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 font-serif leading-snug">
                       {item.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span>Format:</span>
-                      <select
-                        value={item.format}
-                        onChange={(e) =>
-                          changeFormat(item.id, item.format, e.target.value as BookFormat)
-                        }
-                        className="py-0.5 px-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 bg-white"
-                      >
-                        <option value="pdf">Encrypted PDF (Instant)</option>
-                        <option value="paperback">Deluxe Hardcopy (Doorstep)</option>
-                        <option value="combo">Combo Pass (PDF + Book + Mocks)</option>
-                      </select>
-                    </div>
+                    <p className="text-xs text-slate-500">
+                      Online browser reading in student workspace.
+                    </p>
                   </div>
 
                   <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3">
@@ -134,7 +126,7 @@ export default function CartPage() {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center border border-slate-200 rounded-lg">
                         <button
-                          onClick={() => updateQuantity(item.id, item.format, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="p-1.5 hover:bg-slate-50 text-slate-600 cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
@@ -143,7 +135,7 @@ export default function CartPage() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.format, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="p-1.5 hover:bg-slate-50 text-slate-600 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -151,7 +143,7 @@ export default function CartPage() {
                       </div>
 
                       <button
-                        onClick={() => removeFromCart(item.id, item.format)}
+                        onClick={() => removeFromCart(item.id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -214,8 +206,8 @@ export default function CartPage() {
                     </div>
                   )}
                   <div className="flex justify-between text-slate-600">
-                    <span>Pan-India Delivery:</span>
-                    <span className="text-emerald-600 font-semibold">FREE</span>
+                    <span>DRM Codex Delivery:</span>
+                    <span className="text-emerald-600 font-semibold">Instant In-Web Activation</span>
                   </div>
                   <div className="flex justify-between text-base font-extrabold text-slate-900 pt-3 border-t border-slate-100">
                     <span>Final Total:</span>

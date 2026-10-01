@@ -54,9 +54,9 @@ export function CertificateGeneratorModal({
       <div className="relative w-full max-w-4xl bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 max-h-[95vh] overflow-y-auto space-y-6">
         
         {/* Top Header Actions */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold shrink-0">
               <Award className="w-5 h-5" />
             </div>
             <div>
@@ -69,11 +69,11 @@ export function CertificateGeneratorModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <button
               onClick={handleDownload}
               disabled={isDownloading}
-              className="px-4 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="flex-1 sm:flex-initial px-4 py-2.5 min-h-[44px] rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {isDownloading ? (
                 <>
@@ -90,7 +90,8 @@ export function CertificateGeneratorModal({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -105,7 +106,7 @@ export function CertificateGeneratorModal({
         )}
 
         {/* Certificate Frame Preview */}
-        <div className="relative bg-[#FAFAF9] border-8 border-double border-amber-900/20 rounded-2xl p-6 sm:p-10 shadow-lg text-center space-y-6 overflow-hidden">
+        <div className="relative bg-[#FAFAF9] border-4 sm:border-8 border-double border-amber-900/20 rounded-2xl p-4 sm:p-10 shadow-lg text-center space-y-6 overflow-hidden">
           {/* Subtle Watermark Backdrop */}
           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
             <Award className="w-96 h-96 text-amber-900" />
@@ -113,10 +114,10 @@ export function CertificateGeneratorModal({
 
           {/* Certificate Header */}
           <div className="space-y-1 relative z-10">
-            <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-amber-800 font-bold block">
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.15em] sm:tracking-[0.25em] text-amber-800 font-bold block">
               The Law Kaksha Academy • Academic Credential
             </span>
-            <h2 className="text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight">
               Certificate of Legal Mastery
             </h2>
             <p className="text-xs font-serif italic text-slate-500">
@@ -126,7 +127,7 @@ export function CertificateGeneratorModal({
 
           {/* Recipient Name */}
           <div className="relative z-10 py-2 border-b-2 border-amber-800/20 max-w-md mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#0284C7] tracking-normal">
+            <h1 className="text-xl sm:text-3xl font-serif font-black text-[#0284C7] tracking-normal">
               {studentName}
             </h1>
             <span className="text-xs font-mono text-slate-500 mt-0.5 block">
@@ -148,13 +149,13 @@ export function CertificateGeneratorModal({
           </div>
 
           {/* Signatures & Seal */}
-          <div className="relative z-10 pt-6 grid grid-cols-3 items-end border-t border-amber-800/10 text-xs">
+          <div className="relative z-10 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-2 items-center sm:items-end border-t border-amber-800/10 text-xs">
             {/* Left Signature */}
-            <div className="text-left space-y-1">
+            <div className="text-center sm:text-left space-y-1">
               <div className="font-serif italic font-bold text-slate-800 text-sm">
                 Faculty Directorate
               </div>
-              <div className="h-0.5 bg-slate-300 w-28" />
+              <div className="h-0.5 bg-slate-300 w-28 mx-auto sm:mx-0" />
               <span className="text-[10px] text-slate-500 block">Chairperson, Academic Council</span>
               <span className="text-[9.5px] text-slate-400 block font-medium">Head of Legal Academics</span>
             </div>
@@ -170,18 +171,18 @@ export function CertificateGeneratorModal({
             </div>
 
             {/* Right Signature */}
-            <div className="text-right space-y-1">
+            <div className="text-center sm:text-right space-y-1">
               <div className="font-serif italic font-bold text-slate-800 text-sm">
                 Examination Board
               </div>
-              <div className="h-0.5 bg-slate-300 w-28 ml-auto" />
+              <div className="h-0.5 bg-slate-300 w-28 mx-auto sm:ml-auto" />
               <span className="text-[10px] text-slate-500 block">Director of Legal Evaluation</span>
               <span className="text-[9.5px] text-slate-400 block font-medium">Academic Examination Board</span>
             </div>
           </div>
 
           {/* Verification Footer */}
-          <div className="relative z-10 pt-2 text-[10px] font-mono text-slate-400 flex items-center justify-between border-t border-slate-100">
+          <div className="relative z-10 pt-2 text-[10px] font-mono text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-1 border-t border-slate-100">
             <span>Issued on: {issueDate}</span>
             <span className="text-emerald-700 font-bold flex items-center gap-1">
               <Shield className="w-3 h-3" />

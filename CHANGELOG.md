@@ -53,7 +53,7 @@ All decisions, refinements, design token alignments, and component standardizati
     8. **Promo Codes & Coupons**: Standard coupon creator and usage tracker.
 - **Strict Brand Anonymization & Standardization**:
   - Removed all personal author, owner, and faculty names across entire frontend, backend, seeds, and database records.
-  - Replaced personal references with standard institutional designations: *"Faculty Directorate (Corporate Law)"*, *"Academic Council"*, *"Enrolled Candidate"*, *"AIR 03 Candidate"*.
+  - Replaced personal references with standard institutional designations: *"Faculty Directorate (Corporate Law)"*, *"Academic Council"*, *"Enrolled Candidate"*, *"Merit Candidate"*.
   - Standardized all form fields and inputs to use clear, professional notations (`Full Name`, `name@domain.com`, `+91 9876543210`, `Standard Price (INR)`, `Units`, `YYYY-MM-DD`, `HH:MM IST`, `https://meet.provider.com/room`) without personal name examples.
 - **Build & Verification**:
   - Next.js 16 production build compiled with 100% type safety and zero errors across all 13 routes.

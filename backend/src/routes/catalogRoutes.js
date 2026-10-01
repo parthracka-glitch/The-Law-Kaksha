@@ -1,160 +1,170 @@
 /**
- * The Law Kaksha - Product Catalog & Reviews Routes
+ * The Law Kaksha — Catalog Routes
+ * Serves courses, acts/units, shopping catalog products, and content for CA Foundation & CSEET
  */
 
 const express = require("express");
+const router = express.Router();
 const Database = require("../db/database");
 
-const router = express.Router();
+// Academic Catalog: Official CA Foundation & CSEET Subscription Courses
+const CATALOG_PRODUCTS = [
+  {
+    id: "course-ca-foundation-sub",
+    slug: "ca-foundation-business-laws-monthly-access",
+    type: "course",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Business Laws",
+    subtitle: "Complete 7 Chapters Study Notes, Case Studies & Question Bank",
+    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes, practice questions, weekly case problems, and model solutions.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CA Foundation Paper 2",
+    examBody: "ICAI",
+    pages_or_duration: "7 Chapters (ICAI Scheme)",
+    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    highlights: [
+      "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
+      "Weekly descriptive case study practice with model solutions",
+      "Downloadable DRM-protected study PDFs",
+      "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
+    ],
+  },
+  {
+    id: "course-cseet-sub",
+    slug: "cseet-business-law-management-monthly-access",
+    type: "course",
+    courseId: "course-cseet",
+    title: "CSEET Business Law & Management",
+    subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
+    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CSEET Paper 2",
+    examBody: "ICSI",
+    pages_or_duration: "8 Units (ICSI Syllabus)",
+    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    highlights: [
+      "Comprehensive notes for all 8 Business Law and Management units",
+      "Chapter-wise practice MCQs with explanations for each option",
+      "Weekly timed mock tests with instant score reports",
+      "Last Day Revision (LDR) summaries and concept flowcharts",
+    ],
+  },
+];
 
-// 1. GET /api/catalog — List products with search, filter, and sorting
+
+// GET /api/catalog — List all catalog products with rich filters
 router.get("/catalog", (req, res) => {
-  try {
-    const { category, type, search, sort } = req.query;
-    const productsTable = Database.table("products");
+  let products = [...CATALOG_PRODUCTS];
 
-    let products = productsTable.find((p) => p.status === "published");
-
-    // Filter by type (book, mcq, video, evaluation)
-    if (type && type !== "all") {
-      products = products.filter((p) => p.type === type.toLowerCase());
-    }
-
-    // Filter by category
-    if (category && category !== "all") {
-      products = products.filter((p) =>
-        p.category.toLowerCase().includes(category.toLowerCase())
-      );
-    }
-
-    // Live search query matching title, subtitle, or highlights
-    if (search && search.trim()) {
-      const q = search.trim().toLowerCase();
-      products = products.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          (p.subtitle && p.subtitle.toLowerCase().includes(q)) ||
-          p.description.toLowerCase().includes(q) ||
-          (Array.isArray(p.highlights) &&
-            p.highlights.some((h) => h.toLowerCase().includes(q)))
-      );
-    }
-
-    // Sorting: price-asc, price-desc, popular
-    if (sort === "price-asc") {
-      products.sort((a, b) => a.price - b.price);
-    } else if (sort === "price-desc") {
-      products.sort((a, b) => b.price - a.price);
-    }
-
-    return res.status(200).json({
-      success: true,
-      count: products.length,
-      items: products,
-      products,
-    });
-  } catch (err) {
-    console.error("[Catalog] List error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+  if (req.query.type && req.query.type !== "all") {
+    products = products.filter((p) => p.type === req.query.type);
   }
-});
-
-// 2. GET /api/catalog/:idOrSlug — Get complete product details with syllabus and reviews
-router.get("/catalog/:idOrSlug", (req, res) => {
-  try {
-    const { idOrSlug } = req.params;
-    const productsTable = Database.table("products");
-    const reviewsTable = Database.table("reviews");
-
-    const product = productsTable.findOne(
-      (p) => p.id === idOrSlug || p.slug === idOrSlug
+  if (req.query.courseId && req.query.courseId !== "all") {
+    products = products.filter((p) => p.courseId === req.query.courseId);
+  }
+  if (req.query.search) {
+    const q = req.query.search.toLowerCase().trim();
+    products = products.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.subtitle.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
     );
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found.",
-      });
-    }
-
-    // Attach approved reviews for this product
-    const productReviews = reviewsTable.find(
-      (r) => r.product_id === product.id && r.is_approved === 1
-    );
-
-    return res.status(200).json({
-      success: true,
-      item: {
-        ...product,
-        reviews: productReviews,
-      },
-      product: {
-        ...product,
-        reviews: productReviews,
-      },
-    });
-  } catch (err) {
-    console.error("[Catalog] Detail error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
   }
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products,
+    items: products,
+  });
 });
 
-// 3. GET /api/catalog/:id/preview — Fetch public 2-3 page watermarked sample preview
-router.get("/catalog/:id/preview", (req, res) => {
-  try {
-    const { id } = req.params;
-    const productsTable = Database.table("products");
-    const product = productsTable.findById(id);
+// GET /api/catalog/:id — Get a single product's complete details
+router.get("/catalog/:id", (req, res) => {
+  const product = CATALOG_PRODUCTS.find(
+    (p) => p.id === req.params.id || p.slug === req.params.id
+  );
 
-    if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found." });
-    }
-
-    return res.status(200).json({
-      success: true,
-      productId: product.id,
-      title: product.title,
-      previewFile: product.preview_file,
-      totalPages: 6,
-      samplePages: [
-        {
-          pageNumber: 1,
-          label: "Cover & Bare Act Preamble",
-          content: "THE LAW KAKSHA — CA LAW ACADEMY\nVolume 1: Companies Act 2013 Statutory Codex (2026-2027 Scheme)\nAuthentic Bare Act Sections with Judicial Precedents",
-        },
-        {
-          pageNumber: 2,
-          label: "Chapter 1: Preliminary & Core Definitions",
-          content: "Section 2(20) 'Company' & Section 2(71) 'Public Company'\nAnalysis: A company means a company incorporated under this Act or any previous company law.",
-        },
-        {
-          pageNumber: 3,
-          label: "Section 96: Annual General Meeting (AGM) Rules",
-          content: "Every company other than an OPC shall hold in each year an AGM.\nTime Gap: Not more than 15 months shall elapse between the date of one AGM and the next.",
-        },
-      ],
-      watermark: "SAMPLE PREVIEW — THE LAW KAKSHA",
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found in catalog.",
     });
-  } catch (err) {
-    console.error("[Catalog] Preview error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
   }
+
+  res.status(200).json({
+    success: true,
+    product,
+    item: product,
+  });
 });
 
-// 4. GET /api/reviews — Get all verified student reviews
-router.get("/reviews", (req, res) => {
-  try {
-    const reviewsTable = Database.table("reviews");
-    const reviews = reviewsTable.find((r) => r.is_approved === 1);
-    return res.status(200).json({
-      success: true,
-      count: reviews.length,
-      reviews,
-    });
-  } catch (err) {
-    console.error("[Reviews] List error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+// GET /api/courses — List all courses
+router.get("/courses", (req, res) => {
+  const coursesTable = Database.table("courses");
+  const courses = coursesTable.find();
+  res.status(200).json({ success: true, courses });
+});
+
+// GET /api/courses/:courseId — Get a specific course
+router.get("/courses/:courseId", (req, res) => {
+  const coursesTable = Database.table("courses");
+  const course = coursesTable.findOne((c) => c.id === req.params.courseId);
+  if (!course) {
+    return res.status(404).json({ success: false, message: "Course not found" });
   }
+  res.status(200).json({ success: true, course });
+});
+
+// GET /api/courses/:courseId/acts — Get acts/units for a course
+router.get("/courses/:courseId/acts", (req, res) => {
+  const actsTable = Database.table("acts");
+  const acts = actsTable
+    .find((a) => a.courseId === req.params.courseId)
+    .sort((a, b) => a.order - b.order);
+  res.status(200).json({ success: true, acts });
+});
+
+// GET /api/courses/:courseId/content — Get all content for a course
+router.get("/courses/:courseId/content", (req, res) => {
+  const contentTable = Database.table("content");
+  let content = contentTable.find((c) => c.courseId === req.params.courseId);
+
+  if (req.query.type) {
+    content = content.filter((c) => c.type === req.query.type);
+  }
+  if (req.query.actId) {
+    content = content.filter((c) => c.actId === req.query.actId);
+  }
+  if (req.query.sampleOnly === "true") {
+    content = content.filter((c) => c.isSample === true);
+  }
+
+  res.status(200).json({ success: true, content });
+});
+
+// GET /api/courses/:courseId/weekly — Get weekly content
+router.get("/courses/:courseId/weekly", (req, res) => {
+  const weeklyContentTable = Database.table("weekly_content");
+  const weekly = weeklyContentTable.find(
+    (w) => w.courseId === req.params.courseId && w.status === "active"
+  );
+  res.status(200).json({ success: true, weekly });
+});
+
+// GET /api/courses/:courseId/free-resources — Get free/sample resources
+router.get("/courses/:courseId/free-resources", (req, res) => {
+  const contentTable = Database.table("content");
+  const freeContent = contentTable.find(
+    (c) => c.courseId === req.params.courseId && c.isSample === true
+  );
+  res.status(200).json({ success: true, freeResources: freeContent });
 });
 
 module.exports = router;

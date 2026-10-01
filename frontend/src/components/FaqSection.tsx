@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
 export function FaqSection() {
@@ -9,20 +8,20 @@ export function FaqSection() {
 
   const faqs = [
     {
-      q: "What makes The Law Kaksha CA Reviewers different from ordinary exam scanners?",
-      a: "The Law Kaksha organizes questions strictly chapter-by-chapter rather than chronological heaps. Each chapter begins with an executive section matrix, ABC weightage category tags, 9 attempts of solved RTPs, MTPs & Suggested Answers, and structured 3-step descriptive answer templates (Provision, Analysis, Conclusion) matching ICAI examiner guidelines.",
+      q: "What is included in the ₹99/month CA Foundation & CSEET subscription?",
+      a: "The ₹99/month subscription gives you complete access to all 7 ICAI CA Foundation Business Laws chapters or all 8 ICSI CSEET units, comprehensive simplified PDF notes, weekly case studies, weekly 30-question MCQ tests, and 1.5-day LDR quick revision flowcharts.",
     },
     {
-      q: "Are the materials updated for the ICAI New Scheme (2026-2027 Exams)?",
-      a: "Yes, 100%. All our CA Foundation (Business Laws), CA Intermediate (Paper 2 Corporate & Other Laws), and CA Final (Corporate & Economic Laws) materials are fully compliant with the latest ICAI New Scheme, incorporating recent MCA notifications, CSR Section 135 amendments, and updated IBC/SEBI regulations.",
+      q: "Where can I find the free sample notes for Indian Partnership Act, 1932?",
+      a: "You can download all 3 sample unit PDFs (Unit 1: General Nature of Partnership, Unit 2: Relations of Partners, Unit 3: Registration and Dissolution of Firm) directly in the free sample preview modal or under the Notes section in the student dashboard.",
     },
     {
-      q: "How does The Law Kaksha help in scoring 30/30 in the mandatory Case-Scenario MCQs?",
-      a: "Volume 1 contains over 1,200+ case scenario and analytical MCQs designed strictly on the ICAI pattern. Each question features detailed statutory rationale and reasoning so you never get trapped by subtle examiner distractors.",
+      q: "What are the Weekly 3 Case Studies for CA Foundation?",
+      a: "Every week, CA Foundation students receive 3 high-yield practical case studies: Monster Monday (complex application), Midweek Law Madness (statutory trick questions), and Final Boss Friday (exam-standard simulation) with step-by-step model answers.",
     },
     {
-      q: "How quickly do I receive my 2-Volume Books and Course video lectures?",
-      a: "Digital PDF access and video lectures activate immediately on your CA Student Portal upon checkout. Physical 2-Volume Deluxe Box Sets are packed in protective weatherproof boxing and dispatched via express air courier with live AWB tracking within 24 hours, typically reaching your address within 2-4 business days across India.",
+      q: "How do the CSEET Weekly 30-Question MCQ Tests work?",
+      a: "CSEET students get a real-time timed test every week covering the 8 ICSI units (Business Laws & Management) with instant score calculation, question-by-question explanations, and platform leaderboard ranking.",
     },
   ];
 
@@ -31,7 +30,7 @@ export function FaqSection() {
   };
 
   return (
-    <section id="faqs" className="py-12 sm:py-16 bg-white text-[#1D1D1F] border-b border-black/[0.05]">
+    <section id="faqs" className="py-12 sm:py-16 bg-white text-[#1D1D1F]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -59,7 +58,7 @@ export function FaqSection() {
               >
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full flex items-center justify-between gap-4 p-5 text-left font-semibold text-xs sm:text-sm text-[#1D1D1F] cursor-pointer"
+                  className="w-full flex items-center justify-between gap-4 p-5 text-left font-semibold text-sm sm:text-sm text-[#1D1D1F] cursor-pointer min-h-[52px]"
                   aria-expanded={isOpen}
                 >
                   <span className="leading-snug">{faq.q}</span>
@@ -71,7 +70,7 @@ export function FaqSection() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs text-[#6E6E73] leading-relaxed border-t border-black/[0.04] animate-in fade-in duration-200">
+                  <div className="px-5 pb-5 pt-1 text-[13px] sm:text-xs text-[#6E6E73] leading-relaxed border-t border-black/[0.04] animate-in fade-in duration-200">
                     <p>{faq.a}</p>
                   </div>
                 )}

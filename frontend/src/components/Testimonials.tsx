@@ -1,57 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Sparkles, CheckCircle, ShieldCheck } from "lucide-react";
+import { Star, Sparkles, CheckCircle } from "lucide-react";
 
 export function Testimonials() {
   const testimonials = [
     {
-      name: "AIR 19 Candidate",
-      rank: "AIR 19 • CA Final All-India",
-      tag: "CA Final (82 in Law)",
-      verifiedBadge: "82 Marks in Law",
+      name: "Rohan V.",
+      rank: "88 Marks in Business Laws • CA Foundation",
+      tag: "CA Foundation",
+      verifiedBadge: "88 Marks in Law",
       content:
-        "The Law Kaksha 2-Volume Codex and SEBI/IBC case scenarios are unmatched in clarity. The 9-attempt solved RTP/MTP compilations and ICAI examiner rubrics helped me score 82 marks in Paper 2 Corporate & Economic Laws.",
+        "The step-by-step case study decoding for Indian Contract Act and Sale of Goods Act is brilliant. The 3 weekly case studies taught me exactly how ICAI evaluators award marks for relevant provisions, facts, and conclusions.",
     },
     {
-      name: "AIR 04 Candidate",
-      rank: "AIR 04 • CA Intermediate",
-      tag: "CA Inter (Group 1)",
-      verifiedBadge: "AIR 04 Qualifier",
+      name: "Pooja S.",
+      rank: "CSEET Cleared • 1st Attempt",
+      tag: "CSEET Exam",
+      verifiedBadge: "CSEET Passed",
       content:
-        "Companies Act 2013 Chapter VII (Management & Administration) used to confuse me with multiple quorum & meeting provisions. The Law Kaksha flowcharts and 1,200+ case scenario MCQs made law my highest scoring subject.",
+        "The weekly 30-question MCQ tests with instant scoring and detailed explanations made Business Law and Principles of Management my strongest section. The notes are crisp and exam-focused.",
     },
     {
-      name: "AIR 31 Candidate",
-      rank: "AIR 31 • CA Final (Nov Batch)",
-      tag: "CA Final Law",
+      name: "Ananya M.",
+      rank: "84 Marks in Paper 2 • CA Foundation",
+      tag: "CA Foundation",
       verifiedBadge: "Exemption in Law",
       content:
-        "The IBC 2016 CIRP timelines and SEBI LODR compliance templates in Volume 2 gave me exact structured presentation during the 3-hour exam. Truly essential for every serious CA aspirant.",
+        "The Partnership Act 3-unit notes and Section 16(1) Caveat Emptor model answers made all the difference. I was able to revise the entire 7 chapters in 1.5 days using the LDR bookmarks.",
     },
     {
-      name: "Foundation Merit Candidate",
-      rank: "86 Marks in Business Law • CA Foundation",
-      tag: "CA Foundation",
-      verifiedBadge: "Foundation Topper",
+      name: "Karan D.",
+      rank: "CSEET Law & Mgt Student",
+      tag: "CSEET Law & Mgt",
+      verifiedBadge: "High Distinction",
       content:
-        "The step-by-step case study deduction technique for Indian Contract Act and Sale of Goods Act is brilliant. It taught me exactly how ICAI evaluators award marks for statutory provision, facts, and conclusion.",
-    },
-    {
-      name: "AIR 12 Candidate",
-      rank: "AIR 12 • CA Intermediate",
-      tag: "CA Inter Law",
-      verifiedBadge: "79 Marks in Law",
-      content:
-        "The General Clauses Act and Interpretation of Statutes modules simplified sections that most students skip. The 1.5-day LDR capsule before the exam was a total lifesaver.",
-    },
-    {
-      name: "First Attempt Qualifier",
-      rank: "First Attempt Qualifier • CA Final",
-      tag: "CA Final Multi-Disciplinary",
-      verifiedBadge: "First Attempt CA",
-      content:
-        "The Law Kaksha video lectures and model answers bridge the gap between textbook theory and practical ICAI case scenarios. I recommend their 2-Volume books to every articleship student.",
+        "The chapter-wise MCQ bank and visual summary flowcharts for Negotiable Instruments Act and Companies Act overview helped me recall provisions instantly during the exam.",
     },
   ];
 
@@ -66,13 +49,13 @@ export function Testimonials() {
         <div className="text-center max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F5F5F7] border border-black/[0.06] text-xs font-medium text-[#1D1D1F] mb-2.5">
             <Sparkles className="w-3.5 h-3.5 text-[#0071E3]" />
-            <span>Proven CA Ranker Results</span>
+            <span>Student Success Stories</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
-            Trusted by <span className="text-[#0071E3]">CA All-India Rankers</span>
+            Trusted by <span className="text-[#0071E3]">CA &amp; CS Aspirants</span>
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-[#6E6E73] leading-relaxed">
-            Real feedback from CA Foundation, Intermediate &amp; Final toppers who scored 75+ and 80+ in ICAI Law papers.
+            Real feedback from CA Foundation &amp; CSEET students who mastered law papers through our simplified notes.
           </p>
         </div>
       </div>
@@ -80,8 +63,8 @@ export function Testimonials() {
       {/* Infinite Auto-Scrolling Carousel Track Container */}
       <div className="relative w-full overflow-hidden py-2">
         {/* Left & Right Smooth Gradient Masks */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-[#FBFBFD] via-[#FBFBFD]/80 to-transparent z-10" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-[#FBFBFD] via-[#FBFBFD]/80 to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
 
         {/* Continuous Auto-Scrolling Row */}
         <div className="flex gap-5 animate-marquee hover:[animation-play-state:paused] cursor-grab active:cursor-grabbing w-max">
@@ -132,7 +115,7 @@ export function Testimonials() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 flex items-center justify-center gap-4 text-[11px] text-[#86868B]">
         <span className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3] animate-pulse"></span>
-          Auto-scrolling live CA testimonials (Hover to pause)
+          Auto-scrolling live testimonials (Hover to pause)
         </span>
       </div>
     </section>

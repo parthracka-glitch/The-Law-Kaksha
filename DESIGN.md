@@ -38,7 +38,7 @@ CA Law education platform (books, DRM PDFs, video lectures, mains test series) f
 
 ## 4. Leaf motif (5-petal, from the logo): controlled, subtle, low opacity
 - Anatomy: 5 translucent organic petals radiating up and out, layered opacity: Royal #005A9C 100% > Sky #4A90E2 70% > Pale Azure #8ECAE6 50% > Soft Steel #B0C4DE 30%.
-- ALLOWED ONLY: hero backdrop (5-10% opacity behind book covers); section dividers; empty and success states (line-art); AIR ranker cards and Mastermind combo card (corner watermark); login/register backdrop; order-success beside the green check; footer near brand statement; error-page accent.
+- ALLOWED ONLY: hero backdrop (5-10% opacity behind book covers); section dividers; empty and success states (line-art); Top ranker cards and Mastermind combo card (corner watermark); login/register backdrop; order-success beside the green check; footer near brand statement; error-page accent.
 - NEVER: data tables, checkout inputs, PDF reader, video player, quiz modal, chat drawer, admin console. Decorative only; never obstructs text or inputs.
 
 ## 5. Shape, spacing & elevation

@@ -38,7 +38,7 @@
   1. *Hero Backgrounds*: Faint, low-opacity watermark motif framing the book showcase.
   2. *Section Transitions*: Subtle divider flourish between major editorial zones.
   3. *Empty States*: Stylized leaf line-art in empty carts, no-submission states, or cleared notifications.
-  4. *Selective Cards*: Delicate corner watermark on AIR Ranker awards and Mastermind combo cards.
+  4. *Selective Cards*: Delicate corner watermark on Top Ranker awards and Mastermind combo cards.
   5. *Authentication Screens*: Minimal backdrop accent on Login and Registration containers.
   6. *Success States*: Celebratory botanical flourish alongside the green checkmark on Order Confirmation.
   7. *Footer & Marketing Areas*: Grounding floral insignia near the brand mission statement.
@@ -217,9 +217,9 @@ Each area of the platform maintains the shared brand DNA while adopting its purp
 #### 1.6 Proven CA Ranker Testimonials Marquee
 * **Section Header**:
   * Tag: `"Proven Results"`
-  * Heading (H2): `"Trusted by Top AIR Rankers Across India"`
+  * Heading (H2): `"Trusted by Top Rankers Across India"`
 * **Testimonial Cards (Infinite Scrolling Stream)**:
-  * Student Name, City, Score Badge (`"74/100 in CA Inter Law"`, `"AIR 14 CA Final"`)
+  * Student Name, City, Score Badge (`"74/100 in CA Inter Law"`, `"Rank 14 Distinction"`)
   * Review Quote: `"The structured flowchart approach and chapter-wise case laws helped me revise the entire 450 pages of Companies Act in under 1.5 days before the exam."`
   * Verification Stamp: `"Verified Student ID"`
 
@@ -338,14 +338,14 @@ Each area of the platform maintains the shared brand DNA while adopting its purp
   * Metric 3: `"4.9 / 5.0"` -> `"Average Student Satisfaction Score"`
 
 #### 5.2 Filter Tabs
-* `[All Reviews]` `[AIR Rankers]` `[CA Intermediate]` `[CA Final]` `[CA Foundation]`
+* `[All Reviews]` `[Top Rankers]` `[CA Intermediate]` `[CA Final]` `[CA Foundation]`
 
 #### 5.3 Testimonial Cards
 * **Elements**:
   * Student Photo / Avatar
   * Student Name, City/State
   * Exam Level & Score: `"CA Inter Law • 78 Marks (Exemption)"`
-  * Rank Badge (if applicable): `"AIR 18 • Nov 2025 Attempt"`
+  * Rank Badge (if applicable): `"Merit Ranker • Nov 2025 Attempt"`
   * Verified Student ID Pill: `"Student #LRK-2025-0814"`
   * Testimonial Body Text: Detailed student feedback on preparation strategy.
 
@@ -725,7 +725,7 @@ Each area of the platform maintains the shared brand DNA while adopting its purp
 * **Key Clauses**:
   * Clause 1: Digital PDF Codices (Non-refundable once digital key is accessed in vault).
   * Clause 2: Physical Paperback Books (Replacement within 7 days for damaged/misprinted copies).
-  * Clause 3: 100% AIR Ranker Cash Refund Scheme Terms.
+  * Clause 3: 100% Top Ranker Cash Refund Scheme Terms.
 
 ### Page 26: Shipping & Delivery Policy (`/shipping-policy`)
 * **Header**: `"Shipping, Logistics & Delivery Policy"`

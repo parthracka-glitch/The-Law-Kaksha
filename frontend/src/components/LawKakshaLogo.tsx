@@ -31,7 +31,7 @@ export function LawKakshaLogo({
     ? "/images/logo-white.png"
     : isDark
     ? "/images/logo-dark.png"
-    : "/images/logo.png";
+    : "/assets/logo law kaskah .png";
 
   const sizeConfig = SIZE_MAP[size] || SIZE_MAP.md;
 

@@ -172,7 +172,7 @@ export function MainsEvaluationDeskModal({
                     Marks Awarded: <span className="text-[#0071E3]">{currentQ.score}</span>
                   </h4>
                   <p className="text-xs text-[#86868B]">
-                    Evaluated by <strong className="text-[#1D1D1F] font-semibold">{currentQ.evaluatorName}</strong> • Benchmark: Top 2% in All-India Batch
+                    Evaluated by <strong className="text-[#1D1D1F] font-semibold">{currentQ.evaluatorName}</strong> • Benchmark: Top Score Range
                   </p>
                 </div>
 

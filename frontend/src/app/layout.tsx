@@ -1,31 +1,38 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-dm-sans",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://thelawkaksha.com"),
-  title: "The Law Kaksha | Premier CA Law Academy • CA Foundation, Inter & Final",
+  title: "The Law Kaksha | CA Foundation Business Law Smart Question Bank",
   description:
-    "The Law Kaksha is India's premier CA law preparation platform offering 2-Volume Flagship Books, solved RTPs/MTPs/PYPs, case scenario MCQs, and complete video course subscriptions for CA Foundation (Business Law), CA Intermediate (Corporate & Other Laws), and CA Final (Corporate & Economic Laws).",
+    "The Law Kaksha is a dedicated CA Foundation Business Law platform offering Part 1 & Part 2 Smart Revision Question Banks in instant soft copy PDF format, covering all 7 legislative units under the latest ICAI New Scheme.",
   keywords: [
-    "CA Law Kaksha",
+    "The Law Kaksha",
     "CA Foundation Business Law",
-    "CA Intermediate Paper 2 Corporate and Other Laws",
-    "CA Final Corporate and Economic Laws",
-    "ICAI Law Reviewer",
-    "Companies Act 2013 CA Inter",
-    "IBC 2016 CA Final",
-    "CA Law RTP MTP Solved",
+    "CA Foundation Paper 2",
+    "Indian Contract Act 1872",
+    "Companies Act 2013 CA Foundation",
+    "Sale of Goods Act 1930",
+    "Indian Partnership Act 1932",
+    "LLP Act 2008",
+    "Negotiable Instruments Act 1881",
     "ICAI New Scheme 2026",
   ],
-  authors: [{ name: "The Law Kaksha CA Academy" }],
+  authors: [{ name: "The Law Kaksha" }],
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -37,9 +44,9 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "The Law Kaksha | Premier CA Law Academy",
+    title: "The Law Kaksha | CA Foundation Business Law Smart Question Bank",
     description:
-      "2-Volume Flagship Law Books, 9-Attempt Solved RTPs/MTPs & Video Subscriptions for CA Foundation, Inter & Final.",
+      "Part 1 & Part 2 Smart Revision Question Banks in instant soft copy PDF format for CA Foundation Paper 2: Business Laws.",
     url: "https://thelawkaksha.com",
     siteName: "The Law Kaksha",
     images: [
@@ -47,7 +54,7 @@ export const metadata: Metadata = {
         url: "/images/logo.png",
         width: 849,
         height: 517,
-        alt: "The Law कक्षा - Premier CA Law Academy",
+        alt: "The Law Kaksha - CA Foundation Business Law",
       },
     ],
     locale: "en_IN",
@@ -55,8 +62,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Law Kaksha | CA Law Academy",
-    description: "Master CA Law & Regulations with Supreme Precision.",
+    title: "The Law Kaksha | CA Foundation Business Law",
+    description: "Master CA Foundation Paper 2 with our Smart Question Bank PDFs.",
     images: ["/images/logo.png"],
   },
 };
@@ -67,39 +74,32 @@ const jsonLdData = {
     {
       "@type": "EducationalOrganization",
       "@id": "https://thelawkaksha.com/#organization",
-      "name": "The Law Kaksha CA Academy",
+      "name": "The Law Kaksha",
       "url": "https://thelawkaksha.com",
       "logo": "https://thelawkaksha.com/logo.png",
       "description":
-        "Premier academic publishing house and mentorship academy for Chartered Accountancy law examinations in India.",
+        "Dedicated educational learning platform for CA Foundation Business Law examinations in India.",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Mumbai",
         "addressRegion": "Maharashtra",
-        "postalCode": "400021",
+        "postalCode": "400001",
         "addressCountry": "IN"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "3840",
-        "bestRating": "5",
-        "worstRating": "1"
       }
     },
     {
       "@type": "Course",
-      "@id": "https://thelawkaksha.com/#ca-course",
-      "name": "CA Business Law Main Notes & Video Masterclass",
+      "@id": "https://thelawkaksha.com/#ca-foundation-course",
+      "name": "CA Foundation Business Law Smart Question Bank",
       "description":
-        "Complete 5 statutory acts syllabus for CA Intermediate & Foundation with solved past RTPs, MTPs & case scenario question bank.",
+        "Complete 7 statutory acts syllabus for CA Foundation Paper 2 with chapter-wise questions, past papers, RTPs & ICAI model answer framework.",
       "provider": {
         "@type": "EducationalOrganization",
         "name": "The Law Kaksha"
       },
       "offers": {
         "@type": "Offer",
-        "price": "1999",
+        "price": "399",
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock"
       }
@@ -113,8 +113,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} font-sans scroll-smooth`}>
+    <html lang="en" className={`${dmSans.variable} ${playfair.variable} font-sans scroll-smooth`}>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}

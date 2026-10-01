@@ -172,7 +172,7 @@ export function MaterialOfferings() {
     "test-series": [
       {
         id: "judiciary-test-series",
-        title: "All-India Judiciary Prelims & Mains Test Series",
+        title: "Judiciary Prelims & Mains Test Series",
         attempt: "Full 2026 Season",
         badge: "50+ Tests + Evaluation",
         volume: "Test Series",
@@ -185,15 +185,15 @@ export function MaterialOfferings() {
       },
       {
         id: "clat-pg-test-series",
-        title: "CLAT PG All-India Mock Test Series",
+        title: "CLAT PG Mock Test Series",
         attempt: "2026 Batch",
-        badge: "Rank Booster Series",
+        badge: "Practice Test Series",
         volume: "Test Series",
         price: 699,
         originalPrice: 999,
         description:
           "Timed passage-based tests strictly modeled on the Consortium of NLUs official question paper blueprints.",
-        highlights: ["25 Full-Length NLUs Mocks", "Consortium Pattern Passages", "All-India Percentile Rank"],
+        highlights: ["25 Full-Length NLUs Mocks", "Consortium Pattern Passages", "Platform Percentile Rank"],
         subjects: ["25 Full-Length Tests", "Sectional Drills", "Case Law Digest", "Detailed Analysis"],
       },
       {

@@ -1,188 +1,208 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Clock,
+  Calendar,
   Sparkles,
   CheckCircle2,
   XCircle,
-  Bookmark,
-  Bell,
-  Check,
-  ChevronRight,
-  RotateCcw,
   BookOpen,
   ArrowRight,
-  Briefcase,
-  Building2,
+  Flame,
+  Award,
+  ChevronRight,
+  Bookmark,
+  Share2,
+  RotateCcw,
 } from "lucide-react";
 
-interface ExamTimer {
+interface ExamTarget {
   id: string;
   name: string;
-  tagline: string;
+  level: string;
   targetDate: string;
-  seats: string;
-  status: string;
-  colorTag: string;
+  syllabusCoverage: number;
+  totalHoursNeeded: number;
 }
 
-const EXAMS: ExamTimer[] = [
+const EXAM_TARGETS: ExamTarget[] = [
   {
-    id: "ca-inter-sept",
-    name: "CA Inter Paper 2 (Law) - Sept 2026",
-    tagline: "Group 1 Flagship Paper",
-    targetDate: "2026-09-16T14:00:00",
-    seats: "ICAI Admit Cards Active",
-    status: "RTP & MTP Solved Capsule Live",
-    colorTag: "CA Intermediate",
+    id: "ca-found",
+    name: "CA Foundation Business Laws",
+    level: "ICAI Paper 2 • 7 Chapters",
+    targetDate: "2026-12-15T09:00:00",
+    syllabusCoverage: 100,
+    totalHoursNeeded: 120,
   },
   {
-    id: "ca-final-nov",
-    name: "CA Final Corp & Economic Law - Nov 2026",
-    tagline: "Group 1 / Corporate Multi-Disciplinary",
-    targetDate: "2026-11-05T14:00:00",
-    seats: "National ICAI Batch Aligned",
-    status: "IBC & SEBI Master Bank Ready",
-    colorTag: "CA Final",
-  },
-  {
-    id: "ca-foundation-dec",
-    name: "CA Foundation Business Law - Dec 2026",
-    tagline: "Paper 2 Descriptive 100M",
-    targetDate: "2026-12-18T14:00:00",
-    seats: "Foundation Dec'26 Batch",
-    status: "Contract Act Caselet Drills",
-    colorTag: "CA Foundation",
-  },
-  {
-    id: "ca-inter-jan",
-    name: "CA Inter Paper 2 (Law) - Jan 2027",
-    tagline: "Winter 2027 Attempt",
-    targetDate: "2027-01-14T14:00:00",
-    seats: "ICAI New Scheme Synced",
-    status: "2026-2027 Amendments Synced",
-    colorTag: "CA Intermediate",
+    id: "cseet",
+    name: "CSEET Business Law & Management",
+    level: "ICSI • 8 Units",
+    targetDate: "2026-11-08T10:00:00",
+    syllabusCoverage: 100,
+    totalHoursNeeded: 80,
   },
 ];
 
-interface MCQItem {
+interface MCQScenario {
   id: string;
   subject: string;
   statutoryRef: string;
   question: string;
-  options: { text: string; pct: number; isCorrect?: boolean }[];
+  options: { text: string; isCorrect: boolean; pct: number }[];
   explanationTitle: string;
   explanation: string;
   keyDistinction: string;
 }
 
-const MCQ_POOL: MCQItem[] = [
+const MCQ_POOL: MCQScenario[] = [
   {
-    id: "ca-csr-135",
-    subject: "Companies Act, 2013 • Corporate Social Responsibility",
-    statutoryRef: "Section 135(1), Companies Act 2013",
+    id: "mcq-1",
+    subject: "Sale of Goods Act, 1930",
+    statutoryRef: "Section 16(1) • Caveat Emptor",
     question:
-      "A private limited company has a Net Profit of ₹6.2 Crores, Net Worth of ₹350 Crores, and Turnover of ₹480 Crores during FY 2025-26. Under Section 135 of the Companies Act 2013, which condition makes CSR Committee constitution mandatory?",
+      "A buyer purchased a hot water bottle from a chemist. Upon first usage, it burst and scalded the buyer's wife. Buyer did not state any special purpose. Can the buyer claim damages under Section 16(1)?",
     options: [
-      { text: "Company is exempt from CSR as turnover is below ₹500 Crores.", pct: 14 },
-      { text: "Mandatory because Net Profit exceeds ₹5 Crores during the immediately preceding financial year.", pct: 78, isCorrect: true },
-      { text: "Mandatory only if the proposed CSR expenditure exceeds ₹50 Lakhs in that year.", pct: 5 },
-      { text: "CSR provisions apply exclusively to Listed Public Companies.", pct: 3 },
+      {
+        text: "No, because the doctrine of Caveat Emptor strictly applies to all goods.",
+        isCorrect: false,
+        pct: 18,
+      },
+      {
+        text: "Yes, implied condition of fitness applies by implication since the good has only one obvious purpose.",
+        isCorrect: true,
+        pct: 72,
+      },
+      {
+        text: "No, because the chemist gave no express written warranty.",
+        isCorrect: false,
+        pct: 6,
+      },
+      {
+        text: "Yes, but only under the law of torts, not under Sale of Goods Act.",
+        isCorrect: false,
+        pct: 4,
+      },
     ],
-    explanationTitle: "ICAI Case Scenario Rule: Section 135(1) Thresholds",
+    explanationTitle: "Rule in Priest v. Last (1903)",
     explanation:
-      "Under Section 135(1) of the Companies Act 2013, every company (including private companies) fulfilling any ONE of three criteria during the immediately preceding financial year must constitute a CSR Committee: (i) Net Worth >= ₹500 Cr, OR (ii) Turnover >= ₹1,000 Cr, OR (iii) Net Profit >= ₹5 Cr.",
+      "Where goods are capable of only one normal use (like a hot water bottle), the purpose for which they are required is communicated by implication. Relying on seller's skill/judgment triggers Section 16(1) implied condition as to fitness.",
     keyDistinction:
-      "Threshold applies on an 'any one condition' basis for the immediately preceding FY, not cumulatively across all parameters.",
+      "ICAI Tip: Don't forget to quote Priest v. Last along with Section 16(1) to secure full 6/6 marks.",
   },
   {
-    id: "ca-ibc-7",
-    subject: "Insolvency & Bankruptcy Code, 2016 (IBC)",
-    statutoryRef: "Section 7 & Section 4 Proviso, IBC 2016",
+    id: "mcq-2",
+    subject: "Indian Partnership Act, 1932",
+    statutoryRef: "Section 28 • Holding Out",
     question:
-      "Under Section 7 of the Insolvency & Bankruptcy Code (IBC) 2016, what is the mandatory threshold default amount required for a Financial Creditor to initiate Corporate Insolvency Resolution Process (CIRP)?",
+      "Rajesh retired from M/s Apex Traders without giving public notice. Creditor Amit lends ₹5,00,000 believing Rajesh is still a partner. Is Rajesh liable to Amit?",
     options: [
-      { text: "₹1 Lakh as originally enacted under Section 4 of the Code.", pct: 9 },
-      { text: "₹1 Crore minimum default amount as notified by the Central Government.", pct: 84, isCorrect: true },
-      { text: "₹50 Lakhs for MSME corporate debtors.", pct: 4 },
-      { text: "10% of the total outstanding debt owed to the financial creditor.", pct: 3 },
+      {
+        text: "No, retirement automatically ends all partner liabilities.",
+        isCorrect: false,
+        pct: 12,
+      },
+      {
+        text: "Yes, doctrine of holding out makes him liable until public notice is published in the Official Gazette.",
+        isCorrect: true,
+        pct: 81,
+      },
+      {
+        text: "Only if he signed the loan promissory note personally.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "Only to the extent of his remaining capital in the firm.",
+        isCorrect: false,
+        pct: 3,
+      },
     ],
-    explanationTitle: "Statutory Default Threshold under Section 4",
+    explanationTitle: "Doctrine of Holding Out (§28)",
     explanation:
-      "The Central Government, by notification under Section 4 proviso of IBC 2016, enhanced the minimum default threshold for initiating CIRP under Section 7 or Section 9 from ₹1 Lakh to ₹1 Crore to prevent frivolous insolvency proceedings against viable corporate debtors.",
+      "Under Section 28 & 32(3) of Indian Partnership Act, an outgoing partner continues to be liable to third parties for firm acts unless public notice of retirement is duly published.",
     keyDistinction:
-      "Section 7 applies to Financial Creditors; Section 9 applies to Operational Creditors. The ₹1 Crore threshold applies equally to both.",
+      "Notice requirement does not apply to a dormant/sleeping partner not known to the third party.",
   },
   {
-    id: "ca-contract-25",
-    subject: "Indian Contract Act, 1872 • General Principles",
-    statutoryRef: "Section 25(3), Indian Contract Act 1872",
+    id: "mcq-3",
+    subject: "Companies Act, 2013",
+    statutoryRef: "Section 8 • Non-Profit Entities",
     question:
-      "Under Section 25(3) of the Indian Contract Act 1872, an agreement made without consideration is valid and enforceable if it is a promise to pay a time-barred debt, provided which statutory requirement is satisfied?",
+      "Can a Section 8 Non-Profit Company pay dividends to its members from accumulated surplus reserves?",
     options: [
-      { text: "The promise is made orally in the presence of two independent witnesses.", pct: 6 },
-      { text: "The promise is made in writing and signed by the debtor or their authorized agent.", pct: 88, isCorrect: true },
-      { text: "The creditor obtains prior validation from the National Company Law Tribunal (NCLT).", pct: 4 },
-      { text: "The debt must not be older than 5 years from date of limitation expiry.", pct: 2 },
+      {
+        text: "Yes, up to 10% with prior Central Government approval.",
+        isCorrect: false,
+        pct: 14,
+      },
+      {
+        text: "No, Section 8(1)(c) explicitly prohibits payment of any dividend to members.",
+        isCorrect: true,
+        pct: 79,
+      },
+      {
+        text: "Yes, by passing a unanimous special resolution in AGM.",
+        isCorrect: false,
+        pct: 5,
+      },
+      {
+        text: "Yes, upon conversion into a private limited company.",
+        isCorrect: false,
+        pct: 2,
+      },
     ],
-    explanationTitle: "Exception to 'Ex Nudo Pacto Non Oritur Actio'",
+    explanationTitle: "Section 8(1)(c) Statutory Prohibition",
     explanation:
-      "Under Section 25(3) of the Indian Contract Act 1872, an agreement to pay a debt barred by limitation is enforceable without fresh consideration only if it is expressed in writing and signed by the person to be charged therewith or their authorized agent.",
+      "Section 8 companies must apply their profits in promoting their objects (commerce, art, science, sports, education, research, charity) and are strictly prohibited from paying dividends to members.",
     keyDistinction:
-      "Oral promises to pay a time-barred debt remain completely void for want of consideration.",
+      "Violation of Section 8 terms can lead to license revocation and fine up to ₹1 Crore for the company.",
   },
 ];
 
 export function ExamCountdownsAndQOTD() {
-  const [selectedExamId, setSelectedExamId] = useState<string>("ca-inter-sept");
-  const [alertSet, setAlertSet] = useState<{ [key: string]: boolean }>({});
+  const [selectedExamId, setSelectedExamId] = useState<string>("ca-found");
   const [activeQuestionIdx, setActiveQuestionIdx] = useState<number>(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [bookmarkedList, setBookmarkedList] = useState<{ [key: string]: boolean }>({});
+  const [isAnswered, setIsAnswered] = useState<boolean>(false);
+  const [bookmarkedList, setBookmarkedList] = useState<Record<string, boolean>>({});
 
-  const activeExam = EXAMS.find((e) => e.id === selectedExamId) || EXAMS[0];
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  const activeExam =
+    EXAM_TARGETS.find((e) => e.id === selectedExamId) || EXAM_TARGETS[0];
   const activeMCQ = MCQ_POOL[activeQuestionIdx];
 
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-
+  // Dynamic Countdown Timer Calculation
   useEffect(() => {
     const calculateTime = () => {
-      const target = new Date(activeExam.targetDate).getTime();
-      const now = new Date().getTime();
-      const diff = Math.max(0, target - now);
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setTimeLeft({ days, hours, minutes, seconds });
+      const difference = +new Date(activeExam.targetDate) - +new Date();
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
     };
 
     calculateTime();
     const interval = setInterval(calculateTime, 1000);
     return () => clearInterval(interval);
-  }, [activeExam.targetDate]);
+  }, [activeExam]);
 
-  const toggleAlert = (examId: string) => {
-    setAlertSet((prev) => ({
-      ...prev,
-      [examId]: !prev[examId],
-    }));
-  };
-
-  const toggleBookmark = (qId: string) => {
-    setBookmarkedList((prev) => ({
-      ...prev,
-      [qId]: !prev[qId],
-    }));
+  const handleToggleBookmark = (id: string) => {
+    setBookmarkedList((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleNextQuestion = () => {
@@ -197,166 +217,154 @@ export function ExamCountdownsAndQOTD() {
   };
 
   return (
-    <section id="countdown-qotd" className="py-8 sm:py-12 bg-[#FBFBFD] border-y border-black/[0.05] relative">
+    <section
+      id="countdown-qotd"
+      className="py-12 md:py-16 bg-white"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] text-[#1D1D1F] text-xs font-medium">
+            <Clock className="w-3.5 h-3.5 text-[#0071E3]" />
+            <span>Exam Timelines &amp; Daily Practice</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#1D1D1F] tracking-tight">
+            Stay on Track for Your Upcoming Attempt
+          </h2>
+          <p className="text-xs sm:text-sm text-[#86868B]">
+            Check your remaining preparation days and practice law questions daily.
+          </p>
+        </div>
+
+        {/* 2-Column Responsive Card Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* ======================================================== */}
-          {/* LEFT: ICAI CA EXAM COUNTDOWNS                           */}
+          {/* 1. LEFT CARD: EXAM COUNTDOWN & TIMELINE TRACKER (5 Cols) */}
           {/* ======================================================== */}
-          <div className="lg:col-span-5 bg-white rounded-3xl border border-black/[0.08] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4">
+          <div className="lg:col-span-5 rounded-3xl bg-white border border-black/[0.06] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 sm:space-y-6">
             
-            {/* Header: Title + Alert Button */}
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/[0.05]">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0071E3]"></span>
+            {/* Header & Course Switcher */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#86868B]">
+                  Target Exam
                 </span>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1D1D1F]">
-                  ICAI CA Exam Timers 2026-27
-                </h3>
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
+                  <Flame className="w-3 h-3" /> Live Countdown
+                </span>
               </div>
 
-              <button
-                onClick={() => toggleAlert(selectedExamId)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
-                  alertSet[selectedExamId]
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.06]"
-                }`}
-                title="Receive ICAI calendar alerts"
-              >
-                {alertSet[selectedExamId] ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Alert Set</span>
-                  </>
-                ) : (
-                  <>
-                    <Bell className="w-3.5 h-3.5 text-[#0071E3]" />
-                    <span>Alert Me</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* 2x2 Exam Selector Grid */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {EXAMS.map((exam) => {
-                const isSelected = exam.id === selectedExamId;
-                return (
+              {/* Course Selection Tabs */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                {EXAM_TARGETS.map((exam) => (
                   <button
                     key={exam.id}
                     onClick={() => setSelectedExamId(exam.id)}
-                    className={`text-left p-3 rounded-2xl border transition-all duration-200 relative cursor-pointer ${
-                      isSelected
-                        ? "bg-[#F5F5F7] border-black/[0.2] shadow-xs"
-                        : "bg-white border-black/[0.06] text-[#6E6E73] hover:border-black/[0.12] hover:bg-[#FBFBFD]"
+                    className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer text-center truncate min-h-[44px] flex items-center justify-center ${
+                      selectedExamId === exam.id
+                        ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
+                        : "text-[#6E6E73] hover:text-[#1D1D1F]"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <p
-                        className={`text-xs font-semibold leading-snug line-clamp-1 ${
-                          isSelected ? "text-[#1D1D1F]" : "text-[#424245]"
-                        }`}
-                      >
-                        {exam.name}
-                      </p>
-                      {isSelected && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3] shrink-0 mt-1"></span>
-                      )}
-                    </div>
-                    <p
-                      className={`text-[11px] mt-0.5 ${
-                        isSelected ? "text-[#0071E3] font-medium" : "text-[#86868B]"
-                      }`}
-                    >
-                      {exam.tagline}
-                    </p>
+                    {exam.id === "ca-found" ? "CA Foundation" : "CSEET Law"}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
 
-            {/* Countdown Display Card */}
-            <div className="rounded-2xl bg-[#F5F5F7] border border-black/[0.04] p-4 text-center space-y-3">
-              <div className="flex items-center justify-center gap-1.5 text-xs text-[#6E6E73]">
-                <Clock className="w-3.5 h-3.5 text-[#0071E3]" />
-                <span>
-                  Time Remaining for{" "}
-                  <strong className="text-[#1D1D1F] font-semibold">{activeExam.name}</strong>
+            {/* Exam Title & Details */}
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-semibold text-[#1D1D1F] tracking-tight">
+                {activeExam.name}
+              </h3>
+              <p className="text-xs text-[#86868B]">{activeExam.level}</p>
+            </div>
+
+            {/* 4-Digit Timer Block matching Apple Aesthetic */}
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+                  {timeLeft.days}
+                </div>
+                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                  Days
+                </div>
+              </div>
+
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+                  {String(timeLeft.hours).padStart(2, "0")}
+                </div>
+                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                  Hours
+                </div>
+              </div>
+
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+                  {String(timeLeft.minutes).padStart(2, "0")}
+                </div>
+                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                  Mins
+                </div>
+              </div>
+
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+                <div className="text-xl sm:text-3xl font-semibold text-[#0071E3] font-mono tracking-tight">
+                  {String(timeLeft.seconds).padStart(2, "0")}
+                </div>
+                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                  Secs
+                </div>
+              </div>
+            </div>
+
+            {/* Preparation Roadmap Progress */}
+            <div className="space-y-3 pt-2 border-t border-black/[0.05]">
+              <div className="flex items-center justify-between text-xs text-[#6E6E73]">
+                <span>Syllabus Coverage:</span>
+                <span className="font-semibold text-[#1D1D1F]">
+                  100% Comprehensive
                 </span>
               </div>
+              <div className="w-full h-1.5 rounded-full bg-[#F5F5F7] overflow-hidden">
+                <div className="h-full bg-[#0071E3] rounded-full w-full" />
+              </div>
 
-              {/* 4 Digit Boxes */}
-              <div className="grid grid-cols-4 gap-2">
-                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
-                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
-                    {String(timeLeft.days).padStart(2, "0")}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
-                    Days
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
-                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
-                    {String(timeLeft.hours).padStart(2, "0")}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
-                    Hours
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-xl border border-black/[0.06] py-2 px-1 shadow-2xs">
-                  <span className="block text-2xl font-bold text-[#1D1D1F] tracking-tight">
-                    {String(timeLeft.minutes).padStart(2, "0")}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#86868B] mt-0.5 block">
-                    Mins
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-xl border border-[#0071E3]/20 py-2 px-1 shadow-2xs">
-                  <span className="block text-2xl font-bold text-[#0071E3] tracking-tight">
-                    {String(timeLeft.seconds).padStart(2, "0")}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#0071E3] mt-0.5 block">
-                    Secs
-                  </span>
-                </div>
+              <div className="pt-2 flex items-center justify-between">
+                <Link
+                  href="/student"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white text-xs font-medium transition-all shadow-xs min-h-[44px]"
+                >
+                  <span>Open Student Learning Desk</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
 
-            {/* Bottom Status Footer */}
-            <div className="flex items-center justify-between text-xs text-[#86868B] pt-1">
-              <span className="font-medium text-[#424245]">{activeExam.seats}</span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0071E3]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]"></span>
-                {activeExam.status}
-              </span>
-            </div>
           </div>
 
           {/* ======================================================== */}
-          {/* RIGHT: DAILY ICAI CASE SCENARIO MCQ CHALLENGE           */}
+          {/* 2. RIGHT CARD: DAILY HIGH-YIELD MCQ CHALLENGE (7 Cols)   */}
           {/* ======================================================== */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-black/[0.08] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4">
+          <div className="lg:col-span-7 rounded-3xl bg-white border border-black/[0.06] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4 sm:space-y-5">
             
-            {/* Header: Title + Subject Tag + Bookmark Button */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/[0.05]">
+            {/* Top Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#0071E3]" />
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1D1D1F]">
-                  Daily CA Case-Scenario MCQ
-                </h3>
+                <span className="w-2 h-2 rounded-full bg-[#0071E3] animate-pulse" />
+                <span className="text-xs font-semibold text-[#1D1D1F]">
+                  Daily High-Yield Case Challenge
+                </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Bookmark for LDR Button */}
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => toggleBookmark(activeMCQ.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                  onClick={() => handleToggleBookmark(activeMCQ.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
                     bookmarkedList[activeMCQ.id]
                       ? "bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20"
                       : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.06]"
@@ -388,7 +396,7 @@ export function ExamCountdownsAndQOTD() {
                 <button
                   onClick={handleNextQuestion}
                   className="text-[#6E6E73] hover:text-[#0071E3] p-1 rounded-full hover:bg-black/[0.04] transition-colors cursor-pointer"
-                  title="Next CA Scenario"
+                  title="Next Case Scenario"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -407,7 +415,7 @@ export function ExamCountdownsAndQOTD() {
                 const letter = String.fromCharCode(65 + idx);
 
                 let cardClasses =
-                  "relative overflow-hidden w-full text-left p-3 rounded-2xl border text-xs transition-all duration-200 cursor-pointer ";
+                  "relative overflow-hidden w-full text-left p-3 sm:p-3 rounded-2xl border text-xs transition-all duration-200 cursor-pointer min-h-[44px] ";
 
                 if (!isAnswered) {
                   cardClasses +=
@@ -506,14 +514,14 @@ export function ExamCountdownsAndQOTD() {
                 </p>
 
                 <div className="pt-1.5 text-[11px] text-[#6E6E73] border-t border-black/[0.05] flex items-start gap-1.5">
-                  <span className="font-semibold text-[#1D1D1F] shrink-0">ICAI Examiner Rule:</span>
+                  <span className="font-semibold text-[#1D1D1F] shrink-0">Examiner Rule:</span>
                   <span>{activeMCQ.keyDistinction}</span>
                 </div>
 
                 <div className="pt-2 flex items-center justify-between border-t border-black/[0.05]">
                   <button
                     onClick={handleResetQuestion}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer min-h-[44px] px-2"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Try Again</span>
@@ -521,9 +529,9 @@ export function ExamCountdownsAndQOTD() {
 
                   <button
                     onClick={handleNextQuestion}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0071E3] hover:text-[#0077ED] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0071E3] hover:text-[#0077ED] transition-colors cursor-pointer min-h-[44px] px-2"
                   >
-                    <span>Next CA Case Scenario</span>
+                    <span>Next Case Scenario</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

@@ -1,5 +1,5 @@
 /**
- * The Law Kaksha - Quizzes & All-India Leaderboard API Routes
+ * The Law Kaksha - Quizzes & Platform Leaderboard API Routes
  * Endpoints for quiz retrieval, timed evaluations, candidate submissions, and leaderboard rankings
  */
 
@@ -218,7 +218,7 @@ router.post("/quizzes/:id/submit", (req, res) => {
 
 /**
  * GET /api/leaderboard
- * All-India Leaderboard Standings across daily challenges & mock tests
+ * Platform Leaderboard Standings across daily challenges & practice tests
  */
 router.get("/leaderboard", (req, res) => {
   try {
@@ -241,10 +241,10 @@ router.get("/leaderboard", (req, res) => {
     const topRankers = attempts.slice(0, Number(limit)).map((item, index) => {
       const rank = index + 1;
       let badge = "Ranker";
-      if (rank === 1) badge = "AIR 01 (Gold)";
-      else if (rank === 2) badge = "AIR 02 (Silver)";
-      else if (rank === 3) badge = "AIR 03 (Bronze)";
-      else if (rank <= 10) badge = "Top 10 National";
+      if (rank === 1) badge = "Rank #1 (Gold)";
+      else if (rank === 2) badge = "Rank #2 (Silver)";
+      else if (rank === 3) badge = "Rank #3 (Bronze)";
+      else if (rank <= 10) badge = "Top 10 Platform";
       else if (rank <= 50) badge = "Exemption Tier";
 
       return {

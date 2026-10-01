@@ -255,8 +255,8 @@ export function QuizTakingModal({
               </div>
 
               <div>
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 mb-2">
-                  All-India Ranker Evaluation
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 mb-2">
+                  Platform Quiz Result
                 </span>
                 <h2 className="text-2xl font-black tracking-tight text-[#0A192F]">
                   Quiz Evaluation Completed!

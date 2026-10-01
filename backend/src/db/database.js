@@ -20,9 +20,12 @@ if (!fs.existsSync(DATA_DIR)) {
 // In-Memory Database State
 let db = {
   users: [],
-  products: [],
-  orders: [],
-  order_items: [],
+  courses: [],
+  acts: [],
+  content: [],
+  weekly_content: [],
+  quizzes: [],
+  subscriptions: [],
   enrollments: [],
   reviews: [],
 };
@@ -132,9 +135,12 @@ const Database = {
     } else {
       db = {
         users: [],
-        products: [],
-        orders: [],
-        order_items: [],
+        courses: [],
+        acts: [],
+        content: [],
+        weekly_content: [],
+        quizzes: [],
+        subscriptions: [],
         enrollments: [],
         reviews: [],
       };

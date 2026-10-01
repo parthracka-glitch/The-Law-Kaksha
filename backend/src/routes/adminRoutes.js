@@ -1,631 +1,375 @@
 /**
- * The Law Kaksha - Single-Administrator Master Operations & Control API
- * Full Control: Books/Products, Users, Batches, Sessions, Orders, DRM Keys & Mains Grading
+ * The Law Kaksha - Complete Admin REST API Routes
+ * Endpoints for managing Subscriptions, Students & DRM rights, Books/Codices, Cases, MCQs, Coupons, QOTD & Analytics
  */
 
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const Database = require("../db/database");
-const { requireAdmin } = require("../middleware/authMiddleware");
+const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Enforce admin privileges for all endpoints in this router
-router.use(requireAdmin);
+// Helper to get or initialize a collection
+function getTable(name) {
+  return Database.table(name);
+}
 
-// =============================================================================
-// 1. ANALYTICS & REVENUE OVERVIEW
-// =============================================================================
-router.get("/analytics", (req, res) => {
+// -----------------------------------------------------------------------------
+// 1. ANALYTICS / OVERVIEW
+// -----------------------------------------------------------------------------
+router.get("/admin/analytics", (req, res) => {
   try {
-    const usersTable = Database.table("users");
-    const productsTable = Database.table("products");
-    const ordersTable = Database.table("orders");
-    const enrollmentsTable = Database.table("enrollments");
-    const batchesTable = Database.table("batches");
+    const subsTable = getTable("subscriptions");
+    const studentsTable = getTable("users");
+    const productsTable = getTable("products");
 
-    const totalStudents = usersTable.count((u) => u.role === "student");
-    const totalProducts = productsTable.count();
-    const allOrders = ordersTable.find();
-    const paidOrders = allOrders.filter((o) => o.payment_status === "PAID");
+    const subs = subsTable.find();
+    const totalRevenue = subs.reduce((acc, curr) => {
+      const num = parseInt(String(curr.amount || curr.price || 0).replace(/[^0-9]/g, "")) || 0;
+      return acc + num;
+    }, 0);
 
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-    const activeEnrollments = enrollmentsTable.count((e) => e.access_status === "ACTIVE");
-    const totalBatches = batchesTable.count();
+    const activeSubs = subs.filter((s) => s.accessStatus === "Active" || s.status === "ACTIVE").length;
+    const students = studentsTable.find((u) => u.role === "student");
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      analytics: {
+      data: {
         totalRevenue,
-        totalStudents,
-        totalOrders: allOrders.length,
-        paidOrdersCount: paidOrders.length,
-        activeEnrollments,
-        totalProducts,
-        totalBatches,
+        activeSubscriptionsCount: activeSubs,
+        totalStudentsCount: students.length,
+        activeStudentsCount: students.filter((s) => s.is_active !== 0).length,
+        productsCount: productsTable.count(),
       },
     });
   } catch (err) {
-    console.error("[Admin] Analytics error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error fetching analytics." });
   }
 });
 
-// =============================================================================
-// 2. BOOKS & COURSE CATALOG MANAGEMENT (CRUD)
-// =============================================================================
-
-// List all products / books
-router.get("/products", (req, res) => {
+// -----------------------------------------------------------------------------
+// 2. SUBSCRIPTIONS CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/subscriptions", (req, res) => {
   try {
-    const productsTable = Database.table("products");
-    const products = productsTable.find();
-    return res.status(200).json({ success: true, count: products.length, products });
+    const subsTable = getTable("subscriptions");
+    res.status(200).json({ success: true, subscriptions: subsTable.find() });
   } catch (err) {
-    console.error("[Admin] Get products error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error fetching subscriptions." });
   }
 });
 
-// Add new book / product
-router.post("/products", (req, res) => {
+router.post("/admin/subscriptions", (req, res) => {
   try {
-    const {
-      title,
-      subtitle,
-      type = "book",
-      category,
-      price,
-      original_price,
-      pages_or_duration,
-      stock = 100,
-      description,
-      badge,
-      highlights = [],
-      syllabus = [],
-      preview_file,
-      full_file_key,
-    } = req.body;
-
-    if (!title || !price || !category) {
-      return res.status(400).json({
-        success: false,
-        message: "Title, price, and category are required.",
-      });
-    }
-
-    const productsTable = Database.table("products");
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-    const newProduct = productsTable.insert({
-      id: `prod-${Date.now()}`,
-      slug,
-      type,
-      title,
-      subtitle: subtitle || "Comprehensive Academic Study Module",
-      category,
-      price: Number(price),
-      original_price: Number(original_price || price * 1.4),
-      pages_or_duration: pages_or_duration || "400 Pages",
-      stock: Number(stock),
-      description: description || "Official study materials engineered for CA aspirants.",
-      badge: badge || "New Edition",
-      cover_image: "/covers/vol1-codex.webp",
-      preview_file: preview_file || "sample-preview.pdf",
-      full_file_key: full_file_key || `vault/${slug}-2026.pdf`,
-      highlights: highlights.length > 0 ? highlights : ["ICAI Syllabus Aligned", "Solved Case Scenarios"],
-      syllabus: syllabus.length > 0 ? syllabus : [{ chapter: "Chapter 1", title: "Statutory Provisions & Analysis" }],
-      status: "published",
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Product added successfully.",
-      product: newProduct,
-    });
-  } catch (err) {
-    console.error("[Admin] Add product error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Edit existing book / product
-router.put("/products/:id", (req, res) => {
-  try {
-    const { id } = req.params;
-    const productsTable = Database.table("products");
-    const existing = productsTable.findById(id);
-
-    if (!existing) {
-      return res.status(404).json({ success: false, message: "Product not found." });
-    }
-
-    const updates = { ...req.body };
-    if (updates.price) updates.price = Number(updates.price);
-    if (updates.original_price) updates.original_price = Number(updates.original_price);
-    if (updates.stock !== undefined) updates.stock = Number(updates.stock);
-
-    const updated = productsTable.update(id, updates);
-
-    return res.status(200).json({
-      success: true,
-      message: "Product updated successfully.",
-      product: updated,
-    });
-  } catch (err) {
-    console.error("[Admin] Update product error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Delete book / product
-router.delete("/products/:id", (req, res) => {
-  try {
-    const { id } = req.params;
-    const productsTable = Database.table("products");
-    const deleted = productsTable.delete(id);
-
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: "Product not found." });
-    }
-
-    return res.status(200).json({ success: true, message: "Product deleted successfully." });
-  } catch (err) {
-    console.error("[Admin] Delete product error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// =============================================================================
-// 3. USERS & STUDENTS MANAGEMENT
-// =============================================================================
-
-// List all students
-router.get("/students", (req, res) => {
-  try {
-    const usersTable = Database.table("users");
-    const enrollmentsTable = Database.table("enrollments");
-    const productsTable = Database.table("products");
-
-    const students = usersTable.find((u) => u.role === "student");
-    const detailedStudents = students.map((s) => {
-      const { password_hash, ...safeStudent } = s;
-      const studentEnrollments = enrollmentsTable.find((e) => e.user_id === s.id);
-      const unlockedProducts = studentEnrollments.map((e) => {
-        const prod = productsTable.findById(e.product_id);
-        return {
-          productId: e.product_id,
-          accessStatus: e.access_status,
-          title: prod ? prod.title : e.product_id,
-          grantedAt: e.granted_at,
-        };
-      });
-
-      return {
-        ...safeStudent,
-        enrollments: unlockedProducts,
-        unlockedItemIds: studentEnrollments
-          .filter((e) => e.access_status === "ACTIVE")
-          .map((e) => e.product_id),
-      };
-    });
-
-    return res.status(200).json({
-      success: true,
-      count: detailedStudents.length,
-      students: detailedStudents,
-    });
-  } catch (err) {
-    console.error("[Admin] Students error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Create new student
-router.post("/students", async (req, res) => {
-  try {
-    const { name, email, phone, target_exam, password } = req.body;
-    if (!name || !email) {
-      return res.status(400).json({ success: false, message: "Name and email are required." });
-    }
-
-    const usersTable = Database.table("users");
-    const existing = usersTable.findOne((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) {
-      return res.status(400).json({ success: false, message: "Email already registered." });
-    }
-
-    const passwordHash = await bcrypt.hash(password || "Password2026!", 10);
-    const newStudent = usersTable.insert({
-      id: `usr-std-${Date.now()}`,
-      student_id: `LK-${Date.now().toString().slice(-6)}`,
-      name,
-      email,
-      phone: phone || "",
-      password_hash: passwordHash,
-      role: "student",
-      target_exam: target_exam || "CA Final 2026",
-      is_active: 1,
-    });
-
-    const { password_hash, ...safe } = newStudent;
-    return res.status(201).json({ success: true, message: "Student created successfully.", student: safe });
-  } catch (err) {
-    console.error("[Admin] Create student error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Reset Student Password
-router.post("/students/:id/reset-password", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { new_password } = req.body;
-    const usersTable = Database.table("users");
-
-    const student = usersTable.findById(id);
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found." });
-    }
-
-    const passwordHash = await bcrypt.hash(new_password || "Password2026!", 10);
-    usersTable.update(id, { password_hash: passwordHash });
-
-    return res.status(200).json({ success: true, message: "Student password reset successfully." });
-  } catch (err) {
-    console.error("[Admin] Reset password error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Reset DRM Device Lock for a Student
-router.post("/students/:id/reset-drm", (req, res) => {
-  try {
-    const { id } = req.params;
-    const usersTable = Database.table("users");
-
-    const student = usersTable.findById(id);
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found." });
-    }
-
-    // Reset hardware bound devices
-    usersTable.update(id, { bound_devices: [], drm_reset_at: new Date().toISOString() });
-
-    return res.status(200).json({
-      success: true,
-      message: "Student DRM hardware workstations reset successfully. The student may now bind 2 new devices.",
-    });
-  } catch (err) {
-    console.error("[Admin] Reset DRM error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Toggle student status (Active/Inactive)
-router.put("/students/:id/status", (req, res) => {
-  try {
-    const { id } = req.params;
-    const { is_active } = req.body;
-    const usersTable = Database.table("users");
-
-    const updated = usersTable.update(id, { is_active: is_active ? 1 : 0 });
-    if (!updated) {
-      return res.status(404).json({ success: false, message: "Student not found." });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `Student account ${is_active ? "activated" : "deactivated"}.`,
-      student: updated,
-    });
-  } catch (err) {
-    console.error("[Admin] Toggle student status error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Grant / Revoke course enrollment
-router.post("/students/:id/toggle-access", (req, res) => {
-  try {
-    const { id } = req.params;
-    const { productId, action } = req.body;
-
-    if (!productId || !action) {
-      return res.status(400).json({
-        success: false,
-        message: "Product ID and action ('grant' or 'revoke') are required.",
-      });
-    }
-
-    const enrollmentsTable = Database.table("enrollments");
-    const existing = enrollmentsTable.findOne(
-      (e) => e.user_id === id && e.product_id === productId
-    );
-
-    if (action === "grant") {
-      if (existing) {
-        enrollmentsTable.update(existing.id, { access_status: "ACTIVE" });
-      } else {
-        enrollmentsTable.insert({
-          id: `enr-${Date.now()}`,
-          user_id: id,
-          product_id: productId,
-          order_id: "ADMIN-MANUAL-GRANT",
-          access_status: "ACTIVE",
-          granted_at: new Date().toISOString(),
-        });
-      }
-    } else if (action === "revoke") {
-      if (existing) {
-        enrollmentsTable.update(existing.id, { access_status: "REVOKED" });
-      }
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `Access ${action === "grant" ? "granted" : "revoked"} successfully.`,
-    });
-  } catch (err) {
-    console.error("[Admin] Toggle access error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// =============================================================================
-// 4. BATCHES & SESSIONS MANAGEMENT
-// =============================================================================
-
-// List all batches
-router.get("/batches", (req, res) => {
-  try {
-    const batchesTable = Database.table("batches");
-    let batches = batchesTable.find();
-    if (batches.length === 0) {
-      // Seed default batches if empty
-      const defaultBatches = [
-        {
-          id: "batch-ca-final-may26",
-          name: "CA Final Corporate & Economic Laws (May 2026 Batch)",
-          level: "CA Final",
-          target_attempt: "May 2026",
-          status: "ACTIVE",
-          enrolled_count: 420,
-          schedule: "Mon, Wed, Fri (07:00 PM - 09:00 PM)",
-          linked_products: ["book-vol-1", "video-classes"],
-        },
-        {
-          id: "batch-ca-inter-nov26",
-          name: "CA Intermediate Business Laws Regular Batch (Nov 2026)",
-          level: "CA Intermediate",
-          target_attempt: "Nov 2026",
-          status: "ACTIVE",
-          enrolled_count: 680,
-          schedule: "Tue, Thu, Sat (06:30 PM - 08:30 PM)",
-          linked_products: ["book-vol-2", "book-mcq"],
-        },
-      ];
-      defaultBatches.forEach((b) => batchesTable.insert(b));
-      batches = batchesTable.find();
-    }
-
-    return res.status(200).json({ success: true, count: batches.length, batches });
-  } catch (err) {
-    console.error("[Admin] Get batches error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// Create new batch
-router.post("/batches", (req, res) => {
-  try {
-    const { name, level, target_attempt, schedule, linked_products = [] } = req.body;
-    if (!name || !level) {
-      return res.status(400).json({ success: false, message: "Batch name and level are required." });
-    }
-
-    const batchesTable = Database.table("batches");
-    const newBatch = batchesTable.insert({
-      id: `batch-${Date.now()}`,
-      name,
-      level,
-      target_attempt: target_attempt || "2026 Batch",
+    const subsTable = getTable("subscriptions");
+    const newSub = subsTable.insert({
+      id: req.body.id || `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      studentName: req.body.studentName || "Enrolled Student",
+      studentRoll: req.body.studentRoll || "LRK-2026-004182",
+      email: req.body.email || "student@thelawkaksha.com",
+      phone: req.body.phone || "+91 98765 43210",
+      item: req.body.item || "Volume 1 & 2 Master Digital Pass",
+      targetExam: req.body.targetExam || "CA Foundation Paper 2",
+      amount: req.body.amount || "₹449",
+      date: req.body.date || new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      paymentMode: req.body.paymentMode || "Direct Grant / Admin",
+      accessStatus: req.body.accessStatus || "Active",
       status: "ACTIVE",
-      enrolled_count: 0,
-      schedule: schedule || "TBA",
-      linked_products,
     });
-
-    return res.status(201).json({ success: true, message: "Batch created successfully.", batch: newBatch });
+    res.status(201).json({ success: true, subscription: newSub });
   } catch (err) {
-    console.error("[Admin] Create batch error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error creating subscription." });
   }
 });
 
-// Edit batch
-router.put("/batches/:id", (req, res) => {
+router.put("/admin/subscriptions/:id", (req, res) => {
   try {
-    const { id } = req.params;
-    const batchesTable = Database.table("batches");
-    const updated = batchesTable.update(id, req.body);
-
-    if (!updated) {
-      return res.status(404).json({ success: false, message: "Batch not found." });
-    }
-
-    return res.status(200).json({ success: true, message: "Batch updated successfully.", batch: updated });
+    const subsTable = getTable("subscriptions");
+    const updated = subsTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Subscription not found." });
+    res.status(200).json({ success: true, subscription: updated });
   } catch (err) {
-    console.error("[Admin] Update batch error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error updating subscription." });
   }
 });
 
-// Delete batch
-router.delete("/batches/:id", (req, res) => {
+router.delete("/admin/subscriptions/:id", (req, res) => {
   try {
-    const { id } = req.params;
-    const batchesTable = Database.table("batches");
-    const deleted = batchesTable.delete(id);
-
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: "Batch not found." });
-    }
-
-    return res.status(200).json({ success: true, message: "Batch deleted successfully." });
+    const subsTable = getTable("subscriptions");
+    const success = subsTable.delete(req.params.id);
+    res.status(200).json({ success });
   } catch (err) {
-    console.error("[Admin] Delete batch error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error deleting subscription." });
   }
 });
 
-// List all sessions
-router.get("/sessions", (req, res) => {
+// -----------------------------------------------------------------------------
+// 3. STUDENTS CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/students", (req, res) => {
   try {
-    const sessionsTable = Database.table("sessions");
-    let sessions = sessionsTable.find();
-    if (sessions.length === 0) {
-      const defaultSessions = [
-        {
-          id: "sess-01",
-          batch_id: "batch-ca-final-may26",
-          topic: "Companies Act Section 186 (Loans & Investments Deep Dive)",
-          date: "2026-10-02",
-          time: "19:00 IST",
-          duration_minutes: 120,
-          meeting_link: "https://zoom.us/j/lawkaksha-room-1",
-          status: "UPCOMING",
-        },
-        {
-          id: "sess-02",
-          batch_id: "batch-ca-inter-nov26",
-          topic: "General Clauses Act (Statutory Presumptions & Precedents)",
-          date: "2026-10-03",
-          time: "18:30 IST",
-          duration_minutes: 90,
-          meeting_link: "https://zoom.us/j/lawkaksha-room-2",
-          status: "UPCOMING",
-        },
-      ];
-      defaultSessions.forEach((s) => sessionsTable.insert(s));
-      sessions = sessionsTable.find();
-    }
-
-    return res.status(200).json({ success: true, count: sessions.length, sessions });
+    const usersTable = getTable("users");
+    const students = usersTable.find((u) => u.role === "student").map(({ password_hash, ...u }) => u);
+    res.status(200).json({ success: true, students });
   } catch (err) {
-    console.error("[Admin] Get sessions error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error fetching students." });
   }
 });
 
-// Schedule new session
-router.post("/sessions", (req, res) => {
+router.post("/admin/students", (req, res) => {
   try {
-    const { batch_id, topic, date, time, duration_minutes = 90, meeting_link } = req.body;
-    if (!topic || !date || !time) {
-      return res.status(400).json({ success: false, message: "Topic, date, and time are required." });
-    }
-
-    const sessionsTable = Database.table("sessions");
-    const newSession = sessionsTable.insert({
-      id: `sess-${Date.now()}`,
-      batch_id: batch_id || "general",
-      topic,
-      date,
-      time,
-      duration_minutes: Number(duration_minutes),
-      meeting_link: meeting_link || "https://zoom.us/j/lawkaksha-live",
-      status: "UPCOMING",
+    const usersTable = getTable("users");
+    const newStudent = usersTable.insert({
+      id: req.body.id || `std-${Date.now()}`,
+      student_id: req.body.student_id || `LRK-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+      name: req.body.name || "New Candidate",
+      email: req.body.email || `student_${Date.now()}@thelawkaksha.com`,
+      phone: req.body.phone || "+91 98765 43210",
+      target_exam: req.body.target_exam || "CA Foundation Paper 2",
+      role: "student",
+      is_active: req.body.is_active !== undefined ? (req.body.is_active ? 1 : 0) : 1,
+      drm_access: req.body.drm_access !== undefined ? req.body.drm_access : true,
+      enrolled_books: req.body.enrolled_books || ["Business Law (Volume 1)"],
+      joined_date: req.body.joined_date || "Today",
     });
-
-    return res.status(201).json({ success: true, message: "Session scheduled successfully.", session: newSession });
+    const { password_hash, ...safe } = newStudent;
+    res.status(201).json({ success: true, student: safe });
   } catch (err) {
-    console.error("[Admin] Schedule session error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error creating student." });
   }
 });
 
-// Delete session
-router.delete("/sessions/:id", (req, res) => {
+router.put("/admin/students/:id", (req, res) => {
   try {
-    const { id } = req.params;
-    const sessionsTable = Database.table("sessions");
-    const deleted = sessionsTable.delete(id);
-
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: "Session not found." });
-    }
-
-    return res.status(200).json({ success: true, message: "Session cancelled successfully." });
+    const usersTable = getTable("users");
+    const updated = usersTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Student not found." });
+    const { password_hash, ...safe } = updated;
+    res.status(200).json({ success: true, student: safe });
   } catch (err) {
-    console.error("[Admin] Delete session error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error updating student." });
   }
 });
 
-// =============================================================================
-// 5. ORDERS & LOGISTICS DISPATCH
-// =============================================================================
-router.get("/orders", (req, res) => {
+router.delete("/admin/students/:id", (req, res) => {
   try {
-    const ordersTable = Database.table("orders");
-    const orderItemsTable = Database.table("order_items");
-    const productsTable = Database.table("products");
-
-    const orders = ordersTable.find();
-    const detailedOrders = orders.map((o) => {
-      const items = orderItemsTable.find((oi) => oi.order_id === o.id);
-      const itemsWithTitle = items.map((i) => {
-        const product = productsTable.findById(i.product_id);
-        return {
-          ...i,
-          title: product ? product.title : i.product_id,
-        };
-      });
-      return {
-        ...o,
-        items: itemsWithTitle,
-      };
-    });
-
-    return res.status(200).json({
-      success: true,
-      count: detailedOrders.length,
-      orders: detailedOrders,
-    });
+    const usersTable = getTable("users");
+    const success = usersTable.delete(req.params.id);
+    res.status(200).json({ success });
   } catch (err) {
-    console.error("[Admin] Orders error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error deleting student." });
   }
 });
 
-router.put("/orders/:id/status", (req, res) => {
+// -----------------------------------------------------------------------------
+// 4. PRODUCTS & STUDY CODICES CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/products", (req, res) => {
   try {
-    const { id } = req.params;
-    const { payment_status, tracking_number, fulfillment_status } = req.body;
-    const ordersTable = Database.table("orders");
-
-    const updates = {};
-    if (payment_status) updates.payment_status = payment_status;
-    if (fulfillment_status) updates.fulfillment_status = fulfillment_status;
-    if (tracking_number !== undefined) updates.tracking_number = tracking_number;
-
-    const updated = ordersTable.update(id, updates);
-    if (!updated) {
-      return res.status(404).json({ success: false, message: "Order not found." });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Order updated successfully.",
-      order: updated,
-    });
+    const productsTable = getTable("products");
+    res.status(200).json({ success: true, products: productsTable.find() });
   } catch (err) {
-    console.error("[Admin] Update order error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    res.status(500).json({ success: false, message: "Error fetching products." });
+  }
+});
+
+router.post("/admin/products", (req, res) => {
+  try {
+    const productsTable = getTable("products");
+    const newProduct = productsTable.insert({
+      id: req.body.id || `prod-${Date.now()}`,
+      title: req.body.title || "Statutory Law Codex",
+      subtitle: req.body.subtitle || "Digital DRM Codex",
+      category: req.body.category || "CA Foundation",
+      format: "Digital Codex (In-Web DRM)",
+      price: req.body.price || 249,
+      originalPrice: req.body.originalPrice || 499,
+      pages: req.body.pages || "150+ Pages",
+      status: req.body.status || "Active",
+      pdfUrl: req.body.pdfUrl || "/api/pdf/cseet-business-law-full.pdf",
+      description: req.body.description || "Digital codex with DRM protection.",
+      units: req.body.units || ["Unit 1", "Unit 2"],
+    });
+    res.status(201).json({ success: true, product: newProduct });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating product." });
+  }
+});
+
+router.put("/admin/products/:id", (req, res) => {
+  try {
+    const productsTable = getTable("products");
+    const updated = productsTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Product not found." });
+    res.status(200).json({ success: true, product: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating product." });
+  }
+});
+
+router.delete("/admin/products/:id", (req, res) => {
+  try {
+    const productsTable = getTable("products");
+    const success = productsTable.delete(req.params.id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting product." });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 5. WEEKLY CASE STUDIES CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/cases", (req, res) => {
+  try {
+    const casesTable = getTable("weekly_cases");
+    res.status(200).json({ success: true, cases: casesTable.find() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching cases." });
+  }
+});
+
+router.post("/admin/cases", (req, res) => {
+  try {
+    const casesTable = getTable("weekly_cases");
+    const newCase = casesTable.insert({
+      id: req.body.id || `case-${Date.now()}`,
+      day: req.body.day || "Monster Monday",
+      badge: req.body.badge || "Contract Act 1872",
+      subject: req.body.subject || "Indian Contract Act",
+      title: req.body.title || "Case Scenario",
+      scenario: req.body.scenario || "",
+      modelAnswer: req.body.modelAnswer || "",
+      precedent: req.body.precedent || "",
+      marks: req.body.marks || "6 Marks",
+    });
+    res.status(201).json({ success: true, caseStudy: newCase });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating case." });
+  }
+});
+
+router.put("/admin/cases/:id", (req, res) => {
+  try {
+    const casesTable = getTable("weekly_cases");
+    const updated = casesTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Case not found." });
+    res.status(200).json({ success: true, caseStudy: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating case." });
+  }
+});
+
+router.delete("/admin/cases/:id", (req, res) => {
+  try {
+    const casesTable = getTable("weekly_cases");
+    const success = casesTable.delete(req.params.id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting case." });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 6. MCQ QUESTION BANK CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/mcqs", (req, res) => {
+  try {
+    const mcqTable = getTable("mcqs");
+    res.status(200).json({ success: true, mcqs: mcqTable.find() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching MCQs." });
+  }
+});
+
+router.post("/admin/mcqs", (req, res) => {
+  try {
+    const mcqTable = getTable("mcqs");
+    const newMcq = mcqTable.insert({
+      id: req.body.id || `mcq-${Date.now()}`,
+      subject: req.body.subject || "Indian Contract Act",
+      section: req.body.section || "Section 10",
+      question: req.body.question || "Statutory Question",
+      options: req.body.options || ["Option A", "Option B", "Option C", "Option D"],
+      correctOption: req.body.correctOption !== undefined ? req.body.correctOption : 0,
+      explanation: req.body.explanation || "Statutory reference explanation.",
+    });
+    res.status(201).json({ success: true, mcq: newMcq });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating MCQ." });
+  }
+});
+
+router.put("/admin/mcqs/:id", (req, res) => {
+  try {
+    const mcqTable = getTable("mcqs");
+    const updated = mcqTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "MCQ not found." });
+    res.status(200).json({ success: true, mcq: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating MCQ." });
+  }
+});
+
+router.delete("/admin/mcqs/:id", (req, res) => {
+  try {
+    const mcqTable = getTable("mcqs");
+    const success = mcqTable.delete(req.params.id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting MCQ." });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 7. COUPONS CRUD
+// -----------------------------------------------------------------------------
+router.get("/admin/coupons", (req, res) => {
+  try {
+    const couponsTable = getTable("coupons");
+    res.status(200).json({ success: true, coupons: couponsTable.find() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching coupons." });
+  }
+});
+
+router.post("/admin/coupons", (req, res) => {
+  try {
+    const couponsTable = getTable("coupons");
+    const newCoupon = couponsTable.insert({
+      id: req.body.id || `cp-${Date.now()}`,
+      code: (req.body.code || "OFFER2026").toUpperCase(),
+      discountPercent: Number(req.body.discountPercent) || 20,
+      minOrder: Number(req.body.minOrder) || 200,
+      maxUses: Number(req.body.maxUses) || 500,
+      usedCount: 0,
+      expiryDate: req.body.expiryDate || "2026-12-31",
+      status: req.body.status || "Active",
+    });
+    res.status(201).json({ success: true, coupon: newCoupon });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating coupon." });
+  }
+});
+
+router.put("/admin/coupons/:id", (req, res) => {
+  try {
+    const couponsTable = getTable("coupons");
+    const updated = couponsTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Coupon not found." });
+    res.status(200).json({ success: true, coupon: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating coupon." });
+  }
+});
+
+router.delete("/admin/coupons/:id", (req, res) => {
+  try {
+    const couponsTable = getTable("coupons");
+    const success = couponsTable.delete(req.params.id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting coupon." });
   }
 });
 

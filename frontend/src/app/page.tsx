@@ -3,39 +3,35 @@ import { HeroSection } from "@/components/HeroSection";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
 import { PublicLeaderboardSection } from "@/components/PublicLeaderboardSection";
 import { SmartChoicePricing } from "@/components/SmartChoicePricing";
-import { MainsAnswerInspector } from "@/components/MainsAnswerInspector";
-import { Testimonials } from "@/components/Testimonials";
+import { DigitalBookshelf } from "@/components/DigitalBookshelf";
 import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-slate-900 flex flex-col antialiased selection:bg-sky-200 selection:text-slate-900">
-      {/* 1. Clean Navigation Bar & Announcement */}
+      {/* 1. Clean Navigation Bar */}
       <Navbar />
 
-      {/* 2. Prestigious Hero Section with instant Sample Chapter modal trigger */}
+      {/* 2. Hero Section with 3D CA & CS Book Graphic & Quick Sample Reader */}
       <HeroSection />
 
-      {/* 3. Streamlined Exam Countdowns & Daily High-Yield MCQ Challenge */}
+      {/* 3. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
       <ExamCountdownsAndQOTD />
 
-      {/* 4. All-India Daily Legal Challenge Leaderboard */}
+      {/* 4. Weekly Test Leaderboard */}
       <PublicLeaderboardSection />
 
-      {/* 5. Study Packages: 2-Volume Flagship Books & Course Subscriptions */}
+      {/* 5. Subscription Pricing (@ ₹99/Month Launch Offer) */}
       <SmartChoicePricing />
 
-      {/* 6. Interactive 5-Pillar Model Legal Answer Builder */}
-      <MainsAnswerInspector />
+      {/* 6. Interactive Digital Bookshelf */}
+      <DigitalBookshelf />
 
-      {/* 7. Toppers Testimonials */}
-      <Testimonials />
-
-      {/* 8. Frequently Asked Questions */}
+      {/* 7. Frequently Asked Questions */}
       <FaqSection />
 
-      {/* 9. Minimalist Footer */}
+      {/* 8. Minimalist Footer & Disclaimers */}
       <Footer />
     </main>
   );

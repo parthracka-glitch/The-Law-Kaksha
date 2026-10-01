@@ -35,6 +35,14 @@ export function getActiveUser(): any | null {
   }
 }
 
+export function getAuthSession(): { token: string | null; user: any | null } | null {
+  if (typeof window === "undefined") return null;
+  const token = getAuthToken();
+  const user = getActiveUser();
+  if (!token && !user) return null;
+  return { token, user };
+}
+
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
