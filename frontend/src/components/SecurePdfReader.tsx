@@ -71,6 +71,7 @@ export function SecurePdfReader({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [readingTime, setReadingTime] = useState(0);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const renderTaskRef = useRef<any>(null);
 
   // Multi-Touch Pinch and Swipe Tracking
@@ -267,30 +268,32 @@ export function SecurePdfReader({
     }
   }, []);
 
-  // Fit to Width calculation
+  // Fit to Width calculation - strictly preserves aspect ratio
   const handleFitWidth = useCallback(async () => {
     if (!containerRef.current || !pdfDoc) return;
     try {
       const page = await pdfDoc.getPage(currentPage);
       const viewport = page.getViewport({ scale: 1, rotation });
-      const containerWidth = containerRef.current.clientWidth - (window.innerWidth < 640 ? 16 : 48);
-      if (containerWidth > 0 && viewport.width > 0) {
-        const targetScale = containerWidth / viewport.width;
-        setScale(Math.min(Math.max(targetScale, 0.4), 2.8));
+      const horizontalPadding = window.innerWidth < 640 ? 16 : 48;
+      const availableWidth = Math.max(containerRef.current.clientWidth - horizontalPadding, 240);
+      if (availableWidth > 0 && viewport.width > 0) {
+        const targetScale = availableWidth / viewport.width;
+        setScale(targetScale);
       }
     } catch (e) {}
   }, [currentPage, pdfDoc, rotation]);
 
-  // Fit to Page calculation
+  // Fit to Page calculation - strictly preserves aspect ratio
   const handleFitPage = useCallback(async () => {
     if (!containerRef.current || !pdfDoc) return;
     try {
       const page = await pdfDoc.getPage(currentPage);
       const viewport = page.getViewport({ scale: 1, rotation });
-      const containerHeight = containerRef.current.clientHeight - 80;
-      if (containerHeight > 0 && viewport.height > 0) {
-        const targetScale = containerHeight / viewport.height;
-        setScale(Math.min(Math.max(targetScale, 0.4), 2.8));
+      const verticalPadding = window.innerWidth < 640 ? 110 : 130;
+      const availableHeight = Math.max(containerRef.current.clientHeight - verticalPadding, 300);
+      if (availableHeight > 0 && viewport.height > 0) {
+        const targetScale = availableHeight / viewport.height;
+        setScale(targetScale);
       }
     } catch (e) {}
   }, [currentPage, pdfDoc, rotation]);
@@ -300,7 +303,7 @@ export function SecurePdfReader({
     setRotation((r) => (r + 90) % 360);
   };
 
-  // Render Page onto Canvas with High-DPI support
+  // Render Page onto Canvas with High-DPI support and locked aspect ratio
   const renderPage = useCallback(
     async (doc: any, pageNum: number, zoom: number, rot: number) => {
       if (!canvasRef.current || !doc) return;
@@ -319,10 +322,14 @@ export function SecurePdfReader({
         const ctx = canvas.getContext("2d", { alpha: false });
         if (!ctx) return;
 
+        const cssWidth = Math.round(viewport.width / dpr);
+        const cssHeight = Math.round(viewport.height / dpr);
+
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        canvas.style.width = `${viewport.width / dpr}px`;
-        canvas.style.height = `${viewport.height / dpr}px`;
+        canvas.style.width = `${cssWidth}px`;
+        canvas.style.height = `${cssHeight}px`;
+        setCanvasSize({ width: cssWidth, height: cssHeight });
 
         const renderTask = page.render({ canvasContext: ctx, viewport });
         renderTaskRef.current = renderTask;
@@ -877,7 +884,7 @@ export function SecurePdfReader({
         {/* CANVAS WORKSPACE */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-pan-y"
+          className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-auto"
           style={{ background: themeStyles.canvasBg }}
           onContextMenu={blockContext}
           onTouchStart={handleTouchStart}
@@ -932,16 +939,25 @@ export function SecurePdfReader({
 
           {/* LOADED PDF PAGE WITH SECURITY WATERMARK */}
           {!loading && !error && (
-            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20 max-w-full">
+            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20">
               <div
-                className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} transition-transform duration-150 max-w-full`}
+                className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} shrink-0`}
                 style={{
+                  width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
+                  height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
                   background: "#ffffff",
                 }}
                 onContextMenu={blockContext}
               >
-                {/* CANVAS RENDERING SURFACE */}
-                <canvas ref={canvasRef} className="block max-w-full h-auto" />
+                {/* CANVAS RENDERING SURFACE - LOCKED 1:1 ASPECT RATIO (NO STRETCH) */}
+                <canvas
+                  ref={canvasRef}
+                  className="block"
+                  style={{
+                    width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
+                    height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
+                  }}
+                />
 
                 {/* ANTI-SCREENSHOT / DRM WATERMARK OVERLAY */}
                 <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 opacity-[0.035] text-black select-none font-mono text-[10px] sm:text-xs overflow-hidden leading-relaxed">
