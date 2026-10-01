@@ -324,16 +324,24 @@ export function ExamCountdownsAndQOTD() {
         const data = await res.json();
         if (data.success) {
           if (Array.isArray(data.examSettings) && data.examSettings.length > 0) {
-            setExamTargets(data.examSettings);
-            if (!data.examSettings.some((e: any) => e.id === selectedExamId)) {
-              setSelectedExamId(data.examSettings[0].id);
+            const normalized: ExamTarget[] = data.examSettings.map((e: any) => ({
+              id: e.id || `exam-${Math.random()}`,
+              name: e.name || e.exam || "CA Foundation Business Laws",
+              level: e.level || e.session || "ICAI Paper 2 • 7 Chapters",
+              targetDate: e.targetDate || (e.date ? (e.date.includes("T") ? e.date : `${e.date}T09:00:00`) : "2026-12-15T09:00:00"),
+              syllabusCoverage: e.syllabusCoverage ?? 100,
+              totalHoursNeeded: e.totalHoursNeeded ?? 120,
+            }));
+            setExamTargets(normalized);
+            if (!normalized.some((e) => e.id === selectedExamId)) {
+              setSelectedExamId(normalized[0].id);
             }
           }
           if (data.qotd && data.qotd.question) {
             const formattedLiveQotd: MCQScenario = {
               id: "live-qotd",
-              subject: data.qotd.subject || "Daily Legal Drill",
-              statutoryRef: data.qotd.statutoryRef || "High Yield Topic",
+              subject: data.qotd.subject || data.qotd.act || "Daily Legal Drill",
+              statutoryRef: data.qotd.statutoryRef || data.qotd.section || "High Yield Topic",
               question: data.qotd.question,
               options: Array.isArray(data.qotd.options)
                 ? data.qotd.options.map((opt: any, idx: number) => ({
@@ -354,7 +362,7 @@ export function ExamCountdownsAndQOTD() {
       }
     }
     fetchLiveSiteData();
-  }, [API_URL]);
+  }, [API_URL, selectedExamId]);
 
   const activeExam =
     examTargets.find((e) => e.id === selectedExamId) || examTargets[0] || EXAM_TARGETS[0];
@@ -363,7 +371,9 @@ export function ExamCountdownsAndQOTD() {
   // Dynamic Countdown Timer Calculation
   useEffect(() => {
     const calculateTime = () => {
-      const difference = +new Date(activeExam.targetDate) - +new Date();
+      const examDateStr = activeExam?.targetDate || (activeExam as any)?.date || "2026-12-15T09:00:00";
+      const targetDate = examDateStr.includes("T") ? examDateStr : `${examDateStr}T09:00:00`;
+      const difference = +new Date(targetDate) - +new Date();
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -438,28 +448,32 @@ export function ExamCountdownsAndQOTD() {
 
               {/* Course Selection Tabs */}
               <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                {examTargets.map((exam) => (
-                  <button
-                    key={exam.id}
-                    onClick={() => setSelectedExamId(exam.id)}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer text-center truncate min-h-[44px] flex items-center justify-center ${
-                      selectedExamId === exam.id
-                        ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
-                        : "text-[#6E6E73] hover:text-[#1D1D1F]"
-                    }`}
-                  >
-                    {exam.name.includes("CA") ? "CA Foundation" : "CSEET Law"}
-                  </button>
-                ))}
+                {examTargets.map((exam) => {
+                  const examName = exam?.name || (exam as any)?.exam || "";
+                  const isCA = examName.toLowerCase().includes("ca") || (exam?.id || "").includes("ca");
+                  return (
+                    <button
+                      key={exam.id}
+                      onClick={() => setSelectedExamId(exam.id)}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer text-center truncate min-h-[44px] flex items-center justify-center ${
+                        selectedExamId === exam.id
+                          ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
+                          : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                      }`}
+                    >
+                      {isCA ? "CA Foundation" : "CSEET Law"}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Exam Title & Details */}
             <div className="space-y-1">
               <h3 className="text-base sm:text-lg font-semibold text-[#1D1D1F] tracking-tight">
-                {activeExam.name}
+                {activeExam?.name || (activeExam as any)?.exam || "CA Foundation Business Laws"}
               </h3>
-              <p className="text-xs text-[#86868B]">{activeExam.level}</p>
+              <p className="text-xs text-[#86868B]">{activeExam?.level || (activeExam as any)?.session || "ICAI Paper 2 • 7 Chapters"}</p>
             </div>
 
             {/* 4-Digit Timer Block matching Apple Aesthetic */}
