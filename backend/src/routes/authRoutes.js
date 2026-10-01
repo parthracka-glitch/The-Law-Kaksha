@@ -1,12 +1,16 @@
 /**
  * The Law Kaksha - Authentication Routes
- * Supports course selection (CSEET / CA Foundation), Student ID (Roll number) & Admin login
+ * Supports course selection (CA Foundation & CSEET), Student Roll Numbers & Administrator authentication
+ * Fully integrated with MongoDB Atlas and secure bcrypt hashing
  */
 
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const Subscription = require("../models/Subscription");
 const Database = require("../db/database");
+const { isConnected } = require("../db/mongo");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -26,159 +30,172 @@ router.post("/register", async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and password are required.",
+        message: "Full name, email, and password are required.",
       });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanPhone = phone ? phone.trim() : "+91 98765 43210";
     const course = selectedCourse || targetExam || target_exam || "CA Foundation Paper 2: Business Laws";
 
-    const usersTable = Database.table("users");
-    const existing = usersTable.findOne(
-      (u) => u.email.toLowerCase() === email.trim().toLowerCase()
-    );
-
-    if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: "An account with this email address already exists. Please log in.",
-      });
+    // Check existing in MongoDB Atlas or local DB
+    if (isConnected()) {
+      const existing = await User.findOne({ email: cleanEmail });
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: "An account with this email address already exists. Please sign in.",
+        });
+      }
+    } else {
+      const usersTable = Database.table("users");
+      const existing = usersTable.findOne((u) => u.email.toLowerCase() === cleanEmail);
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: "An account with this email address already exists. Please sign in.",
+        });
+      }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
     const studentId = generateStudentId(course);
+    const userId = `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    const isCSEET = String(course).toLowerCase().includes("cseet");
-    const defaultUnlocked = isCSEET ? ["book-vol-1", "book-vol-2"] : ["book-vol-1", "book-vol-2"];
-
-    const newUser = usersTable.insert({
-      id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    const userPayload = {
+      id: userId,
       student_id: studentId,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone ? phone.trim() : "+91 98765 43210",
+      name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone,
       password_hash: passwordHash,
       role: "student",
       selectedCourse: course,
       target_exam: course,
-      is_active: 1,
-      unlockedItemIds: defaultUnlocked,
-    });
+      is_active: true,
+      drm_access: true,
+      enrolled_books: [course],
+      unlockedItemIds: ["prod-vol1", "prod-vol2"],
+    };
 
-    // Create a subscription record for the student
-    const subscriptionsTable = Database.table("subscriptions");
-    subscriptionsTable.insert({
-      id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      userId: newUser.id,
-      studentName: newUser.name,
-      studentRoll: newUser.student_id,
-      email: newUser.email,
-      phone: newUser.phone,
-      item: "Volume 1 & 2 Master Digital Pass",
-      targetExam: course,
-      amount: "₹449",
-      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-      paymentMode: "Direct Registration",
-      accessStatus: "Active",
-      status: "ACTIVE",
-    });
+    let createdUser;
+    if (isConnected()) {
+      createdUser = await User.create(userPayload);
+    }
+    // Also save to local database for consistency
+    const usersTable = Database.table("users");
+    usersTable.insert(userPayload);
 
     const token = jwt.sign(
       {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        student_id: newUser.student_id,
+        id: userId,
+        email: cleanEmail,
+        role: "student",
+        student_id: studentId,
       },
       JWT_SECRET,
       { expiresIn: "30d" }
     );
 
-    const { password_hash, ...safeUser } = newUser;
+    const { password_hash, ...safeUser } = userPayload;
 
     return res.status(201).json({
       success: true,
-      message: "Account created. Welcome to The Law Kaksha!",
+      message: "Account created successfully. Welcome to The Law Kaksha!",
       token,
       user: safeUser,
     });
   } catch (err) {
     console.error("[Auth] Register error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    return res.status(500).json({ success: false, message: "Registration failed. Please try again." });
   }
 });
 
 // 2. POST /api/auth/login
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const identifier = req.body.identifier || req.body.email || req.body.phone;
+    const password = req.body.password;
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email/Roll ID and password are required.",
+        message: "Email/Student ID and password are required.",
       });
     }
 
-    const loginQuery = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
-    const usersTable = Database.table("users");
+    const loginQuery = String(identifier).trim().toLowerCase();
+    const cleanPassword = String(password).trim();
 
-    // Search by email, roll ID, or admin alias
-    let user = usersTable.findOne(
-      (u) =>
-        (u.email && u.email.toLowerCase() === loginQuery) ||
-        (u.student_id && u.student_id.toLowerCase() === loginQuery) ||
-        (loginQuery === "admin" && (u.role === "admin" || u.email.includes("admin")))
-    );
+    let user = null;
 
-    // If admin fallback
-    if (!user && (loginQuery === "admin" || loginQuery === "admin@thelawkaksha.com")) {
-      const passwordHash = await bcrypt.hash("Admin@2026", 10);
-      user = usersTable.insert({
-        id: "usr-admin-master",
-        student_id: "LK-ADMIN-01",
-        name: "Master Administrator",
+    // Search in MongoDB Atlas first
+    if (isConnected()) {
+      user = await User.findOne({
+        $or: [
+          { email: loginQuery },
+          { student_id: loginQuery.toUpperCase() },
+          { student_id: loginQuery },
+          { phone: loginQuery },
+        ],
+      }).lean();
+    }
+
+    // Fallback to local table
+    if (!user) {
+      const usersTable = Database.table("users");
+      user = usersTable.findOne(
+        (u) =>
+          (u.email && u.email.toLowerCase() === loginQuery) ||
+          (u.student_id && u.student_id.toLowerCase() === loginQuery) ||
+          (u.phone && u.phone.toLowerCase() === loginQuery) ||
+          (loginQuery === "admin" && u.role === "admin")
+      );
+    }
+
+    // Default admin creation if none exists yet
+    if (!user && (loginQuery === "admin@thelawkaksha.com" || loginQuery === "admin")) {
+      const passwordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
+      const adminPayload = {
+        id: "usr-admin-001",
+        student_id: "LK-ADM-000001",
+        name: "The Law Kaksha Admin",
         email: "admin@thelawkaksha.com",
-        phone: "+91 99999 00000",
+        phone: "+91 99999 88888",
         password_hash: passwordHash,
         role: "admin",
-        is_active: 1,
-      });
+        is_active: true,
+        drm_access: true,
+      };
+      if (isConnected()) {
+        user = await User.create(adminPayload);
+      } else {
+        const usersTable = Database.table("users");
+        user = usersTable.insert(adminPayload);
+      }
     }
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials. Please check your Email/Student ID and password.",
+        message: "Invalid credentials. Please verify your Email/Student ID and password.",
       });
     }
 
-    if (user.is_active === 0) {
+    if (user.is_active === false || user.is_active === 0) {
       return res.status(403).json({
         success: false,
-        message: "Your account has been deactivated. Please contact support.",
+        message: "Your account is inactive. Please contact support.",
       });
     }
 
-    // Check password
-    let isMatch = false;
-    if (user.password_hash) {
-      isMatch = await bcrypt.compare(cleanPassword, user.password_hash);
-    }
-    // Also support default development passwords
-    if (!isMatch) {
-      if (
-        (user.role === "admin" && (cleanPassword === "Admin@2026" || cleanPassword === "admin@2026" || cleanPassword === "admin")) ||
-        (cleanPassword === "Exemption@2026" || cleanPassword === "exemption@2026" || cleanPassword === "lawkaksha2026")
-      ) {
-        isMatch = true;
-      }
-    }
-
+    // Verify password with bcrypt
+    const isMatch = await bcrypt.compare(cleanPassword, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials. Please check your password.",
+        message: "Invalid credentials. Please verify your password.",
       });
     }
 
@@ -193,11 +210,18 @@ router.post("/login", async (req, res) => {
       { expiresIn: "30d" }
     );
 
-    // Fetch active subscription
-    const subscriptionsTable = Database.table("subscriptions");
-    const activeSub = subscriptionsTable.findOne(
-      (s) => (s.userId === user.id || s.studentRoll === user.student_id) && (s.status === "ACTIVE" || s.accessStatus === "Active")
-    );
+    let activeSub = null;
+    if (isConnected()) {
+      activeSub = await Subscription.findOne({
+        $or: [{ userId: user.id }, { email: user.email }, { studentRoll: user.student_id }],
+        accessStatus: "Active",
+      }).lean();
+    } else {
+      const subscriptionsTable = Database.table("subscriptions");
+      activeSub = subscriptionsTable.findOne(
+        (s) => (s.userId === user.id || s.email === user.email) && s.accessStatus === "Active"
+      );
+    }
 
     const { password_hash, ...safeUser } = user;
 
@@ -205,22 +229,34 @@ router.post("/login", async (req, res) => {
       success: true,
       message: "Login successful.",
       token,
-      user: safeUser,
-      subscription: activeSub || null,
+      data: {
+        student: safeUser,
+        user: safeUser,
+        role: user.role,
+        subscription: activeSub || null,
+      },
     });
   } catch (err) {
     console.error("[Auth] Login error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    return res.status(500).json({ success: false, message: "Internal server error during login." });
   }
 });
 
 // 3. GET /api/auth/me
-router.get("/me", requireAuth, (req, res) => {
+router.get("/me", requireAuth, async (req, res) => {
   try {
-    const subscriptionsTable = Database.table("subscriptions");
-    const activeSub = subscriptionsTable.findOne(
-      (s) => (s.userId === req.user.id || s.studentRoll === req.user.student_id) && (s.status === "ACTIVE" || s.accessStatus === "Active")
-    );
+    let activeSub = null;
+    if (isConnected()) {
+      activeSub = await Subscription.findOne({
+        $or: [{ userId: req.user.id }, { email: req.user.email }],
+        accessStatus: "Active",
+      }).lean();
+    } else {
+      const subscriptionsTable = Database.table("subscriptions");
+      activeSub = subscriptionsTable.findOne(
+        (s) => (s.userId === req.user.id || s.email === req.user.email) && s.accessStatus === "Active"
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -229,31 +265,6 @@ router.get("/me", requireAuth, (req, res) => {
     });
   } catch (err) {
     console.error("[Auth] Me error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
-
-// 4. PUT /api/auth/profile
-router.put("/profile", requireAuth, (req, res) => {
-  try {
-    const { name, phone, target_exam } = req.body;
-    const usersTable = Database.table("users");
-
-    const updates = {};
-    if (name && name.trim()) updates.name = name.trim();
-    if (phone !== undefined) updates.phone = phone.trim();
-    if (target_exam !== undefined) updates.target_exam = target_exam.trim();
-
-    const updatedUser = usersTable.update(req.user.id, updates);
-    const { password_hash, ...safeUser } = updatedUser;
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile updated successfully.",
-      user: safeUser,
-    });
-  } catch (err) {
-    console.error("[Auth] Profile update error:", err);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 });

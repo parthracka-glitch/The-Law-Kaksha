@@ -1,66 +1,18 @@
 {
   "users": [
     {
-      "id": "usr-1790819194328-623",
-      "student_id": "LRK-2026-002645",
-      "name": "Aarav Sharma",
-      "email": "student_1790819194167@gmail.com",
-      "phone": "+91 98765 43210",
-      "password_hash": "$2b$10$N2juGhcdTtpsdBT25SrHEefXqJ0D/4GVyC93Xh0jJJ2YwyN9usKqu",
-      "role": "student",
-      "selectedCourse": "CA Foundation Paper 2: Business Laws",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "is_active": 1,
-      "unlockedItemIds": [
-        "book-vol-1",
-        "book-vol-2"
-      ],
-      "created_at": "2026-10-01T01:46:34.328Z",
-      "updated_at": "2026-10-01T01:46:34.731Z"
-    },
-    {
-      "id": "usr-1790818972596-864",
-      "student_id": "LRK-2026-008168",
-      "name": "Aarav Sharma",
-      "email": "student_1790818972406@gmail.com",
-      "phone": "+91 98765 43210",
-      "password_hash": "$2b$10$jST1jsQ9HNnN62vuyLwQ9OT9ghlFuwp/lc.tnBXt2oKi8iwRxnGZy",
-      "role": "student",
-      "selectedCourse": "CA Foundation Paper 2: Business Laws",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "is_active": 1,
-      "unlockedItemIds": [
-        "book-vol-1",
-        "book-vol-2"
-      ],
-      "created_at": "2026-10-01T01:42:52.596Z",
-      "updated_at": "2026-10-01T01:42:52.892Z"
-    },
-    {
-      "id": "usr-student-001",
-      "student_id": "LK-STU-084201",
-      "name": "Aarav Sharma",
-      "email": "student@thelawkaksha.com",
-      "phone": "+91 98765 43210",
-      "password_hash": "$2b$10$V3ju5gCDpW56rlmykGwaFeTd.pJri/PB8EWsOlHF0DIwPbt6qjEuq",
-      "role": "student",
-      "selectedCourse": "course-ca-foundation",
-      "is_active": 1,
-      "created_at": "2026-09-30T15:48:34.611Z",
-      "updated_at": "2026-09-30T15:48:34.611Z"
-    },
-    {
       "id": "usr-admin-001",
       "student_id": "LK-ADM-000001",
       "name": "The Law Kaksha Admin",
       "email": "admin@thelawkaksha.com",
       "phone": "+91 99999 88888",
-      "password_hash": "$2b$10$wnO70zLwiTY2M.GDcPGd/O1Mv5nhnXWGyxS0iLCNn.tBIV80gFZhW",
+      "password_hash": "$2b$10$QOUGN643DxCYaQ2Nd6CylOrM8N48BXIQUMHXFH4i8lYcZ8K.f4Fv6",
       "role": "admin",
       "selectedCourse": null,
       "is_active": 1,
-      "created_at": "2026-09-30T15:48:34.609Z",
-      "updated_at": "2026-09-30T15:48:34.609Z"
+      "drm_access": true,
+      "created_at": "2026-10-01T05:19:12.388Z",
+      "updated_at": "2026-10-01T05:19:12.389Z"
     }
   ],
   "courses": [
@@ -928,216 +880,12 @@
       "updated_at": "2026-09-30T15:48:34.231Z"
     }
   ],
-  "subscriptions": [
-    {
-      "id": "LK-SUB-2026-2227",
-      "userId": "usr-1790819194328-623",
-      "studentName": "Aarav Sharma",
-      "studentRoll": "LRK-2026-002645",
-      "email": "student_1790819194167@gmail.com",
-      "phone": "+91 98765 43210",
-      "item": "Business Law Volume 1",
-      "targetExam": "CA Foundation Paper 2: Business Laws",
-      "amount": "₹199",
-      "date": "1 Oct 2026",
-      "paymentMode": "UPI / Razorpay",
-      "accessStatus": "Active",
-      "status": "ACTIVE",
-      "created_at": "2026-10-01T01:46:34.733Z",
-      "updated_at": "2026-10-01T01:46:34.733Z"
-    },
-    {
-      "id": "LK-SUB-2026-9651",
-      "userId": "usr-1790819194328-623",
-      "studentName": "Aarav Sharma",
-      "studentRoll": "LRK-2026-002645",
-      "email": "student_1790819194167@gmail.com",
-      "phone": "+91 98765 43210",
-      "item": "Volume 1 & 2 Master Digital Pass",
-      "targetExam": "CA Foundation Paper 2: Business Laws",
-      "amount": "₹449",
-      "date": "1 Oct 2026",
-      "paymentMode": "Direct Registration",
-      "accessStatus": "Active",
-      "status": "ACTIVE",
-      "created_at": "2026-10-01T01:46:34.396Z",
-      "updated_at": "2026-10-01T01:46:34.396Z"
-    },
-    {
-      "id": "LK-SUB-2026-6818",
-      "userId": "usr-1790818972596-864",
-      "studentName": "Aarav Sharma",
-      "studentRoll": "LRK-2026-008168",
-      "email": "student_1790818972406@gmail.com",
-      "phone": "+91 98765 43210",
-      "item": "Business Law Volume 1",
-      "targetExam": "CA Foundation Paper 2: Business Laws",
-      "amount": "₹199",
-      "date": "1 Oct 2026",
-      "paymentMode": "UPI / Razorpay",
-      "accessStatus": "Active",
-      "status": "ACTIVE",
-      "created_at": "2026-10-01T01:42:52.894Z",
-      "updated_at": "2026-10-01T01:42:52.894Z"
-    },
-    {
-      "id": "LK-SUB-2026-3752",
-      "userId": "usr-1790818972596-864",
-      "studentName": "Aarav Sharma",
-      "studentRoll": "LRK-2026-008168",
-      "email": "student_1790818972406@gmail.com",
-      "phone": "+91 98765 43210",
-      "item": "Volume 1 & 2 Master Digital Pass",
-      "targetExam": "CA Foundation Paper 2: Business Laws",
-      "amount": "₹449",
-      "date": "1 Oct 2026",
-      "paymentMode": "Direct Registration",
-      "accessStatus": "Active",
-      "status": "ACTIVE",
-      "created_at": "2026-10-01T01:42:52.640Z",
-      "updated_at": "2026-10-01T01:42:52.640Z"
-    },
-    {
-      "id": "sub-demo-001",
-      "userId": "usr-student-001",
-      "courseId": "course-ca-foundation",
-      "courseTitle": "CA Foundation Business Laws",
-      "plan": "monthly",
-      "price": 99,
-      "status": "ACTIVE",
-      "startDate": "2026-09-30T15:48:34.613Z",
-      "endDate": "2026-10-30T15:48:34.613Z",
-      "created_at": "2026-09-30T15:48:34.613Z",
-      "updated_at": "2026-09-30T15:48:34.613Z"
-    }
-  ],
+  "subscriptions": [],
   "enrollments": [],
   "reviews": [],
-  "quiz_attempts": [
-    {
-      "id": "att-seed-001",
-      "quiz_id": "quiz-ca-ch4-partnership",
-      "quiz_title": "CA Foundation — Partnership Act Unit-wise Quiz",
-      "candidate_name": "Aarav Sharma",
-      "student_id": "LK-2026-004182",
-      "user_id": "usr-student-001",
-      "score": 20,
-      "total_marks": 20,
-      "accuracy": 100,
-      "time_taken_seconds": 245,
-      "created_at": "2026-09-30T16:42:00.801Z",
-      "updated_at": "2026-09-30T16:42:00.802Z"
-    },
-    {
-      "id": "att-seed-002",
-      "quiz_id": "quiz-ca-ch4-partnership",
-      "quiz_title": "CA Foundation — Partnership Act Unit-wise Quiz",
-      "candidate_name": "Rohan Verma",
-      "student_id": "LK-2026-009821",
-      "user_id": "usr-student-002",
-      "score": 18,
-      "total_marks": 20,
-      "accuracy": 90,
-      "time_taken_seconds": 310,
-      "created_at": "2026-09-30T13:42:00.802Z",
-      "updated_at": "2026-09-30T13:42:00.802Z"
-    },
-    {
-      "id": "att-seed-003",
-      "quiz_id": "quiz-ca-ch4-partnership",
-      "quiz_title": "CA Foundation — Partnership Act Unit-wise Quiz",
-      "candidate_name": "Pooja Kulkarni",
-      "student_id": "LK-2026-003419",
-      "user_id": "usr-student-003",
-      "score": 17.5,
-      "total_marks": 20,
-      "accuracy": 88,
-      "time_taken_seconds": 340,
-      "created_at": "2026-09-30T10:42:00.802Z",
-      "updated_at": "2026-09-30T10:42:00.802Z"
-    },
-    {
-      "id": "att-seed-004",
-      "quiz_id": "quiz-ca-ch4-partnership",
-      "quiz_title": "CA Foundation — Partnership Act Unit-wise Quiz",
-      "candidate_name": "Sneha Patel",
-      "student_id": "LK-2026-007812",
-      "user_id": "usr-student-004",
-      "score": 16,
-      "total_marks": 20,
-      "accuracy": 80,
-      "time_taken_seconds": 420,
-      "created_at": "2026-09-30T06:42:00.802Z",
-      "updated_at": "2026-09-30T06:42:00.802Z"
-    },
-    {
-      "id": "att-seed-005",
-      "quiz_id": "quiz-ca-ch4-partnership",
-      "quiz_title": "CA Foundation — Partnership Act Unit-wise Quiz",
-      "candidate_name": "Vikram Deshmukh",
-      "student_id": "LK-2026-005193",
-      "user_id": "usr-student-005",
-      "score": 14,
-      "total_marks": 20,
-      "accuracy": 70,
-      "time_taken_seconds": 480,
-      "created_at": "2026-09-30T00:42:00.802Z",
-      "updated_at": "2026-09-30T00:42:00.802Z"
-    }
-  ],
+  "quiz_attempts": [],
   "coupons": [],
-  "orders": [
-    {
-      "id": "LK-ORD-855802",
-      "gateway_order_id": "order_1790819194724_6818",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "student_1790819194167@gmail.com",
-      "customer_phone": "+91 98765 43210",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "items": [
-        {
-          "id": "book-vol-1",
-          "title": "Business Law Volume 1",
-          "price": 249,
-          "quantity": 1,
-          "format": "pdf"
-        }
-      ],
-      "subtotal": 249,
-      "discount_amount": 50,
-      "total_amount": 199,
-      "status": "COMPLETED",
-      "payment_method": "ONLINE",
-      "created_at": "2026-10-01T01:46:34.724Z",
-      "updated_at": "2026-10-01T01:46:34.730Z",
-      "gateway_payment_id": "pay_LK_1790819194728"
-    },
-    {
-      "id": "LK-ORD-776028",
-      "gateway_order_id": "order_1790818972884_1963",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "student_1790818972406@gmail.com",
-      "customer_phone": "+91 98765 43210",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "items": [
-        {
-          "id": "book-vol-1",
-          "title": "Business Law Volume 1",
-          "price": 249,
-          "quantity": 1,
-          "format": "pdf"
-        }
-      ],
-      "subtotal": 249,
-      "discount_amount": 50,
-      "total_amount": 199,
-      "status": "COMPLETED",
-      "payment_method": "ONLINE",
-      "created_at": "2026-10-01T01:42:52.884Z",
-      "updated_at": "2026-10-01T01:42:52.890Z",
-      "gateway_payment_id": "pay_LK_1790818972889"
-    }
-  ],
+  "orders": [],
   "products": [
     {
       "id": "prod-1790827643169",

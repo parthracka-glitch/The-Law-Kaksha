@@ -642,12 +642,11 @@ async function seed() {
     console.log("[Seeder] Quizzes seeded.");
   }
 
-  // 6. Seed Default Admin & Student Users with auto-activated ₹99 subscriptions
+  // 6. Seed Default Administrator User
   if (usersTable.count() === 0) {
-    console.log("[Seeder] Seeding default users...");
+    console.log("[Seeder] Seeding default administrator account...");
 
     const adminPasswordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
-    const studentPasswordHash = await bcrypt.hash("StudentSecurePassword2026!", 10);
 
     usersTable.insert({
       id: "usr-admin-001",
@@ -661,32 +660,7 @@ async function seed() {
       is_active: 1,
     });
 
-    const studentUser = usersTable.insert({
-      id: "usr-student-001",
-      student_id: "LK-STU-084201",
-      name: "Aarav Sharma",
-      email: "student@thelawkaksha.com",
-      phone: "+91 98765 43210",
-      password_hash: studentPasswordHash,
-      role: "student",
-      selectedCourse: "course-ca-foundation",
-      is_active: 1,
-    });
-
-    // Give demo student an active subscription for CA Foundation (Launch Offer ₹99/mo)
-    subscriptionsTable.insert({
-      id: "sub-demo-001",
-      userId: studentUser.id,
-      courseId: "course-ca-foundation",
-      courseTitle: "CA Foundation Business Laws",
-      plan: "monthly",
-      price: 99,
-      status: "ACTIVE",
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    });
-
-    console.log("[Seeder] Users seeded.");
+    console.log("[Seeder] Administrator seeded successfully.");
   }
 
   console.log("[Seeder] Seeding complete.");

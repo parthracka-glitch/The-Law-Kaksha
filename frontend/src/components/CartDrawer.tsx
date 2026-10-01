@@ -185,9 +185,9 @@ export function CartDrawer() {
         }
       }
 
-      const studentName = serverStudent.name || studentData.name || "Aarav Sharma";
-      const studentEmail = serverStudent.email || studentData.email || "aarav.sharma@thelawkaksha.com";
-      const rollNumber = serverStudent.student_id || (studentData.exam.includes("CSEET") ? "LRK-2026-009821" : "LRK-2026-004182");
+      const studentName = serverStudent.name || studentData.name || "Student";
+      const studentEmail = serverStudent.email || studentData.email || "";
+      const rollNumber = serverStudent.student_id || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`;
       const mergedUnlockedIds = Array.from(new Set([...priorUnlocked, ...unlockedIds, ...serverUnlockedIds]));
 
       const generatedOrder = {
@@ -205,9 +205,8 @@ export function CartDrawer() {
         }),
         studentName: studentName,
         email: studentEmail,
-        phone: studentData.phone || "+91 98765 43210",
+        phone: studentData.phone || "",
         studentId: rollNumber,
-        tempPassword: `Exemption@2026`,
         unlockedItemIds: mergedUnlockedIds,
         accessType: "Instant In-Web DRM Access Pass",
       };

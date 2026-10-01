@@ -25,89 +25,45 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg("");
 
-    const cleanId = identifier.trim().toLowerCase();
-    const cleanPass = password.trim();
-
-    // Check Administrator Credentials
-    if (
-      (cleanId === "admin" || cleanId === "admin@thelawkaksha.com" || cleanId === "director@thelawkaksha.com") &&
-      (cleanPass === "admin@2026" || cleanPass === "Admin@2026" || cleanPass === "lawkaksha2026")
-    ) {
-      const adminSession = {
-        name: "Academic Administrator",
-        email: "admin@thelawkaksha.com",
-        role: "admin",
-        token: `admin_token_${Date.now()}`,
-      };
-      localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
-      localStorage.setItem("lawkaksha_token", adminSession.token);
-      window.dispatchEvent(new Event("storage"));
-      router.push("/admin");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await apiRequest("/api/auth/login", {
+      const res = (await apiRequest("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({
           identifier: identifier.trim(),
           password: password.trim(),
         }),
-      });
+      })) as any;
 
       if (res && res.success && res.data) {
-        const student = res.data.student || { name: "CA Student" };
-        localStorage.setItem("lawkaksha_student_session", JSON.stringify(student));
-        localStorage.setItem("lawkaksha_active_student", JSON.stringify(student));
-        if (res.data.token) localStorage.setItem("lawkaksha_token", res.data.token);
-        window.dispatchEvent(new Event("storage"));
-        router.push("/student");
-      } else {
-        // Fallback for instant demo credentials
-        if (cleanPass === "Exemption@2026" || cleanPass === "demo123" || cleanPass === "password") {
-          const fallbackStudent = {
-            id: identifier.trim(),
-            name: cleanId.includes("9821") ? "Ananya Verma" : "Aarav Sharma",
-            email: `${cleanId}@thelawkaksha.com`,
-            role: "student",
-            student_id: identifier.trim(),
-            targetExam: cleanId.includes("9821") ? "CSEET Law" : "CA Foundation Paper 2",
+        const user = res.data.user || res.data.student || { name: "User" };
+        const role = res.data.role || user.role || "student";
+
+        if (role === "admin") {
+          const adminSession = {
+            name: user.name || "Academic Administrator",
+            email: user.email || "admin@thelawkaksha.com",
+            role: "admin",
+            token: res.token || `admin_token_${Date.now()}`,
           };
-          localStorage.setItem("lawkaksha_student_session", JSON.stringify(fallbackStudent));
-          localStorage.setItem("lawkaksha_active_student", JSON.stringify(fallbackStudent));
+          localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
+          if (res.token) localStorage.setItem("lawkaksha_token", res.token);
+          window.dispatchEvent(new Event("storage"));
+          router.push("/admin");
+        } else {
+          localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
+          localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
+          if (res.token) localStorage.setItem("lawkaksha_token", res.token);
           window.dispatchEvent(new Event("storage"));
           router.push("/student");
-          return;
         }
-        setErrorMsg(res?.message || "Invalid Student Roll Number or Password.");
+      } else {
+        setErrorMsg(res?.message || "Invalid Email/Student ID or Password.");
       }
     } catch (err: any) {
-      // Fallback demo credentials
-      if (cleanPass === "Exemption@2026" || cleanPass === "demo123") {
-        const fallbackStudent = {
-          id: identifier.trim(),
-          name: cleanId.includes("9821") ? "Ananya Verma" : "Aarav Sharma",
-          email: `${cleanId}@thelawkaksha.com`,
-          role: "student",
-          student_id: identifier.trim(),
-          targetExam: cleanId.includes("9821") ? "CSEET Law" : "CA Foundation Paper 2",
-        };
-        localStorage.setItem("lawkaksha_student_session", JSON.stringify(fallbackStudent));
-        localStorage.setItem("lawkaksha_active_student", JSON.stringify(fallbackStudent));
-        window.dispatchEvent(new Event("storage"));
-        router.push("/student");
-        return;
-      }
-      setErrorMsg("Unable to connect to server. Please verify credentials.");
+      setErrorMsg(err?.message || "Unable to connect to server. Please verify your credentials.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = (id: string, pass: string) => {
-    setIdentifier(id);
-    setPassword(pass);
   };
 
   return (
@@ -143,10 +99,10 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-2xl sm:text-3xl font-semibold text-[#1D1D1F] tracking-tight">
-              Student Sign In
+              Sign In to Your Account
             </h1>
             <p className="text-xs sm:text-sm text-[#86868B]">
-              Access your CA Foundation &amp; CSEET study notes, weekly case studies, and exam tests.
+              Access your CA Foundation &amp; CSEET study codices, weekly case studies, and exam tests.
             </p>
           </div>
 
@@ -161,7 +117,7 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} autoComplete="off" className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
-                  Email or Phone Number *
+                  Email or Student Roll ID *
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
@@ -171,7 +127,7 @@ export default function LoginPage() {
                     autoComplete="off"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Enter your email or number"
+                    placeholder="Enter your registered email or Roll ID"
                     className="w-full pl-10 pr-4 py-3 rounded-2xl border border-black/[0.1] focus:outline-none focus:border-[#0071E3] text-base text-[#1D1D1F] placeholder:text-black/30 bg-[#FBFBFD] focus:bg-white transition-all min-h-[48px]"
                   />
                 </div>
@@ -179,7 +135,7 @@ export default function LoginPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
-                  Access Password *
+                  Password *
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-black/30" />
@@ -205,7 +161,7 @@ export default function LoginPage() {
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>Enter Student Dashboard</span>
+                      <span>Sign In</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -213,32 +169,7 @@ export default function LoginPage() {
               </div>
             </form>
 
-            {/* Quick Demo Credentials */}
-            <div className="mt-5 pt-4 border-t border-black/[0.06] space-y-2">
-              <span className="text-[10px] uppercase font-semibold text-[#86868B] block tracking-wider">
-                Instant Demo Access:
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => fillDemo("LRK-2026-004182", "Exemption@2026")}
-                  className="p-3 rounded-xl bg-[#F5F5F7] hover:bg-[#EBEBEF] text-[11px] text-[#1D1D1F] font-medium text-left border border-black/[0.04] transition-colors cursor-pointer active:scale-95 min-h-[48px]"
-                >
-                  <span className="font-semibold block truncate">CA Foundation</span>
-                  <span className="text-[10px] text-[#86868B]">Aarav Sharma</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo("LRK-2026-009821", "Exemption@2026")}
-                  className="p-3 rounded-xl bg-[#F5F5F7] hover:bg-[#EBEBEF] text-[11px] text-[#1D1D1F] font-medium text-left border border-black/[0.04] transition-colors cursor-pointer active:scale-95 min-h-[48px]"
-                >
-                  <span className="font-semibold block truncate">CSEET Law</span>
-                  <span className="text-[10px] text-[#86868B]">Ananya Verma</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-5 text-center text-xs text-[#86868B]">
+            <div className="mt-6 text-center text-xs text-[#86868B]">
               New student?{" "}
               <Link href="/register" className="font-semibold text-[#0071E3] hover:underline">
                 Create Account

@@ -55,12 +55,12 @@ export function StudentProfileModal({
   streak,
 }: StudentProfileModalProps) {
   const [formData, setFormData] = useState<StudentProfileData>({
-    name: "Aarav Sharma",
-    email: "aarav.sharma@thelawkaksha.com",
-    phone: "+91 98210 45678",
-    student_id: "LAW-2026-9821",
-    targetExam: "CSEET Law & Management",
-    city: "New Delhi",
+    name: "Student",
+    email: "",
+    phone: "",
+    student_id: "",
+    targetExam: "CA Foundation / CSEET",
+    city: "",
     goalScore: "Exemption (75+ Marks)",
     studyMode: "Daily 2 Hours Intensive",
     avatarColor: "violet",
@@ -220,7 +220,7 @@ export function StudentProfileModal({
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g. Aarav Sharma"
+                      placeholder="e.g. Student Name"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     />
                   </div>

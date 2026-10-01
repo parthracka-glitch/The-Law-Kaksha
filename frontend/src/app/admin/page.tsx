@@ -346,65 +346,9 @@ const INITIAL_RESOURCES: ResourceItem[] = [
   },
 ];
 
-const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
-  {
-    id: "LK-SUB-2026-9901",
-    studentName: "Aarav Sharma",
-    studentRoll: "LRK-2026-004182",
-    email: "aarav.sharma@thelawkaksha.com",
-    phone: "+91 98765 43210",
-    item: "CA Foundation Business Laws (Monthly Access)",
-    targetExam: "CA Foundation Paper 2",
-    amount: "₹99",
-    date: "28 Sep 2026",
-    paymentMode: "UPI / Razorpay",
-    accessStatus: "Active",
-    expiryDate: "28 Oct 2026",
-    daysRemaining: 27,
-  },
-  {
-    id: "LK-SUB-2026-9902",
-    studentName: "Ananya Verma",
-    studentRoll: "LRK-2026-009821",
-    email: "ananya.verma@thelawkaksha.com",
-    phone: "+91 98123 45678",
-    item: "CSEET Business Law & Management (Monthly Access)",
-    targetExam: "CSEET Law & Management",
-    amount: "₹99",
-    date: "29 Sep 2026",
-    paymentMode: "Razorpay / Cards",
-    accessStatus: "Active",
-    expiryDate: "29 Oct 2026",
-    daysRemaining: 28,
-  },
-];
+const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
-const INITIAL_STUDENTS: StudentRecord[] = [
-  {
-    id: "std-1",
-    student_id: "LRK-2026-004182",
-    name: "Aarav Sharma",
-    email: "aarav.sharma@thelawkaksha.com",
-    phone: "+91 98765 43210",
-    target_exam: "CA Foundation Paper 2",
-    is_active: true,
-    drm_access: true,
-    enrolled_books: ["CA Foundation Business Laws"],
-    joined_date: "15 Aug 2026",
-  },
-  {
-    id: "std-2",
-    student_id: "LRK-2026-009821",
-    name: "Ananya Verma",
-    email: "ananya.verma@thelawkaksha.com",
-    phone: "+91 98123 45678",
-    target_exam: "CSEET Law & Management",
-    is_active: true,
-    drm_access: true,
-    enrolled_books: ["CSEET Business Law & Management"],
-    joined_date: "20 Aug 2026",
-  },
-];
+const INITIAL_STUDENTS: StudentRecord[] = [];
 
 const INITIAL_CASES: CaseStudyItem[] = [
   {
@@ -2028,7 +1972,7 @@ export default function AdminPortalPage() {
                     type="text"
                     value={subModal.data.studentName || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentName: e.target.value } })}
-                    placeholder="e.g. Aarav Sharma"
+                    placeholder="e.g. Student Name"
                     className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                   />
                 </div>
@@ -2321,7 +2265,7 @@ export default function AdminPortalPage() {
                   type="text"
                   value={studentModal.data.name || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, name: e.target.value } })}
-                  placeholder="e.g. Aarav Sharma"
+                  placeholder="e.g. Student Name"
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
@@ -2332,7 +2276,7 @@ export default function AdminPortalPage() {
                   type="text"
                   value={studentModal.data.student_id || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, student_id: e.target.value } })}
-                  placeholder="LRK-2026-009821"
+                  placeholder="LRK-2026-001234"
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
                 />
               </div>

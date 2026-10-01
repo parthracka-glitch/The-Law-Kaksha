@@ -86,7 +86,7 @@ async function runTests() {
     // Test 4: Register new student
     const testEmail = `student_${Date.now()}@gmail.com`;
     const regRes = await request("POST", "/api/auth/register", {
-      name: "Aarav Sharma",
+      name: "Test Student",
       email: testEmail,
       phone: "+91 98765 43210",
       password: "TestPassword123!",
@@ -107,10 +107,10 @@ async function runTests() {
     // Test 6: Admin Login
     const adminLogin = await request("POST", "/api/auth/login", {
       email: "admin@thelawkaksha.com",
-      password: "Admin@2026",
+      password: "AdminSecurePassword2026!",
     });
-    assert(adminLogin.status === 200 && adminLogin.body.user.role === "admin", "Admin authentication succeeds");
-    const adminToken = adminLogin.body.token;
+    assert(adminLogin.status === 200 && adminLogin.body?.data?.user?.role === "admin", "Admin authentication succeeds");
+    const adminToken = adminLogin.body?.token;
 
     // Test 7: Digital Order creation
     const orderCreate = await request("POST", "/api/orders/create", {
@@ -118,7 +118,7 @@ async function runTests() {
         { id: "book-vol-1", title: "Business Law Volume 1", price: 249, quantity: 1, format: "pdf" },
       ],
       shippingDetails: {
-        name: "Aarav Sharma",
+        name: "Test Student",
         email: testEmail,
         phone: "+91 98765 43210",
         exam: "CA Foundation Paper 2: Business Laws",

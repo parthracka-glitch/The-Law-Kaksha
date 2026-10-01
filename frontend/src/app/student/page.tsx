@@ -139,12 +139,12 @@ export default function StudentDashboardPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [testSubmitted, setTestSubmitted] = useState<boolean>(false);
   const [streak, setStreak] = useState<number>(1);
-  const [studentName, setStudentName] = useState("Aarav Sharma");
+  const [studentName, setStudentName] = useState("Student");
   const [studentProfile, setStudentProfile] = useState<StudentProfileData>({
-    name: "Aarav Sharma",
-    email: "student@thelawkaksha.com",
-    targetExam: "CSEET Law & Management",
-    student_id: "LRK-2026-004182",
+    name: "Student",
+    email: "",
+    targetExam: "CA Foundation / CSEET",
+    student_id: "",
     avatarColor: "violet",
   });
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
@@ -385,7 +385,7 @@ export default function StudentDashboardPage() {
             </div>
           </button>
 
-          {/* AS / AARAV SHARMA / ACTIVE STUDENT -> OPENS PROFILE DETAIL & EDIT PAGE */}
+          {/* ACTIVE STUDENT -> OPENS PROFILE DETAIL & EDIT PAGE */}
           <div
             onClick={() => setProfileModalOpen(true)}
             className="flex items-center gap-2.5 p-2 rounded-2xl hover:bg-violet-50/80 border border-transparent hover:border-violet-100 transition-all duration-150 cursor-pointer group"

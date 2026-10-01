@@ -53,8 +53,8 @@ export function SecurePdfReader({
   onClose,
   pdfUrl,
   title,
-  studentName = "Aarav Sharma",
-  studentRoll = "LAW-2026-9821",
+  studentName = "Student",
+  studentRoll = "LK-2026-STU",
 }: SecurePdfReaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

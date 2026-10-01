@@ -189,12 +189,11 @@ async function seedMongo() {
       console.log("[MongoDB Atlas Seeder] Coupons seeded successfully.");
     }
 
-    // 5. Admin & Demo Student Users
+    // 5. Administrator User
     const userCount = await User.countDocuments();
     if (userCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding default admin & student accounts...");
+      console.log("[MongoDB Atlas Seeder] Seeding default administrator account...");
       const adminPasswordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
-      const studentPasswordHash = await bcrypt.hash("Exemption@2026", 10);
 
       await User.create([
         {
@@ -208,45 +207,9 @@ async function seedMongo() {
           is_active: true,
           drm_access: true,
         },
-        {
-          id: "usr-student-001",
-          student_id: "LRK-2026-004182",
-          name: "Aarav Sharma",
-          email: "student@thelawkaksha.com",
-          phone: "+91 98765 43210",
-          password_hash: studentPasswordHash,
-          role: "student",
-          target_exam: "CA Foundation Paper 2: Business Laws",
-          is_active: true,
-          drm_access: true,
-          enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
-          unlockedItemIds: ["prod-vol1", "prod-vol2", "prod-combo", "course-ca-foundation-sub", "course-cseet-sub"],
-          streakDays: 14,
-          todayMinutes: 40,
-          todayGoalMinutes: 45,
-          joined_date: "15 Aug 2026",
-        },
       ]);
 
-      // Seed corresponding Subscription for student
-      await Subscription.create([
-        {
-          id: "LK-SUB-2026-9901",
-          studentName: "Aarav Sharma",
-          studentRoll: "LRK-2026-004182",
-          email: "student@thelawkaksha.com",
-          phone: "+91 98765 43210",
-          item: "Complete 2-Volume Master Digital Access Pass",
-          targetExam: "CA Foundation Paper 2: Business Laws",
-          amount: "₹449",
-          date: "28 Sep 2026",
-          paymentMode: "UPI / Razorpay",
-          accessStatus: "Active",
-          unlockedItemIds: ["prod-vol1", "prod-vol2", "prod-combo", "course-ca-foundation-sub", "course-cseet-sub"],
-        },
-      ]);
-
-      console.log("[MongoDB Atlas Seeder] Users & Subscriptions seeded successfully.");
+      console.log("[MongoDB Atlas Seeder] Administrator seeded successfully.");
     }
 
     // 6. Site Settings (Exam countdowns & QOTD)
