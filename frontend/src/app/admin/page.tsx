@@ -411,11 +411,12 @@ export default function AdminPortalPage() {
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
-  type TabType = "overview" | "subscriptions" | "products" | "resources" | "students" | "cases" | "mcq" | "coupons" | "qotd";
+  type TabType = "overview" | "subscriptions" | "books_and_notes" | "students" | "cases" | "mcq" | "coupons" | "qotd";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [materialSubTab, setMaterialSubTab] = useState<"all" | "books" | "notes">("all");
 
   // Entities state
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -612,8 +613,7 @@ export default function AdminPortalPage() {
   const NAV_TABS = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
     { id: "subscriptions" as TabType, label: "Subscriptions", icon: CreditCard, badge: subscriptions.length },
-    { id: "products" as TabType, label: "Courses & Books", icon: BookOpen, badge: products.length },
-    { id: "resources" as TabType, label: "PDF Notes", icon: Layers, badge: resources.length },
+    { id: "books_and_notes" as TabType, label: "Books & Notes", icon: BookOpen, badge: products.length + resources.length },
     { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
     { id: "cases" as TabType, label: "Case Studies", icon: Flame },
     { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles },
@@ -791,18 +791,9 @@ export default function AdminPortalPage() {
                   <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-3">
                     <BookOpen className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Courses &amp; Books</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Courses</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">₹99/Month</p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <p className="text-xs text-slate-400 font-medium">PDF Notes</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{resources.length} Notes</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">Notes &amp; PYQs</p>
+                  <p className="text-xs text-slate-400 font-medium">Books &amp; Notes</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length + resources.length} Materials</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
@@ -811,7 +802,16 @@ export default function AdminPortalPage() {
                   </div>
                   <p className="text-xs text-slate-400 font-medium">Subscriptions</p>
                   <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Passes</h3>
-                  <p className="text-[11px] text-amber-600 font-medium mt-1">30-Day Passes</p>
+                  <p className="text-[11px] text-amber-600 font-medium mt-1">{activeSubsCount} Active Passes</p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">Students</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{students.length} Registered</h3>
+                  <p className="text-[11px] text-sky-600 font-medium mt-1">{activeStudentsCount} Active Access</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
@@ -822,141 +822,6 @@ export default function AdminPortalPage() {
                   <h3 className="text-xl font-bold text-slate-800 mt-0.5">Active</h3>
                   <p className="text-[11px] text-emerald-600 font-semibold mt-1">Secure Read Mode</p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB: PDF NOTES */}
-          {activeTab === "resources" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-800">PDF Notes &amp; Resources</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Upload and manage chapter notes, flowcharts, PYQs, and revision summaries.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setResourceModal({
-                    open: true,
-                    mode: "add",
-                    data: {
-                      course: "ca-foundation",
-                      type: "notes",
-                      status: "Published",
-                      chapterNumber: 1,
-                      actName: "Indian Regulatory Framework",
-                      isSample: false,
-                    }
-                  })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add PDF Note</span>
-                </button>
-              </div>
-
-              {/* FILTER BAR */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600">Course:</span>
-                  <select
-                    value={selectedCourseFilter}
-                    onChange={(e) => setSelectedCourseFilter(e.target.value)}
-                    className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
-                  >
-                    <option value="all">All Courses</option>
-                    <option value="ca-foundation">CA Foundation</option>
-                    <option value="cseet">CSEET</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600">Type:</span>
-                  <select
-                    value={selectedTypeFilter}
-                    onChange={(e) => setSelectedTypeFilter(e.target.value)}
-                    className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="notes">Chapter Notes</option>
-                    <option value="flowchart">Flowchart</option>
-                    <option value="practice">Practice Questions</option>
-                    <option value="pyq">PYQ Drill</option>
-                    <option value="ldr">Last Day Revision (LDR)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* RESOURCES GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {resources
-                  .filter((r) => selectedCourseFilter === "all" || r.course === selectedCourseFilter)
-                  .filter((r) => selectedTypeFilter === "all" || r.type === selectedTypeFilter)
-                  .map((res) => (
-                    <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
-                            {res.course === "ca-foundation" ? "CA Foundation" : "CSEET"} • Ch {res.chapterNumber}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            res.status === "Published" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
-                          }`}>
-                            {res.status}
-                          </span>
-                        </div>
-
-                        <div>
-                          <p className="text-[11px] font-bold text-slate-400">{res.actName}</p>
-                          <h3 className="text-sm font-bold text-slate-800 leading-snug mt-0.5">{res.title}</h3>
-                        </div>
-
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                          {res.description}
-                        </p>
-
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                          <span className="font-mono text-slate-600">{res.pages}</span>
-                          {res.isSample && (
-                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                              Free Sample PDF
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 truncate max-w-[140px]" title={res.pdfUrl}>
-                          {res.pdfUrl.split("/").pop()}
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => setResourceModal({ open: true, mode: "edit", data: res })}
-                            className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={async () => {
-                              if (confirm(`Delete resource: ${res.title}?`)) {
-                                const next = resources.filter((r) => r.id !== res.id);
-                                setResources(next);
-                                localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(next));
-                                try {
-                                  await fetch(`${API_URL}/api/admin/resources/${res.id}`, { method: "DELETE" });
-                                } catch (e) {}
-                                showToast("Resource deleted.");
-                              }
-                            }}
-                            className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
               </div>
             </div>
           )}
@@ -1130,99 +995,294 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 3: COURSES & BOOKS */}
-          {activeTab === "products" && (
+          {/* TAB 3: BOOKS & NOTES (UNIFIED) */}
+          {activeTab === "books_and_notes" && (
             <div className="space-y-6">
+              {/* HEADER */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Courses &amp; Books</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage study courses, book details, pricing, and curriculum chapters.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Books &amp; PDF Notes</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Manage study books, subject codices, and chapter PDF notes in one unified workspace.
+                  </p>
                 </div>
-                <button
-                  onClick={() => setProductModal({ open: true, mode: "add", data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CA Foundation", price: 99, originalPrice: 299 } })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Course / Book</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setProductModal({
+                      open: true,
+                      mode: "add",
+                      data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CA Foundation", price: 99, originalPrice: 299 }
+                    })}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Book</span>
+                  </button>
+                  <button
+                    onClick={() => setResourceModal({
+                      open: true,
+                      mode: "add",
+                      data: {
+                        course: "ca-foundation",
+                        type: "notes",
+                        status: "Published",
+                        chapterNumber: 1,
+                        actName: "Indian Regulatory Framework",
+                        isSample: false,
+                      }
+                    })}
+                    className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add PDF Note</span>
+                  </button>
+                </div>
               </div>
 
-              {/* PRODUCT CARDS GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {products.map((prod) => (
-                  <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div className="p-6 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
-                          {prod.category}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          {prod.status}
-                        </span>
-                      </div>
+              {/* SUB-VIEW SWITCHER & FILTERS */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                {/* View Selector Pills */}
+                <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl">
+                  <button
+                    onClick={() => setMaterialSubTab("all")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      materialSubTab === "all" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    All Material ({products.length + resources.length})
+                  </button>
+                  <button
+                    onClick={() => setMaterialSubTab("books")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      materialSubTab === "books" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Books &amp; Courses ({products.length})
+                  </button>
+                  <button
+                    onClick={() => setMaterialSubTab("notes")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      materialSubTab === "notes" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    PDF Notes ({resources.length})
+                  </button>
+                </div>
 
-                      <div>
-                        <h3 className="text-base font-bold text-slate-800 leading-snug">{prod.title}</h3>
-                        <p className="text-xs text-violet-600 font-medium mt-0.5">{prod.subtitle}</p>
-                      </div>
-
-                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
-                        {prod.description}
-                      </p>
-
-                      <div className="pt-2 border-t border-slate-100 space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Chapters</p>
-                        <div className="flex flex-wrap gap-1">
-                          {prod.units?.map((u, i) => (
-                            <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
-                              {u}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CARD FOOTER */}
-                    <div className="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
-                      <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-base font-extrabold text-slate-900">₹{prod.price}</span>
-                          <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
-                          <span className="text-[10px] text-emerald-700 font-bold">/ Month</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400">{prod.pages} • Secure Read</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
-                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
-                          title="Edit Course"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (confirm(`Delete product ${prod.title}?`)) {
-                              const next = products.filter((p) => p.id !== prod.id);
-                              setProducts(next);
-                              localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
-                              try {
-                                await fetch(`${API_URL}/api/admin/products/${prod.id}`, { method: "DELETE" });
-                              } catch (e) {}
-                              showToast("Product deleted.");
-                            }
-                          }}
-                          className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
-                          title="Delete Course"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                {/* Course & Type Dropdown Filters */}
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-500">Course:</span>
+                    <select
+                      value={selectedCourseFilter}
+                      onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                      className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                    >
+                      <option value="all">All Courses</option>
+                      <option value="ca-foundation">CA Foundation</option>
+                      <option value="cseet">CSEET</option>
+                    </select>
                   </div>
-                ))}
+
+                  {materialSubTab !== "books" && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-500">Type:</span>
+                      <select
+                        value={selectedTypeFilter}
+                        onChange={(e) => setSelectedTypeFilter(e.target.value)}
+                        className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                      >
+                        <option value="all">All Types</option>
+                        <option value="notes">Chapter Notes</option>
+                        <option value="flowchart">Flowchart</option>
+                        <option value="practice">Practice Questions</option>
+                        <option value="pyq">PYQ Drill</option>
+                        <option value="ldr">Last Day Revision (LDR)</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* 1. BOOKS & CODICES SECTION */}
+              {(materialSubTab === "all" || materialSubTab === "books") && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-violet-600" />
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Full Books &amp; Codices</h3>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-400">{products.length} active</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {products
+                      .filter((p) => {
+                        if (selectedCourseFilter === "all") return true;
+                        if (selectedCourseFilter === "ca-foundation") return p.category.includes("CA Foundation");
+                        if (selectedCourseFilter === "cseet") return p.category.includes("CSEET");
+                        return true;
+                      })
+                      .map((prod) => (
+                        <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                          <div className="p-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                                {prod.category}
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                {prod.status}
+                              </span>
+                            </div>
+
+                            <div>
+                              <h4 className="text-base font-bold text-slate-800 leading-snug">{prod.title}</h4>
+                              <p className="text-xs text-violet-600 font-medium mt-0.5">{prod.subtitle}</p>
+                            </div>
+
+                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                              {prod.description}
+                            </p>
+
+                            <div className="pt-2 border-t border-slate-100 space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Chapters</p>
+                              <div className="flex flex-wrap gap-1">
+                                {prod.units?.map((u, i) => (
+                                  <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
+                                    {u}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-base font-extrabold text-slate-900">₹{prod.price}</span>
+                                <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
+                                <span className="text-[10px] text-emerald-700 font-bold">/ Month</span>
+                              </div>
+                              <span className="text-[10px] text-slate-400">{prod.pages} • In-Web DRM</span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
+                                className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
+                                title="Edit Book"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm(`Delete product ${prod.title}?`)) {
+                                    const next = products.filter((p) => p.id !== prod.id);
+                                    setProducts(next);
+                                    localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
+                                    try {
+                                      await fetch(`${API_URL}/api/admin/products/${prod.id}`, { method: "DELETE" });
+                                    } catch (e) {}
+                                    showToast("Product deleted.");
+                                  }
+                                }}
+                                className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
+                                title="Delete Book"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. CHAPTER NOTES & PDFS SECTION */}
+              {(materialSubTab === "all" || materialSubTab === "notes") && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-sky-600" />
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Chapter Notes &amp; PDF Resources</h3>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-400">{resources.length} notes</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {resources
+                      .filter((r) => selectedCourseFilter === "all" || r.course === selectedCourseFilter)
+                      .filter((r) => selectedTypeFilter === "all" || r.type === selectedTypeFilter)
+                      .map((res) => (
+                        <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                          <div className="space-y-2.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                                {res.course === "ca-foundation" ? "CA Foundation" : "CSEET"} • Ch {res.chapterNumber}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                res.status === "Published" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                              }`}>
+                                {res.status}
+                              </span>
+                            </div>
+
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400">{res.actName}</p>
+                              <h4 className="text-xs font-bold text-slate-800 leading-snug mt-0.5">{res.title}</h4>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                              {res.description}
+                            </p>
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                              <span className="font-mono text-slate-600">{res.pages}</span>
+                              {res.isSample && (
+                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                  Sample PDF
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 truncate max-w-[120px]" title={res.pdfUrl}>
+                              {res.pdfUrl.split("/").pop()}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setResourceModal({ open: true, mode: "edit", data: res })}
+                                className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
+                                title="Edit Note"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm(`Delete resource: ${res.title}?`)) {
+                                    const next = resources.filter((r) => r.id !== res.id);
+                                    setResources(next);
+                                    localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(next));
+                                    try {
+                                      await fetch(`${API_URL}/api/admin/resources/${res.id}`, { method: "DELETE" });
+                                    } catch (e) {}
+                                    showToast("Resource deleted.");
+                                  }
+                                }}
+                                className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                                title="Delete Note"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
