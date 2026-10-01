@@ -816,16 +816,75 @@ router.get("/admin/section16-comparison", async (req, res) => {
   }
 });
 
-router.post("/admin/section16-comparison", async (req, res) => {
+// -----------------------------------------------------------------------------
+// 12. LIVE BROADCAST ANNOUNCEMENT BANNER
+// -----------------------------------------------------------------------------
+router.get("/admin/announcement", async (req, res) => {
   try {
-    const comparison = req.body.comparison;
     if (isConnected()) {
-      await SiteSetting.findOneAndUpdate({ key: "section16_comparison" }, { value: comparison }, { upsert: true });
-      return res.status(200).json({ success: true, source: "mongodb_atlas", comparison });
+      const setting = await SiteSetting.findOne({ key: "announcement" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, announcement: setting.value });
+      }
     }
-    res.status(200).json({ success: true, comparison });
+    res.status(200).json({
+      success: true,
+      announcement: {
+        enabled: true,
+        text: "⚡ Special CA Foundation & CSEET Study Passes available at introductory ₹99/month!",
+        badge: "OFFER",
+        link: "/courses",
+        target: "all",
+      },
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Error saving comparison data." });
+    res.status(500).json({ success: false, message: "Error fetching announcement." });
+  }
+});
+
+router.post("/admin/announcement", async (req, res) => {
+  try {
+    const announcement = req.body.announcement;
+    if (isConnected()) {
+      await SiteSetting.findOneAndUpdate({ key: "announcement" }, { value: announcement }, { upsert: true });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", announcement });
+    }
+    res.status(200).json({ success: true, announcement });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error saving announcement." });
+  }
+});
+
+// Public endpoint for homepage/student portal to fetch broadcast banner
+router.get("/announcement", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "announcement" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, announcement: setting.value });
+      }
+    }
+    res.status(200).json({
+      success: true,
+      announcement: {
+        enabled: true,
+        text: "⚡ Special CA Foundation & CSEET Study Passes available at introductory ₹99/month!",
+        badge: "OFFER",
+        link: "/courses",
+        target: "all",
+      },
+    });
+  } catch (err) {
+    res.status(200).json({
+      success: true,
+      announcement: {
+        enabled: false,
+        text: "",
+        badge: "UPDATE",
+        link: "",
+        target: "all",
+      },
+    });
   }
 });
 

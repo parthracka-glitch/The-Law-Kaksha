@@ -37,9 +37,22 @@ import {
   RefreshCw,
   Eye,
   AlertTriangle,
+  Download,
+  MessageCircle,
+  Megaphone,
+  Send,
+  Share2,
 } from "lucide-react";
 
 // --- DATA INTERFACES ---
+export interface AnnouncementSetting {
+  enabled: boolean;
+  text: string;
+  badge: string;
+  link?: string;
+  target?: "all" | "students" | "homepage";
+}
+
 export interface ProductItem {
   id: string;
   title: string;
@@ -417,6 +430,28 @@ export default function AdminPortalPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [materialSubTab, setMaterialSubTab] = useState<"all" | "books" | "notes">("all");
+  const [subFilterTab, setSubFilterTab] = useState<"all" | "active" | "expiring_soon" | "revoked">("all");
+
+  // Announcement Banner state
+  const [announcement, setAnnouncement] = useState<AnnouncementSetting>({
+    enabled: true,
+    text: "⚡ Special CA Foundation & CSEET Study Passes available at introductory ₹99/month!",
+    badge: "OFFER",
+    link: "/courses",
+    target: "all",
+  });
+  const [isSavingAnnouncement, setIsSavingAnnouncement] = useState<boolean>(false);
+
+  // In-App PDF Preview Inspector Modal state
+  const [previewPdfModal, setPreviewPdfModal] = useState<{
+    open: boolean;
+    title: string;
+    pdfUrl: string;
+    category?: string;
+    actName?: string;
+    pages?: string;
+    isSample?: boolean;
+  }>({ open: false, title: "", pdfUrl: "" });
 
   // Entities state
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -488,12 +523,14 @@ export default function AdminPortalPage() {
         if (m) setMcqs(JSON.parse(m));
         const cp = localStorage.getItem("lawkaksha_admin_coupons");
         if (cp) setCoupons(JSON.parse(cp));
+        const ann = localStorage.getItem("lawkaksha_admin_announcement");
+        if (ann) setAnnouncement(JSON.parse(ann));
       } catch (e) {}
 
       // 2. Live fetch from MongoDB Atlas
       const syncWithAtlas = async () => {
         try {
-          const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes] = await Promise.allSettled([
+          const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, annRes] = await Promise.allSettled([
             fetch(`${API_URL}/api/admin/products`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/resources`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
@@ -503,6 +540,7 @@ export default function AdminPortalPage() {
             fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/announcement`).then((r) => r.json()),
           ]);
 
           if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
@@ -538,6 +576,10 @@ export default function AdminPortalPage() {
           }
           if (qRes.status === "fulfilled" && qRes.value?.qotd) {
             setQotd(qRes.value.qotd);
+          }
+          if (annRes.status === "fulfilled" && annRes.value?.announcement) {
+            setAnnouncement(annRes.value.announcement);
+            localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(annRes.value.announcement));
           }
           setIsAtlasConnected(true);
         } catch (err) {
@@ -600,6 +642,91 @@ export default function AdminPortalPage() {
 
   const activeStudentsCount = useMemo(() => students.filter((s) => s.is_active).length, [students]);
   const activeSubsCount = useMemo(() => subscriptions.filter((s) => s.accessStatus === "Active").length, [subscriptions]);
+  
+  const expiringSoonCount = useMemo(() => {
+    return subscriptions.filter(
+      (s) => s.accessStatus === "Active" && s.daysRemaining !== undefined && s.daysRemaining <= 5
+    ).length;
+  }, [subscriptions]);
+
+  // 1-Click CSV Export Utility
+  const exportToCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [
+        headers.map((h) => `"${String(h).replace(/"/g, '""')}"`).join(","),
+        ...rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")),
+      ].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${filename}_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`Downloaded ${filename}.csv`);
+  };
+
+  const handleExportSubscriptions = () => {
+    const headers = ["ID", "Date", "Student Name", "Roll Number", "Email", "Phone", "Course Item", "Target Exam", "Amount", "Payment Mode", "Days Remaining", "Status"];
+    const rows = subscriptions.map((s) => [
+      s.id,
+      s.date,
+      s.studentName,
+      s.studentRoll,
+      s.email,
+      s.phone,
+      s.item,
+      s.targetExam,
+      s.amount,
+      s.paymentMode,
+      s.daysRemaining ?? 30,
+      s.accessStatus,
+    ]);
+    exportToCsv("thelawkaksha_subscriptions", headers, rows);
+  };
+
+  const handleExportStudents = () => {
+    const headers = ["Student ID", "Name", "Email", "Phone", "Target Exam", "Joined Date", "DRM Access", "Active Status", "Enrolled Books"];
+    const rows = students.map((s) => [
+      s.student_id || s.id,
+      s.name,
+      s.email,
+      s.phone,
+      s.target_exam,
+      s.joined_date,
+      s.drm_access ? "Granted" : "Restricted",
+      s.is_active ? "Active" : "Inactive",
+      (s.enrolled_books || []).join(" | "),
+    ]);
+    exportToCsv("thelawkaksha_students", headers, rows);
+  };
+
+  // 1-Click WhatsApp Renewal Reminder Generator
+  const getWhatsAppReminderUrl = (sub: SubscriptionRecord) => {
+    const cleanPhone = (sub.phone || "").replace(/[^0-9]/g, "");
+    const daysText = sub.daysRemaining !== undefined ? `${sub.daysRemaining} days` : "soon";
+    const message = `Hello ${sub.studentName}! 👋\n\nYour 30-Day Study Pass for *${sub.item}* at *The Law Kaksha* is expiring in ${daysText}.\n\nRenew your pass for ₹99 now to keep your DRM in-web notes, PYQs, and cases active:\n👉 https://thelawkaksha.com/checkout?renew=true&student=${encodeURIComponent(sub.studentRoll || sub.studentName)}\n\nBest regards,\nThe Law Kaksha Academic Team`;
+    return `https://wa.me/${cleanPhone.length >= 10 ? (cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone) : ""}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Broadcast Announcement Save Handler
+  const handleSaveAnnouncement = async () => {
+    setIsSavingAnnouncement(true);
+    try {
+      localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(announcement));
+      await fetch(`${API_URL}/api/admin/announcement`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ announcement }),
+      });
+      showToast("Live broadcast announcement updated!");
+    } catch (e) {
+      showToast("Saved to local cache.");
+    } finally {
+      setIsSavingAnnouncement(false);
+    }
+  };
 
   if (isCheckingAuth || !isAuthorized) {
     return (
@@ -823,46 +950,212 @@ export default function AdminPortalPage() {
                   <p className="text-[11px] text-emerald-600 font-semibold mt-1">Secure Read Mode</p>
                 </div>
               </div>
+
+              {/* BROADCAST ANNOUNCEMENT BANNER MANAGER */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                      <Megaphone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800">Live Broadcast Announcement Bar</h3>
+                      <p className="text-[11px] text-slate-400">Display instant real-time alerts across the homepage and student portal.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                      <span>Status:</span>
+                      <button
+                        type="button"
+                        onClick={() => setAnnouncement((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                        className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                          announcement.enabled
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                        }`}
+                      >
+                        {announcement.enabled ? "● Live / Active" : "○ Hidden / Disabled"}
+                      </button>
+                    </label>
+                  </div>
+                </div>
+
+                {/* LIVE PREVIEW STRIP */}
+                {announcement.enabled && (
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white uppercase tracking-wider shrink-0">
+                        {announcement.badge || "ANNOUNCEMENT"}
+                      </span>
+                      <p className="font-medium truncate">{announcement.text || "No announcement text entered"}</p>
+                    </div>
+                    {announcement.link && (
+                      <span className="text-[10px] font-bold underline shrink-0 flex items-center gap-1 opacity-90">
+                        <span>View</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* EDIT FIELDS */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+                  <div className="md:col-span-2">
+                    <label className="block font-semibold text-slate-600 mb-1">Badge Tag</label>
+                    <input
+                      type="text"
+                      value={announcement.badge}
+                      onChange={(e) => setAnnouncement({ ...announcement, badge: e.target.value.toUpperCase() })}
+                      placeholder="e.g. OFFER, LIVE, ALERT"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:border-violet-500 uppercase"
+                    />
+                  </div>
+                  <div className="md:col-span-6">
+                    <label className="block font-semibold text-slate-600 mb-1">Announcement Message *</label>
+                    <input
+                      type="text"
+                      value={announcement.text}
+                      onChange={(e) => setAnnouncement({ ...announcement, text: e.target.value })}
+                      placeholder="e.g. CA Foundation Business Laws Marathon session this Sunday!"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
+                    />
+                  </div>
+                  <div className="md:col-span-4">
+                    <label className="block font-semibold text-slate-600 mb-1">Target Action Link (Optional)</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={announcement.link || ""}
+                        onChange={(e) => setAnnouncement({ ...announcement, link: e.target.value })}
+                        placeholder="e.g. /courses or /student"
+                        className="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
+                      />
+                      <button
+                        onClick={handleSaveAnnouncement}
+                        disabled={isSavingAnnouncement}
+                        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>{isSavingAnnouncement ? "Saving..." : "Save"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* TAB 2: SUBSCRIPTIONS */}
           {activeTab === "subscriptions" && (
             <div className="space-y-6">
+              {/* HEADER */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Subscriptions</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage student passes, validity, and access permissions.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Subscriptions &amp; Student Passes</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage 30-day monthly passes, renewals, and WhatsApp reminder triggers.</p>
                 </div>
-                <button
-                  onClick={() => setSubModal({
-                    open: true,
-                    mode: "add",
-                    data: {
-                      accessStatus: "Active",
-                      paymentMode: "UPI / Razorpay",
-                      targetExam: "CA Foundation Paper 2",
-                      amount: "₹99",
-                      item: "CA Foundation Business Laws (Monthly Access)",
-                    }
-                  })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Subscription</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportSubscriptions}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    title="Export all subscriptions as CSV file"
+                  >
+                    <Download className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Export CSV</span>
+                  </button>
+                  <button
+                    onClick={() => setSubModal({
+                      open: true,
+                      mode: "add",
+                      data: {
+                        accessStatus: "Active",
+                        paymentMode: "UPI / Razorpay",
+                        targetExam: "CA Foundation Paper 2",
+                        amount: "₹99",
+                        item: "CA Foundation Business Laws (Monthly Access)",
+                      }
+                    })}
+                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Subscription</span>
+                  </button>
+                </div>
               </div>
 
-              {/* SEARCH BAR */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
-                <Search className="w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by subscription ID, student name, roll number or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
-                />
+              {/* EXPIRING SOON ALERT BANNER */}
+              {expiringSoonCount > 0 && (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+                      <AlertTriangle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900">
+                        {expiringSoonCount} Student Pass{expiringSoonCount > 1 ? "es" : ""} Expiring Soon (≤ 5 Days)
+                      </p>
+                      <p className="text-slate-600 text-[11px] mt-0.5">
+                        Click the green WhatsApp button next to any student to send an instant pre-formatted renewal link.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSubFilterTab("expiring_soon")}
+                    className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                  >
+                    View {expiringSoonCount} Expiring
+                  </button>
+                </div>
+              )}
+
+              {/* SEARCH & SUB-FILTERS */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl overflow-x-auto">
+                  <button
+                    onClick={() => setSubFilterTab("all")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "all" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    All Passes ({subscriptions.length})
+                  </button>
+                  <button
+                    onClick={() => setSubFilterTab("active")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "active" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Active ({activeSubsCount})
+                  </button>
+                  <button
+                    onClick={() => setSubFilterTab("expiring_soon")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "expiring_soon" ? "bg-white text-amber-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Expiring Soon ({expiringSoonCount})
+                  </button>
+                  <button
+                    onClick={() => setSubFilterTab("revoked")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "revoked" ? "bg-white text-rose-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Revoked ({subscriptions.filter((s) => s.accessStatus === "Revoked").length})
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80 w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search student, roll, email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+                  />
+                </div>
               </div>
 
               {/* SUBSCRIPTIONS LIST */}
@@ -882,112 +1175,139 @@ export default function AdminPortalPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {subscriptions
+                        .filter((s) => {
+                          if (subFilterTab === "active") return s.accessStatus === "Active";
+                          if (subFilterTab === "expiring_soon") return s.accessStatus === "Active" && s.daysRemaining !== undefined && s.daysRemaining <= 5;
+                          if (subFilterTab === "revoked") return s.accessStatus === "Revoked";
+                          return true;
+                        })
                         .filter((s) =>
                           s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           s.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.studentRoll.toLowerCase().includes(searchQuery.toLowerCase())
+                          s.studentRoll.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          s.email.toLowerCase().includes(searchQuery.toLowerCase())
                         )
-                        .map((sub) => (
-                          <tr key={sub.id} className="hover:bg-slate-50/50">
-                            <td className="py-3.5 px-4">
-                              <p className="font-mono font-bold text-slate-800">{sub.id}</p>
-                              <p className="text-[10px] text-slate-400">{sub.date}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="font-bold text-slate-800">{sub.studentName}</p>
-                              <p className="text-[11px] text-violet-600 font-mono">{sub.studentRoll}</p>
-                              <p className="text-[10px] text-slate-400">{sub.email}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="text-slate-800 font-semibold">{sub.item}</p>
-                              <p className="text-[10px] text-slate-400">{sub.targetExam}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="text-xs font-bold text-violet-700">{sub.amount}</p>
-                              <p className="text-[10px] text-slate-400">{sub.paymentMode}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-100">
-                                {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <button
-                                onClick={async () => {
-                                  const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
-                                  const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus as any } : item));
-                                  setSubscriptions(updated);
-                                  localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
-                                  showToast(`Access ${nextStatus} for ${sub.studentName}`);
-                                  try {
-                                    await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
-                                      method: "PUT",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ accessStatus: nextStatus }),
-                                    });
-                                  } catch (e) {}
-                                }}
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
-                                  sub.accessStatus === "Active"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-rose-50 text-rose-700 border border-rose-200"
-                                }`}
-                              >
-                                {sub.accessStatus === "Active" ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                                <span>{sub.accessStatus === "Active" ? "Active" : "Revoked"}</span>
-                              </button>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
+                        .map((sub) => {
+                          const isExpiring = sub.accessStatus === "Active" && sub.daysRemaining !== undefined && sub.daysRemaining <= 5;
+                          return (
+                            <tr key={sub.id} className="hover:bg-slate-50/50">
+                              <td className="py-3.5 px-4">
+                                <p className="font-mono font-bold text-slate-800">{sub.id}</p>
+                                <p className="text-[10px] text-slate-400">{sub.date}</p>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <p className="font-bold text-slate-800">{sub.studentName}</p>
+                                <p className="text-[11px] text-violet-600 font-mono">{sub.studentRoll}</p>
+                                <p className="text-[10px] text-slate-400">{sub.email}</p>
+                                {sub.phone && <p className="text-[10px] text-slate-500 font-mono">{sub.phone}</p>}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <p className="text-slate-800 font-semibold">{sub.item}</p>
+                                <p className="text-[10px] text-slate-400">{sub.targetExam}</p>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <p className="text-xs font-bold text-violet-700">{sub.amount}</p>
+                                <p className="text-[10px] text-slate-400">{sub.paymentMode}</p>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  isExpiring
+                                    ? "bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
+                                    : "bg-sky-50 text-sky-700 border-sky-100"
+                                }`}>
+                                  {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days"}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4">
                                 <button
                                   onClick={async () => {
-                                    const renewed = subscriptions.map((item) =>
-                                      item.id === sub.id ? { ...item, daysRemaining: 30, accessStatus: "Active" as const } : item
-                                    );
-                                    setSubscriptions(renewed);
-                                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(renewed));
-                                    showToast(`Renewed 30 days for ${sub.studentName}`);
+                                    const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
+                                    const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus as any } : item));
+                                    setSubscriptions(updated);
+                                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
+                                    showToast(`Access ${nextStatus} for ${sub.studentName}`);
                                     try {
                                       await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
                                         method: "PUT",
                                         headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ daysRemaining: 30, accessStatus: "Active" }),
+                                        body: JSON.stringify({ accessStatus: nextStatus }),
                                       });
                                     } catch (e) {}
                                   }}
-                                  title="Renew 30 Days"
-                                  className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors cursor-pointer"
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                                    sub.accessStatus === "Active"
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : "bg-rose-50 text-rose-700 border border-rose-200"
+                                  }`}
                                 >
-                                  <RefreshCw className="w-3.5 h-3.5" />
+                                  {sub.accessStatus === "Active" ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                  <span>{sub.accessStatus === "Active" ? "Active" : "Revoked"}</span>
                                 </button>
-                                <button
-                                  onClick={() => setSubModal({ open: true, mode: "edit", data: sub })}
-                                  title="Edit Subscription"
-                                  className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
-                                >
-                                  <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    if (confirm(`Delete subscription record for ${sub.studentName}?`)) {
-                                      const filtered = subscriptions.filter((s) => s.id !== sub.id);
-                                      setSubscriptions(filtered);
-                                      localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(filtered));
-                                      showToast(`Subscription ${sub.id} deleted.`);
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {/* WHATSAPP 1-CLICK RENEWAL TRIGGER */}
+                                  <a
+                                    href={getWhatsAppReminderUrl(sub)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Send WhatsApp Renewal Reminder"
+                                    className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors flex items-center justify-center cursor-pointer"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                  </a>
+
+                                  {/* RENEW 30 DAYS */}
+                                  <button
+                                    onClick={async () => {
+                                      const renewed = subscriptions.map((item) =>
+                                        item.id === sub.id ? { ...item, daysRemaining: 30, accessStatus: "Active" as const } : item
+                                      );
+                                      setSubscriptions(renewed);
+                                      localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(renewed));
+                                      showToast(`Renewed 30 days for ${sub.studentName}`);
                                       try {
-                                        await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
+                                        await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
+                                          method: "PUT",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ daysRemaining: 30, accessStatus: "Active" }),
+                                        });
                                       } catch (e) {}
-                                    }
-                                  }}
-                                  title="Delete Subscription"
-                                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                    }}
+                                    title="Renew 30 Days"
+                                    className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 transition-colors cursor-pointer"
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setSubModal({ open: true, mode: "edit", data: sub })}
+                                    title="Edit Subscription"
+                                    className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm(`Delete subscription record for ${sub.studentName}?`)) {
+                                        const filtered = subscriptions.filter((s) => s.id !== sub.id);
+                                        setSubscriptions(filtered);
+                                        localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(filtered));
+                                        showToast(`Subscription ${sub.id} deleted.`);
+                                        try {
+                                          await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
+                                        } catch (e) {}
+                                      }
+                                    }}
+                                    title="Delete Subscription"
+                                    className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
@@ -1003,7 +1323,7 @@ export default function AdminPortalPage() {
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">Books &amp; PDF Notes</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Manage study books, subject codices, and chapter PDF notes in one unified workspace.
+                    Manage study books, subject codices, and chapter PDF notes with in-app PDF inspector.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1167,6 +1487,22 @@ export default function AdminPortalPage() {
                             </div>
 
                             <div className="flex items-center gap-1.5">
+                              {/* IN-APP PDF INSPECTOR */}
+                              <button
+                                onClick={() => setPreviewPdfModal({
+                                  open: true,
+                                  title: prod.title,
+                                  pdfUrl: prod.pdfUrl,
+                                  category: prod.category,
+                                  pages: prod.pages,
+                                  isSample: false,
+                                })}
+                                className="p-2 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 text-xs font-semibold transition-all cursor-pointer"
+                                title="Inspect & Preview PDF in Admin"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+
                               <button
                                 onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
                                 className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
@@ -1248,10 +1584,27 @@ export default function AdminPortalPage() {
                           </div>
 
                           <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
-                            <span className="text-[10px] text-slate-400 truncate max-w-[120px]" title={res.pdfUrl}>
+                            <span className="text-[10px] text-slate-400 truncate max-w-[100px]" title={res.pdfUrl}>
                               {res.pdfUrl.split("/").pop()}
                             </span>
                             <div className="flex items-center gap-1.5">
+                              {/* IN-APP PDF INSPECTOR */}
+                              <button
+                                onClick={() => setPreviewPdfModal({
+                                  open: true,
+                                  title: res.title,
+                                  pdfUrl: res.pdfUrl,
+                                  category: res.course === "ca-foundation" ? "CA Foundation" : "CSEET",
+                                  actName: res.actName,
+                                  pages: res.pages,
+                                  isSample: res.isSample,
+                                })}
+                                className="p-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors cursor-pointer"
+                                title="Inspect & Preview PDF in Admin"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+
                               <button
                                 onClick={() => setResourceModal({ open: true, mode: "edit", data: res })}
                                 className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
@@ -1291,16 +1644,26 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Students</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">View registered students, enrolled courses, and access permissions.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Students Directory</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">View registered students, DRM permissions, and export contact roster.</p>
                 </div>
-                <button
-                  onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Student</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportStudents}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    title="Export all students as CSV file"
+                  >
+                    <Download className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Export CSV</span>
+                  </button>
+                  <button
+                    onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
+                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Student</span>
+                  </button>
+                </div>
               </div>
 
               {/* STUDENTS LIST */}
@@ -2682,6 +3045,86 @@ export default function AdminPortalPage() {
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
                 Save Coupon
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. IN-APP PDF PREVIEW INSPECTOR MODAL */}
+      {previewPdfModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden">
+            {/* MODAL HEADER */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/80">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-800">
+                    {previewPdfModal.category || "Study Resource"}
+                  </span>
+                  {previewPdfModal.isSample && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Free Preview
+                    </span>
+                  )}
+                  {previewPdfModal.pages && (
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {previewPdfModal.pages}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 truncate mt-1">
+                  {previewPdfModal.title}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewPdfModal.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
+                  title="Open source PDF in new browser tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Open New Tab</span>
+                </a>
+                <button
+                  onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* MODAL BODY (PDF PREVIEW + SIMULATED WATERMARK) */}
+            <div className="flex-1 p-4 bg-slate-100/70 overflow-hidden relative flex flex-col">
+              <div className="relative flex-1 w-full rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-inner flex flex-col">
+                <iframe
+                  src={`${previewPdfModal.pdfUrl}#toolbar=0`}
+                  title={previewPdfModal.title}
+                  className="w-full h-full min-h-[50vh] sm:min-h-[60vh] border-0"
+                />
+
+                {/* SIMULATED DRM WATERMARK STRIP */}
+                <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-mono pointer-events-none flex items-center gap-2 border border-white/10 shadow-lg">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>The Law Kaksha DRM Protected • In-Web Reader Mode</span>
+                </div>
+              </div>
+            </div>
+
+            {/* MODAL FOOTER */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 bg-white">
+              <span className="truncate max-w-md font-mono text-[11px] text-slate-400" title={previewPdfModal.pdfUrl}>
+                Source: {previewPdfModal.pdfUrl}
+              </span>
+              <button
+                onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
+                className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+              >
+                Close Inspector
               </button>
             </div>
           </div>
