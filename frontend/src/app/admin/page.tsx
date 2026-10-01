@@ -611,13 +611,13 @@ export default function AdminPortalPage() {
 
   const NAV_TABS = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
-    { id: "subscriptions" as TabType, label: "Monthly Passes & Access", icon: CreditCard, badge: subscriptions.length },
-    { id: "products" as TabType, label: "Study Books & Codices", icon: BookOpen, badge: products.length },
-    { id: "resources" as TabType, label: "Act-Wise Resources Hub", icon: Layers, badge: resources.length },
-    { id: "students" as TabType, label: "Students & DRM Rights", icon: Users, badge: students.length },
-    { id: "cases" as TabType, label: "Weekly Cases", icon: Flame },
-    { id: "mcq" as TabType, label: "MCQ Test Bank", icon: Sparkles },
-    { id: "coupons" as TabType, label: "Coupons & Offers", icon: Percent },
+    { id: "subscriptions" as TabType, label: "Subscriptions", icon: CreditCard, badge: subscriptions.length },
+    { id: "products" as TabType, label: "Courses & Books", icon: BookOpen, badge: products.length },
+    { id: "resources" as TabType, label: "PDF Notes", icon: Layers, badge: resources.length },
+    { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
+    { id: "cases" as TabType, label: "Case Studies", icon: Flame },
+    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles },
+    { id: "coupons" as TabType, label: "Coupons", icon: Percent },
     { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
   ];
 
@@ -765,22 +765,22 @@ export default function AdminPortalPage() {
               {/* TOP HERO BANNER */}
               <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-violet-200">
                 <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-violet-200">Executive Control Center</span>
-                  <h2 className="text-2xl font-bold">The Law कक्षा Portal Operations</h2>
+                  <span className="text-xs font-bold uppercase tracking-wider text-violet-200">Admin Portal</span>
+                  <h2 className="text-2xl font-bold">Dashboard Overview</h2>
                   <p className="text-violet-100 text-xs sm:text-sm leading-relaxed max-w-lg">
-                    100% In-Web DRM digital learning platform for CA Foundation &amp; CSEET statutory law codices and evaluation tests.
+                    Overview of subscriptions, courses, notes, and registered students.
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
                     <TrendingUp className="w-5 h-5 text-emerald-300 mx-auto mb-1" />
                     <p className="text-xl font-extrabold">₹{totalRevenue.toLocaleString()}</p>
-                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Gross Subscriptions</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Total Sales</p>
                   </div>
                   <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
                     <Key className="w-5 h-5 text-amber-300 mx-auto mb-1" />
                     <p className="text-xl font-extrabold">{activeSubsCount}</p>
-                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Active DRM Passes</p>
+                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Active Passes</p>
                   </div>
                 </div>
               </div>
@@ -791,49 +791,49 @@ export default function AdminPortalPage() {
                   <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-3">
                     <BookOpen className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Digital Codices</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Master Courses</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">₹99/Month Monthly Offer Active</p>
+                  <p className="text-xs text-slate-400 font-medium">Courses &amp; Books</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Courses</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">₹99/Month</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
                     <Layers className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Act-Wise Resources</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{resources.length} Modules</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">Notes, Flowcharts &amp; LDRs</p>
+                  <p className="text-xs text-slate-400 font-medium">PDF Notes</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{resources.length} Notes</h3>
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">Notes &amp; PYQs</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
                     <CreditCard className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Active Monthly Passes</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Subscriptions</h3>
-                  <p className="text-[11px] text-amber-600 font-medium mt-1">30-Day Auto Expiry Engine</p>
+                  <p className="text-xs text-slate-400 font-medium">Subscriptions</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Passes</h3>
+                  <p className="text-[11px] text-amber-600 font-medium mt-1">30-Day Passes</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">DRM In-Web Vault</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">100% Protected</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Copy/Print/Download Blocked</p>
+                  <p className="text-xs text-slate-400 font-medium">DRM Protection</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">Active</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Secure Read Mode</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB: ACT-WISE RESOURCES HUB */}
+          {/* TAB: PDF NOTES */}
           {activeTab === "resources" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Act-Wise Curriculum Resources Hub</h2>
+                  <h2 className="text-xl font-bold text-slate-800">PDF Notes &amp; Resources</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Manage Notes, Concept Flowcharts, PYQs, and LDR summary maps across all 7 CA Foundation Acts &amp; 8 CSEET Units.
+                    Upload and manage chapter notes, flowcharts, PYQs, and revision summaries.
                   </p>
                 </div>
                 <button
@@ -852,22 +852,22 @@ export default function AdminPortalPage() {
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add New Resource</span>
+                  <span>Add PDF Note</span>
                 </button>
               </div>
 
               {/* FILTER BAR */}
               <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600">Filter Course:</span>
+                  <span className="text-xs font-bold text-slate-600">Course:</span>
                   <select
                     value={selectedCourseFilter}
                     onChange={(e) => setSelectedCourseFilter(e.target.value)}
                     className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
                   >
                     <option value="all">All Courses</option>
-                    <option value="ca-foundation">CA Foundation (7 Acts)</option>
-                    <option value="cseet">CSEET (8 Units)</option>
+                    <option value="ca-foundation">CA Foundation</option>
+                    <option value="cseet">CSEET</option>
                   </select>
                 </div>
 
@@ -881,7 +881,7 @@ export default function AdminPortalPage() {
                     <option value="all">All Types</option>
                     <option value="notes">Chapter Notes</option>
                     <option value="flowchart">Flowchart</option>
-                    <option value="practice">Question Bank</option>
+                    <option value="practice">Practice Questions</option>
                     <option value="pyq">PYQ Drill</option>
                     <option value="ldr">Last Day Revision (LDR)</option>
                   </select>
@@ -961,13 +961,13 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 2: MONTHLY SUBSCRIPTIONS & ACCESS PURCHASES */}
+          {/* TAB 2: SUBSCRIPTIONS */}
           {activeTab === "subscriptions" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Monthly Subscriptions &amp; In-Web DRM Passes</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">₹99/Month recurring duration tracking with 30-day active validity control.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Subscriptions</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage student passes, validity, and access permissions.</p>
                 </div>
                 <button
                   onClick={() => setSubModal({
@@ -984,7 +984,7 @@ export default function AdminPortalPage() {
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Grant 30-Day Access Pass</span>
+                  <span>Add Subscription</span>
                 </button>
               </div>
 
@@ -1006,12 +1006,12 @@ export default function AdminPortalPage() {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
                       <tr>
-                        <th className="py-3 px-4">Sub ID &amp; Date</th>
-                        <th className="py-3 px-4">Student &amp; Roll Number</th>
-                        <th className="py-3 px-4">Enrolled Course / Pass</th>
-                        <th className="py-3 px-4">Monthly Fee</th>
-                        <th className="py-3 px-4">Validity Remaining</th>
-                        <th className="py-3 px-4">DRM Vault Status</th>
+                        <th className="py-3 px-4">ID &amp; Date</th>
+                        <th className="py-3 px-4">Student</th>
+                        <th className="py-3 px-4">Course</th>
+                        <th className="py-3 px-4">Fee</th>
+                        <th className="py-3 px-4">Validity</th>
+                        <th className="py-3 px-4">Status</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -1043,7 +1043,7 @@ export default function AdminPortalPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-100">
-                                {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days (Monthly)"}
+                                {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days"}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
@@ -1069,7 +1069,7 @@ export default function AdminPortalPage() {
                                 }`}
                               >
                                 {sub.accessStatus === "Active" ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                                <span>{sub.accessStatus === "Active" ? "Active In-Web DRM" : "Access Revoked"}</span>
+                                <span>{sub.accessStatus === "Active" ? "Active" : "Revoked"}</span>
                               </button>
                             </td>
                             <td className="py-3.5 px-4 text-right">
@@ -1081,7 +1081,7 @@ export default function AdminPortalPage() {
                                     );
                                     setSubscriptions(renewed);
                                     localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(renewed));
-                                    showToast(`Renewed 30-day pass for ${sub.studentName}`);
+                                    showToast(`Renewed 30 days for ${sub.studentName}`);
                                     try {
                                       await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
                                         method: "PUT",
@@ -1130,20 +1130,20 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 3: BOOKS & STUDY CODICES */}
+          {/* TAB 3: COURSES & BOOKS */}
           {activeTab === "products" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Master Study Books &amp; In-Web Codices</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage in-web DRM digital books, curriculum statutory units, pricing &amp; PDF stream endpoints.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Courses &amp; Books</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage study courses, book details, pricing, and curriculum chapters.</p>
                 </div>
                 <button
                   onClick={() => setProductModal({ open: true, mode: "add", data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CA Foundation", price: 99, originalPrice: 299 } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add New Codex</span>
+                  <span>Add Course / Book</span>
                 </button>
               </div>
 
@@ -1171,7 +1171,7 @@ export default function AdminPortalPage() {
                       </p>
 
                       <div className="pt-2 border-t border-slate-100 space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Statutory Chapters</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Chapters</p>
                         <div className="flex flex-wrap gap-1">
                           {prod.units?.map((u, i) => (
                             <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
@@ -1190,13 +1190,14 @@ export default function AdminPortalPage() {
                           <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
                           <span className="text-[10px] text-emerald-700 font-bold">/ Month</span>
                         </div>
-                        <span className="text-[10px] text-slate-400">{prod.pages} • In-Web DRM</span>
+                        <span className="text-[10px] text-slate-400">{prod.pages} • Secure Read</span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
                           className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
+                          title="Edit Course"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
@@ -1213,6 +1214,7 @@ export default function AdminPortalPage() {
                             }
                           }}
                           className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
+                          title="Delete Course"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1224,20 +1226,20 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 4: STUDENTS & DRM RIGHTS */}
+          {/* TAB 4: STUDENTS */}
           {activeTab === "students" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Students &amp; In-Web DRM Enrolments</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage student identities, target exam goals &amp; DRM vault access authorization.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Students</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">View registered students, enrolled courses, and access permissions.</p>
                 </div>
                 <button
                   onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Enroll New Student</span>
+                  <span>Add Student</span>
                 </button>
               </div>
 
@@ -1247,11 +1249,11 @@ export default function AdminPortalPage() {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
                       <tr>
-                        <th className="py-3 px-4">Student ID &amp; Name</th>
+                        <th className="py-3 px-4">Student &amp; Roll No.</th>
                         <th className="py-3 px-4">Contact Info</th>
-                        <th className="py-3 px-4">Target Exam Goal</th>
-                        <th className="py-3 px-4">Enrolled Codices</th>
-                        <th className="py-3 px-4">DRM Vault Status</th>
+                        <th className="py-3 px-4">Target Exam</th>
+                        <th className="py-3 px-4">Enrolled Courses</th>
+                        <th className="py-3 px-4">Access Status</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -1282,7 +1284,7 @@ export default function AdminPortalPage() {
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               std.drm_access ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
                             }`}>
-                              {std.drm_access ? "DRM In-Web Active" : "Access Blocked"}
+                              {std.drm_access ? "Active" : "Blocked"}
                             </span>
                           </td>
                           <td className="py-3.5 px-4 text-right">
@@ -1290,6 +1292,7 @@ export default function AdminPortalPage() {
                               <button
                                 onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
                                 className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700"
+                                title="Edit Student"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
@@ -1306,6 +1309,7 @@ export default function AdminPortalPage() {
                                   }
                                 }}
                                 className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600"
+                                title="Delete Student"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1325,15 +1329,15 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Weekly High-Yield Case Scenarios</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage Monster Monday, Midweek Law Madness &amp; Final Boss Friday problem scenarios.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Weekly Case Studies</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage weekly practice cases, scenarios, and model answers.</p>
                 </div>
                 <button
                   onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", subject: "Indian Contract Act, 1872", marks: "6/6 Marks" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Case Scenario</span>
+                  <span>Add Case Study</span>
                 </button>
               </div>
 
@@ -1361,7 +1365,7 @@ export default function AdminPortalPage() {
                     <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between">
                       <span className="text-[10px] text-slate-400 truncate max-w-[150px]">{cs.precedent}</span>
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
+                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Case">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
@@ -1377,6 +1381,7 @@ export default function AdminPortalPage() {
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
+                          title="Delete Case"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1388,13 +1393,13 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 6: MCQ TEST BANK */}
+          {/* TAB 6: MCQ TESTS */}
           {activeTab === "mcq" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">MCQ Question Bank</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage objective questions, section citations &amp; statutory rationale explanations.</p>
+                  <h2 className="text-xl font-bold text-slate-800">MCQ Tests</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Create and manage multiple choice practice questions and answer keys.</p>
                 </div>
                 <button
                   onClick={() => setMcqModal({ open: true, mode: "add", data: { correctOption: 0, subject: "Indian Contract Act, 1872", options: ["Option A", "Option B", "Option C", "Option D"] } })}
@@ -1414,7 +1419,7 @@ export default function AdminPortalPage() {
                         <span className="text-xs font-mono font-bold text-slate-600">{mcq.section}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => setMcqModal({ open: true, mode: "edit", data: mcq })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
+                        <button onClick={() => setMcqModal({ open: true, mode: "edit", data: mcq })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Question">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
@@ -1430,6 +1435,7 @@ export default function AdminPortalPage() {
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
+                          title="Delete Question"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1449,20 +1455,20 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 7: COUPONS & OFFERS */}
+          {/* TAB 7: COUPONS */}
           {activeTab === "coupons" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Coupons &amp; Discount Offers</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage promo codes and discount vouchers for student subscriptions.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Discount Coupons</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Create and manage discount promo codes for subscriptions.</p>
                 </div>
                 <button
                   onClick={() => setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 20, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Create Coupon</span>
+                  <span>Add Coupon</span>
                 </button>
               </div>
 
@@ -1484,7 +1490,7 @@ export default function AdminPortalPage() {
                       <p><strong>Expires:</strong> {cp.expiryDate}</p>
                     </div>
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
-                      <button onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
+                      <button onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Coupon">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
@@ -1500,6 +1506,7 @@ export default function AdminPortalPage() {
                           }
                         }}
                         className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
+                        title="Delete Coupon"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1515,7 +1522,7 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               {/* EXAM COUNTDOWN SETTINGS */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-800">Target Exam Countdown Configuration</h3>
+                <h3 className="text-sm font-bold text-slate-800">Exam Countdown Dates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {examSettings.map((ex, idx) => (
                     <div key={ex.id || idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
@@ -1535,7 +1542,7 @@ export default function AdminPortalPage() {
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ examSettings: next }),
                               });
-                              showToast("Updated target exam date!");
+                              showToast("Updated exam date!");
                             } catch (err) {}
                           }}
                           className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold outline-none focus:border-violet-500"
@@ -1548,7 +1555,7 @@ export default function AdminPortalPage() {
 
               {/* QUESTION OF THE DAY EDIT */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-800">Live Question of the Day (QOTD)</h3>
+                <h3 className="text-sm font-bold text-slate-800">Question of the Day (QOTD)</h3>
                 <div className="space-y-3 text-xs">
                   <div>
                     <label className="block font-semibold text-slate-700 mb-1">Question Text</label>
@@ -1562,7 +1569,7 @@ export default function AdminPortalPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-semibold text-slate-700 mb-1">Statutory Act</label>
+                      <label className="block font-semibold text-slate-700 mb-1">Act / Subject</label>
                       <input
                         type="text"
                         value={qotd.act}
@@ -1571,7 +1578,7 @@ export default function AdminPortalPage() {
                       />
                     </div>
                     <div>
-                      <label className="block font-semibold text-slate-700 mb-1">Section Citation</label>
+                      <label className="block font-semibold text-slate-700 mb-1">Section</label>
                       <input
                         type="text"
                         value={qotd.section}
@@ -1601,14 +1608,14 @@ export default function AdminPortalPage() {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ qotd }),
                           });
-                          showToast("Question of the Day updated in MongoDB Atlas!");
+                          showToast("Question of the Day updated!");
                         } catch (err) {
                           showToast("Saved locally (offline mode)");
                         }
                       }}
                       className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm cursor-pointer"
                     >
-                      Save QOTD Updates
+                      Save Question of the Day
                     </button>
                   </div>
                 </div>
@@ -1621,13 +1628,13 @@ export default function AdminPortalPage() {
 
       {/* --- CRUD MODALS --- */}
 
-      {/* RESOURCE ADD / EDIT MODAL */}
+      {/* 1. RESOURCE ADD / EDIT MODAL */}
       {resourceModal.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {resourceModal.mode === "add" ? "Add Act-Wise Resource" : "Edit Resource"}
+                {resourceModal.mode === "add" ? "Add PDF Note" : "Edit PDF Note"}
               </h3>
               <button onClick={() => setResourceModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
@@ -1637,18 +1644,18 @@ export default function AdminPortalPage() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Target Course *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Course *</label>
                   <select
                     value={resourceModal.data.course || "ca-foundation"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, course: e.target.value } })}
                     className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
                   >
-                    <option value="ca-foundation">CA Foundation (Paper 2)</option>
-                    <option value="cseet">CSEET (Paper 2)</option>
+                    <option value="ca-foundation">CA Foundation</option>
+                    <option value="cseet">CSEET</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Chapter / Unit Number *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Chapter Number *</label>
                   <input
                     type="number"
                     value={resourceModal.data.chapterNumber || 1}
@@ -1659,7 +1666,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Act / Unit Name *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Act / Subject Name *</label>
                 <input
                   type="text"
                   value={resourceModal.data.actName || ""}
@@ -1670,7 +1677,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Resource Title *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Note Title *</label>
                 <input
                   type="text"
                   value={resourceModal.data.title || ""}
@@ -1682,21 +1689,21 @@ export default function AdminPortalPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Resource Type</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Type</label>
                   <select
                     value={resourceModal.data.type || "notes"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, type: e.target.value as any } })}
                     className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
                   >
                     <option value="notes">Chapter Notes</option>
-                    <option value="flowchart">Concept Flowchart</option>
+                    <option value="flowchart">Flowchart</option>
                     <option value="practice">Practice Questions</option>
                     <option value="pyq">PYQ Drill</option>
                     <option value="ldr">Last Day Revision (LDR)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Publish Status</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Status</label>
                   <select
                     value={resourceModal.data.status || "Published"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, status: e.target.value as any } })}
@@ -1710,7 +1717,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">PDF Document Stream / Cloudinary URL *</label>
+                <label className="block font-semibold text-slate-700 mb-1">PDF File / Cloudinary URL *</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -1801,27 +1808,27 @@ export default function AdminPortalPage() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast("Resource saved in MongoDB Atlas!");
+                    showToast("PDF Note saved!");
                   } catch (e) {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
-                Save Resource
+                Save PDF Note
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* SUBSCRIPTION ADD / EDIT MODAL */}
+      {/* 2. SUBSCRIPTION ADD / EDIT MODAL */}
       {subModal.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {subModal.mode === "add" ? "Grant 30-Day Monthly Pass" : "Update Subscription Record"}
+                {subModal.mode === "add" ? "Add Subscription" : "Edit Subscription"}
               </h3>
               <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
@@ -1876,14 +1883,14 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Enrolled Course / Monthly Pass *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Course / Pass *</label>
                 <select
                   value={subModal.data.item || "CA Foundation Business Laws (Monthly Access)"}
                   onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, item: e.target.value } })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
                 >
-                  <option value="CA Foundation Business Laws (Monthly Access)">CA Foundation Business Laws (Monthly Access - ₹99)</option>
-                  <option value="CSEET Business Law & Management (Monthly Access)">CSEET Business Law &amp; Management (Monthly Access - ₹99)</option>
+                  <option value="CA Foundation Business Laws (Monthly Access)">CA Foundation Business Laws (₹99/Month)</option>
+                  <option value="CSEET Business Law & Management (Monthly Access)">CSEET Business Law &amp; Management (₹99/Month)</option>
                 </select>
               </div>
 
@@ -1941,14 +1948,14 @@ export default function AdminPortalPage() {
                   setSubscriptions(next);
                   localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
                   setSubModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Granting pass in MongoDB Atlas..." : "Updating in Atlas...");
+                  showToast(isAdd ? "Adding subscription..." : "Updating subscription...");
                   try {
                     await fetch(`${API_URL}/api/admin/subscriptions${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast(isAdd ? "Access pass granted in MongoDB Atlas!" : "Subscription updated in Atlas!");
+                    showToast("Subscription saved!");
                   } catch (e) {
                     showToast("Saved locally (offline mode)");
                   }
@@ -1962,13 +1969,13 @@ export default function AdminPortalPage() {
         </div>
       )}
 
-      {/* PRODUCT MODAL */}
+      {/* 3. PRODUCT / COURSE MODAL */}
       {productModal.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {productModal.mode === "add" ? "Add New Digital Codex" : "Edit Codex Details"}
+                {productModal.mode === "add" ? "Add Course / Book" : "Edit Course / Book"}
               </h3>
               <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
@@ -1977,30 +1984,30 @@ export default function AdminPortalPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Codex Title *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Course Title *</label>
                 <input
                   type="text"
                   value={productModal.data.title || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, title: e.target.value } })}
-                  placeholder="e.g. CA Foundation Business Laws Codex"
+                  placeholder="e.g. CA Foundation Business Laws"
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subtitle / Details *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Subtitle *</label>
                 <input
                   type="text"
                   value={productModal.data.subtitle || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, subtitle: e.target.value } })}
-                  placeholder="e.g. Complete 7 Chapters Study Notes"
+                  placeholder="e.g. Complete 7 Chapters Study Notes &amp; Cases"
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Monthly Access Price (₹) *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Monthly Price (₹) *</label>
                   <input
                     type="number"
                     value={productModal.data.price || 99}
@@ -2020,7 +2027,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">In-Web Digital PDF URL / Cloudinary CDN</label>
+                <label className="block font-semibold text-slate-700 mb-1">PDF URL / Upload</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -2088,34 +2095,34 @@ export default function AdminPortalPage() {
                   setProducts(next);
                   localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
                   setProductModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Adding Codex to MongoDB Atlas..." : "Updating in Atlas...");
+                  showToast(isAdd ? "Adding course..." : "Updating course...");
                   try {
                     await fetch(`${API_URL}/api/admin/products${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast(isAdd ? "Digital Codex saved to MongoDB Atlas!" : "Codex updated in Atlas!");
+                    showToast("Course saved!");
                   } catch (e) {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
-                Save Codex
+                Save Course
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* STUDENT MODAL */}
+      {/* 4. STUDENT MODAL */}
       {studentModal.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {studentModal.mode === "add" ? "Enroll New Student" : "Edit Student Info"}
+                {studentModal.mode === "add" ? "Add Student" : "Edit Student"}
               </h3>
               <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
@@ -2124,7 +2131,7 @@ export default function AdminPortalPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Student Full Name *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Student Name *</label>
                 <input
                   type="text"
                   value={studentModal.data.name || ""}
@@ -2135,7 +2142,7 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Student / Roll Number *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Student / Roll ID *</label>
                 <input
                   type="text"
                   value={studentModal.data.student_id || ""}
@@ -2202,12 +2209,419 @@ export default function AdminPortalPage() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast("Student saved in Atlas!");
+                    showToast("Student saved!");
                   } catch (e) {}
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
                 Save Student
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. CASE STUDY MODAL */}
+      {caseModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {caseModal.mode === "add" ? "Add Case Study" : "Edit Case Study"}
+              </h3>
+              <button onClick={() => setCaseModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Day Tag</label>
+                  <select
+                    value={caseModal.data.day || "Monster Monday"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, day: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="Monster Monday">Monster Monday</option>
+                    <option value="Midweek Law Madness">Midweek Law Madness</option>
+                    <option value="Final Boss Friday">Final Boss Friday</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Difficulty Badge</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.badge || "High Difficulty"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, badge: e.target.value } })}
+                    placeholder="e.g. High Difficulty"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
+                <input
+                  type="text"
+                  value={caseModal.data.subject || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, subject: e.target.value } })}
+                  placeholder="e.g. Indian Contract Act, 1872"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Case Title *</label>
+                <input
+                  type="text"
+                  value={caseModal.data.title || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, title: e.target.value } })}
+                  placeholder="e.g. Anticipatory Breach &amp; Measure of Damages"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Scenario Problem *</label>
+                <textarea
+                  rows={3}
+                  value={caseModal.data.scenario || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, scenario: e.target.value } })}
+                  placeholder="Enter the case study problem scenario..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Model Solution *</label>
+                <textarea
+                  rows={3}
+                  value={caseModal.data.modelAnswer || ""}
+                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, modelAnswer: e.target.value } })}
+                  placeholder="Enter the model legal analysis and solution..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Case Law Precedent</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.precedent || ""}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, precedent: e.target.value } })}
+                    placeholder="e.g. Frost v. Knight"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Marks Weightage</label>
+                  <input
+                    type="text"
+                    value={caseModal.data.marks || "6/6 Marks"}
+                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, marks: e.target.value } })}
+                    placeholder="e.g. 6/6 Marks"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setCaseModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!caseModal.data.title) return alert("Please enter case title");
+                  const isAdd = caseModal.mode === "add";
+                  const payload: CaseStudyItem = {
+                    id: caseModal.data.id || `case-${Date.now()}`,
+                    day: caseModal.data.day || "Monster Monday",
+                    badge: caseModal.data.badge || "High Difficulty",
+                    subject: caseModal.data.subject || "Business Laws",
+                    title: caseModal.data.title || "",
+                    scenario: caseModal.data.scenario || "",
+                    modelAnswer: caseModal.data.modelAnswer || "",
+                    precedent: caseModal.data.precedent || "",
+                    marks: caseModal.data.marks || "6/6 Marks",
+                  };
+                  const next = isAdd ? [...cases, payload] : cases.map((c) => (c.id === payload.id ? payload : c));
+                  setCases(next);
+                  localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                  setCaseModal({ open: false, mode: "add", data: {} });
+                  try {
+                    await fetch(`${API_URL}/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast("Case study saved!");
+                  } catch (e) {}
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+              >
+                Save Case Study
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MCQ QUESTION MODAL */}
+      {mcqModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {mcqModal.mode === "add" ? "Add MCQ Question" : "Edit MCQ Question"}
+              </h3>
+              <button onClick={() => setMcqModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
+                  <input
+                    type="text"
+                    value={mcqModal.data.subject || ""}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, subject: e.target.value } })}
+                    placeholder="e.g. Indian Contract Act, 1872"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Section Citation</label>
+                  <input
+                    type="text"
+                    value={mcqModal.data.section || ""}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, section: e.target.value } })}
+                    placeholder="e.g. Section 2(d)"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Question Text *</label>
+                <textarea
+                  rows={2}
+                  value={mcqModal.data.question || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, question: e.target.value } })}
+                  placeholder="Enter multiple choice question..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block font-semibold text-slate-700">Options &amp; Correct Answer</label>
+                {[0, 1, 2, 3].map((optIdx) => {
+                  const opts = mcqModal.data.options || ["", "", "", ""];
+                  return (
+                    <div key={optIdx} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="correct-option"
+                        checked={mcqModal.data.correctOption === optIdx}
+                        onChange={() => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, correctOption: optIdx } })}
+                        className="w-4 h-4 text-violet-600"
+                      />
+                      <span className="font-bold text-slate-600 w-4">{String.fromCharCode(65 + optIdx)}.</span>
+                      <input
+                        type="text"
+                        value={opts[optIdx] || ""}
+                        onChange={(e) => {
+                          const nextOpts = [...opts];
+                          nextOpts[optIdx] = e.target.value;
+                          setMcqModal({ ...mcqModal, data: { ...mcqModal.data, options: nextOpts } });
+                        }}
+                        placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                        className="flex-1 p-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Explanation / Legal Reasoning</label>
+                <textarea
+                  rows={2}
+                  value={mcqModal.data.explanation || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, explanation: e.target.value } })}
+                  placeholder="Explain why this answer is legally correct..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setMcqModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!mcqModal.data.question) return alert("Please enter question");
+                  const isAdd = mcqModal.mode === "add";
+                  const payload: McqQuestionItem = {
+                    id: mcqModal.data.id || `mcq-${Date.now()}`,
+                    subject: mcqModal.data.subject || "Business Laws",
+                    section: mcqModal.data.section || "",
+                    question: mcqModal.data.question || "",
+                    options: mcqModal.data.options || ["Option A", "Option B", "Option C", "Option D"],
+                    correctOption: mcqModal.data.correctOption || 0,
+                    explanation: mcqModal.data.explanation || "",
+                  };
+                  const next = isAdd ? [...mcqs, payload] : mcqs.map((m) => (m.id === payload.id ? payload : m));
+                  setMcqs(next);
+                  localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
+                  setMcqModal({ open: false, mode: "add", data: {} });
+                  try {
+                    await fetch(`${API_URL}/api/admin/mcqs${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast("MCQ Question saved!");
+                  } catch (e) {}
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+              >
+                Save Question
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. COUPON MODAL */}
+      {couponModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {couponModal.mode === "add" ? "Add Coupon" : "Edit Coupon"}
+              </h3>
+              <button onClick={() => setCouponModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Coupon Code *</label>
+                <input
+                  type="text"
+                  value={couponModal.data.code || ""}
+                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, code: e.target.value.toUpperCase() } })}
+                  placeholder="e.g. EXAM2026"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono font-bold uppercase text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Discount % *</label>
+                  <input
+                    type="number"
+                    value={couponModal.data.discountPercent || 20}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, discountPercent: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Min Order (₹)</label>
+                  <input
+                    type="number"
+                    value={couponModal.data.minOrder || 99}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, minOrder: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Max Uses</label>
+                  <input
+                    type="number"
+                    value={couponModal.data.maxUses || 500}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, maxUses: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={couponModal.data.expiryDate || "2026-12-31"}
+                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, expiryDate: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Status</label>
+                <select
+                  value={couponModal.data.status || "Active"}
+                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as any } })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Disabled">Disabled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setCouponModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!couponModal.data.code) return alert("Please enter coupon code");
+                  const isAdd = couponModal.mode === "add";
+                  const payload: CouponRecord = {
+                    id: couponModal.data.id || `cp-${Date.now()}`,
+                    code: (couponModal.data.code || "").toUpperCase(),
+                    discountPercent: Number(couponModal.data.discountPercent) || 20,
+                    minOrder: Number(couponModal.data.minOrder) || 99,
+                    maxUses: Number(couponModal.data.maxUses) || 500,
+                    usedCount: Number(couponModal.data.usedCount) || 0,
+                    expiryDate: couponModal.data.expiryDate || "2026-12-31",
+                    status: couponModal.data.status || "Active",
+                  };
+                  const next = isAdd ? [...coupons, payload] : coupons.map((c) => (c.id === payload.id ? payload : c));
+                  setCoupons(next);
+                  localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
+                  setCouponModal({ open: false, mode: "add", data: {} });
+                  try {
+                    await fetch(`${API_URL}/api/admin/coupons${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast("Coupon saved!");
+                  } catch (e) {}
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+              >
+                Save Coupon
               </button>
             </div>
           </div>
