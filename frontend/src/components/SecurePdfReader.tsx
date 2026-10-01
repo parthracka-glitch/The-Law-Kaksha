@@ -24,11 +24,7 @@ import {
   RotateCw,
   Clock,
   HelpCircle,
-  Sliders,
-  Sparkles,
-  Smartphone,
   ShieldCheck,
-  Compass,
 } from "lucide-react";
 
 interface SecurePdfReaderProps {
@@ -209,16 +205,17 @@ export function SecurePdfReader({
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<ReaderTheme>("dark");
   const [sidebarTab, setSidebarTab] = useState<"units" | "bookmarks" | "shortcuts" | null>(null);
-  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
-  const [jumpPageInput, setJumpPageInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [readingTime, setReadingTime] = useState(0);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const renderTaskRef = useRef<any>(null);
 
-  // Touch Swipe Refs for Mobile Navigation
+  // Multi-Touch Pinch and Swipe Tracking
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const initialPinchDistRef = useRef<number | null>(null);
+  const initialPinchScaleRef = useRef<number>(1.1);
+  const lastTapTimeRef = useRef<number>(0);
 
   // Student Profile Data
   const [activeStudent, setActiveStudent] = useState({ name: studentName, roll: studentRoll });
@@ -392,7 +389,7 @@ export function SecurePdfReader({
     try {
       const page = await pdfDoc.getPage(currentPage);
       const viewport = page.getViewport({ scale: 1, rotation });
-      const containerWidth = containerRef.current.clientWidth - (window.innerWidth < 640 ? 20 : 48);
+      const containerWidth = containerRef.current.clientWidth - (window.innerWidth < 640 ? 16 : 48);
       if (containerWidth > 0 && viewport.width > 0) {
         const targetScale = containerWidth / viewport.width;
         setScale(Math.min(Math.max(targetScale, 0.4), 2.8));
@@ -467,16 +464,17 @@ export function SecurePdfReader({
     }
   }, [isOpen, pdfUrl, loadPdf]);
 
-  // Auto-fit on load & window resize
+  // Auto-fit on initial document load
   useEffect(() => {
     if (pdfDoc) {
       const timer = setTimeout(() => {
         handleFitWidth();
-      }, 100);
+      }, 80);
       return () => clearTimeout(timer);
     }
   }, [pdfDoc, handleFitWidth]);
 
+  // Auto-fit on screen resize / rotation
   useEffect(() => {
     const onResize = () => {
       if (pdfDoc) handleFitWidth();
@@ -491,18 +489,65 @@ export function SecurePdfReader({
     }
   }, [pdfDoc, currentPage, scale, rotation, renderPage]);
 
-  // Mobile Touch Swipe Handlers
+  // Multi-touch Pinch to Zoom, Double Tap, and Swipe Page Turn Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+    if (e.touches.length === 2) {
+      // 2 fingers -> Pinch to Zoom
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialPinchDistRef.current = dist;
+      initialPinchScaleRef.current = scale;
+      touchStartX.current = null;
+      touchStartY.current = null;
+    } else if (e.touches.length === 1) {
+      // 1 finger -> Swipe or Double-tap
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = currentDist / initialPinchDistRef.current;
+      const newScale = Math.min(Math.max(initialPinchScaleRef.current * factor, 0.4), 3.0);
+      setScale(newScale);
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (initialPinchDistRef.current !== null && e.touches.length < 2) {
+      initialPinchDistRef.current = null;
+      return;
+    }
+
+    // Check for Double-Tap on Mobile Canvas
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 280) {
+      // Double tap toggles between fit-to-width and 1.6x zoom
+      if (scale > 1.3) {
+        handleFitWidth();
+      } else {
+        setScale(1.6);
+      }
+      lastTapTimeRef.current = 0;
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
+    lastTapTimeRef.current = now;
+
+    // Single finger swipe for page turn
     if (touchStartX.current === null || touchStartY.current === null) return;
     const deltaX = e.changedTouches[0].clientX - touchStartX.current;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
 
-    // Trigger page turn if horizontal swipe is > 55px and dominant
+    // Trigger page turn if horizontal swipe is > 55px and dominant over vertical scroll
     if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
       if (deltaX < 0) {
         // Swiped Left -> Next Page
@@ -626,6 +671,7 @@ export function SecurePdfReader({
   const readingProgress = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
   const isBookmarked = bookmarks.includes(currentPage);
 
+  // 1-Tap Instant Theme Cycler (Zero Modals Needed)
   const cycleTheme = () => {
     const sequence: ReaderTheme[] = ["dark", "sepia", "light", "oled"];
     const nextIdx = (sequence.indexOf(theme) + 1) % sequence.length;
@@ -647,11 +693,11 @@ export function SecurePdfReader({
         }
       `}</style>
 
-      {/* 1. ULTRA-RESPONSIVE TOP HEADER BAR */}
+      {/* 1. TOP HEADER BAR: CLEAN, ELEGANT & INTUITIVE */}
       <header
         className={`flex items-center justify-between px-2.5 sm:px-4 py-2 border-b shrink-0 z-30 transition-colors ${themeStyles.headerBg}`}
       >
-        {/* LEFT: INDEX BUTTON + CLEAN TITLES */}
+        {/* LEFT: INDEX DRAWER BUTTON + BOOK TITLE */}
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
           <button
             onClick={() => setSidebarTab(sidebarTab ? null : "units")}
@@ -664,24 +710,20 @@ export function SecurePdfReader({
           >
             <List className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">Index</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-violet-500/20 text-violet-300 font-mono">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold">
               {chaptersList.length}
             </span>
           </button>
 
-          {/* Book Title with smart truncate */}
+          {/* Book Title & Current Active Unit */}
           <div className="min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight truncate leading-tight">
-                {title}
-              </h1>
-              <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0">
-                <Lock className="w-2.5 h-2.5" />
-                <span>DRM Protected</span>
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-[11px] opacity-65 truncate leading-tight mt-0.5">
-              {activeUnit.title}
+            <h1 className="text-xs sm:text-sm font-bold tracking-tight truncate leading-tight">
+              {title}
+            </h1>
+            <p className="text-[10px] sm:text-[11px] opacity-65 truncate leading-tight mt-0.5 flex items-center gap-1">
+              <span>{activeUnit.title}</span>
+              <span className="hidden xs:inline">•</span>
+              <span className="hidden xs:inline text-emerald-400 font-medium">DRM Protected</span>
             </p>
           </div>
         </div>
@@ -699,9 +741,30 @@ export function SecurePdfReader({
           </div>
         )}
 
-        {/* RIGHT: CONTROLS (DESKTOP EXTENDED + MOBILE COMPACT TOOLS) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {/* Quick Bookmark Toggle (Visible on ALL devices) */}
+        {/* RIGHT: 1-TAP THEME CYCLER + QUICK BOOKMARK + CLOSE */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* 1-TAP INSTANT THEME CYCLE BUTTON (ZERO MODALS / POPUPS) */}
+          <button
+            onClick={cycleTheme}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer min-h-[38px] ${
+              theme === "dark"
+                ? "bg-violet-600 text-white border-violet-500 shadow-xs"
+                : theme === "sepia"
+                ? "bg-amber-700 text-white border-amber-600 shadow-xs"
+                : theme === "light"
+                ? "bg-white text-slate-800 border-slate-300 shadow-xs"
+                : "bg-neutral-900 text-white border-neutral-700 shadow-xs"
+            }`}
+            title={`Reading Mode: ${theme.toUpperCase()} (Tap to switch mode)`}
+          >
+            {theme === "dark" && <Moon className="w-3.5 h-3.5 text-violet-200" />}
+            {theme === "sepia" && <Coffee className="w-3.5 h-3.5 text-amber-200" />}
+            {theme === "light" && <Sun className="w-3.5 h-3.5 text-amber-500" />}
+            {theme === "oled" && <Moon className="w-3.5 h-3.5 text-neutral-400" />}
+            <span className="capitalize text-[11px] font-semibold">{theme}</span>
+          </button>
+
+          {/* Quick Bookmark Toggle (1-Tap Star) */}
           <button
             onClick={() => toggleBookmark(currentPage)}
             className={`p-2 rounded-xl border text-xs font-semibold flex items-center transition-all cursor-pointer shrink-0 min-h-[38px] ${
@@ -709,106 +772,26 @@ export function SecurePdfReader({
                 ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
                 : themeStyles.pillBg
             }`}
-            title={isBookmarked ? "Bookmarked (Click to remove)" : "Bookmark this page (B)"}
+            title={isBookmarked ? "Bookmarked Page (Click to remove)" : "Bookmark Page (B)"}
           >
             <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-amber-400 text-amber-400" : "opacity-75"}`} />
           </button>
 
-          {/* DESKTOP THEME TOGGLE */}
-          <div className="hidden md:flex items-center rounded-xl p-0.5 border border-white/10 bg-black/10">
-            <button
-              onClick={() => setTheme("dark")}
-              className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                theme === "dark" ? "bg-violet-600 text-white shadow-xs" : "opacity-50 hover:opacity-100"
-              }`}
-              title="Dark Mode"
-            >
-              <Moon className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setTheme("sepia")}
-              className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                theme === "sepia" ? "bg-amber-700 text-white shadow-xs" : "opacity-50 hover:opacity-100"
-              }`}
-              title="Sepia Mode"
-            >
-              <Coffee className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setTheme("light")}
-              className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                theme === "light" ? "bg-white text-slate-800 shadow-xs" : "opacity-50 hover:opacity-100"
-              }`}
-              title="Light Mode"
-            >
-              <Sun className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* DESKTOP ZOOM CONTROLS */}
-          <div className="hidden md:flex items-center rounded-xl border border-white/10 bg-black/10 px-1 py-0.5">
-            <button
-              onClick={() => setScale((s) => Math.max(s - 0.15, 0.4))}
-              title="Zoom out (-)"
-              className="p-1 rounded opacity-60 hover:opacity-100 cursor-pointer"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-[11px] font-bold font-mono px-1 min-w-[36px] text-center">
-              {Math.round(scale * 100)}%
-            </span>
-            <button
-              onClick={() => setScale((s) => Math.min(s + 0.15, 3))}
-              title="Zoom in (+)"
-              className="p-1 rounded opacity-60 hover:opacity-100 cursor-pointer"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* DESKTOP FIT WIDTH */}
-          <button
-            onClick={handleFitWidth}
-            className={`p-2 rounded-xl border text-xs font-semibold hidden md:flex items-center transition-all cursor-pointer ${themeStyles.pillBg}`}
-            title="Fit to Width (W)"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-
-          {/* DESKTOP ROTATE */}
-          <button
-            onClick={handleRotate}
-            className={`p-2 rounded-xl border text-xs font-semibold hidden md:flex items-center transition-all cursor-pointer ${themeStyles.pillBg}`}
-            title="Rotate Page (R)"
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-          </button>
-
-          {/* DESKTOP FULLSCREEN */}
+          {/* Desktop Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className={`p-2 rounded-xl border transition-colors cursor-pointer hidden lg:flex ${themeStyles.pillBg}`}
+            className={`p-2 rounded-xl border transition-colors cursor-pointer hidden md:flex min-h-[38px] ${themeStyles.pillBg}`}
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
-            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
 
-          {/* MOBILE ALL-IN-ONE TOOLS BUTTON */}
-          <button
-            onClick={() => setMobileToolsOpen(true)}
-            className={`md:hidden px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer min-h-[38px] ${themeStyles.pillBg}`}
-            title="Reader Controls & Settings"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Tools</span>
-          </button>
-
-          {/* CLOSE BUTTON */}
+          {/* Close Reader Button */}
           <button
             onClick={onClose}
             title="Close Reader (Esc)"
             className="w-9 h-9 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/30 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-            aria-label="Close"
+            aria-label="Close Reader"
           >
             <X className="w-4 h-4" />
           </button>
@@ -1013,10 +996,10 @@ export function SecurePdfReader({
                   {[
                     { key: "→ / Space / Swipe Left", label: "Next Page" },
                     { key: "← / Shift+Space / Swipe Right", label: "Previous Page" },
-                    { key: "+ / =", label: "Zoom In" },
-                    { key: "- / _", label: "Zoom Out" },
-                    { key: "W", label: "Fit to Window Width" },
-                    { key: "P", label: "Fit Whole Page" },
+                    { key: "Double Tap / Pinch", label: "Pinch to Zoom / Auto-Fit" },
+                    { key: "+ / =", label: "Zoom In (+20%)" },
+                    { key: "- / _", label: "Zoom Out (-20%)" },
+                    { key: "W", label: "Fit to Screen Width" },
                     { key: "B", label: "Bookmark / Unbookmark Page" },
                     { key: "R", label: "Rotate Page 90°" },
                     { key: "Esc", label: "Exit / Close Reader" },
@@ -1050,13 +1033,14 @@ export function SecurePdfReader({
           </aside>
         )}
 
-        {/* CANVAS WORKSPACE */}
+        {/* CANVAS WORKSPACE WITH PINCH & SWIPE GESTURES */}
         <div
           ref={containerRef}
           className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-pan-y"
           style={{ background: themeStyles.canvasBg }}
           onContextMenu={blockContext}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS (Desktop only) */}
@@ -1115,7 +1099,7 @@ export function SecurePdfReader({
 
           {/* LOADED PDF PAGE WITH SECURITY WATERMARK */}
           {!loading && !error && (
-            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20 max-w-full">
+            <div className="relative my-auto flex flex-col items-center pb-28 sm:pb-24 max-w-full">
               <div
                 className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} transition-transform duration-150 max-w-full`}
                 style={{
@@ -1155,34 +1139,79 @@ export function SecurePdfReader({
         </div>
       </div>
 
-      {/* 3. FLOATING SCRUBBER ISLAND BAR (BOTTOM DOCK) */}
+      {/* 3. ULTRA-INTUITIVE FLOATING BOTTOM CONTROLLER DOCK (ZERO MENUS NEEDED) */}
       {totalPages > 0 && (
         <footer
-          className={`fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-30 max-w-xl w-[95%] sm:w-full px-2.5 sm:px-5 py-2 rounded-2xl border shadow-2xl flex items-center justify-between gap-2 sm:gap-3 ${themeStyles.controlBar} ${themeStyles.dockBorder}`}
+          className={`fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-30 max-w-xl w-[96%] sm:w-full px-3 py-2.5 rounded-2xl border shadow-2xl backdrop-blur-md flex flex-col gap-2 ${themeStyles.controlBar} ${themeStyles.dockBorder}`}
         >
-          {/* QUICK JUMP: PREVIOUS */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-              className={`p-2 rounded-xl border text-xs font-semibold hidden sm:flex items-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed ${themeStyles.pillBg}`}
-              title="First Page"
-            >
-              <ChevronsLeft className="w-4 h-4" />
-            </button>
+          {/* ROW 1: INSTANT ON-SCREEN ZOOM & PAGE CONTROLS (DIRECT 1-TAP ACTION) */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+            {/* Previous Page Button */}
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed min-h-[38px] ${themeStyles.pillBg}`}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed min-h-[40px] ${themeStyles.pillBg}`}
               title="Previous Page (←)"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="hidden xs:inline text-[11px]">Prev</span>
+              <span className="hidden xs:inline">Prev</span>
+            </button>
+
+            {/* DIRECT ON-SCREEN ZOOM CONTROLS (ALWAYS ACCESSIBLE, ZERO EXTRA MENUS) */}
+            <div className="flex items-center gap-1 rounded-xl p-0.5 border border-inherit bg-black/10">
+              {/* Zoom Out Button */}
+              <button
+                onClick={() => setScale((s) => Math.max(s - 0.2, 0.4))}
+                className="p-2 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+                title="Zoom Out (-20%)"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+
+              {/* 1-Tap Fit-to-Width Auto-Center */}
+              <button
+                onClick={handleFitWidth}
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold hover:bg-black/10 transition-colors cursor-pointer flex items-center gap-1"
+                title="Fit to Screen Width (1-Tap Auto Center)"
+              >
+                <Maximize2 className="w-3 h-3 text-violet-400" />
+                <span>{Math.round(scale * 100)}%</span>
+              </button>
+
+              {/* Zoom In Button */}
+              <button
+                onClick={() => setScale((s) => Math.min(s + 0.2, 3.0))}
+                className="p-2 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+                title="Zoom In (+20%)"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Rotate 90° Button */}
+            <button
+              onClick={handleRotate}
+              className={`p-2 rounded-xl border text-xs font-semibold flex items-center transition-all cursor-pointer min-h-[40px] ${themeStyles.pillBg}`}
+              title={`Rotate Page 90° (Current: ${rotation}°)`}
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+
+            {/* Next Page Button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed min-h-[40px] ${themeStyles.pillBg}`}
+              title="Next Page (→)"
+            >
+              <span className="hidden xs:inline">Next</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* INTERACTIVE PAGE SCRUBBER SLIDER */}
-          <div className="flex-1 flex items-center gap-2 px-1 min-w-0">
+          {/* ROW 2: SCRUBBER SLIDER & TAPPABLE PAGE JUMP BADGE */}
+          <div className="flex items-center gap-2 px-1 min-w-0 pt-0.5 border-t border-inherit/40">
+            <span className="text-[10px] font-mono font-bold opacity-60">1</span>
             <div className="relative flex-1 flex items-center">
               <input
                 type="range"
@@ -1194,218 +1223,26 @@ export function SecurePdfReader({
                 title={`Page ${currentPage} of ${totalPages} (${readingProgress}%)`}
               />
             </div>
-            {/* Clickable Page Badge */}
+            {/* Tappable Page Badge for Instant Jump */}
             <button
-              onClick={() => setMobileToolsOpen(true)}
-              className="font-mono text-xs font-bold px-2 py-1 rounded-lg bg-black/10 hover:bg-black/20 shrink-0 cursor-pointer"
-              title="Click to jump to page"
+              onClick={() => {
+                const target = prompt(`Enter page number (1 - ${totalPages}):`, String(currentPage));
+                if (target) {
+                  const p = parseInt(target);
+                  if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                    setCurrentPage(p);
+                  }
+                }
+              }}
+              className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-black/10 hover:bg-black/20 shrink-0 cursor-pointer flex items-center gap-1 border border-inherit/60"
+              title="Tap to jump to page number"
             >
-              {currentPage}/{totalPages}
-            </button>
-          </div>
-
-          {/* QUICK JUMP: NEXT */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed min-h-[38px] ${themeStyles.pillBg}`}
-              title="Next Page (→)"
-            >
-              <span className="hidden xs:inline text-[11px]">Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className={`p-2 rounded-xl border text-xs font-semibold hidden sm:flex items-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed ${themeStyles.pillBg}`}
-              title="Last Page"
-            >
-              <ChevronsRight className="w-4 h-4" />
+              <span>Pg {currentPage}</span>
+              <span className="opacity-40">/</span>
+              <span className="opacity-70">{totalPages}</span>
             </button>
           </div>
         </footer>
-      )}
-
-      {/* 4. DEDICATED MOBILE & TOUCH TOOLS BOTTOM DRAWER / MODAL */}
-      {mobileToolsOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div
-            className="fixed inset-0"
-            onClick={() => setMobileToolsOpen(false)}
-          />
-
-          <div
-            className={`relative z-10 w-full rounded-t-3xl border-t p-5 max-h-[85vh] overflow-y-auto space-y-5 shadow-2xl animate-in slide-in-from-bottom duration-200 ${themeStyles.tocBg}`}
-          >
-            {/* Sheet Handle & Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-inherit">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-violet-400" />
-                <h3 className="text-sm font-bold">Reader Controls &amp; Settings</h3>
-              </div>
-              <button
-                onClick={() => setMobileToolsOpen(false)}
-                className="p-1.5 rounded-xl bg-black/10 hover:bg-black/20 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* SECTION 1: READING THEME */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">
-                Reading Mode / Theme
-              </span>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { id: "dark" as ReaderTheme, label: "Dark", icon: Moon, bg: "bg-slate-900 text-white" },
-                  { id: "sepia" as ReaderTheme, label: "Sepia", icon: Coffee, bg: "bg-[#EFE7D8] text-[#3D2F1D]" },
-                  { id: "light" as ReaderTheme, label: "Light", icon: Sun, bg: "bg-white text-slate-800" },
-                  { id: "oled" as ReaderTheme, label: "OLED", icon: Moon, bg: "bg-black text-white" },
-                ].map((t) => {
-                  const Icon = t.icon;
-                  const isSelected = theme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                        t.bg
-                      } ${isSelected ? "border-violet-500 ring-2 ring-violet-500 shadow-md" : "border-white/10 opacity-70"}`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-[10px] font-bold">{t.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* SECTION 2: ZOOM & VIEWPORT CONTROLS */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">
-                Zoom &amp; Screen Fitting
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => {
-                    handleFitWidth();
-                    setMobileToolsOpen(false);
-                  }}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${themeStyles.pillBg}`}
-                >
-                  <Maximize2 className="w-4 h-4 text-violet-400" />
-                  <span>Fit Width</span>
-                </button>
-                <button
-                  onClick={() => setScale((s) => Math.max(s - 0.2, 0.4))}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${themeStyles.pillBg}`}
-                >
-                  <ZoomOut className="w-4 h-4" />
-                  <span>Zoom -</span>
-                </button>
-                <button
-                  onClick={() => setScale((s) => Math.min(s + 0.2, 3))}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${themeStyles.pillBg}`}
-                >
-                  <ZoomIn className="w-4 h-4" />
-                  <span>Zoom +</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  onClick={handleRotate}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${themeStyles.pillBg}`}
-                >
-                  <RotateCw className="w-4 h-4 text-emerald-400" />
-                  <span>Rotate 90° ({rotation}°)</span>
-                </button>
-                <button
-                  onClick={toggleFullscreen}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${themeStyles.pillBg}`}
-                >
-                  <Maximize2 className="w-4 h-4 text-amber-400" />
-                  <span>Fullscreen</span>
-                </button>
-              </div>
-            </div>
-
-            {/* SECTION 3: DIRECT PAGE JUMP */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">
-                Jump Directly to Page
-              </span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder={`1 - ${totalPages}`}
-                  value={jumpPageInput}
-                  onChange={(e) => setJumpPageInput(e.target.value)}
-                  min={1}
-                  max={totalPages}
-                  className="flex-1 p-3 rounded-2xl bg-black/10 border border-white/20 text-sm font-mono font-bold outline-none focus:border-violet-500"
-                />
-                <button
-                  onClick={() => {
-                    const p = parseInt(jumpPageInput);
-                    if (!isNaN(p) && p >= 1 && p <= totalPages) {
-                      setCurrentPage(p);
-                      setJumpPageInput("");
-                      setMobileToolsOpen(false);
-                    }
-                  }}
-                  className="px-5 py-3 rounded-2xl bg-violet-600 text-white font-bold text-xs hover:bg-violet-700 transition-colors cursor-pointer"
-                >
-                  Go
-                </button>
-              </div>
-
-              <div className="flex items-center gap-1.5 pt-1">
-                <button
-                  onClick={() => {
-                    setCurrentPage(1);
-                    setMobileToolsOpen(false);
-                  }}
-                  className="flex-1 py-1.5 rounded-xl bg-black/10 text-[11px] font-semibold hover:bg-black/20"
-                >
-                  First Pg (1)
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentPage(Math.round(totalPages / 2));
-                    setMobileToolsOpen(false);
-                  }}
-                  className="flex-1 py-1.5 rounded-xl bg-black/10 text-[11px] font-semibold hover:bg-black/20"
-                >
-                  Mid Pg ({Math.round(totalPages / 2)})
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentPage(totalPages);
-                    setMobileToolsOpen(false);
-                  }}
-                  className="flex-1 py-1.5 rounded-xl bg-black/10 text-[11px] font-semibold hover:bg-black/20"
-                >
-                  Last Pg ({totalPages})
-                </button>
-              </div>
-            </div>
-
-            {/* SECTION 4: READING SESSION STATS */}
-            <div className="p-3.5 rounded-2xl bg-black/10 border border-white/10 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-violet-400" />
-                <span>Study Session: <strong>{formatReadingDuration(readingTime)}</strong></span>
-              </div>
-              <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-emerald-400">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>DRM Verified</span>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
