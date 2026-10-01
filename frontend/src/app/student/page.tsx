@@ -245,6 +245,49 @@ export default function StudentDashboardPage() {
     return () => clearInterval(timer);
   }, [testActive, testSubmitted, testTimeLeft]);
 
+  // Security & DRM listeners across the student dashboard (No Copy, No Print, No Screenshots)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block Ctrl/Cmd + P (Print), S (Save), U (View Source), C (Copy), X (Cut)
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === "p" || e.key === "s" || e.key === "u" || e.key === "c" || e.key === "x")
+      ) {
+        e.preventDefault();
+        return;
+      }
+      // Block PrintScreen
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        try {
+          navigator.clipboard.writeText("");
+        } catch (err) {}
+      }
+    };
+
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("copy", handleCopy);
+    window.addEventListener("cut", handleCopy);
+    window.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("copy", handleCopy);
+      window.removeEventListener("cut", handleCopy);
+      window.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+
   if (isCheckingAuth || !isAuthorized) {
     return (
       <div className="min-h-screen bg-[#F8F7FF] flex flex-col items-center justify-center p-6 text-center">
@@ -260,7 +303,16 @@ export default function StudentDashboardPage() {
   const initials = studentName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "AS";
 
   return (
-    <div className="min-h-screen bg-[#F6F5FF] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-[#F6F5FF] flex select-none" style={{ fontFamily: "'Inter', system-ui, sans-serif" }} onContextMenu={(e) => e.preventDefault()}>
+      {/* CSS DRM SECURITY PRINT BLOCKER */}
+      <style jsx global>{`
+        @media print {
+          body, html, * {
+            display: none !important;
+            visibility: hidden !important;
+          }
+        }
+      `}</style>
 
       {/* MOBILE SIDEBAR BACKDROP */}
       {sidebarOpen && (
@@ -699,7 +751,7 @@ export default function StudentDashboardPage() {
               <div className="max-w-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-violet-500">Last Day Revision</span>
                 <h2 className="text-2xl font-bold text-slate-800 mt-1">Exam Flowcharts & Quick Notes</h2>
-                <p className="text-sm text-slate-500 mt-1">High-speed visual recall aids for the final 36 hours before your law exam.</p>
+                <p className="text-sm text-slate-500 mt-1">High-speed visual recall aids for the final 36 hours before your law exam (Protected DRM In-Web View).</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {[
@@ -708,17 +760,27 @@ export default function StudentDashboardPage() {
                   { title: "Companies Act - Corporate Veil Doctrine", desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).", url: "/notes/companies-act-unit-1.pdf", label: "Open Notes", badge: "Companies Act", badgeColor: "bg-violet-100 text-violet-700" },
                   { title: "Contract Act - Essential Checklist", desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.", url: "/notes/contract-act-unit-1.pdf", label: "Open Checklist", badge: "Contract Act", badgeColor: "bg-rose-100 text-rose-700" },
                 ].map((item, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.badgeColor}`}>{item.badge}</div>
-                      <Bookmark className="w-4 h-4 text-slate-300 shrink-0" />
+                  <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.badgeColor}`}>{item.badge}</div>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                          <Lock className="w-3 h-3 text-emerald-600" />
+                          <span>DRM Protected</span>
+                        </div>
+                      </div>
+                      <h3 className="text-sm font-semibold text-slate-800">{item.title}</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed mt-1">{item.desc}</p>
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-800">{item.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
-                    <a href={item.url} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 hover:text-violet-800 hover:underline pt-1">
-                      <Eye className="w-3.5 h-3.5" />{item.label}
-                    </a>
+                    <div className="pt-2">
+                      <button
+                        onClick={() => setPdfViewer({ open: true, url: item.url, title: `${item.title} (Quick Notes)` })}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-sm"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{item.label} (Secure Reader)</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

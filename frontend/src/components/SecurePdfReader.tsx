@@ -444,15 +444,45 @@ export function SecurePdfReader({
     touchStartY.current = null;
   };
 
-  // Keyboard navigation
+  // Comprehensive Keyboard & DRM Anti-Piracy Protection
   useEffect(() => {
     if (!isOpen) return;
+
     const handleKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "s" || e.key === "u")) {
+      // 1. Block PrintScreen and wipe clipboard
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        try {
+          navigator.clipboard.writeText("");
+        } catch (err) {}
+        return;
+      }
+
+      // 2. Block Ctrl/Cmd + P (Print), S (Save), U (Source), C (Copy), X (Cut), V (Paste)
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === "p" || e.key === "s" || e.key === "u" || e.key === "c" || e.key === "x" || e.key === "v")
+      ) {
         e.preventDefault();
         return;
       }
 
+      // 3. Block Developer Tools & Inspect Combos (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C)
+      if (
+        e.key === "F12" ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c"))
+      ) {
+        e.preventDefault();
+        return;
+      }
+
+      // 4. Block Mac Screen Capture Shortcuts (Cmd + Shift + 3 / 4 / 5)
+      if (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5")) {
+        e.preventDefault();
+        return;
+      }
+
+      // Navigation Shortcuts
       if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) {
         e.preventDefault();
         setCurrentPage((p) => Math.min(p + 1, totalPages));
@@ -460,9 +490,9 @@ export function SecurePdfReader({
         e.preventDefault();
         setCurrentPage((p) => Math.max(p - 1, 1));
       } else if (e.key === "+" || e.key === "=") {
-        setScale((s) => Math.min(s + 0.15, 3));
+        setScale((s) => Math.min(s + 0.15, 3.5));
       } else if (e.key === "-" || e.key === "_") {
-        setScale((s) => Math.max(s - 0.15, 0.4));
+        setScale((s) => Math.max(s - 0.15, 0.3));
       } else if (e.key === "w" || e.key === "W") {
         handleFitWidth();
       } else if (e.key === "p" || e.key === "P") {
@@ -475,8 +505,20 @@ export function SecurePdfReader({
         onClose();
       }
     };
+
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+    };
+
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener("copy", handleCopy);
+    window.addEventListener("cut", handleCopy);
+
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("copy", handleCopy);
+      window.removeEventListener("cut", handleCopy);
+    };
   }, [isOpen, totalPages, onClose, currentPage, handleFitWidth, handleFitPage]);
 
   // Fullscreen toggle
@@ -959,20 +1001,31 @@ export function SecurePdfReader({
                   }}
                 />
 
-                {/* ANTI-SCREENSHOT / DRM WATERMARK OVERLAY */}
-                <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 opacity-[0.035] text-black select-none font-mono text-[10px] sm:text-xs overflow-hidden leading-relaxed">
-                  <div className="flex justify-between">
-                    <span>THE LAW KAKSHA • LICENSED STUDENT EDITION</span>
+                {/* ANTI-SCREENSHOT / DRM MULTI-LAYER WATERMARK OVERLAY */}
+                <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5">
+                  {/* Top Header Watermark */}
+                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-slate-800 font-bold uppercase tracking-wider">
+                    <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
                     <span>ROLL: {activeStudent.roll}</span>
                   </div>
-                  <div className="text-center transform -rotate-12 text-xs sm:text-sm font-bold">
-                    CONFIDENTIAL STUDY MATERIAL • LICENSED TO {activeStudent.name.toUpperCase()} • DO NOT DISTRIBUTE
+
+                  {/* Multi-point Center Diagonal Watermark Grid */}
+                  <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
+                    <div className="text-[11px] sm:text-xs font-bold text-slate-900 tracking-wider">
+                      CONFIDENTIAL STUDY NOTES • PROPERTY OF THE LAW KAKSHA
+                    </div>
+                    <div className="text-xs sm:text-sm font-extrabold text-violet-950 tracking-widest uppercase">
+                      LICENSED TO: {activeStudent.name.toUpperCase()} • ID: {activeStudent.roll}
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-bold text-slate-800 tracking-wider">
+                      STRICTLY FORBIDDEN TO SCREENSHOT, COPY OR DISTRIBUTE
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>
-                      {activeStudent.name} • {cleanFilename}
-                    </span>
-                    <span>SECURE IN-WEB READER</span>
+
+                  {/* Bottom Footer Watermark */}
+                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-slate-800 font-bold uppercase tracking-wider">
+                    <span>STUDENT: {activeStudent.name}</span>
+                    <span>SECURE IN-WEB DRM READER</span>
                   </div>
                 </div>
               </div>
