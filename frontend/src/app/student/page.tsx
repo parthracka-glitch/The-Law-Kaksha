@@ -322,19 +322,26 @@ export default function StudentDashboardPage() {
             <p className="text-[11px] text-slate-400 leading-none mt-0.5">{activeCourse === "ca" ? "CA Foundation - Business Laws" : "CSEET - Business Law & Management"}</p>
             </div>
           </div>
-          <div className="inline-flex p-1 rounded-full bg-white border border-slate-200 shadow-sm">
-            <button type="button" onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); }}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "ca" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-              CA Foundation
+          <div className="inline-flex p-1 rounded-full bg-white border border-slate-200 shadow-sm shrink-0">
+            <button
+              type="button"
+              onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); }}
+              className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "ca" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              <span className="sm:hidden">CA</span>
+              <span className="hidden sm:inline">CA Foundation</span>
             </button>
-            <button type="button" onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "cs" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+            <button
+              type="button"
+              onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }}
+              className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeCourse === "cs" ? "bg-violet-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
               CSEET
             </button>
           </div>
         </header>
 
-        <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+        <div className="p-4 sm:p-6 pb-24 lg:pb-8 space-y-6 max-w-6xl">
 
           {/* HOME */}
           {activeTab === "home" && (
@@ -625,6 +632,36 @@ export default function StudentDashboardPage() {
 
         </div>
       </main>
+
+      {/* MOBILE BOTTOM NAVIGATION BAR */}
+      <nav
+        aria-label="Student Mobile Navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] safe-bottom"
+      >
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setSidebarOpen(false);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 py-1 px-1 transition-all rounded-xl cursor-pointer ${
+                isActive ? "text-violet-700 font-bold" : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <div className={`p-1 rounded-xl transition-colors ${isActive ? "bg-violet-100 text-violet-700" : ""}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] tracking-tight leading-none mt-0.5 truncate max-w-[62px]">
+                {item.id === "home" ? "Home" : item.id === "chapters" ? "Notes" : item.id === "cases" ? "Cases" : item.id === "mcqtest" ? "Tests" : "LDR"}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
 
       <EnhancedSampleChapterModal isOpen={sampleModalOpen} onClose={() => setSampleModalOpen(false)} bookTitle={sampleBookTitle} bookId={sampleBookId} bookPrice={99} />
 

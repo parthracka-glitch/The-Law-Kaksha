@@ -184,20 +184,20 @@ function CoursesCatalogContent() {
         {/* 2. Simple Minimal Filter & Search Bar */}
         <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-2xs">
           {/* Program Toggle */}
-          <div className="flex p-1 bg-slate-100 rounded-xl w-full sm:w-auto gap-1">
+          <div className="flex p-1 bg-slate-100 rounded-xl w-full sm:w-auto gap-1 overflow-x-auto scrollable-tabs">
             <button
               onClick={() => setSelectedCourse("all")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center ${
                 selectedCourse === "all"
                   ? "bg-[#004B99] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              All Courses ({products.length})
+              All ({products.length})
             </button>
             <button
               onClick={() => setSelectedCourse("course-ca-foundation")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
                 selectedCourse === "course-ca-foundation"
                   ? "bg-[#004B99] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -208,7 +208,7 @@ function CoursesCatalogContent() {
             </button>
             <button
               onClick={() => setSelectedCourse("course-cseet")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
                 selectedCourse === "course-cseet"
                   ? "bg-[#004B99] text-white shadow-xs"
                   : "text-slate-600 hover:text-slate-900"

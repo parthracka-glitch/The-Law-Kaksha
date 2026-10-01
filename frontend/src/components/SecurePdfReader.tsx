@@ -563,9 +563,9 @@ export function SecurePdfReader({
           </div>
         </div>
 
-        {/* CENTER: MINIMAL PAGE & PROGRESS INDICATOR */}
+        {/* CENTER: MINIMAL PAGE & PROGRESS INDICATOR (Hidden on mobile, available in bottom dock) */}
         {totalPages > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/10 border border-white/10 text-xs font-medium shrink-0">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-black/10 border border-white/10 text-xs font-medium shrink-0">
             <span className="opacity-90 font-mono">
               Page {currentPage} <span className="opacity-40">/</span> {totalPages}
             </span>
@@ -627,8 +627,8 @@ export function SecurePdfReader({
             <Maximize2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* Compact Zoom In / Out */}
-          <div className="flex items-center rounded-lg border border-white/10 bg-black/10 px-1 py-0.5">
+          {/* Compact Zoom In / Out (Desktop/Tablet) */}
+          <div className="hidden md:flex items-center rounded-lg border border-white/10 bg-black/10 px-1 py-0.5">
             <button
               onClick={() => setScale((s) => Math.max(s - 0.15, 0.5))}
               title="Zoom out (-)"
@@ -899,13 +899,13 @@ export function SecurePdfReader({
           style={{ background: themeStyles.canvasBg }}
           onContextMenu={blockContext}
         >
-          {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS */}
+          {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS (Desktop/Tablet only) */}
           {totalPages > 0 && (
             <>
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
+                className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
                 title="Previous Page (←)"
               >
                 <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
@@ -914,7 +914,7 @@ export function SecurePdfReader({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
+                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
                 title="Next Page (→)"
               >
                 <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
@@ -1003,7 +1003,7 @@ export function SecurePdfReader({
       {/* 3. FLOATING SCRUBBER ISLAND BAR (BOTTOM DOCK) */}
       {totalPages > 0 && (
         <footer
-          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-2xl w-[92%] sm:w-full px-4 sm:px-6 py-2.5 rounded-2xl border shadow-2xl flex items-center justify-between gap-3 ${themeStyles.controlBar} ${themeStyles.dockBorder}`}
+          className={`fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-40 max-w-2xl w-[94%] sm:w-full px-3 sm:px-6 py-2 sm:py-2.5 rounded-2xl border shadow-2xl flex items-center justify-between gap-2 sm:gap-3 ${themeStyles.controlBar} ${themeStyles.dockBorder}`}
         >
           {/* QUICK JUMP: FIRST & PREVIOUS */}
           <div className="flex items-center gap-1">

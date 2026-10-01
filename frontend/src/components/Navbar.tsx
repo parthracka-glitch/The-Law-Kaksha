@@ -305,17 +305,18 @@ export function Navbar() {
             {activeStudent ? (
               <Link
                 href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-[#005FD8] bg-blue-50/60 text-[#005FD8] text-sm font-semibold hover:bg-blue-100/70 transition-all duration-200 active:scale-95"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 rounded-xl border border-[#005FD8] bg-blue-50/60 text-[#005FD8] text-xs sm:text-sm font-semibold hover:bg-blue-100/70 transition-all duration-200 active:scale-95"
+                title={`${activeStudent.name} (${activeStudent.role === "admin" ? "Admin" : "Student"})`}
               >
-                <div className="w-5 h-5 rounded-full bg-[#005FD8] text-white flex items-center justify-center font-bold text-[10px]">
+                <div className="w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-[#005FD8] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                   {activeStudent.avatarInitials}
                 </div>
-                <span className="truncate max-w-[85px]">{activeStudent.name.split(" ")[0]}</span>
+                <span className="truncate max-w-[85px] hidden sm:inline">{activeStudent.name.split(" ")[0]}</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center px-5 py-2 rounded-xl border border-[#005FD8] text-[#005FD8] hover:bg-[#005FD8] hover:text-white text-sm font-semibold transition-all duration-200 active:scale-95"
+                className="hidden sm:inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-xl border border-[#005FD8] text-[#005FD8] hover:bg-[#005FD8] hover:text-white text-sm font-semibold transition-all duration-200 active:scale-95"
               >
                 Log In
               </Link>

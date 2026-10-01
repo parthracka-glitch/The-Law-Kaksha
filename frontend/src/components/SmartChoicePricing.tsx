@@ -133,28 +133,30 @@ export function SmartChoicePricing() {
 
           {/* Course Tabs Toggle */}
           <div className="pt-2 flex justify-center">
-            <div className="inline-flex p-1 rounded-full bg-[#F5F5F7] border border-black/[0.04]">
+            <div className="inline-flex max-w-full p-1 rounded-2xl sm:rounded-full bg-[#F5F5F7] border border-black/[0.04]">
               <button
                 type="button"
                 onClick={() => setActiveTab("ca")}
-                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] ${
+                className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] ${
                   activeTab === "ca"
                     ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
                     : "text-[#6E6E73] hover:text-[#1D1D1F]"
                 }`}
               >
-                CA Foundation (Paper 2)
+                <span className="sm:hidden">CA Foundation</span>
+                <span className="hidden sm:inline">CA Foundation (Paper 2)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("cs")}
-                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] ${
+                className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] ${
                   activeTab === "cs"
                     ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
                     : "text-[#6E6E73] hover:text-[#1D1D1F]"
                 }`}
               >
-                CSEET (Business Law &amp; Mgt)
+                <span className="sm:hidden">CSEET Law</span>
+                <span className="hidden sm:inline">CSEET (Business Law &amp; Mgt)</span>
               </button>
             </div>
           </div>
@@ -189,14 +191,16 @@ export function SmartChoicePricing() {
               </p>
 
               {/* Price Row */}
-              <div className="flex items-baseline gap-2 mb-5 pb-4 border-b border-black/[0.06]">
-                <span className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
-                  ₹{CA_FOUNDATION_PLAN.price}
-                </span>
-                <span className="text-xs text-[#86868B] line-through font-normal">
-                  ₹{CA_FOUNDATION_PLAN.originalPrice}
-                </span>
-                <span className="text-xs font-medium text-[#0071E3] ml-auto">
+              <div className="flex items-baseline justify-between flex-wrap gap-2 mb-5 pb-4 border-b border-black/[0.06]">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
+                    ₹{CA_FOUNDATION_PLAN.price}
+                  </span>
+                  <span className="text-xs text-[#86868B] line-through font-normal">
+                    ₹{CA_FOUNDATION_PLAN.originalPrice}
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-[#0071E3]">
                   {CA_FOUNDATION_PLAN.duration}
                 </span>
               </div>
@@ -283,14 +287,16 @@ export function SmartChoicePricing() {
               </p>
 
               {/* Price Row */}
-              <div className="flex items-baseline gap-2 mb-5 pb-4 border-b border-black/[0.06]">
-                <span className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
-                  ₹{CSEET_PLAN.price}
-                </span>
-                <span className="text-xs text-[#86868B] line-through font-normal">
-                  ₹{CSEET_PLAN.originalPrice}
-                </span>
-                <span className="text-xs font-medium text-[#0071E3] ml-auto">
+              <div className="flex items-baseline justify-between flex-wrap gap-2 mb-5 pb-4 border-b border-black/[0.06]">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl sm:text-4xl font-semibold text-[#1D1D1F] tracking-tight">
+                    ₹{CSEET_PLAN.price}
+                  </span>
+                  <span className="text-xs text-[#86868B] line-through font-normal">
+                    ₹{CSEET_PLAN.originalPrice}
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-[#0071E3]">
                   {CSEET_PLAN.duration}
                 </span>
               </div>

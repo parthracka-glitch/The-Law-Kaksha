@@ -15,7 +15,7 @@ export function HeroSection() {
 
 
         {/* Subtle Watermark Flower Petals in Background */}
-        <div className="absolute right-[-40px] top-[-30px] w-[380px] h-[380px] opacity-[0.035] pointer-events-none select-none z-0">
+        <div className="hidden sm:block absolute right-0 top-0 w-[380px] h-[380px] opacity-[0.035] pointer-events-none select-none z-0 overflow-hidden">
           <Image
             src="/assets/element lawkaksha.png"
             alt="Motif"

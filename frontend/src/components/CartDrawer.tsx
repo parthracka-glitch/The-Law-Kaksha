@@ -730,7 +730,7 @@ export function CartDrawer() {
 
         {/* BOTTOM TOTAL & CHECKOUT BAR */}
         {checkoutStep === "cart" && items.length > 0 && (
-          <div className="p-5 bg-[#F5F5F7] border-t border-black/[0.06] space-y-3 shrink-0">
+          <div className="p-4 sm:p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] bg-[#F5F5F7] border-t border-black/[0.06] space-y-3 shrink-0">
             <div className="space-y-1 text-xs">
               <div className="flex items-center justify-between text-[#6E6E73]">
                 <span>Subtotal ({totalItemCount} items)</span>

@@ -248,9 +248,21 @@ body {
    RESPONSIVE FOUNDATION — Mobile-First
    ============================================================ */
 
-/* --- Safe Areas (notched devices) --- */
-html {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+/* --- Safe Area Utilities --- */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
 }
 
 /* --- Base body ≥16px to prevent iOS input zoom --- */
@@ -388,7 +400,13 @@ p, li, td, th, dd, dt, blockquote, figcaption, label, span {
 
 /* --- Touch-friendly minimum targets --- */
 @media (pointer: coarse) {
-  button, a, [role="button"], input[type="submit"], input[type="button"] {
+  button:not(.btn-inline),
+  [role="button"]:not(.btn-inline),
+  nav a,
+  header a,
+  .touch-target,
+  input[type="submit"],
+  input[type="button"] {
     min-height: 44px;
     min-width: 44px;
   }

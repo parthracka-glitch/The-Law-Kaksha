@@ -767,20 +767,20 @@ export function EnhancedSampleChapterModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/40 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-5 bg-black/50 backdrop-blur-xl animate-in fade-in duration-200">
       
       {/* Main Minimalist Modal Window */}
-      <div className="relative w-full max-w-4xl bg-white border border-black/[0.08] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] flex flex-col h-[92vh] overflow-hidden text-[#1D1D1F] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-4xl bg-white border-0 sm:border sm:border-black/[0.08] rounded-none sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] flex flex-col h-full sm:h-[92vh] overflow-hidden text-[#1D1D1F] animate-in zoom-in-95 duration-200">
         
         {/* MINIMAL TOP HEADER */}
-        <div className="px-6 py-4 border-b border-black/[0.05] flex items-center justify-between gap-3 bg-white shrink-0">
-          <div className="min-w-0 flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-black/[0.05] flex items-center justify-between gap-3 bg-white shrink-0 pt-safe">
+          <div className="min-w-0 flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 rounded-full bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-[#0071E3] shrink-0">
               <FileText className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0071E3] font-mono block">
-                Official Sample Preview • 6 Continuous Pages
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0071E3] font-mono block truncate">
+                Sample Preview • 6 Pages
               </span>
               <h3 className="text-xs sm:text-sm font-semibold text-[#1D1D1F] truncate">
                 {displayTitle}
@@ -789,9 +789,9 @@ export function EnhancedSampleChapterModal({
           </div>
 
           {/* Controls: Zoom & Close */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Zoom Controls */}
-            <div className="flex items-center bg-[#F5F5F7] rounded-full p-0.5 text-xs border border-black/[0.04]">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Zoom Controls (Desktop/Tablet) */}
+            <div className="hidden sm:flex items-center bg-[#F5F5F7] rounded-full p-0.5 text-xs border border-black/[0.04]">
               <button
                 onClick={() => setZoomLevel((z) => Math.max(85, z - 15))}
                 className="p-1 text-[#6E6E73] hover:text-[#1D1D1F] rounded-full hover:bg-black/[0.04] cursor-pointer"
@@ -812,10 +812,10 @@ export function EnhancedSampleChapterModal({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors ml-1 cursor-pointer"
+              className="p-2 sm:p-1.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
               aria-label="Close Preview"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

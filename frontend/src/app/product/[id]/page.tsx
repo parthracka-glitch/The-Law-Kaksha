@@ -425,20 +425,20 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <button
-                    onClick={handleAddToCart}
-                    className="py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                  >
-                    <ShoppingBag className="w-4 h-4 text-[#005FD8]" />
-                    <span>Add to Bag</span>
-                  </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <button
                     onClick={handleBuyNow}
-                    className="py-3 px-4 rounded-xl bg-[#004B99] hover:bg-[#003D7A] text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    className="order-1 sm:order-2 py-3.5 px-4 rounded-xl bg-[#004B99] hover:bg-[#003D7A] text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
                   >
                     <span>Proceed to Checkout</span>
                     <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleAddToCart}
+                    className="order-2 sm:order-1 py-3.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-[#005FD8]" />
+                    <span>Add to Bag</span>
                   </button>
                 </div>
               </div>

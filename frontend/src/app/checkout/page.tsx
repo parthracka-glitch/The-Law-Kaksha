@@ -381,17 +381,17 @@ export default function CheckoutPage() {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("upi")}
-                    className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
+                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
                       paymentMethod === "upi"
                         ? "border-violet-600 bg-violet-50/60 ring-2 ring-violet-500/20"
                         : "border-slate-200 hover:border-slate-300 bg-white"
                     }`}
                   >
-                    <QrCode className="w-5 h-5 text-violet-600" />
+                    <QrCode className="w-5 h-5 text-violet-600 shrink-0" />
                     <div>
                       <div className="text-xs font-bold text-slate-900">Instant UPI / QR</div>
                       <div className="text-[10px] text-slate-500">GPay, PhonePe, Paytm</div>
@@ -401,13 +401,13 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
-                    className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
+                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
                       paymentMethod === "card"
                         ? "border-violet-600 bg-violet-50/60 ring-2 ring-violet-500/20"
                         : "border-slate-200 hover:border-slate-300 bg-white"
                     }`}
                   >
-                    <CreditCard className="w-5 h-5 text-violet-600" />
+                    <CreditCard className="w-5 h-5 text-violet-600 shrink-0" />
                     <div>
                       <div className="text-xs font-bold text-slate-900">Cards &amp; NetBanking</div>
                       <div className="text-[10px] text-slate-500">All Indian Banks</div>

@@ -164,19 +164,24 @@ export function DigitalBookshelf() {
 
           {/* Virtual Bookshelf with Interactive Book Spines */}
           <div className="w-full pt-6 pb-0 flex flex-col items-center justify-end relative z-10">
+            {/* Mobile swipe hint */}
+            <span className="text-[11px] text-slate-400 font-medium sm:hidden block pb-2 tracking-tight">
+              Swipe across &amp; tap any volume to read
+            </span>
+
             {/* Row of Books */}
-            <div className="flex items-end justify-start sm:justify-center gap-2.5 sm:gap-3 px-2 max-w-full overflow-x-auto pb-0 scroll-container-x">
+            <div className="flex items-end justify-start sm:justify-center gap-2.5 sm:gap-3 px-2 max-w-full overflow-x-auto pb-1 scroll-container-x">
               {STATUTORY_BOOKS.map((book) => {
                 return (
                   <div
                     key={book.id}
                     onClick={() => handleOpenBookSample(book)}
-                    className="relative cursor-pointer transition-all duration-300 transform select-none hover:-translate-y-2 hover:scale-105 z-10 hover:z-20"
+                    className="relative cursor-pointer transition-all duration-300 transform select-none hover:-translate-y-2 hover:scale-105 z-10 hover:z-20 shrink-0"
                     title={`${book.actName} (${book.chapters})`}
                   >
                     {/* Book Spine Container */}
                     <div
-                      className={`w-10 sm:w-9 md:w-11 ${book.heightClass} ${book.spineColor} ${book.textColor} border ${book.borderColor} rounded-t-md shadow-[2px_3px_8px_rgba(0,0,0,0.12)] flex flex-col justify-between py-2.5 px-1 relative overflow-hidden group transition-shadow duration-300 hover:shadow-[0_10px_20px_rgba(0,0,0,0.18)]`}
+                      className={`w-11 sm:w-9 md:w-11 ${book.heightClass} ${book.spineColor} ${book.textColor} border ${book.borderColor} rounded-t-md shadow-[2px_3px_8px_rgba(0,0,0,0.12)] flex flex-col justify-between py-2.5 px-1 relative overflow-hidden group transition-shadow duration-300 hover:shadow-[0_10px_20px_rgba(0,0,0,0.18)]`}
                     >
                       {/* Top Spine Accent */}
                       <div className="w-full space-y-0.5 opacity-70">
