@@ -6,8 +6,6 @@ import {
   Lock,
   ChevronLeft,
   ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   ZoomIn,
   ZoomOut,
   BookOpen,
@@ -19,7 +17,6 @@ import {
   Maximize2,
   Minimize2,
   List,
-  CheckCircle2,
   Bookmark,
   RotateCw,
   Clock,
@@ -274,8 +271,8 @@ export function SecurePdfReader({
 
   const formatReadingDuration = (secs: number) => {
     const mins = Math.floor(secs / 60);
-    if (mins < 1) return "< 1 min read";
-    return `${mins} min read`;
+    if (mins < 1) return "< 1 min";
+    return `${mins} min`;
   };
 
   // Determine chapter outlines based on book title or url
@@ -474,7 +471,7 @@ export function SecurePdfReader({
     }
   }, [pdfDoc, handleFitWidth]);
 
-  // Auto-fit on screen resize / rotation
+  // Auto-fit on screen resize / orientation change
   useEffect(() => {
     const onResize = () => {
       if (pdfDoc) handleFitWidth();
@@ -492,7 +489,6 @@ export function SecurePdfReader({
   // Multi-touch Pinch to Zoom, Double Tap, and Swipe Page Turn Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // 2 fingers -> Pinch to Zoom
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -502,7 +498,6 @@ export function SecurePdfReader({
       touchStartX.current = null;
       touchStartY.current = null;
     } else if (e.touches.length === 1) {
-      // 1 finger -> Swipe or Double-tap
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
     }
@@ -526,14 +521,12 @@ export function SecurePdfReader({
       return;
     }
 
-    // Check for Double-Tap on Mobile Canvas
     const now = Date.now();
     if (now - lastTapTimeRef.current < 280) {
-      // Double tap toggles between fit-to-width and 1.6x zoom
       if (scale > 1.3) {
         handleFitWidth();
       } else {
-        setScale(1.6);
+        setScale(1.5);
       }
       lastTapTimeRef.current = 0;
       touchStartX.current = null;
@@ -542,18 +535,14 @@ export function SecurePdfReader({
     }
     lastTapTimeRef.current = now;
 
-    // Single finger swipe for page turn
     if (touchStartX.current === null || touchStartY.current === null) return;
     const deltaX = e.changedTouches[0].clientX - touchStartX.current;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
 
-    // Trigger page turn if horizontal swipe is > 55px and dominant over vertical scroll
-    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
       if (deltaX < 0) {
-        // Swiped Left -> Next Page
         setCurrentPage((p) => Math.min(p + 1, totalPages));
       } else {
-        // Swiped Right -> Previous Page
         setCurrentPage((p) => Math.max(p - 1, 1));
       }
     }
@@ -561,11 +550,10 @@ export function SecurePdfReader({
     touchStartY.current = null;
   };
 
-  // Keyboard navigation & Security Traps
+  // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      // Disable Print & Save shortcuts
       if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "s" || e.key === "u")) {
         e.preventDefault();
         return;
@@ -616,62 +604,58 @@ export function SecurePdfReader({
 
   if (!isOpen) return null;
 
-  // Theme configuration styles
+  // Executive minimal theme palette
   const themeStyles = {
     dark: {
-      appBg: "#0B0F17",
-      headerBg: "bg-[#111827]/95 backdrop-blur-md border-slate-800 text-white shadow-sm",
-      canvasBg: "#06090E",
-      pageShadow: "shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.08)]",
-      tocBg: "bg-[#111827] border-slate-800 text-white",
-      controlBar: "bg-[#111827]/95 border-slate-800 text-white backdrop-blur-md",
-      pillBg: "bg-white/10 hover:bg-white/20 text-white border-white/15",
+      appBg: "#0F141C",
+      headerBg: "bg-[#0F141C]/90 backdrop-blur-xl border-white/[0.08] text-slate-100",
+      canvasBg: "#0A0D13",
+      pageShadow: "shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]",
+      tocBg: "bg-[#0F141C] border-white/[0.08] text-slate-100",
+      dockBg: "bg-[#141A23]/90 backdrop-blur-xl border-white/[0.1] text-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.45)]",
+      btnGhost: "hover:bg-white/10 active:bg-white/15 text-slate-300 hover:text-white",
+      btnActive: "bg-white/15 text-white",
       accent: "text-violet-400",
-      dockBorder: "border-slate-800",
-      subtext: "text-slate-400",
     },
     sepia: {
-      appBg: "#F6F0E6",
-      headerBg: "bg-[#EFE7D8]/95 backdrop-blur-md border-amber-900/10 text-[#3D2F1D] shadow-sm",
-      canvasBg: "#E8DFC9",
-      pageShadow: "shadow-[0_20px_50px_-12px_rgba(80,50,20,0.18),0_0_0_1px_rgba(120,80,30,0.1)]",
-      tocBg: "bg-[#EFE7D8] border-amber-900/15 text-[#3D2F1D]",
-      controlBar: "bg-[#EFE7D8]/95 border-amber-900/15 text-[#3D2F1D] backdrop-blur-md",
-      pillBg: "bg-amber-900/10 hover:bg-amber-900/20 text-[#3D2F1D] border-amber-900/15",
+      appBg: "#F4EDE2",
+      headerBg: "bg-[#F4EDE2]/90 backdrop-blur-xl border-amber-900/[0.08] text-[#342717]",
+      canvasBg: "#EBE3D5",
+      pageShadow: "shadow-[0_20px_50px_-12px_rgba(60,40,15,0.15),0_0_0_1px_rgba(100,70,20,0.08)]",
+      tocBg: "bg-[#F4EDE2] border-amber-900/[0.08] text-[#342717]",
+      dockBg: "bg-[#EFE8DC]/90 backdrop-blur-xl border-amber-900/[0.12] text-[#342717] shadow-[0_12px_40px_rgba(60,40,15,0.12)]",
+      btnGhost: "hover:bg-amber-900/10 active:bg-amber-900/15 text-[#5C452A] hover:text-[#342717]",
+      btnActive: "bg-amber-900/15 text-[#342717]",
       accent: "text-amber-800",
-      dockBorder: "border-amber-900/20",
-      subtext: "text-amber-800/70",
     },
     light: {
       appBg: "#F8FAFC",
-      headerBg: "bg-white/95 backdrop-blur-md border-slate-200 text-slate-800 shadow-xs",
-      canvasBg: "#EEF2F6",
-      pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.06)]",
+      headerBg: "bg-white/90 backdrop-blur-xl border-slate-200/80 text-slate-800",
+      canvasBg: "#EFF2F6",
+      pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)]",
       tocBg: "bg-white border-slate-200 text-slate-800",
-      controlBar: "bg-white/95 border-slate-200 text-slate-800 shadow-lg backdrop-blur-md",
-      pillBg: "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200",
+      dockBg: "bg-white/90 backdrop-blur-xl border-slate-200 text-slate-800 shadow-[0_12px_40px_rgba(0,0,0,0.08)]",
+      btnGhost: "hover:bg-slate-100 active:bg-slate-200 text-slate-600 hover:text-slate-900",
+      btnActive: "bg-slate-100 text-slate-900 font-semibold",
       accent: "text-violet-600",
-      dockBorder: "border-slate-200",
-      subtext: "text-slate-500",
     },
     oled: {
       appBg: "#000000",
-      headerBg: "bg-[#050505]/95 backdrop-blur-md border-neutral-800 text-white shadow-sm",
+      headerBg: "bg-black/90 backdrop-blur-xl border-neutral-800 text-neutral-100",
       canvasBg: "#000000",
       pageShadow: "shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_25px_60px_rgba(0,0,0,1)]",
-      tocBg: "bg-[#050505] border-neutral-800 text-white",
-      controlBar: "bg-[#050505]/95 border-neutral-800 text-white backdrop-blur-md",
-      pillBg: "bg-neutral-900 hover:bg-neutral-800 text-white border-neutral-700",
+      tocBg: "bg-black border-neutral-800 text-neutral-100",
+      dockBg: "bg-[#0A0A0A]/90 backdrop-blur-xl border-neutral-800 text-neutral-100 shadow-[0_12px_40px_rgba(0,0,0,0.8)]",
+      btnGhost: "hover:bg-neutral-800 active:bg-neutral-700 text-neutral-300 hover:text-white",
+      btnActive: "bg-neutral-800 text-white",
       accent: "text-violet-400",
-      dockBorder: "border-neutral-800",
-      subtext: "text-neutral-400",
     },
   }[theme];
 
   const readingProgress = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
   const isBookmarked = bookmarks.includes(currentPage);
 
-  // 1-Tap Instant Theme Cycler (Zero Modals Needed)
+  // 1-Tap Minimal Theme Switcher
   const cycleTheme = () => {
     const sequence: ReaderTheme[] = ["dark", "sepia", "light", "oled"];
     const nextIdx = (sequence.indexOf(theme) + 1) % sequence.length;
@@ -681,7 +665,7 @@ export function SecurePdfReader({
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden"
-      style={{ background: themeStyles.appBg, fontFamily: "'Inter', system-ui, sans-serif" }}
+      style={{ background: themeStyles.appBg, fontFamily: "'Inter', -apple-system, system-ui, sans-serif" }}
       onContextMenu={blockContext}
     >
       {/* CSS DRM PRINT BLOCKER */}
@@ -693,105 +677,88 @@ export function SecurePdfReader({
         }
       `}</style>
 
-      {/* 1. TOP HEADER BAR: CLEAN, ELEGANT & INTUITIVE */}
+      {/* 1. ULTRA-MINIMAL TOP BAR (EXECUTIVE STREAMLINED) */}
       <header
-        className={`flex items-center justify-between px-2.5 sm:px-4 py-2 border-b shrink-0 z-30 transition-colors ${themeStyles.headerBg}`}
+        className={`h-12 sm:h-13 px-3 sm:px-5 border-b shrink-0 z-30 flex items-center justify-between transition-colors ${themeStyles.headerBg}`}
       >
-        {/* LEFT: INDEX DRAWER BUTTON + BOOK TITLE */}
-        <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+        {/* LEFT: MINIMAL TOC BUTTON + TITLE */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
           <button
             onClick={() => setSidebarTab(sidebarTab ? null : "units")}
-            className={`p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 min-h-[38px] ${
-              sidebarTab
-                ? "bg-violet-600 text-white border-violet-500 shadow-sm"
-                : themeStyles.pillBg
+            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+              sidebarTab ? themeStyles.btnActive : themeStyles.btnGhost
             }`}
-            title="Curriculum & Chapters Index"
+            title="Table of Contents"
           >
-            <List className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">Index</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-violet-500/20 text-violet-300 font-mono font-bold">
-              {chaptersList.length}
-            </span>
+            <List className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs font-medium">Contents</span>
           </button>
 
-          {/* Book Title & Current Active Unit */}
-          <div className="min-w-0 flex flex-col justify-center">
-            <h1 className="text-xs sm:text-sm font-bold tracking-tight truncate leading-tight">
+          <div className="w-px h-4 bg-current opacity-10 hidden sm:block" />
+
+          {/* Book Title & Chapter Subtitle */}
+          <div className="min-w-0 flex items-baseline gap-2 truncate">
+            <h1 className="text-xs sm:text-sm font-semibold tracking-tight truncate">
               {title}
             </h1>
-            <p className="text-[10px] sm:text-[11px] opacity-65 truncate leading-tight mt-0.5 flex items-center gap-1">
-              <span>{activeUnit.title}</span>
-              <span className="hidden xs:inline">•</span>
-              <span className="hidden xs:inline text-emerald-400 font-medium">DRM Protected</span>
-            </p>
+            <span className="text-[11px] opacity-50 truncate hidden xs:inline font-normal">
+              {activeUnit.title}
+            </span>
           </div>
         </div>
 
-        {/* CENTER: DESKTOP PROGRESS BADGE */}
-        {totalPages > 0 && (
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-black/10 border border-white/10 text-xs font-medium shrink-0">
-            <span className="font-mono text-xs">
-              Page {currentPage} <span className="opacity-40">/</span> {totalPages}
-            </span>
-            <span className="w-1 h-1 rounded-full bg-violet-400 opacity-60" />
-            <span className="text-[11px] font-bold text-violet-400">{readingProgress}%</span>
-            <span className="opacity-30">|</span>
-            <span className="text-[10px] opacity-70 font-mono">{formatReadingDuration(readingTime)}</span>
-          </div>
-        )}
-
-        {/* RIGHT: 1-TAP THEME CYCLER + QUICK BOOKMARK + CLOSE */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* 1-TAP INSTANT THEME CYCLE BUTTON (ZERO MODALS / POPUPS) */}
+        {/* RIGHT: MINIMAL 1-TAP ICONS */}
+        <div className="flex items-center gap-1 shrink-0">
+          {/* 1-Tap Theme Toggle */}
           <button
             onClick={cycleTheme}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer min-h-[38px] ${
-              theme === "dark"
-                ? "bg-violet-600 text-white border-violet-500 shadow-xs"
-                : theme === "sepia"
-                ? "bg-amber-700 text-white border-amber-600 shadow-xs"
-                : theme === "light"
-                ? "bg-white text-slate-800 border-slate-300 shadow-xs"
-                : "bg-neutral-900 text-white border-neutral-700 shadow-xs"
-            }`}
-            title={`Reading Mode: ${theme.toUpperCase()} (Tap to switch mode)`}
+            className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs ${themeStyles.btnGhost}`}
+            title={`Reading Mode: ${theme.toUpperCase()} (Tap to switch)`}
           >
-            {theme === "dark" && <Moon className="w-3.5 h-3.5 text-violet-200" />}
-            {theme === "sepia" && <Coffee className="w-3.5 h-3.5 text-amber-200" />}
-            {theme === "light" && <Sun className="w-3.5 h-3.5 text-amber-500" />}
-            {theme === "oled" && <Moon className="w-3.5 h-3.5 text-neutral-400" />}
-            <span className="capitalize text-[11px] font-semibold">{theme}</span>
+            {theme === "dark" && <Moon className="w-4 h-4 text-violet-300" />}
+            {theme === "sepia" && <Coffee className="w-4 h-4 text-amber-500" />}
+            {theme === "light" && <Sun className="w-4 h-4 text-amber-500" />}
+            {theme === "oled" && <Moon className="w-4 h-4 text-neutral-400" />}
+            <span className="hidden sm:inline capitalize text-[11px] font-medium opacity-80">{theme}</span>
           </button>
 
-          {/* Quick Bookmark Toggle (1-Tap Star) */}
+          {/* Bookmark Toggle */}
           <button
             onClick={() => toggleBookmark(currentPage)}
-            className={`p-2 rounded-xl border text-xs font-semibold flex items-center transition-all cursor-pointer shrink-0 min-h-[38px] ${
-              isBookmarked
-                ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                : themeStyles.pillBg
+            className={`p-2 rounded-xl transition-all cursor-pointer ${
+              isBookmarked ? "text-amber-400" : themeStyles.btnGhost
             }`}
-            title={isBookmarked ? "Bookmarked Page (Click to remove)" : "Bookmark Page (B)"}
+            title={isBookmarked ? "Page Bookmarked" : "Bookmark this Page (B)"}
           >
-            <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-amber-400 text-amber-400" : "opacity-75"}`} />
+            <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-amber-400" : "opacity-70"}`} />
           </button>
 
-          {/* Desktop Fullscreen Button */}
+          {/* Rotate (Desktop) */}
+          <button
+            onClick={handleRotate}
+            className={`p-2 rounded-xl transition-all cursor-pointer hidden sm:flex ${themeStyles.btnGhost}`}
+            title="Rotate 90° (R)"
+          >
+            <RotateCw className="w-4 h-4 opacity-70" />
+          </button>
+
+          {/* Fullscreen (Desktop) */}
           <button
             onClick={toggleFullscreen}
-            className={`p-2 rounded-xl border transition-colors cursor-pointer hidden md:flex min-h-[38px] ${themeStyles.pillBg}`}
+            className={`p-2 rounded-xl transition-all cursor-pointer hidden md:flex ${themeStyles.btnGhost}`}
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-4 h-4 opacity-70" /> : <Maximize2 className="w-4 h-4 opacity-70" />}
           </button>
 
-          {/* Close Reader Button */}
+          <div className="w-px h-4 bg-current opacity-10 mx-0.5" />
+
+          {/* Close Button */}
           <button
             onClick={onClose}
-            title="Close Reader (Esc)"
-            className="w-9 h-9 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/30 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-            aria-label="Close Reader"
+            title="Close (Esc)"
+            className="p-2 rounded-xl hover:bg-rose-500/15 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -803,7 +770,7 @@ export function SecurePdfReader({
         {/* MOBILE BACKDROP FOR SIDEBAR DRAWER */}
         {sidebarTab && (
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-150"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-150"
             onClick={() => setSidebarTab(null)}
           />
         )}
@@ -813,12 +780,12 @@ export function SecurePdfReader({
           <aside
             className={`fixed md:relative inset-y-0 left-0 w-[85vw] max-w-sm md:w-80 shrink-0 border-r flex flex-col z-40 shadow-2xl animate-in slide-in-from-left duration-200 ${themeStyles.tocBg}`}
           >
-            {/* Drawer Tabs Header */}
+            {/* Drawer Header */}
             <div className="p-3 border-b border-inherit flex items-center justify-between gap-1">
               <div className="flex items-center gap-1 bg-black/10 rounded-xl p-1 w-full">
                 <button
                   onClick={() => setSidebarTab("units")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     sidebarTab === "units" ? "bg-violet-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
@@ -826,7 +793,7 @@ export function SecurePdfReader({
                 </button>
                 <button
                   onClick={() => setSidebarTab("bookmarks")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                     sidebarTab === "bookmarks" ? "bg-amber-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
@@ -835,18 +802,18 @@ export function SecurePdfReader({
                 </button>
                 <button
                   onClick={() => setSidebarTab("shortcuts")}
-                  className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     sidebarTab === "shortcuts" ? "bg-slate-700 text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
-                  Help
+                  Guide
                 </button>
               </div>
 
               <button
                 onClick={() => setSidebarTab(null)}
-                className="p-2 rounded-lg hover:bg-black/10 text-inherit opacity-70 hover:opacity-100 cursor-pointer ml-1"
-                title="Close Drawer"
+                className="p-2 rounded-lg hover:bg-black/10 opacity-70 hover:opacity-100 cursor-pointer ml-1"
+                title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -854,12 +821,12 @@ export function SecurePdfReader({
 
             {/* TAB 1: UNITS & CHAPTERS LIST */}
             {sidebarTab === "units" && (
-              <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">
-                    Statutory Syllabus &amp; Units
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex items-center justify-between px-1 mb-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                    Curriculum Units
                   </span>
-                  <span className="text-[10px] font-semibold text-violet-400">
+                  <span className="text-[10px] font-medium opacity-60">
                     {chaptersList.length} Units Available
                   </span>
                 </div>
@@ -876,48 +843,28 @@ export function SecurePdfReader({
                           setSidebarTab(null);
                         }
                       }}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all cursor-pointer group ${
+                      className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer ${
                         isActive
-                          ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/30 scale-[1.01]"
-                          : "bg-black/5 hover:bg-black/10 border-transparent text-inherit opacity-90"
+                          ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20"
+                          : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-85 hover:opacity-100"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                              isActive ? "bg-white/20 text-white" : "bg-violet-500/20 text-violet-400"
-                            }`}
-                          >
-                            Unit {ch.unit}
-                          </span>
-                          {ch.weightage && (
-                            <span className="text-[10px] opacity-70 font-semibold">{ch.weightage}</span>
-                          )}
-                        </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                            isActive ? "bg-white/20 text-white" : "bg-violet-500/15 text-violet-400"
+                          }`}
+                        >
+                          Unit {ch.unit}
+                        </span>
 
-                        <span className="text-[11px] font-mono font-bold opacity-80">
+                        <span className="text-[11px] font-mono opacity-80">
                           Pg {ch.startPage}
                         </span>
                       </div>
 
-                      <h4 className="text-xs font-bold leading-snug">{ch.title}</h4>
-                      <p className="text-[11px] opacity-75 mt-1 line-clamp-2">{ch.act}</p>
-
-                      {ch.keyTopics && ch.keyTopics.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-white/10 flex flex-wrap gap-1">
-                          {ch.keyTopics.map((topic, tIdx) => (
-                            <span
-                              key={tIdx}
-                              className={`text-[9px] px-1.5 py-0.5 rounded ${
-                                isActive ? "bg-white/15 text-white" : "bg-black/10 opacity-70"
-                              }`}
-                            >
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <h4 className="text-xs font-semibold leading-snug">{ch.title}</h4>
+                      <p className="text-[11px] opacity-70 mt-0.5 line-clamp-1">{ch.act}</p>
                     </div>
                   );
                 })}
@@ -928,30 +875,30 @@ export function SecurePdfReader({
             {sidebarTab === "bookmarks" && (
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
                 <div className="flex items-center justify-between px-1 mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">
-                    Saved Study Bookmarks
+                  <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                    Saved Bookmarks
                   </span>
                   <button
                     onClick={() => toggleBookmark(currentPage)}
-                    className="text-[11px] font-bold text-amber-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer"
                   >
                     <span>+ Bookmark Current Pg {currentPage}</span>
                   </button>
                 </div>
 
                 {bookmarks.length === 0 ? (
-                  <div className="text-center py-12 px-4 space-y-2 opacity-60">
+                  <div className="text-center py-12 px-4 space-y-2 opacity-50">
                     <Bookmark className="w-8 h-8 mx-auto stroke-1" />
-                    <p className="text-xs font-semibold">No Bookmarks Saved Yet</p>
+                    <p className="text-xs font-medium">No Bookmarks Saved</p>
                     <p className="text-[11px] leading-relaxed">
-                      Click the bookmark icon while reading to save crucial sections, case laws, and revision charts.
+                      Tap the bookmark icon on any page to quickly save revision points.
                     </p>
                   </div>
                 ) : (
                   bookmarks.map((bmPage) => (
                     <div
                       key={bmPage}
-                      className="p-3 rounded-xl bg-black/5 hover:bg-black/10 border border-white/10 flex items-center justify-between gap-3 transition-colors"
+                      className="p-2.5 rounded-xl bg-black/[0.04] hover:bg-black/[0.08] border border-inherit/30 flex items-center justify-between gap-3 transition-colors"
                     >
                       <button
                         onClick={() => {
@@ -962,19 +909,16 @@ export function SecurePdfReader({
                         }}
                         className="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
                       >
-                        <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-bold font-mono text-xs flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-mono text-xs font-semibold flex items-center justify-center">
                           {bmPage}
                         </div>
-                        <div>
-                          <p className="text-xs font-bold">Page {bmPage}</p>
-                          <p className="text-[10px] opacity-60">Saved Revision Point</p>
-                        </div>
+                        <p className="text-xs font-medium">Page {bmPage}</p>
                       </button>
 
                       <button
                         onClick={() => toggleBookmark(bmPage)}
-                        className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-400 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
-                        title="Remove bookmark"
+                        className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-400 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+                        title="Delete bookmark"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -986,54 +930,36 @@ export function SecurePdfReader({
 
             {/* TAB 3: KEYBOARD SHORTCUTS */}
             {sidebarTab === "shortcuts" && (
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <HelpCircle className="w-4 h-4 text-violet-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider">Reader Navigation Guide</h4>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+                <div className="flex items-center gap-2 mb-1">
+                  <HelpCircle className="w-4 h-4 opacity-70" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wider opacity-70">Navigation Shortcuts</h4>
                 </div>
 
-                <div className="space-y-2 text-xs">
-                  {[
-                    { key: "→ / Space / Swipe Left", label: "Next Page" },
-                    { key: "← / Shift+Space / Swipe Right", label: "Previous Page" },
-                    { key: "Double Tap / Pinch", label: "Pinch to Zoom / Auto-Fit" },
-                    { key: "+ / =", label: "Zoom In (+20%)" },
-                    { key: "- / _", label: "Zoom Out (-20%)" },
-                    { key: "W", label: "Fit to Screen Width" },
-                    { key: "B", label: "Bookmark / Unbookmark Page" },
-                    { key: "R", label: "Rotate Page 90°" },
-                    { key: "Esc", label: "Exit / Close Reader" },
-                  ].map((sc, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-2 rounded-xl bg-black/5 border border-white/5"
-                    >
-                      <span className="opacity-80">{sc.label}</span>
-                      <kbd className="px-2 py-0.5 rounded-md bg-black/30 border border-white/20 font-mono text-[10px] font-bold">
-                        {sc.key}
-                      </kbd>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="p-3 rounded-2xl bg-violet-600/10 border border-violet-500/20 text-[11px] leading-relaxed">
-                  <p className="font-bold text-violet-300 mb-1">DRM Protected Document</p>
-                  <p className="opacity-75">
-                    This statutory codex is encrypted and rendered directly into your browser canvas. Offline saving,
-                    copying, and printing are disabled.
-                  </p>
-                </div>
+                {[
+                  { key: "Swipe / ← →", label: "Flip Page" },
+                  { key: "Double Tap", label: "Auto Fit / Zoom" },
+                  { key: "Pinch", label: "Smooth Zoom" },
+                  { key: "B", label: "Bookmark Page" },
+                  { key: "R", label: "Rotate 90°" },
+                  { key: "Esc", label: "Close Reader" },
+                ].map((sc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2 rounded-xl bg-black/[0.03] border border-inherit/20"
+                  >
+                    <span className="opacity-75">{sc.label}</span>
+                    <kbd className="px-2 py-0.5 rounded-md bg-black/20 border border-white/10 font-mono text-[10px] font-semibold">
+                      {sc.key}
+                    </kbd>
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* DRAWER FOOTER */}
-            <div className="p-3 border-t border-inherit text-[10px] opacity-60 text-center font-medium">
-              The Law कक्षा Digital Learning System
-            </div>
           </aside>
         )}
 
-        {/* CANVAS WORKSPACE WITH PINCH & SWIPE GESTURES */}
+        {/* CANVAS WORKSPACE */}
         <div
           ref={containerRef}
           className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-pan-y"
@@ -1049,57 +975,49 @@ export function SecurePdfReader({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
+                className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-violet-600 text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
                 title="Previous Page (←)"
               >
-                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+                <ChevronLeft className="w-5 h-5" />
               </button>
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-2xl bg-black/45 hover:bg-violet-600 text-white backdrop-blur-md border border-white/20 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-2xl group hover:scale-110 active:scale-95"
+                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-violet-600 text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
                 title="Next Page (→)"
               >
-                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
 
           {/* LOADING STATE */}
           {loading && (
-            <div className="flex flex-col items-center justify-center my-auto gap-4 text-white/70 py-20">
-              <div className="w-16 h-16 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-white">Opening Secure Study Codex...</p>
-                <p className="text-xs text-white/50 mt-1">Decrypting in-memory pages &amp; statutory flowcharts</p>
-              </div>
+            <div className="flex flex-col items-center justify-center my-auto gap-3 text-white/70 py-20">
+              <Loader2 className="w-7 h-7 animate-spin text-violet-400" />
+              <p className="text-xs font-medium opacity-80">Loading Study Codex...</p>
             </div>
           )}
 
           {/* ERROR STATE */}
           {error && (
-            <div className="flex flex-col items-center justify-center my-auto gap-3 max-w-md text-center p-8 rounded-3xl bg-black/30 border border-white/10 backdrop-blur-md">
-              <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
-                <BookOpen className="w-7 h-7" />
-              </div>
-              <h3 className="text-sm font-bold text-white">Book Unavailable</h3>
-              <p className="text-xs text-white/60 leading-relaxed">{error}</p>
+            <div className="flex flex-col items-center justify-center my-auto gap-3 max-w-sm text-center p-6 rounded-2xl bg-black/20 border border-white/10 backdrop-blur-md">
+              <BookOpen className="w-6 h-6 text-rose-400 mx-auto" />
+              <p className="text-xs opacity-75">{error}</p>
               <button
                 onClick={() => loadPdf(pdfUrl)}
-                className="mt-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer mx-auto"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Retry Loading
+                <RefreshCw className="w-3 h-3" />
+                Retry
               </button>
             </div>
           )}
 
-          {/* LOADED PDF PAGE WITH SECURITY WATERMARK */}
+          {/* LOADED PDF PAGE WITH DRUG-SHIELD WATERMARK */}
           {!loading && !error && (
-            <div className="relative my-auto flex flex-col items-center pb-28 sm:pb-24 max-w-full">
+            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20 max-w-full">
               <div
                 className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} transition-transform duration-150 max-w-full`}
                 style={{
@@ -1128,105 +1046,53 @@ export function SecurePdfReader({
                 </div>
               </div>
 
-              {/* FOOTNOTE PROGRESS */}
-              <div className="mt-3 flex items-center gap-2 text-[10px] sm:text-[11px] opacity-60 font-medium text-center px-4">
-                <span className="font-bold">Page {currentPage} of {totalPages}</span>
-                <span>•</span>
-                <span className="truncate max-w-[200px] sm:max-w-none">{activeUnit.title}</span>
+              {/* FOOTNOTE */}
+              <div className="mt-3 text-[11px] opacity-40 font-mono text-center">
+                Page {currentPage} of {totalPages}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* 3. ULTRA-INTUITIVE FLOATING BOTTOM CONTROLLER DOCK (ZERO MENUS NEEDED) */}
+      {/* 3. ULTRA-SLEEK, MINIMAL & PROFESSIONAL FLOATING CONTROLLER (SINGLE-ROW APPLE-GRADE ISLAND) */}
       {totalPages > 0 && (
         <footer
-          className={`fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-30 max-w-xl w-[96%] sm:w-full px-3 py-2.5 rounded-2xl border shadow-2xl backdrop-blur-md flex flex-col gap-2 ${themeStyles.controlBar} ${themeStyles.dockBorder}`}
+          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[92%] sm:w-auto min-w-[320px] sm:min-w-[420px] h-12 px-2.5 sm:px-4 rounded-full border shadow-xl flex items-center justify-between gap-2.5 sm:gap-4 transition-all duration-200 ${themeStyles.dockBg}`}
         >
-          {/* ROW 1: INSTANT ON-SCREEN ZOOM & PAGE CONTROLS (DIRECT 1-TAP ACTION) */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-            {/* Previous Page Button */}
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed min-h-[40px] ${themeStyles.pillBg}`}
-              title="Previous Page (←)"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden xs:inline">Prev</span>
-            </button>
+          {/* PREVIOUS PAGE BUTTON */}
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
+            title="Previous Page (←)"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-            {/* DIRECT ON-SCREEN ZOOM CONTROLS (ALWAYS ACCESSIBLE, ZERO EXTRA MENUS) */}
-            <div className="flex items-center gap-1 rounded-xl p-0.5 border border-inherit bg-black/10">
-              {/* Zoom Out Button */}
-              <button
-                onClick={() => setScale((s) => Math.max(s - 0.2, 0.4))}
-                className="p-2 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
-                title="Zoom Out (-20%)"
-              >
-                <ZoomOut className="w-4 h-4" />
-              </button>
+          {/* ZOOM MINUS */}
+          <button
+            onClick={() => setScale((s) => Math.max(s - 0.2, 0.4))}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            title="Zoom Out (-)"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
 
-              {/* 1-Tap Fit-to-Width Auto-Center */}
-              <button
-                onClick={handleFitWidth}
-                className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold hover:bg-black/10 transition-colors cursor-pointer flex items-center gap-1"
-                title="Fit to Screen Width (1-Tap Auto Center)"
-              >
-                <Maximize2 className="w-3 h-3 text-violet-400" />
-                <span>{Math.round(scale * 100)}%</span>
-              </button>
-
-              {/* Zoom In Button */}
-              <button
-                onClick={() => setScale((s) => Math.min(s + 0.2, 3.0))}
-                className="p-2 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
-                title="Zoom In (+20%)"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Quick Rotate 90° Button */}
-            <button
-              onClick={handleRotate}
-              className={`p-2 rounded-xl border text-xs font-semibold flex items-center transition-all cursor-pointer min-h-[40px] ${themeStyles.pillBg}`}
-              title={`Rotate Page 90° (Current: ${rotation}°)`}
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-
-            {/* Next Page Button */}
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed min-h-[40px] ${themeStyles.pillBg}`}
-              title="Next Page (→)"
-            >
-              <span className="hidden xs:inline">Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* ROW 2: SCRUBBER SLIDER & TAPPABLE PAGE JUMP BADGE */}
-          <div className="flex items-center gap-2 px-1 min-w-0 pt-0.5 border-t border-inherit/40">
-            <span className="text-[10px] font-mono font-bold opacity-60">1</span>
-            <div className="relative flex-1 flex items-center">
-              <input
-                type="range"
-                min={1}
-                max={totalPages}
-                value={currentPage}
-                onChange={(e) => setCurrentPage(Number(e.target.value))}
-                className="w-full h-2 bg-black/25 rounded-lg appearance-none cursor-pointer accent-violet-500 focus:outline-none"
-                title={`Page ${currentPage} of ${totalPages} (${readingProgress}%)`}
-              />
-            </div>
-            {/* Tappable Page Badge for Instant Jump */}
+          {/* SLIM PROGRESS TRACK WITH EMBEDDED PAGE NUMBER */}
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            <input
+              type="range"
+              min={1}
+              max={totalPages}
+              value={currentPage}
+              onChange={(e) => setCurrentPage(Number(e.target.value))}
+              className="w-full h-1 bg-current opacity-20 hover:opacity-40 rounded-full appearance-none cursor-pointer accent-violet-500 focus:outline-none transition-opacity"
+              title={`Page ${currentPage} of ${totalPages}`}
+            />
             <button
               onClick={() => {
-                const target = prompt(`Enter page number (1 - ${totalPages}):`, String(currentPage));
+                const target = prompt(`Jump to page (1 - ${totalPages}):`, String(currentPage));
                 if (target) {
                   const p = parseInt(target);
                   if (!isNaN(p) && p >= 1 && p <= totalPages) {
@@ -1234,14 +1100,40 @@ export function SecurePdfReader({
                   }
                 }
               }}
-              className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-black/10 hover:bg-black/20 shrink-0 cursor-pointer flex items-center gap-1 border border-inherit/60"
-              title="Tap to jump to page number"
+              className="font-mono text-[11px] font-medium opacity-85 hover:opacity-100 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors"
+              title="Click to jump to page"
             >
-              <span>Pg {currentPage}</span>
-              <span className="opacity-40">/</span>
-              <span className="opacity-70">{totalPages}</span>
+              {currentPage}/{totalPages}
             </button>
           </div>
+
+          {/* ZOOM PLUS */}
+          <button
+            onClick={() => setScale((s) => Math.min(s + 0.2, 3.0))}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            title="Zoom In (+)"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+
+          {/* 1-TAP FIT TO WIDTH AUTO-CENTER */}
+          <button
+            onClick={handleFitWidth}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            title="Fit to Screen Width (1-Tap)"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* NEXT PAGE BUTTON */}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
+            title="Next Page (→)"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </footer>
       )}
     </div>
