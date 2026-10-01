@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
-import { PublicLeaderboardSection } from "@/components/PublicLeaderboardSection";
+import { Section16ComparisonBlock } from "@/components/Section16ComparisonBlock";
 import { SmartChoicePricing } from "@/components/SmartChoicePricing";
 import { DigitalBookshelf } from "@/components/DigitalBookshelf";
 import { FaqSection } from "@/components/FaqSection";
@@ -19,8 +19,8 @@ export default function Home() {
       {/* 3. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
       <ExamCountdownsAndQOTD />
 
-      {/* 4. Weekly Test Leaderboard */}
-      <PublicLeaderboardSection />
+      {/* 4. ICAI Section 16(1) Model Answer vs 2/6 Average Aspirant Interactive Comparison */}
+      <Section16ComparisonBlock />
 
       {/* 5. Subscription Pricing (@ ₹99/Month Launch Offer) */}
       <SmartChoicePricing />
@@ -36,3 +36,4 @@ export default function Home() {
     </main>
   );
 }
+

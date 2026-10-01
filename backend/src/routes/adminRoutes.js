@@ -4,15 +4,23 @@
  */
 
 const express = require("express");
+const path = require("path");
+const multer = require("multer");
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+});
 const Product = require("../models/Product");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
+const Resource = require("../models/Resource");
 const Coupon = require("../models/Coupon");
 const SiteSetting = require("../models/SiteSetting");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
+const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
 
 const router = express.Router();
 
@@ -637,6 +645,187 @@ router.post("/admin/qotd", async (req, res) => {
     res.status(200).json({ success: true, qotd });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error saving QOTD." });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 9. FILE UPLOAD TO CLOUDINARY / SECURE STORAGE
+// -----------------------------------------------------------------------------
+router.post("/admin/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file provided for upload." });
+    }
+
+    const originalName = req.file.originalname || "document";
+    const extension = originalName.substring(originalName.lastIndexOf("."));
+    const isPdf = req.file.mimetype === "application/pdf" || extension.toLowerCase() === ".pdf";
+    const resource_type = isPdf ? "raw" : "image";
+    const folder = isPdf ? "thelawkaksha/pdfs" : "thelawkaksha/covers";
+
+    const uploadResult = await uploadToStorage(req.file.buffer, {
+      folder,
+      resource_type,
+      public_id: `${path.parse(originalName).name.replace(/[^a-zA-Z0-9_-]/g, "_")}-${Date.now()}`,
+      extension,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "File uploaded successfully.",
+      url: uploadResult.url,
+      publicId: uploadResult.publicId,
+      isLocal: uploadResult.isLocal || false,
+    });
+  } catch (err) {
+    console.error("[Admin API] File upload error:", err);
+    res.status(500).json({ success: false, message: "File upload failed: " + err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 10. ACT-WISE RESOURCES CRUD (Direct to MongoDB Atlas)
+// -----------------------------------------------------------------------------
+router.get("/admin/resources", async (req, res) => {
+  try {
+    const { course, actName, type } = req.query;
+    const filter = {};
+    if (course) filter.course = course;
+    if (actName) filter.actName = actName;
+    if (type) filter.type = type;
+
+    if (isConnected()) {
+      const resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
+      return res.status(200).json({ success: true, source: "mongodb_atlas", resources });
+    }
+
+    const resourcesTable = Database.table("resources");
+    res.status(200).json({ success: true, source: "local_cache", resources: resourcesTable.find() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching resources." });
+  }
+});
+
+router.post("/admin/resources", async (req, res) => {
+  try {
+    const payload = {
+      id: req.body.id || `res-${Date.now()}`,
+      course: req.body.course || "ca-foundation",
+      actName: req.body.actName || "The Indian Partnership Act, 1932",
+      chapterNumber: Number(req.body.chapterNumber) || 4,
+      type: req.body.type || "notes",
+      title: req.body.title || "Chapter Notes",
+      description: req.body.description || "",
+      pdfUrl: req.body.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
+      samplePdfUrl: req.body.samplePdfUrl || "",
+      isSample: Boolean(req.body.isSample),
+      status: req.body.status || "Published",
+      order: Number(req.body.order) || 0,
+      pages: req.body.pages || "20 Pages",
+      cloudinaryPublicId: req.body.cloudinaryPublicId || "",
+    };
+
+    if (isConnected()) {
+      const created = await Resource.findOneAndUpdate({ id: payload.id }, payload, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      });
+      Database.table("resources").insert(payload);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", resource: created });
+    }
+
+    const created = Database.table("resources").insert(payload);
+    res.status(201).json({ success: true, resource: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating resource: " + err.message });
+  }
+});
+
+router.put("/admin/resources/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (isConnected()) {
+      const updated = await Resource.findOneAndUpdate({ id }, req.body, { new: true });
+      Database.table("resources").update(id, req.body);
+      if (!updated) return res.status(404).json({ success: false, message: "Resource not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", resource: updated });
+    }
+
+    const updated = Database.table("resources").update(id, req.body);
+    res.status(200).json({ success: true, resource: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating resource." });
+  }
+});
+
+router.delete("/admin/resources/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (isConnected()) {
+      await Resource.deleteOne({ id });
+      Database.table("resources").delete(id);
+      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    }
+    const success = Database.table("resources").delete(id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting resource." });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 11. SECTION 16(1) SALE OF GOODS COMPARISON BLOCK MANAGER
+// -----------------------------------------------------------------------------
+router.get("/admin/section16-comparison", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "section16_comparison" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, comparison: setting.value });
+      }
+    }
+    res.status(200).json({
+      success: true,
+      comparison: {
+        act: "The Sale of Goods Act, 1930",
+        section: "Section 16(1)",
+        marks: 6,
+        topic: "Doctrine of Caveat Emptor & Implied Condition as to Quality or Fitness",
+        question: "Under Section 16(1) of the Sale of Goods Act, 1930, when is an implied condition as to quality or fitness created without an express declaration by the buyer?",
+        aspirantScore: "2 / 6 Marks",
+        aspirantAnswer: "Caveat Emptor means let the buyer beware. The buyer should check the goods himself before buying. However, if the buyer told the seller why he is buying and seller is a shopkeeper, then seller is responsible if goods are defective. (Priest v. Last)",
+        aspirantIssues: [
+          "Fails to cite exact statutory 3-element test of Section 16(1)",
+          "Missing explanation of 'communication of purpose by implication'",
+          "Missing analysis of reliance on seller's skill and judgment",
+          "No step-by-step conclusion on buyer remedies",
+        ],
+        modelScore: "6 / 6 Marks (Full Marks)",
+        modelAnswer: "1. STATUTORY PROVISION:\\nAccording to Section 16(1) of the Sale of Goods Act, 1930, where the buyer, expressly or by implication, makes known to the seller the particular purpose for which the goods are required, so as to show that the buyer relies on the seller's skill or judgment, and the goods are of a description which it is in the course of the seller's business to supply, there is an implied condition that the goods shall be reasonably fit for such purpose.\\n\\n2. THREE ESSENTIAL TESTS:\\n(a) Buyer made known the purpose to seller (expressly or impliedly).\\n(b) Buyer relied on seller's skill and judgment.\\n(c) Seller's business is to supply goods of that description.\\n\\n3. LANDMARK PRECEDENT (Priest v. Last [1903] 2 KB 148):\\nWhere goods are capable of only one normal use (e.g. hot water bottle), the purpose is communicated by implication. Reliance on the chemist is presumed.\\n\\n4. CONCLUSION:\\nBreach of this condition entitles the buyer to reject the goods and claim full damages under Section 59.",
+        modelHighlights: [
+          "Exact statutory wording & section citation",
+          "Structured 4-step ICAI presentation layout",
+          "Case law citation (Priest v. Last) with legal principle",
+          "Clear distinction between express & implied communication",
+        ],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching comparison data." });
+  }
+});
+
+router.post("/admin/section16-comparison", async (req, res) => {
+  try {
+    const comparison = req.body.comparison;
+    if (isConnected()) {
+      await SiteSetting.findOneAndUpdate({ key: "section16_comparison" }, { value: comparison }, { upsert: true });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", comparison });
+    }
+    res.status(200).json({ success: true, comparison });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error saving comparison data." });
   }
 });
 

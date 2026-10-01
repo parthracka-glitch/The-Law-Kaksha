@@ -6,6 +6,7 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
+const Resource = require("../models/Resource");
 const SiteSetting = require("../models/SiteSetting");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
@@ -221,13 +222,71 @@ router.get("/courses/:courseId/weekly", (req, res) => {
   res.status(200).json({ success: true, weekly });
 });
 
-// GET /api/courses/:courseId/free-resources — Get free/sample resources
-router.get("/courses/:courseId/free-resources", (req, res) => {
-  const contentTable = Database.table("content");
-  const freeContent = contentTable.find(
-    (c) => c.courseId === req.params.courseId && c.isSample === true
-  );
-  res.status(200).json({ success: true, freeResources: freeContent });
+// GET /api/resources — Act-wise resources query
+router.get("/resources", async (req, res) => {
+  try {
+    const { course, actName, type, sampleOnly } = req.query;
+    const filter = {};
+    if (course) filter.course = course;
+    if (actName) filter.actName = actName;
+    if (type) filter.type = type;
+    if (sampleOnly === "true") filter.isSample = true;
+
+    if (isConnected()) {
+      const resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
+      return res.status(200).json({ success: true, source: "mongodb_atlas", resources });
+    }
+
+    const resourcesTable = Database.table("resources");
+    let resources = resourcesTable.find();
+    if (course) resources = resources.filter((r) => r.course === course);
+    if (actName) resources = resources.filter((r) => r.actName === actName);
+    if (type) resources = resources.filter((r) => r.type === type);
+    if (sampleOnly === "true") resources = resources.filter((r) => r.isSample === true);
+
+    res.status(200).json({ success: true, source: "local_cache", resources });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching resources: " + err.message });
+  }
+});
+
+// GET /api/public/section16-comparison — Section 16(1) Sale of Goods Model Answer Block
+router.get("/public/section16-comparison", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "section16_comparison" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, source: "mongodb_atlas", comparison: setting.value });
+      }
+    }
+    res.status(200).json({
+      success: true,
+      source: "default",
+      comparison: {
+        act: "The Sale of Goods Act, 1930",
+        section: "Section 16(1)",
+        marks: 6,
+        topic: "Doctrine of Caveat Emptor & Implied Condition as to Quality or Fitness",
+        question: "Under Section 16(1) of the Sale of Goods Act, 1930, explain the conditions under which an implied condition as to quality or fitness applies even when not expressly stated.",
+        aspirantScore: "2 / 6 Marks",
+        aspirantAnswer: "Caveat Emptor means let the buyer beware. The buyer should inspect goods himself before buying. However, if the buyer told the seller why he is buying and seller is in business, seller is responsible. (Priest v. Last)",
+        aspirantIssues: [
+          "Fails to cite exact statutory 3-element test of Section 16(1)",
+          "Missing explanation of 'communication of purpose by implication'",
+          "No mention of patent or trade name proviso exception",
+        ],
+        modelScore: "6 / 6 Marks",
+        modelAnswer: "Under Section 16(1) of the Sale of Goods Act, 1930, the general rule of Caveat Emptor is displaced and an implied condition arises if: (1) Buyer makes known to seller the particular purpose (expressly or by implication), (2) Buyer relies on seller's skill or judgment, (3) Goods are of a description which seller supplies in the course of business. Exception: Proviso to Sec 16(1) provides no implied condition for specified articles sold under patent or trade name.",
+        modelKeyTakeaways: [
+          "Exact 3-prong statutory rule citation from ICAI Suggested Answers",
+          "Sub-clause proviso regarding patent/trade names clearly demarcated",
+          "Structured in Point-Wise Legal Architecture for maximum evaluator marks",
+        ],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching comparison block." });
+  }
 });
 
 module.exports = router;

@@ -61,27 +61,27 @@ const MCQ_POOL: MCQScenario[] = [
   {
     id: "mcq-1",
     subject: "Sale of Goods Act, 1930",
-    statutoryRef: "Section 16(1) • Caveat Emptor",
+    statutoryRef: "Section 16(1) • Caveat Emptor Exception",
     question:
       "A buyer purchased a hot water bottle from a chemist. Upon first usage, it burst and scalded the buyer's wife. Buyer did not state any special purpose. Can the buyer claim damages under Section 16(1)?",
     options: [
       {
-        text: "No, because the doctrine of Caveat Emptor strictly applies to all goods.",
+        text: "No, because the doctrine of Caveat Emptor strictly applies to all sales without express warranties.",
         isCorrect: false,
         pct: 18,
       },
       {
-        text: "Yes, implied condition of fitness applies by implication since the good has only one obvious purpose.",
+        text: "Yes, implied condition of fitness applies by implication since the good has only one obvious normal purpose.",
         isCorrect: true,
         pct: 72,
       },
       {
-        text: "No, because the chemist gave no express written warranty.",
+        text: "No, because the chemist gave no express written warranty card.",
         isCorrect: false,
         pct: 6,
       },
       {
-        text: "Yes, but only under the law of torts, not under Sale of Goods Act.",
+        text: "Yes, but only under the general law of torts, not under Sale of Goods Act.",
         isCorrect: false,
         pct: 4,
       },
@@ -97,15 +97,15 @@ const MCQ_POOL: MCQScenario[] = [
     subject: "Indian Partnership Act, 1932",
     statutoryRef: "Section 28 • Holding Out",
     question:
-      "Rajesh retired from M/s Apex Traders without giving public notice. Creditor Amit lends ₹5,00,000 believing Rajesh is still a partner. Is Rajesh liable to Amit?",
+      "Rajesh retired from M/s Apex Traders without giving public notice in the Official Gazette. Creditor Amit lends ₹5,00,000 believing Rajesh is still an active partner. Is Rajesh liable to Amit?",
     options: [
       {
-        text: "No, retirement automatically ends all partner liabilities.",
+        text: "No, retirement automatically extinguishes all partner liabilities from the date of resignation.",
         isCorrect: false,
         pct: 12,
       },
       {
-        text: "Yes, doctrine of holding out makes him liable until public notice is published in the Official Gazette.",
+        text: "Yes, doctrine of holding out makes him liable until public notice is published in the Official Gazette and vernacular paper.",
         isCorrect: true,
         pct: 81,
       },
@@ -115,12 +115,12 @@ const MCQ_POOL: MCQScenario[] = [
         pct: 4,
       },
       {
-        text: "Only to the extent of his remaining capital in the firm.",
+        text: "Only to the extent of his remaining unwithdrawn capital in the firm.",
         isCorrect: false,
         pct: 3,
       },
     ],
-    explanationTitle: "Doctrine of Holding Out (§28)",
+    explanationTitle: "Doctrine of Holding Out (§28 & §32)",
     explanation:
       "Under Section 28 & 32(3) of Indian Partnership Act, an outgoing partner continues to be liable to third parties for firm acts unless public notice of retirement is duly published.",
     keyDistinction:
@@ -131,25 +131,25 @@ const MCQ_POOL: MCQScenario[] = [
     subject: "Companies Act, 2013",
     statutoryRef: "Section 8 • Non-Profit Entities",
     question:
-      "Can a Section 8 Non-Profit Company pay dividends to its members from accumulated surplus reserves?",
+      "Can a Section 8 Non-Profit Company declare and pay dividends to its members from accumulated surplus profits?",
     options: [
       {
-        text: "Yes, up to 10% with prior Central Government approval.",
+        text: "Yes, up to 10% per annum with prior Central Government approval.",
         isCorrect: false,
         pct: 14,
       },
       {
-        text: "No, Section 8(1)(c) explicitly prohibits payment of any dividend to members.",
+        text: "No, Section 8(1)(c) explicitly prohibits payment of any dividend to its members.",
         isCorrect: true,
         pct: 79,
       },
       {
-        text: "Yes, by passing a unanimous special resolution in AGM.",
+        text: "Yes, by passing a unanimous special resolution at an Extraordinary General Meeting (EGM).",
         isCorrect: false,
         pct: 5,
       },
       {
-        text: "Yes, upon conversion into a private limited company.",
+        text: "Yes, upon conversion into a private limited company within 3 years.",
         isCorrect: false,
         pct: 2,
       },
@@ -159,6 +159,142 @@ const MCQ_POOL: MCQScenario[] = [
       "Section 8 companies must apply their profits in promoting their objects (commerce, art, science, sports, education, research, charity) and are strictly prohibited from paying dividends to members.",
     keyDistinction:
       "Violation of Section 8 terms can lead to license revocation and fine up to ₹1 Crore for the company.",
+  },
+  {
+    id: "mcq-4",
+    subject: "Indian Contract Act, 1872",
+    statutoryRef: "Section 11 • Minor's Agreement",
+    question:
+      "A minor fraudulently represents himself to be of full age and executes a mortgage deed to borrow ₹50,000. Can the lender enforce the mortgage or seek personal decree against the minor?",
+    options: [
+      {
+        text: "Yes, because the minor committed fraudulent misrepresentation.",
+        isCorrect: false,
+        pct: 22,
+      },
+      {
+        text: "No, an agreement with a minor is void ab initio (Mohori Bibee v. Dharmodas Ghose), and rule of estoppel does not apply against a minor.",
+        isCorrect: true,
+        pct: 71,
+      },
+      {
+        text: "Yes, lender can attach any ancestral property of the minor directly.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "Yes, upon the minor attaining the age of majority and ratifying the mortgage.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "Rule in Mohori Bibee v. Dharmodas Ghose (1903)",
+    explanation:
+      "A minor has no capacity to contract under Section 11. Any agreement with a minor is void ab initio. The doctrine of estoppel does not apply against a minor, nor can a minor's agreement be ratified upon attaining majority.",
+    keyDistinction:
+      "Under Section 68, only the estate (not personal) of a minor can be held liable for supply of necessaries suited to his condition in life.",
+  },
+  {
+    id: "mcq-5",
+    subject: "LLP Act, 2008",
+    statutoryRef: "Section 7 • Designated Partners",
+    question:
+      "Under the Limited Liability Partnership Act 2008, every LLP must have at least two Designated Partners. What is the minimum stay requirement for the resident Designated Partner in India during the financial year?",
+    options: [
+      {
+        text: "Not less than 182 days during the preceding financial year.",
+        isCorrect: false,
+        pct: 35,
+      },
+      {
+        text: "Not less than 120 days during the financial year (as amended by LLP Amendment Act 2021).",
+        isCorrect: true,
+        pct: 58,
+      },
+      {
+        text: "Not less than 90 days in the relevant calendar year.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "Continuous physical presence for 365 days in India.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "LLP Amendment Act 2021 — Section 7(1)",
+    explanation:
+      "As per the LLP (Amendment) Act, 2021, the requirement of residency for a designated partner in India was relaxed from 'not less than 182 days' to 'not less than 120 days during the financial year'.",
+    keyDistinction:
+      "ICAI New Scheme Traps: Always verify latest amendments (120 days vs old 182 days rule).",
+  },
+  {
+    id: "mcq-6",
+    subject: "Negotiable Instruments Act, 1881",
+    statutoryRef: "Section 138 • Cheque Dishonour",
+    question:
+      "To initiate criminal proceedings under Section 138 for dishonour of a cheque for insufficiency of funds, within how many days of receipt of information from the bank must the payee give statutory demand notice to the drawer?",
+    options: [
+      {
+        text: "Within 15 days of receiving the memo of dishonour.",
+        isCorrect: false,
+        pct: 25,
+      },
+      {
+        text: "Within 30 days of receipt of information from the bank regarding return of unpaid cheque.",
+        isCorrect: true,
+        pct: 69,
+      },
+      {
+        text: "Within 60 days from the date stamped on the cheque.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "Within 90 days under the Limitation Act.",
+        isCorrect: false,
+        pct: 2,
+      },
+    ],
+    explanationTitle: "Section 138 Proviso (b) Timelines",
+    explanation:
+      "Under clause (b) of the proviso to Section 138 of the Negotiable Instruments Act 1881, the payee must make a written demand for payment within 30 days of receiving information from the bank regarding cheque bounce. The drawer then gets 15 days to make payment.",
+    keyDistinction:
+      "If the drawer fails to pay within 15 days of notice, the cause of action arises, and the complaint must be filed in court within 1 month.",
+  },
+  {
+    id: "mcq-7",
+    subject: "Indian Regulatory Framework",
+    statutoryRef: "Chapter 1 • Sources & Precedence of Law",
+    question:
+      "Under the Constitution of India and Indian Judicial Architecture, the law declared by the Supreme Court is binding on all courts within the territory of India under which Article?",
+    options: [
+      {
+        text: "Article 226",
+        isCorrect: false,
+        pct: 10,
+      },
+      {
+        text: "Article 141 (Doctrine of Stare Decisis)",
+        isCorrect: true,
+        pct: 78,
+      },
+      {
+        text: "Article 32",
+        isCorrect: false,
+        pct: 8,
+      },
+      {
+        text: "Article 300A",
+        isCorrect: false,
+        pct: 4,
+      },
+    ],
+    explanationTitle: "Article 141 of the Constitution of India",
+    explanation:
+      "Article 141 provides that the law declared by the Supreme Court shall be binding on all courts within the territory of India. This establishes the doctrine of precedent (Stare Decisis) in Indian jurisprudence.",
+    keyDistinction:
+      "Decisions of a High Court are binding on all subordinate courts in that State, but have only persuasive value for other High Courts.",
   },
 ];
 

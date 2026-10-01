@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,14 @@ import {
   BookMarked,
   Key,
   Menu,
+  UploadCloud,
+  FileText,
+  Layers,
+  FileUp,
+  RefreshCw,
+  Scale,
+  Eye,
+  AlertTriangle,
 } from "lucide-react";
 
 // --- DATA INTERFACES ---
@@ -48,6 +56,23 @@ export interface ProductItem {
   units: string[];
 }
 
+export interface ResourceItem {
+  id: string;
+  course: "ca-foundation" | "cseet" | string;
+  actName: string;
+  chapterNumber: number;
+  type: "notes" | "flowchart" | "practice" | "pyq" | "case_study" | "ldr";
+  title: string;
+  description: string;
+  pdfUrl: string;
+  samplePdfUrl?: string;
+  isSample: boolean;
+  status: "Published" | "Coming soon" | "Draft";
+  order: number;
+  pages: string;
+  cloudinaryPublicId?: string;
+}
+
 export interface SubscriptionRecord {
   id: string;
   studentName: string;
@@ -59,7 +84,9 @@ export interface SubscriptionRecord {
   amount: string;
   date: string;
   paymentMode: string;
-  accessStatus: "Active" | "Pending" | "Revoked";
+  accessStatus: "Active" | "Pending" | "Revoked" | "Expired";
+  expiryDate?: string;
+  daysRemaining?: number;
 }
 
 export interface StudentRecord {
@@ -125,49 +152,197 @@ export interface QotdSetting {
   explanation: string;
 }
 
-// --- INITIAL SEED DATA (100% DIGITAL IN-WEB STUDY PLATFORM) ---
+export interface Section16ComparisonSetting {
+  act: string;
+  section: string;
+  marks: string;
+  topic: string;
+  question: string;
+  aspirantScore: string;
+  aspirantTitle: string;
+  aspirantAnswer: string;
+  aspirantIssues: string[];
+  modelScore: string;
+  modelTitle: string;
+  modelAnswer: string;
+}
+
+// --- INITIAL SEED DATA ---
 const INITIAL_PRODUCTS: ProductItem[] = [
   {
     id: "prod-vol1",
-    title: "Business Law (CSEET & CA Foundation)",
-    subtitle: "Volume 1 • Digital Statutory Codex (Units 1 to 6)",
-    category: "CSEET",
+    title: "CA Foundation Business Laws Codex",
+    subtitle: "Complete 7 Chapters Study Notes & Case Problem Bank",
+    category: "CA Foundation",
     format: "Digital Codex (In-Web DRM)",
-    price: 249,
-    originalPrice: 499,
-    pages: "180+ Pages",
+    price: 99,
+    originalPrice: 299,
+    pages: "250+ Pages",
     status: "Active",
-    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
-    description: "Complete master codex covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, LLP Act 2008, Companies Act 2013, and Negotiable Instruments Act 1881 with DRM in-web reader access.",
-    units: ["Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes for all 7 Acts, practice questions, and model solutions.",
+    units: ["Indian Regulatory Framework", "Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
   },
   {
     id: "prod-vol2",
-    title: "Business Law & Management",
-    subtitle: "Volume 2 • Digital Management Codex (Units 7 & 8)",
+    title: "CSEET Business Law & Management Codex",
+    subtitle: "8 Units Comprehensive Notes & MCQ Practice Bank",
     category: "CSEET",
     format: "Digital Codex (In-Web DRM)",
-    price: 249,
-    originalPrice: 499,
-    pages: "120+ Pages",
-    status: "Active",
-    pdfUrl: "/api/pdf/cseet-management-full.pdf",
-    description: "In-depth study codex for General Principles of Management (Henri Fayol & FW Taylor) and Business Environment & Corporate Ethics (PESTLE & CSR).",
-    units: ["General Principles of Management", "Business Environment & Ethics"],
-  },
-  {
-    id: "prod-combo",
-    title: "Complete 2-Volume Master Digital Access Pass",
-    subtitle: "Volume 1 & 2 Full Study Codices + In-Web DRM Reader Access",
-    category: "Both",
-    format: "Complete Access Pass",
-    price: 449,
-    originalPrice: 899,
+    price: 99,
+    originalPrice: 299,
     pages: "300+ Pages",
     status: "Active",
-    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
-    description: "All 8 statutory law acts + management theories + case studies & MCQ evaluation tests with instant in-web reader access.",
-    units: ["All 8 Units • CA Foundation & CSEET"],
+    pdfUrl: "/notes/cseet-management-full.pdf",
+    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with explanations, and timed mock drills.",
+    units: ["Indian Contract Act", "Sale of Goods Act", "Partnership Act", "LLP Act", "Company Law", "Negotiable Instruments", "Principles of Management", "Business Environment & Ethics"],
+  },
+];
+
+const INITIAL_RESOURCES: ResourceItem[] = [
+  {
+    id: "res-ca-1",
+    course: "ca-foundation",
+    actName: "Indian Regulatory Framework",
+    chapterNumber: 1,
+    type: "notes",
+    title: "Overview of Indian Legal System & Hierarchy of Courts",
+    description: "Structure of Legislative, Executive & Judiciary in India with constitutional jurisdiction.",
+    pdfUrl: "/notes/ca-foundation-framework-notes.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "18 Pages",
+  },
+  {
+    id: "res-ca-2",
+    course: "ca-foundation",
+    actName: "The Indian Contract Act, 1872",
+    chapterNumber: 2,
+    type: "notes",
+    title: "Nature & Essentials of Valid Contract (Sec 1-10)",
+    description: "Offer, Acceptance, Intention to create Legal Relationship with landmark English & Indian precedents.",
+    pdfUrl: "/notes/contract-act-unit-1.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "34 Pages",
+  },
+  {
+    id: "res-ca-3",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "Conditions, Warranties & Caveat Emptor (Sec 11-17)",
+    description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Merchantable quality.",
+    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    isSample: false,
+    status: "Published",
+    order: 2,
+    pages: "26 Pages",
+  },
+  {
+    id: "res-ca-4",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "Unit 1: General Nature of Partnership",
+    description: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman) & Partnership vs Co-ownership.",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    samplePdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "24 Pages (Sample PDF)",
+  },
+  {
+    id: "res-ca-5",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "Unit 2: Relations of Partners",
+    description: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.",
+    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
+    samplePdfUrl: "/notes/unit-2-relations-of-partners.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "28 Pages (Sample PDF)",
+  },
+  {
+    id: "res-ca-6",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "Unit 3: Registration and Dissolution of Firm",
+    description: "Effect of Non-Registration (Sec 69), Modes of Dissolution, Settlement of Accounts (Sec 48).",
+    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
+    samplePdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
+    isSample: true,
+    status: "Published",
+    order: 3,
+    pages: "32 Pages (Sample PDF)",
+  },
+  {
+    id: "res-ca-7",
+    course: "ca-foundation",
+    actName: "The Limited Liability Partnership Act, 2008",
+    chapterNumber: 5,
+    type: "notes",
+    title: "LLP Architecture & Comparison with Traditional Firm",
+    description: "Separate legal identity, perpetual succession, Designated Partners compliance & Amendment Act 2021.",
+    pdfUrl: "/notes/llp-act-notes.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "20 Pages",
+  },
+  {
+    id: "res-ca-8",
+    course: "ca-foundation",
+    actName: "The Companies Act, 2013",
+    chapterNumber: 6,
+    type: "notes",
+    title: "Essential Characteristics & Lifting of Corporate Veil",
+    description: "Salomon v. Salomon, Private vs Public vs One Person Company, Section 8 Non-profit companies.",
+    pdfUrl: "/notes/companies-act-unit-1.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "36 Pages",
+  },
+  {
+    id: "res-ca-9",
+    course: "ca-foundation",
+    actName: "The Negotiable Instruments Act, 1881",
+    chapterNumber: 7,
+    type: "notes",
+    title: "Promissory Notes, Bills of Exchange & Cheques",
+    description: "Holder in Due Course, Section 138 Dishonour penalties, statutory notice timeline & defences.",
+    pdfUrl: "/notes/negotiable-instruments-unit-1.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "26 Pages",
+  },
+  {
+    id: "res-cs-1",
+    course: "cseet",
+    actName: "General Principles of Management",
+    chapterNumber: 7,
+    type: "notes",
+    title: "Management Principles, Functions & Theories",
+    description: "Henry Fayol 14 Principles vs FW Taylor Scientific Management, PESTLE Analysis & Corporate Governance.",
+    pdfUrl: "/notes/cseet-management-full.pdf",
+    samplePdfUrl: "/notes/cseet-management-full.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "120+ Pages",
   },
 ];
 
@@ -178,12 +353,14 @@ const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
     studentRoll: "LRK-2026-004182",
     email: "aarav.sharma@thelawkaksha.com",
     phone: "+91 98765 43210",
-    item: "Volume 1 & 2 Master Digital Pass",
+    item: "CA Foundation Business Laws (Monthly Access)",
     targetExam: "CA Foundation Paper 2",
-    amount: "₹449",
+    amount: "₹99",
     date: "28 Sep 2026",
     paymentMode: "UPI / Razorpay",
     accessStatus: "Active",
+    expiryDate: "28 Oct 2026",
+    daysRemaining: 27,
   },
   {
     id: "LK-SUB-2026-9902",
@@ -191,38 +368,14 @@ const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
     studentRoll: "LRK-2026-009821",
     email: "ananya.verma@thelawkaksha.com",
     phone: "+91 98123 45678",
-    item: "Volume 1: Business Law Digital Codex",
+    item: "CSEET Business Law & Management (Monthly Access)",
     targetExam: "CSEET Law & Management",
-    amount: "₹249",
+    amount: "₹99",
     date: "29 Sep 2026",
-    paymentMode: "Card / Netbanking",
+    paymentMode: "Razorpay / Cards",
     accessStatus: "Active",
-  },
-  {
-    id: "LK-SUB-2026-9903",
-    studentName: "Priya Kulkarni",
-    studentRoll: "LRK-2026-005541",
-    email: "priya.kulkarni@thelawkaksha.com",
-    phone: "+91 97654 32109",
-    item: "Volume 2: Management & Ethics Digital Codex",
-    targetExam: "CSEET Law & Management",
-    amount: "₹249",
-    date: "26 Sep 2026",
-    paymentMode: "UPI / GPay",
-    accessStatus: "Active",
-  },
-  {
-    id: "LK-SUB-2026-9904",
-    studentName: "Rohan Mehta",
-    studentRoll: "LRK-2026-003319",
-    email: "rohan.mehta@thelawkaksha.com",
-    phone: "+91 98333 11223",
-    item: "Volume 1 & 2 Master Digital Pass",
-    targetExam: "CA Foundation Paper 2",
-    amount: "₹449",
-    date: "30 Sep 2026",
-    paymentMode: "UPI / Paytm",
-    accessStatus: "Active",
+    expiryDate: "29 Oct 2026",
+    daysRemaining: 28,
   },
 ];
 
@@ -236,7 +389,7 @@ const INITIAL_STUDENTS: StudentRecord[] = [
     target_exam: "CA Foundation Paper 2",
     is_active: true,
     drm_access: true,
-    enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
+    enrolled_books: ["CA Foundation Business Laws"],
     joined_date: "15 Aug 2026",
   },
   {
@@ -248,32 +401,8 @@ const INITIAL_STUDENTS: StudentRecord[] = [
     target_exam: "CSEET Law & Management",
     is_active: true,
     drm_access: true,
-    enrolled_books: ["Business Law (Volume 1)"],
+    enrolled_books: ["CSEET Business Law & Management"],
     joined_date: "20 Aug 2026",
-  },
-  {
-    id: "std-3",
-    student_id: "LRK-2026-003319",
-    name: "Rohan Mehta",
-    email: "rohan.mehta@thelawkaksha.com",
-    phone: "+91 98333 11223",
-    target_exam: "CA Foundation Paper 2",
-    is_active: true,
-    drm_access: true,
-    enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
-    joined_date: "01 Sep 2026",
-  },
-  {
-    id: "std-4",
-    student_id: "LRK-2026-005541",
-    name: "Priya Kulkarni",
-    email: "priya.kulkarni@thelawkaksha.com",
-    phone: "+91 97654 32109",
-    target_exam: "CSEET Law & Management",
-    is_active: true,
-    drm_access: true,
-    enrolled_books: ["Business Law & Management (Volume 2)"],
-    joined_date: "10 Sep 2026",
   },
 ];
 
@@ -342,26 +471,11 @@ const INITIAL_MCQS: McqQuestionItem[] = [
     correctOption: 2,
     explanation: "In India, unlike English Law, consideration can proceed from a stranger to the contract (Chinnaya v. Ramayya), though a stranger to contract cannot sue.",
   },
-  {
-    id: "mcq-3",
-    subject: "Companies Act, 2013",
-    section: "Section 8",
-    question: "What is the minimum paid-up share capital requirement for incorporating a Section 8 (Non-Profit) Company?",
-    options: [
-      "Rs. 1,00,000",
-      "Rs. 5,00,000",
-      "No minimum paid-up capital prescribed",
-      "Rs. 10,00,000",
-    ],
-    correctOption: 2,
-    explanation: "The Companies Act 2013 removed minimum paid-up capital requirements for Private, Public, and Section 8 companies.",
-  },
 ];
 
 const INITIAL_COUPONS: CouponRecord[] = [
-  { id: "cp-1", code: "EXEMPTION2026", discountPercent: 20, minOrder: 200, maxUses: 500, usedCount: 142, expiryDate: "2026-12-31", status: "Active" },
-  { id: "cp-2", code: "FIRST50", discountPercent: 15, minOrder: 150, maxUses: 100, usedCount: 88, expiryDate: "2026-11-30", status: "Active" },
-  { id: "cp-3", code: "RANKERS", discountPercent: 25, minOrder: 400, maxUses: 50, usedCount: 47, expiryDate: "2026-10-31", status: "Active" },
+  { id: "cp-1", code: "EXEMPTION2026", discountPercent: 20, minOrder: 99, maxUses: 500, usedCount: 142, expiryDate: "2026-12-31", status: "Active" },
+  { id: "cp-2", code: "FIRST50", discountPercent: 15, minOrder: 99, maxUses: 100, usedCount: 88, expiryDate: "2026-11-30", status: "Active" },
 ];
 
 export default function AdminPortalPage() {
@@ -369,14 +483,17 @@ export default function AdminPortalPage() {
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
-  type TabType = "overview" | "subscriptions" | "products" | "students" | "cases" | "mcq" | "coupons" | "qotd";
+  type TabType = "overview" | "subscriptions" | "products" | "resources" | "students" | "cases" | "mcq" | "coupons" | "qotd" | "comparison";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  // Entities state with LocalStorage persistence
+  // Entities state
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
+  const [resources, setResources] = useState<ResourceItem[]>(INITIAL_RESOURCES);
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("all");
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("all");
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(INITIAL_SUBSCRIPTIONS);
   const [students, setStudents] = useState<StudentRecord[]>(INITIAL_STUDENTS);
   const [cases, setCases] = useState<CaseStudyItem[]>(INITIAL_CASES);
@@ -395,9 +512,33 @@ export default function AdminPortalPage() {
     correctOption: 1,
     explanation: "Under Section 28 of the Indian Partnership Act 1932, anyone who represents or allows himself to be represented as a partner is liable as a partner by Holding Out.",
   });
+  const [section16Comparison, setSection16Comparison] = useState<Section16ComparisonSetting>({
+    act: "The Sale of Goods Act, 1930",
+    section: "Section 16(1)",
+    marks: "6 Marks (ICAI Standard)",
+    topic: "Doctrine of Caveat Emptor & Implied Condition as to Quality or Fitness",
+    question: "Under Section 16(1) of the Sale of Goods Act, 1930, explain the conditions under which an implied condition as to quality or fitness applies even when not expressly stated.",
+    aspirantScore: "2 / 6 Marks",
+    aspirantTitle: "Typical 2/6 Marks Aspirant Answer",
+    aspirantAnswer: "Caveat Emptor means let the buyer beware. The buyer should inspect goods himself before buying. However, if the buyer told the seller why he is buying and seller is in business, seller is responsible. (Priest v. Last)",
+    aspirantIssues: [
+      "Fails to cite exact statutory 3-element test of Section 16(1)",
+      "Missing explanation of 'communication of purpose by implication'",
+      "No mention of patent or trade name proviso exception",
+    ],
+    modelScore: "6 / 6 Marks",
+    modelTitle: "The Law कक्षा 6/6 Model Legal Answer",
+    modelAnswer: "Under Section 16(1) of the Sale of Goods Act, 1930, the general rule of Caveat Emptor is displaced and an implied condition arises if: (1) Buyer makes known to seller the particular purpose (expressly or by implication), (2) Buyer relies on seller's skill or judgment, (3) Goods are of a description which seller supplies in the course of business. Exception: Proviso to Sec 16(1) provides no implied condition for specified articles sold under patent or trade name.",
+  });
+
+  // File Upload State
+  const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const resourceFileInputRef = useRef<HTMLInputElement>(null);
 
   // CRUD Modals
   const [productModal, setProductModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<ProductItem> }>({ open: false, mode: "add", data: {} });
+  const [resourceModal, setResourceModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<ResourceItem> }>({ open: false, mode: "add", data: {} });
   const [studentModal, setStudentModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<StudentRecord> }>({ open: false, mode: "add", data: {} });
   const [subModal, setSubModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<SubscriptionRecord> }>({ open: false, mode: "add", data: {} });
   const [caseModal, setCaseModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CaseStudyItem> }>({ open: false, mode: "add", data: {} });
@@ -420,11 +561,12 @@ export default function AdminPortalPage() {
       setIsAuthorized(true);
       setIsCheckingAuth(false);
 
-      // 1. Instant optimistic load from localStorage
+      // 1. Optimistic load from localStorage
       try {
-        localStorage.removeItem("lawkaksha_admin_orders");
         const p = localStorage.getItem("lawkaksha_admin_products");
         if (p) setProducts(JSON.parse(p));
+        const resList = localStorage.getItem("lawkaksha_admin_resources");
+        if (resList) setResources(JSON.parse(resList));
         const sub = localStorage.getItem("lawkaksha_admin_subs");
         if (sub) setSubscriptions(JSON.parse(sub));
         const s = localStorage.getItem("lawkaksha_admin_students");
@@ -440,8 +582,9 @@ export default function AdminPortalPage() {
       // 2. Live fetch from MongoDB Atlas
       const syncWithAtlas = async () => {
         try {
-          const [pRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes] = await Promise.allSettled([
+          const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, compRes] = await Promise.allSettled([
             fetch(`${API_URL}/api/admin/products`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/resources`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/students`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/cases`).then((r) => r.json()),
@@ -449,11 +592,16 @@ export default function AdminPortalPage() {
             fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/section16-comparison`).then((r) => r.json()),
           ]);
 
           if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
             setProducts(pRes.value.products);
             localStorage.setItem("lawkaksha_admin_products", JSON.stringify(pRes.value.products));
+          }
+          if (rRes.status === "fulfilled" && rRes.value?.resources?.length) {
+            setResources(rRes.value.resources);
+            localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(rRes.value.resources));
           }
           if (sRes.status === "fulfilled" && sRes.value?.subscriptions?.length) {
             setSubscriptions(sRes.value.subscriptions);
@@ -481,6 +629,9 @@ export default function AdminPortalPage() {
           if (qRes.status === "fulfilled" && qRes.value?.qotd) {
             setQotd(qRes.value.qotd);
           }
+          if (compRes.status === "fulfilled" && compRes.value?.comparison) {
+            setSection16Comparison(compRes.value.comparison);
+          }
           setIsAtlasConnected(true);
         } catch (err) {
           console.warn("[Admin] Running in local cache mode:", err);
@@ -490,11 +641,11 @@ export default function AdminPortalPage() {
 
       syncWithAtlas();
     }
-  }, [router]);
+  }, [router, API_URL]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
   const handleLogout = () => {
@@ -503,6 +654,32 @@ export default function AdminPortalPage() {
       localStorage.removeItem("lawkaksha_token");
       window.dispatchEvent(new Event("storage"));
       router.push("/login");
+    }
+  };
+
+  // Generic File Upload Handler (Cloudinary CDN / Local fallback)
+  const handleFileUpload = async (file: File, onSuccess: (url: string, publicId?: string) => void) => {
+    if (!file) return;
+    setIsUploadingFile(true);
+    showToast("Uploading file to Cloudinary / Storage...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_URL}/api/admin/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        onSuccess(data.url, data.publicId);
+        showToast(data.isLocal ? "Uploaded locally!" : "Uploaded directly to Cloudinary CDN!");
+      } else {
+        showToast("Upload failed: " + (data.message || "Unknown error"));
+      }
+    } catch (err: any) {
+      showToast("Upload error: " + err.message);
+    } finally {
+      setIsUploadingFile(false);
     }
   };
 
@@ -528,8 +705,10 @@ export default function AdminPortalPage() {
 
   const NAV_TABS = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
-    { id: "subscriptions" as TabType, label: "Subscriptions & Access", icon: CreditCard, badge: subscriptions.length },
+    { id: "subscriptions" as TabType, label: "Monthly Passes & Access", icon: CreditCard, badge: subscriptions.length },
     { id: "products" as TabType, label: "Study Books & Codices", icon: BookOpen, badge: products.length },
+    { id: "resources" as TabType, label: "Act-Wise Resources Hub", icon: Layers, badge: resources.length },
+    { id: "comparison" as TabType, label: "Sec 16(1) Evaluator", icon: Scale },
     { id: "students" as TabType, label: "Students & DRM Rights", icon: Users, badge: students.length },
     { id: "cases" as TabType, label: "Weekly Cases", icon: Flame },
     { id: "mcq" as TabType, label: "MCQ Test Bank", icon: Sparkles },
@@ -642,12 +821,12 @@ export default function AdminPortalPage() {
               <Menu className="w-5 h-5" />
             </button>
             <div>
-            <h1 className="text-base font-semibold text-slate-800">
-              {NAV_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
-            </h1>
-            <p className="text-[11px] text-slate-400 leading-none mt-0.5">
-              DRM Protection, Student Subscriptions, Course Notes &amp; Portal Operations
-            </p>
+              <h1 className="text-base font-semibold text-slate-800">
+                {NAV_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
+              </h1>
+              <p className="text-[11px] text-slate-400 leading-none mt-0.5">
+                Cloudinary Storage, DRM Rights, Student Passes &amp; Act-Wise Resources
+              </p>
             </div>
           </div>
 
@@ -682,7 +861,7 @@ export default function AdminPortalPage() {
               <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-violet-200">
                 <div className="space-y-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-violet-200">Executive Control Center</span>
-                  <h2 className="text-2xl font-bold">The Law कक्षा Portal Management</h2>
+                  <h2 className="text-2xl font-bold">The Law कक्षा Portal Operations</h2>
                   <p className="text-violet-100 text-xs sm:text-sm leading-relaxed max-w-lg">
                     100% In-Web DRM digital learning platform for CA Foundation &amp; CSEET statutory law codices and evaluation tests.
                   </p>
@@ -708,106 +887,296 @@ export default function AdminPortalPage() {
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <p className="text-xs text-slate-400 font-medium">Digital Codices</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Master Books</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Volumes 1 &amp; 2 Active</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length} Master Courses</h3>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">₹99/Month Monthly Offer Active</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
-                    <Users className="w-5 h-5" />
+                    <Layers className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Enrolled Students</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{students.length} Candidates</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">{activeStudentsCount} Active Portals</p>
+                  <p className="text-xs text-slate-400 font-medium">Act-Wise Resources</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{resources.length} Modules</h3>
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">Notes, Flowcharts &amp; LDRs</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
                     <CreditCard className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Purchased Subscriptions</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Passes</h3>
-                  <p className="text-[11px] text-amber-600 font-medium mt-1">Instant Vault Activation</p>
+                  <p className="text-xs text-slate-400 font-medium">Active Monthly Passes</p>
+                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Subscriptions</h3>
+                  <p className="text-[11px] text-amber-600 font-medium mt-1">30-Day Auto Expiry Engine</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">DRM In-Web Protection</p>
+                  <p className="text-xs text-slate-400 font-medium">DRM In-Web Vault</p>
                   <h3 className="text-xl font-bold text-slate-800 mt-0.5">100% Protected</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Copy/Print Bypasses Blocked</p>
-                </div>
-              </div>
-
-              {/* RECENT SUBSCRIPTIONS TABLE */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-800">Recent Student Access Grants &amp; Purchases</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Instant online access to statutory codices across CA &amp; CSEET</p>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab("subscriptions")}
-                    className="text-xs font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>View All Subscriptions</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-slate-400 font-semibold">
-                        <th className="py-2.5 px-3">Sub ID</th>
-                        <th className="py-2.5 px-3">Student Name</th>
-                        <th className="py-2.5 px-3">Enrolled Codex / Pass</th>
-                        <th className="py-2.5 px-3">Amount</th>
-                        <th className="py-2.5 px-3">Access Status</th>
-                        <th className="py-2.5 px-3">Payment</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {subscriptions.slice(0, 4).map((sub) => (
-                        <tr key={sub.id} className="hover:bg-slate-50/50">
-                          <td className="py-3 px-3 font-mono font-bold text-slate-700">{sub.id}</td>
-                          <td className="py-3 px-3 font-medium text-slate-800">{sub.studentName}</td>
-                          <td className="py-3 px-3 text-slate-600 truncate max-w-xs">{sub.item}</td>
-                          <td className="py-3 px-3 font-bold text-slate-800">{sub.amount}</td>
-                          <td className="py-3 px-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              sub.accessStatus === "Active"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                                : "bg-amber-50 text-amber-700 border border-amber-100"
-                            }`}>
-                              {sub.accessStatus}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-slate-500 font-medium">{sub.paymentMode}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Copy/Print/Download Blocked</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: SUBSCRIPTIONS & ACCESS PURCHASES */}
+          {/* TAB: ACT-WISE RESOURCES HUB */}
+          {activeTab === "resources" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Act-Wise Curriculum Resources Hub</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Manage Notes, Concept Flowcharts, PYQs, and LDR summary maps across all 7 CA Foundation Acts &amp; 8 CSEET Units.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setResourceModal({
+                    open: true,
+                    mode: "add",
+                    data: {
+                      course: "ca-foundation",
+                      type: "notes",
+                      status: "Published",
+                      chapterNumber: 1,
+                      actName: "Indian Regulatory Framework",
+                      isSample: false,
+                    }
+                  })}
+                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Resource</span>
+                </button>
+              </div>
+
+              {/* FILTER BAR */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-600">Filter Course:</span>
+                  <select
+                    value={selectedCourseFilter}
+                    onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                    className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="all">All Courses</option>
+                    <option value="ca-foundation">CA Foundation (7 Acts)</option>
+                    <option value="cseet">CSEET (8 Units)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-600">Type:</span>
+                  <select
+                    value={selectedTypeFilter}
+                    onChange={(e) => setSelectedTypeFilter(e.target.value)}
+                    className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="notes">Chapter Notes</option>
+                    <option value="flowchart">Flowchart</option>
+                    <option value="practice">Question Bank</option>
+                    <option value="pyq">PYQ Drill</option>
+                    <option value="ldr">Last Day Revision (LDR)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* RESOURCES GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {resources
+                  .filter((r) => selectedCourseFilter === "all" || r.course === selectedCourseFilter)
+                  .filter((r) => selectedTypeFilter === "all" || r.type === selectedTypeFilter)
+                  .map((res) => (
+                    <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                            {res.course === "ca-foundation" ? "CA Foundation" : "CSEET"} • Ch {res.chapterNumber}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            res.status === "Published" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                          }`}>
+                            {res.status}
+                          </span>
+                        </div>
+
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400">{res.actName}</p>
+                          <h3 className="text-sm font-bold text-slate-800 leading-snug mt-0.5">{res.title}</h3>
+                        </div>
+
+                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                          {res.description}
+                        </p>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                          <span className="font-mono text-slate-600">{res.pages}</span>
+                          {res.isSample && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                              Free Sample PDF
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400 truncate max-w-[140px]" title={res.pdfUrl}>
+                          {res.pdfUrl.split("/").pop()}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setResourceModal({ open: true, mode: "edit", data: res })}
+                            className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm(`Delete resource: ${res.title}?`)) {
+                                const next = resources.filter((r) => r.id !== res.id);
+                                setResources(next);
+                                localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(next));
+                                try {
+                                  await fetch(`${API_URL}/api/admin/resources/${res.id}`, { method: "DELETE" });
+                                } catch (e) {}
+                                showToast("Resource deleted.");
+                              }
+                            }}
+                            className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB: SECTION 16(1) COMPARISON BLOCK EDITOR */}
+          {activeTab === "comparison" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">Section 16(1) Sale of Goods Answer Writing Diagnostic</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure the interactive "2/6 Marks Average Aspirant vs 6/6 Marks ICAI Model Answer" comparison displayed on the landing page.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Statutory Act</label>
+                    <input
+                      type="text"
+                      value={section16Comparison.act}
+                      onChange={(e) => setSection16Comparison({ ...section16Comparison, act: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Section Citation</label>
+                    <input
+                      type="text"
+                      value={section16Comparison.section}
+                      onChange={(e) => setSection16Comparison({ ...section16Comparison, section: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">ICAI Weightage Marks</label>
+                    <input
+                      type="text"
+                      value={section16Comparison.marks}
+                      onChange={(e) => setSection16Comparison({ ...section16Comparison, marks: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Problem Question Text</label>
+                  <textarea
+                    rows={2}
+                    value={section16Comparison.question}
+                    onChange={(e) => setSection16Comparison({ ...section16Comparison, question: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                  <div className="p-4 rounded-xl bg-rose-50/50 border border-rose-100 space-y-2">
+                    <label className="block text-xs font-bold text-rose-800">Average Aspirant Answer (2/6)</label>
+                    <textarea
+                      rows={4}
+                      value={section16Comparison.aspirantAnswer}
+                      onChange={(e) => setSection16Comparison({ ...section16Comparison, aspirantAnswer: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-rose-200 text-xs text-slate-800 outline-none focus:border-rose-500 bg-white"
+                    />
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                    <label className="block text-xs font-bold text-emerald-800">Law Kaksha Model Answer (6/6)</label>
+                    <textarea
+                      rows={4}
+                      value={section16Comparison.modelAnswer}
+                      onChange={(e) => setSection16Comparison({ ...section16Comparison, modelAnswer: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-emerald-200 text-xs text-slate-800 outline-none focus:border-emerald-500 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3">
+                  <button
+                    onClick={async () => {
+                      showToast("Saving comparison block to MongoDB Atlas...");
+                      try {
+                        await fetch(`${API_URL}/api/admin/section16-comparison`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ comparison: section16Comparison }),
+                        });
+                        showToast("Section 16(1) comparison block updated in MongoDB Atlas!");
+                      } catch (e) {
+                        showToast("Saved locally (offline mode)");
+                      }
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+                  >
+                    Save Comparison Updates
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: MONTHLY SUBSCRIPTIONS & ACCESS PURCHASES */}
           {activeTab === "subscriptions" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Student Subscriptions &amp; In-Web Access Purchases</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage digital pass authorizations and grant instant in-web reader access.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Monthly Subscriptions &amp; In-Web DRM Passes</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">₹99/Month recurring duration tracking with 30-day active validity control.</p>
                 </div>
                 <button
-                  onClick={() => setSubModal({ open: true, mode: "add", data: { accessStatus: "Active", paymentMode: "UPI / Razorpay", targetExam: "CSEET Law & Management" } })}
+                  onClick={() => setSubModal({
+                    open: true,
+                    mode: "add",
+                    data: {
+                      accessStatus: "Active",
+                      paymentMode: "UPI / Razorpay",
+                      targetExam: "CA Foundation Paper 2",
+                      amount: "₹99",
+                      item: "CA Foundation Business Laws (Monthly Access)",
+                    }
+                  })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Grant Manual Access</span>
+                  <span>Grant 30-Day Access Pass</span>
                 </button>
               </div>
 
@@ -831,8 +1200,9 @@ export default function AdminPortalPage() {
                       <tr>
                         <th className="py-3 px-4">Sub ID &amp; Date</th>
                         <th className="py-3 px-4">Student &amp; Roll Number</th>
-                        <th className="py-3 px-4">Enrolled Codex / Pass</th>
-                        <th className="py-3 px-4">Fee Paid</th>
+                        <th className="py-3 px-4">Enrolled Course / Pass</th>
+                        <th className="py-3 px-4">Monthly Fee</th>
+                        <th className="py-3 px-4">Validity Remaining</th>
                         <th className="py-3 px-4">DRM Vault Status</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
@@ -864,6 +1234,11 @@ export default function AdminPortalPage() {
                               <p className="text-[10px] text-slate-400">{sub.paymentMode}</p>
                             </td>
                             <td className="py-3.5 px-4">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-100">
+                                {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days (Monthly)"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
                               <button
                                 onClick={async () => {
                                   const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
@@ -891,6 +1266,27 @@ export default function AdminPortalPage() {
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={async () => {
+                                    const renewed = subscriptions.map((item) =>
+                                      item.id === sub.id ? { ...item, daysRemaining: 30, accessStatus: "Active" as const } : item
+                                    );
+                                    setSubscriptions(renewed);
+                                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(renewed));
+                                    showToast(`Renewed 30-day pass for ${sub.studentName}`);
+                                    try {
+                                      await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
+                                        method: "PUT",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ daysRemaining: 30, accessStatus: "Active" }),
+                                      });
+                                    } catch (e) {}
+                                  }}
+                                  title="Renew 30 Days"
+                                  className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors cursor-pointer"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
                                 <button
                                   onClick={() => setSubModal({ open: true, mode: "edit", data: sub })}
                                   title="Edit Subscription"
@@ -935,7 +1331,7 @@ export default function AdminPortalPage() {
                   <p className="text-xs text-slate-500 mt-0.5">Manage in-web DRM digital books, curriculum statutory units, pricing &amp; PDF stream endpoints.</p>
                 </div>
                 <button
-                  onClick={() => setProductModal({ open: true, mode: "add", data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CSEET" } })}
+                  onClick={() => setProductModal({ open: true, mode: "add", data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CA Foundation", price: 99, originalPrice: 299 } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
@@ -944,7 +1340,7 @@ export default function AdminPortalPage() {
               </div>
 
               {/* PRODUCT CARDS GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {products.map((prod) => (
                   <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="p-6 space-y-3">
@@ -967,7 +1363,7 @@ export default function AdminPortalPage() {
                       </p>
 
                       <div className="pt-2 border-t border-slate-100 space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Statutory Units</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Statutory Chapters</p>
                         <div className="flex flex-wrap gap-1">
                           {prod.units?.map((u, i) => (
                             <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
@@ -984,6 +1380,7 @@ export default function AdminPortalPage() {
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-base font-extrabold text-slate-900">₹{prod.price}</span>
                           <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
+                          <span className="text-[10px] text-emerald-700 font-bold">/ Month</span>
                         </div>
                         <span className="text-[10px] text-slate-400">{prod.pages} • In-Web DRM</span>
                       </div>
@@ -998,16 +1395,16 @@ export default function AdminPortalPage() {
                         <button
                           onClick={async () => {
                             if (confirm(`Delete product ${prod.title}?`)) {
-                              const filtered = products.filter((p) => p.id !== prod.id);
-                              setProducts(filtered);
-                              localStorage.setItem("lawkaksha_admin_products", JSON.stringify(filtered));
-                              showToast(`Deleted ${prod.title}`);
+                              const next = products.filter((p) => p.id !== prod.id);
+                              setProducts(next);
+                              localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
                               try {
                                 await fetch(`${API_URL}/api/admin/products/${prod.id}`, { method: "DELETE" });
                               } catch (e) {}
+                              showToast("Product deleted.");
                             }
                           }}
-                          className="p-2 rounded-xl bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
+                          className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1019,129 +1416,95 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 4: STUDENTS & DRM ENROLLMENTS */}
+          {/* TAB 4: STUDENTS & DRM RIGHTS */}
           {activeTab === "students" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Enrolled Students &amp; DRM Authorizations</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage registered candidates, grant in-web book reading rights, and reset student credentials.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Students &amp; In-Web DRM Enrolments</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage student identities, target exam goals &amp; DRM vault access authorization.</p>
                 </div>
                 <button
-                  onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CSEET Law & Management" } })}
+                  onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add New Student</span>
+                  <span>Enroll New Student</span>
                 </button>
               </div>
 
-              {/* SEARCH BAR */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
-                <Search className="w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search students by name, roll number, email or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
-                />
-              </div>
-
-              {/* STUDENTS TABLE */}
+              {/* STUDENTS LIST */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
                       <tr>
-                        <th className="py-3 px-4">Candidate &amp; Roll Number</th>
-                        <th className="py-3 px-4">Target Exam</th>
+                        <th className="py-3 px-4">Student ID &amp; Name</th>
                         <th className="py-3 px-4">Contact Info</th>
-                        <th className="py-3 px-4">DRM In-Web Access</th>
-                        <th className="py-3 px-4">Enrolled Books</th>
+                        <th className="py-3 px-4">Target Exam Goal</th>
+                        <th className="py-3 px-4">Enrolled Codices</th>
+                        <th className="py-3 px-4">DRM Vault Status</th>
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {students
-                        .filter((s) =>
-                          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.email.toLowerCase().includes(searchQuery.toLowerCase())
-                        )
-                        .map((std) => (
-                          <tr key={std.id} className="hover:bg-slate-50/50">
-                            <td className="py-3.5 px-4">
-                              <p className="font-bold text-slate-800">{std.name}</p>
-                              <p className="text-[10px] font-mono text-violet-600 font-bold">{std.student_id}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-100">
-                                {std.target_exam}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="text-slate-700">{std.email}</p>
-                              <p className="text-[10px] font-mono text-slate-400">{std.phone}</p>
-                            </td>
-                            <td className="py-3.5 px-4">
+                      {students.map((std) => (
+                        <tr key={std.id} className="hover:bg-slate-50/50">
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-slate-800">{std.name}</p>
+                            <p className="text-[10px] text-violet-600 font-mono">{std.student_id}</p>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <p className="text-slate-700">{std.email}</p>
+                            <p className="text-[10px] text-slate-400">{std.phone}</p>
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-slate-700">
+                            {std.target_exam}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex flex-wrap gap-1">
+                              {std.enrolled_books?.map((b, i) => (
+                                <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
+                                  {b}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              std.drm_access ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
+                            }`}>
+                              {std.drm_access ? "DRM In-Web Active" : "Access Blocked"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
+                                className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
                               <button
                                 onClick={async () => {
-                                  const updated = students.map((s) => (s.id === std.id ? { ...s, drm_access: !s.drm_access } : s));
-                                  setStudents(updated);
-                                  localStorage.setItem("lawkaksha_admin_students", JSON.stringify(updated));
-                                  showToast(`DRM access ${std.drm_access ? "Revoked" : "Granted"} for ${std.name}`);
-                                  try {
-                                    await fetch(`${API_URL}/api/admin/students/${std.id}`, {
-                                      method: "PUT",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ drm_access: !std.drm_access }),
-                                    });
-                                  } catch (e) {}
+                                  if (confirm(`Delete student ${std.name}?`)) {
+                                    const next = students.filter((s) => s.id !== std.id);
+                                    setStudents(next);
+                                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
+                                    try {
+                                      await fetch(`${API_URL}/api/admin/students/${std.id}`, { method: "DELETE" });
+                                    } catch (e) {}
+                                    showToast("Student deleted.");
+                                  }
                                 }}
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
-                                  std.drm_access
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-rose-50 text-rose-700 border border-rose-200"
-                                }`}
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600"
                               >
-                                {std.drm_access ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                                <span>{std.drm_access ? "Active Codex Access" : "Revoked"}</span>
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="text-[11px] text-slate-600">{std.enrolled_books?.join(", ") || "None"}</p>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
-                                  title="Edit Student"
-                                  className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
-                                >
-                                  <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    if (confirm(`Delete student record for ${std.name}?`)) {
-                                      const filtered = students.filter((s) => s.id !== std.id);
-                                      setStudents(filtered);
-                                      localStorage.setItem("lawkaksha_admin_students", JSON.stringify(filtered));
-                                      showToast(`Deleted student ${std.name}`);
-                                      try {
-                                        await fetch(`${API_URL}/api/admin/students/${std.id}`, { method: "DELETE" });
-                                      } catch (e) {}
-                                    }
-                                  }}
-                                  title="Delete Student"
-                                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -1149,69 +1512,63 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 5: WEEKLY CASE STUDIES */}
+          {/* TAB 5: WEEKLY CASES */}
           {activeTab === "cases" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Weekly High-Yield Case Studies</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Monster Monday, Midweek Law Madness, and Final Boss Friday real-exam problems.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Weekly High-Yield Case Scenarios</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage Monster Monday, Midweek Law Madness &amp; Final Boss Friday problem scenarios.</p>
                 </div>
                 <button
-                  onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", marks: "6/6 Marks" } })}
+                  onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", subject: "Indian Contract Act, 1872", marks: "6/6 Marks" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Case Study</span>
+                  <span>Add Case Scenario</span>
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {cases.map((cs) => (
-                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-violet-600 uppercase tracking-wide">{cs.day}</span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
-                        {cs.badge}
-                      </span>
+                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-violet-600 uppercase">{cs.day}</span>
+                        <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-100">{cs.badge}</span>
+                      </div>
+                      <div>
+                        <span className="text-[11px] text-slate-400 block">{cs.subject}</span>
+                        <h3 className="text-sm font-bold text-slate-800 leading-snug">{cs.title}</h3>
+                      </div>
+                      <p className="text-xs text-slate-600 italic bg-slate-50 p-3 rounded-xl border border-slate-100 line-clamp-3">
+                        &ldquo;{cs.scenario}&rdquo;
+                      </p>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-0.5">Model Solution</span>
+                        <p className="text-xs text-slate-500 line-clamp-3">{cs.modelAnswer}</p>
+                      </div>
                     </div>
 
-                    <div>
-                      <span className="text-[11px] text-slate-400 block mb-1">{cs.subject}</span>
-                      <h3 className="text-sm font-bold text-slate-800 leading-snug">{cs.title}</h3>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600 leading-relaxed italic">
-                      &ldquo;{cs.scenario}&rdquo;
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">Model Answer</span>
-                      <p className="text-xs text-slate-500 leading-relaxed">{cs.modelAnswer}</p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="font-mono text-slate-400 text-[11px]">{cs.precedent}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })}
-                          className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
-                        >
+                    <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400 truncate max-w-[150px]">{cs.precedent}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={async () => {
-                            if (confirm("Delete this case study?")) {
-                              const filtered = cases.filter((c) => c.id !== cs.id);
-                              setCases(filtered);
-                              localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(filtered));
-                              showToast("Case study deleted.");
+                            if (confirm(`Delete case scenario ${cs.title}?`)) {
+                              const next = cases.filter((c) => c.id !== cs.id);
+                              setCases(next);
+                              localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
                               try {
                                 await fetch(`${API_URL}/api/admin/cases/${cs.id}`, { method: "DELETE" });
                               } catch (e) {}
+                              showToast("Case deleted.");
                             }
                           }}
-                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1223,16 +1580,16 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 6: MCQ QUESTION BANK */}
+          {/* TAB 6: MCQ TEST BANK */}
           {activeTab === "mcq" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">MCQ Test Question Bank</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Objective evaluation questions for weekly 30-minute timed mock tests.</p>
+                  <h2 className="text-xl font-bold text-slate-800">MCQ Question Bank</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage objective questions, section citations &amp; statutory rationale explanations.</p>
                 </div>
                 <button
-                  onClick={() => setMcqModal({ open: true, mode: "add", data: { options: ["", "", "", ""], correctOption: 0 } })}
+                  onClick={() => setMcqModal({ open: true, mode: "add", data: { correctOption: 0, subject: "Indian Contract Act, 1872", options: ["Option A", "Option B", "Option C", "Option D"] } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
@@ -1241,76 +1598,59 @@ export default function AdminPortalPage() {
               </div>
 
               <div className="space-y-4">
-                {mcqs.map((q, idx) => (
-                  <div key={q.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-800">Question {idx + 1} • {q.subject}</span>
+                {mcqs.map((mcq, idx) => (
+                  <div key={mcq.id || idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-violet-50 text-violet-700 font-bold">{q.section}</span>
-                        <button
-                          onClick={() => setMcqModal({ open: true, mode: "edit", data: q })}
-                          className="p-1.5 rounded-lg hover:bg-violet-50 text-violet-600 cursor-pointer"
-                        >
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">{mcq.subject}</span>
+                        <span className="text-xs font-mono font-bold text-slate-600">{mcq.section}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setMcqModal({ open: true, mode: "edit", data: mcq })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={async () => {
-                            if (confirm("Delete this question?")) {
-                              const filtered = mcqs.filter((m) => m.id !== q.id);
-                              setMcqs(filtered);
-                              localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(filtered));
-                              showToast("Question deleted.");
+                            if (confirm("Delete this MCQ?")) {
+                              const next = mcqs.filter((m) => m.id !== mcq.id);
+                              setMcqs(next);
+                              localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
                               try {
-                                await fetch(`${API_URL}/api/admin/mcqs/${q.id}`, { method: "DELETE" });
+                                await fetch(`${API_URL}/api/admin/mcqs/${mcq.id}`, { method: "DELETE" });
                               } catch (e) {}
+                              showToast("MCQ deleted.");
                             }
                           }}
-                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-
-                    <p className="text-sm text-slate-800 font-medium leading-relaxed">{q.question}</p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                      {q.options.map((opt, oIdx) => (
-                        <div
-                          key={oIdx}
-                          className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
-                            q.correctOption === oIdx
-                              ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold"
-                              : "bg-slate-50 border-slate-100 text-slate-600"
-                          }`}
-                        >
-                          <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center font-bold text-[10px] shadow-xs shrink-0">
-                            {String.fromCharCode(65 + oIdx)}
-                          </span>
-                          <span className="truncate">{opt}</span>
+                    <p className="text-sm font-semibold text-slate-800">{mcq.question}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {mcq.options?.map((opt, oIdx) => (
+                        <div key={oIdx} className={`p-2.5 rounded-xl border ${oIdx === mcq.correctOption ? "bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold" : "bg-slate-50 border-slate-100 text-slate-600"}`}>
+                          <span className="font-bold mr-1.5">{String.fromCharCode(65 + oIdx)}.</span> {opt}
                         </div>
                       ))}
                     </div>
-
-                    <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
-                      <strong>Bare Act Citation / Explanation:</strong> {q.explanation}
-                    </p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* TAB 7: COUPONS & DISCOUNTS */}
+          {/* TAB 7: COUPONS & OFFERS */}
           {activeTab === "coupons" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Discount Coupons &amp; Promotions</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage promo codes applied at checkout for digital codex access passes.</p>
+                  <h2 className="text-xl font-bold text-slate-800">Coupons &amp; Discount Offers</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Manage promo codes and discount vouchers for student subscriptions.</p>
                 </div>
                 <button
-                  onClick={() => setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 20, minOrder: 200, maxUses: 100 } })}
+                  onClick={() => setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 20, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31" } })}
                   className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
@@ -1318,54 +1658,40 @@ export default function AdminPortalPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {coupons.map((cp) => (
-                  <div key={cp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4 hover:shadow-md transition-shadow">
+                  <div key={cp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 rounded-xl bg-violet-100 text-violet-800 font-mono font-extrabold text-sm tracking-wider">
+                      <span className="text-base font-extrabold font-mono text-violet-700 bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
                         {cp.code}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                         {cp.status}
                       </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <p className="text-2xl font-extrabold text-slate-800">{cp.discountPercent}% OFF</p>
-                      <p className="text-xs text-slate-400">Min. cart order of ₹{cp.minOrder}</p>
+                    <div className="space-y-1 text-xs text-slate-600">
+                      <p><strong>Discount:</strong> {cp.discountPercent}% OFF</p>
+                      <p><strong>Min Order:</strong> ₹{cp.minOrder}</p>
+                      <p><strong>Redeemed:</strong> {cp.usedCount} / {cp.maxUses} times</p>
+                      <p><strong>Expires:</strong> {cp.expiryDate}</p>
                     </div>
-
-                    <div className="space-y-1 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-                      <div className="flex justify-between">
-                        <span>Used Count:</span>
-                        <span className="font-bold text-slate-800">{cp.usedCount} / {cp.maxUses}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Valid Until:</span>
-                        <span className="font-bold text-slate-800">{cp.expiryDate}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 pt-2">
-                      <button
-                        onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })}
-                        className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
-                      >
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                      <button onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={async () => {
                           if (confirm(`Delete coupon ${cp.code}?`)) {
-                            const filtered = coupons.filter((c) => c.id !== cp.id);
-                            setCoupons(filtered);
-                            localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(filtered));
-                            showToast(`Deleted coupon ${cp.code}`);
+                            const next = coupons.filter((c) => c.id !== cp.id);
+                            setCoupons(next);
+                            localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
                             try {
                               await fetch(`${API_URL}/api/admin/coupons/${cp.id}`, { method: "DELETE" });
                             } catch (e) {}
+                            showToast("Coupon deleted.");
                           }
                         }}
-                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1376,23 +1702,18 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 8: EXAM DATES & QUESTION OF THE DAY (QOTD) */}
+          {/* TAB 8: EXAM DATES & QOTD */}
           {activeTab === "qotd" && (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">Exam Countdown Dates &amp; Daily QOTD</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Configure the countdown clocks and live Question of the Day shown across the homepage.</p>
-              </div>
-
-              {/* EXAM DATES */}
+              {/* EXAM COUNTDOWN SETTINGS */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-800">Target Examination Dates</h3>
+                <h3 className="text-sm font-bold text-slate-800">Target Exam Countdown Configuration</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {examSettings.map((ex, idx) => (
-                    <div key={ex.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                    <div key={ex.id || idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
                       <p className="text-xs font-bold text-slate-800">{ex.exam}</p>
                       <p className="text-[11px] text-slate-400">{ex.session}</p>
-                      <div className="flex items-center gap-2 pt-2">
+                      <div className="pt-1">
                         <input
                           type="date"
                           value={ex.date}
@@ -1400,14 +1721,13 @@ export default function AdminPortalPage() {
                             const next = [...examSettings];
                             next[idx].date = e.target.value;
                             setExamSettings(next);
-                            showToast("Saving exam date to MongoDB Atlas...");
                             try {
                               await fetch(`${API_URL}/api/admin/exam-settings`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ examSettings: next }),
                               });
-                              showToast("Updated target exam date in MongoDB Atlas!");
+                              showToast("Updated target exam date!");
                             } catch (err) {}
                           }}
                           className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold outline-none focus:border-violet-500"
@@ -1478,7 +1798,7 @@ export default function AdminPortalPage() {
                           showToast("Saved locally (offline mode)");
                         }
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                      className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm cursor-pointer"
                     >
                       Save QOTD Updates
                     </button>
@@ -1493,15 +1813,209 @@ export default function AdminPortalPage() {
 
       {/* --- CRUD MODALS --- */}
 
+      {/* RESOURCE ADD / EDIT MODAL */}
+      {resourceModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800">
+                {resourceModal.mode === "add" ? "Add Act-Wise Resource" : "Edit Resource"}
+              </h3>
+              <button onClick={() => setResourceModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Target Course *</label>
+                  <select
+                    value={resourceModal.data.course || "ca-foundation"}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, course: e.target.value } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="ca-foundation">CA Foundation (Paper 2)</option>
+                    <option value="cseet">CSEET (Paper 2)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Chapter / Unit Number *</label>
+                  <input
+                    type="number"
+                    value={resourceModal.data.chapterNumber || 1}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, chapterNumber: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Act / Unit Name *</label>
+                <input
+                  type="text"
+                  value={resourceModal.data.actName || ""}
+                  onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, actName: e.target.value } })}
+                  placeholder="e.g. The Indian Partnership Act, 1932"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Resource Title *</label>
+                <input
+                  type="text"
+                  value={resourceModal.data.title || ""}
+                  onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, title: e.target.value } })}
+                  placeholder="e.g. Unit 1: General Nature of Partnership"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Resource Type</label>
+                  <select
+                    value={resourceModal.data.type || "notes"}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, type: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="notes">Chapter Notes</option>
+                    <option value="flowchart">Concept Flowchart</option>
+                    <option value="practice">Practice Questions</option>
+                    <option value="pyq">PYQ Drill</option>
+                    <option value="ldr">Last Day Revision (LDR)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Publish Status</label>
+                  <select
+                    value={resourceModal.data.status || "Published"}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, status: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                  >
+                    <option value="Published">Published (Active)</option>
+                    <option value="Coming soon">Coming soon</option>
+                    <option value="Draft">Draft (Hidden)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">PDF Document Stream / Cloudinary URL *</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={resourceModal.data.pdfUrl || ""}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, pdfUrl: e.target.value } })}
+                    placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
+                    className="flex-1 p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
+                  />
+                  <input
+                    type="file"
+                    ref={resourceFileInputRef}
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file, (url, publicId) => {
+                          setResourceModal((prev) => ({
+                            ...prev,
+                            data: { ...prev.data, pdfUrl: url, cloudinaryPublicId: publicId },
+                          }));
+                        });
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploadingFile}
+                    onClick={() => resourceFileInputRef.current?.click()}
+                    className="px-3 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl text-xs font-bold flex items-center gap-1 shrink-0"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>{isUploadingFile ? "Uploading..." : "Upload PDF"}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="res-sample-checkbox"
+                  checked={Boolean(resourceModal.data.isSample)}
+                  onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, isSample: e.target.checked } })}
+                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 w-4 h-4"
+                />
+                <label htmlFor="res-sample-checkbox" className="font-semibold text-slate-700 cursor-pointer">
+                  Mark as Free Preview Sample (accessible without login)
+                </label>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setResourceModal({ open: false, mode: "add", data: {} })}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!resourceModal.data.title) return alert("Please enter resource title");
+                  const isAdd = resourceModal.mode === "add";
+                  const payload: ResourceItem = {
+                    id: resourceModal.data.id || `res-${Date.now()}`,
+                    course: resourceModal.data.course || "ca-foundation",
+                    actName: resourceModal.data.actName || "The Indian Partnership Act, 1932",
+                    chapterNumber: Number(resourceModal.data.chapterNumber) || 1,
+                    type: resourceModal.data.type || "notes",
+                    title: resourceModal.data.title || "Chapter Notes",
+                    description: resourceModal.data.description || "",
+                    pdfUrl: resourceModal.data.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
+                    samplePdfUrl: resourceModal.data.samplePdfUrl || "",
+                    isSample: Boolean(resourceModal.data.isSample),
+                    status: resourceModal.data.status || "Published",
+                    order: Number(resourceModal.data.order) || 1,
+                    pages: resourceModal.data.pages || "20 Pages",
+                    cloudinaryPublicId: resourceModal.data.cloudinaryPublicId || "",
+                  };
+
+                  const next = isAdd ? [...resources, payload] : resources.map((r) => (r.id === payload.id ? payload : r));
+                  setResources(next);
+                  localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(next));
+                  setResourceModal({ open: false, mode: "add", data: {} });
+                  showToast("Saving resource to MongoDB Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/resources${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast("Resource saved in MongoDB Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+              >
+                Save Resource
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SUBSCRIPTION ADD / EDIT MODAL */}
       {subModal.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-800">
-                {subModal.mode === "add" ? "Grant In-Web Access Pass" : "Update Subscription Record"}
+                {subModal.mode === "add" ? "Grant 30-Day Monthly Pass" : "Update Subscription Record"}
               </h3>
-              <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+              <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
@@ -1515,7 +2029,7 @@ export default function AdminPortalPage() {
                     value={subModal.data.studentName || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentName: e.target.value } })}
                     placeholder="e.g. Aarav Sharma"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                   />
                 </div>
                 <div>
@@ -1525,7 +2039,7 @@ export default function AdminPortalPage() {
                     value={subModal.data.studentRoll || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentRoll: e.target.value } })}
                     placeholder="LRK-2026-004182"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
                   />
                 </div>
               </div>
@@ -1538,7 +2052,7 @@ export default function AdminPortalPage() {
                     value={subModal.data.email || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, email: e.target.value } })}
                     placeholder="student@thelawkaksha.com"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                   />
                 </div>
                 <div>
@@ -1548,21 +2062,20 @@ export default function AdminPortalPage() {
                     value={subModal.data.phone || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, phone: e.target.value } })}
                     placeholder="+91 98765 43210"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Enrolled Codex / Pass *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Enrolled Course / Monthly Pass *</label>
                 <select
-                  value={subModal.data.item || "Volume 1 & 2 Master Digital Pass"}
+                  value={subModal.data.item || "CA Foundation Business Laws (Monthly Access)"}
                   onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, item: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
                 >
-                  <option value="Volume 1 & 2 Master Digital Pass">Volume 1 &amp; 2 Master Digital Pass (All Units)</option>
-                  <option value="Volume 1: Business Law Digital Codex">Volume 1: Business Law Digital Codex (Units 1 to 6)</option>
-                  <option value="Volume 2: Management & Ethics Digital Codex">Volume 2: Management &amp; Ethics Digital Codex (Units 7 &amp; 8)</option>
+                  <option value="CA Foundation Business Laws (Monthly Access)">CA Foundation Business Laws (Monthly Access - ₹99)</option>
+                  <option value="CSEET Business Law & Management (Monthly Access)">CSEET Business Law &amp; Management (Monthly Access - ₹99)</option>
                 </select>
               </div>
 
@@ -1571,9 +2084,9 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-slate-700 mb-1">Fee Amount (₹)</label>
                   <input
                     type="text"
-                    value={subModal.data.amount || "₹449"}
+                    value={subModal.data.amount || "₹99"}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, amount: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-bold text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-bold text-xs"
                   />
                 </div>
                 <div>
@@ -1581,33 +2094,20 @@ export default function AdminPortalPage() {
                   <select
                     value={subModal.data.paymentMode || "UPI / Razorpay"}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, paymentMode: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
                   >
                     <option value="UPI / Razorpay">UPI / Razorpay</option>
-                    <option value="Card / Netbanking">Card / Netbanking</option>
+                    <option value="Razorpay / Cards">Razorpay / Cards</option>
                     <option value="Admin Direct Grant (Free)">Admin Direct Grant (Free)</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">DRM In-Web Access Status</label>
-                <select
-                  value={subModal.data.accessStatus || "Active"}
-                  onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, accessStatus: e.target.value as any } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                >
-                  <option value="Active">Active (Instant DRM Reader Access)</option>
-                  <option value="Pending">Pending Verification</option>
-                  <option value="Revoked">Revoked / Suspended</option>
-                </select>
               </div>
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => setSubModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -1621,12 +2121,13 @@ export default function AdminPortalPage() {
                     studentRoll: subModal.data.studentRoll || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
                     email: subModal.data.email || "student@thelawkaksha.com",
                     phone: subModal.data.phone || "+91 98000 00000",
-                    item: subModal.data.item || "Volume 1 & 2 Master Digital Pass",
-                    targetExam: subModal.data.targetExam || "CSEET Law & Management",
-                    amount: subModal.data.amount || "₹449",
+                    item: subModal.data.item || "CA Foundation Business Laws (Monthly Access)",
+                    targetExam: subModal.data.targetExam || "CA Foundation Paper 2",
+                    amount: subModal.data.amount || "₹99",
                     date: subModal.data.date || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
                     paymentMode: subModal.data.paymentMode || "UPI / Razorpay",
                     accessStatus: subModal.data.accessStatus || "Active",
+                    daysRemaining: 30,
                   };
                   const next = isAdd ? [...subscriptions, payload] : subscriptions.map((s) => (s.id === payload.id ? payload : s));
                   setSubscriptions(next);
@@ -1644,7 +2145,7 @@ export default function AdminPortalPage() {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
                 Save Subscription
               </button>
@@ -1661,7 +2162,7 @@ export default function AdminPortalPage() {
               <h3 className="text-sm font-bold text-slate-800">
                 {productModal.mode === "add" ? "Add New Digital Codex" : "Edit Codex Details"}
               </h3>
-              <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+              <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
@@ -1673,95 +2174,87 @@ export default function AdminPortalPage() {
                   type="text"
                   value={productModal.data.title || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, title: e.target.value } })}
-                  placeholder="e.g. Business Law (CSEET & CA Foundation)"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  placeholder="e.g. CA Foundation Business Laws Codex"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subtitle / Volume Details *</label>
+                <label className="block font-semibold text-slate-700 mb-1">Subtitle / Details *</label>
                 <input
                   type="text"
                   value={productModal.data.subtitle || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, subtitle: e.target.value } })}
-                  placeholder="e.g. Volume 1 • Statutory Codex (Units 1 to 6)"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  placeholder="e.g. Complete 7 Chapters Study Notes"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Access Price (₹) *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Monthly Access Price (₹) *</label>
                   <input
                     type="number"
-                    value={productModal.data.price || 0}
+                    value={productModal.data.price || 99}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, price: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                   />
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Original Price (₹)</label>
                   <input
                     type="number"
-                    value={productModal.data.originalPrice || 0}
+                    value={productModal.data.originalPrice || 299}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, originalPrice: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Target Category</label>
-                  <select
-                    value={productModal.data.category || "CSEET"}
-                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category: e.target.value as any } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  >
-                    <option value="CSEET">CSEET</option>
-                    <option value="CA Foundation">CA Foundation</option>
-                    <option value="Both">Both (ICAI &amp; ICSI)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Status</label>
-                  <select
-                    value={productModal.data.status || "Active"}
-                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, status: e.target.value as any } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Draft">Draft</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  value={productModal.data.description || ""}
-                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, description: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">In-Web Digital PDF URL</label>
-                <input
-                  type="text"
-                  value={productModal.data.pdfUrl || ""}
-                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pdfUrl: e.target.value } })}
-                  placeholder="/api/pdf/cseet-business-law-full.pdf"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                />
+                <label className="block font-semibold text-slate-700 mb-1">In-Web Digital PDF URL / Cloudinary CDN</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={productModal.data.pdfUrl || ""}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pdfUrl: e.target.value } })}
+                    placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
+                    className="flex-1 p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs font-mono"
+                  />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file, (url) => {
+                          setProductModal((prev) => ({
+                            ...prev,
+                            data: { ...prev.data, pdfUrl: url },
+                          }));
+                        });
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploadingFile}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl text-xs font-bold flex items-center gap-1 shrink-0"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Upload PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => setProductModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -1773,15 +2266,15 @@ export default function AdminPortalPage() {
                     id: productModal.data.id || `prod-${Date.now()}`,
                     title: productModal.data.title || "Untitled Book",
                     subtitle: productModal.data.subtitle || "",
-                    category: productModal.data.category || "CSEET",
+                    category: productModal.data.category || "CA Foundation",
                     format: "Digital Codex (In-Web DRM)",
-                    price: Number(productModal.data.price) || 249,
-                    originalPrice: Number(productModal.data.originalPrice) || 499,
-                    pages: productModal.data.pages || "150 Pages",
+                    price: Number(productModal.data.price) || 99,
+                    originalPrice: Number(productModal.data.originalPrice) || 299,
+                    pages: productModal.data.pages || "250 Pages",
                     status: productModal.data.status || "Active",
-                    pdfUrl: productModal.data.pdfUrl || "/api/pdf/cseet-business-law-full.pdf",
+                    pdfUrl: productModal.data.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
                     description: productModal.data.description || "",
-                    units: productModal.data.units || ["Unit 1", "Unit 2"],
+                    units: productModal.data.units || ["Chapter 1", "Chapter 2"],
                   };
                   const next = isAdd ? [...products, payload] : products.map((p) => (p.id === payload.id ? payload : p));
                   setProducts(next);
@@ -1799,7 +2292,7 @@ export default function AdminPortalPage() {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
                 Save Codex
               </button>
@@ -1816,7 +2309,7 @@ export default function AdminPortalPage() {
               <h3 className="text-sm font-bold text-slate-800">
                 {studentModal.mode === "add" ? "Enroll New Student" : "Edit Student Info"}
               </h3>
-              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
+              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
@@ -1829,7 +2322,7 @@ export default function AdminPortalPage() {
                   value={studentModal.data.name || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, name: e.target.value } })}
                   placeholder="e.g. Aarav Sharma"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
@@ -1840,7 +2333,7 @@ export default function AdminPortalPage() {
                   value={studentModal.data.student_id || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, student_id: e.target.value } })}
                   placeholder="LRK-2026-009821"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
                 />
               </div>
 
@@ -1851,30 +2344,19 @@ export default function AdminPortalPage() {
                   value={studentModal.data.email || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, email: e.target.value } })}
                   placeholder="student@thelawkaksha.com"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Phone Number</label>
-                <input
-                  type="text"
-                  value={studentModal.data.phone || ""}
-                  onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, phone: e.target.value } })}
-                  placeholder="+91 98765 43210"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
                 />
               </div>
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Target Exam</label>
                 <select
-                  value={studentModal.data.target_exam || "CSEET Law & Management"}
+                  value={studentModal.data.target_exam || "CA Foundation Paper 2"}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, target_exam: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
                 >
-                  <option value="CSEET Law & Management">CSEET Law &amp; Management</option>
                   <option value="CA Foundation Paper 2">CA Foundation Paper 2 (Business Laws)</option>
+                  <option value="CSEET Law & Management">CSEET Paper 2 (Business Law &amp; Management)</option>
                 </select>
               </div>
             </div>
@@ -1882,7 +2364,7 @@ export default function AdminPortalPage() {
             <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => setStudentModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -1894,31 +2376,28 @@ export default function AdminPortalPage() {
                     id: studentModal.data.id || `std-${Date.now()}`,
                     student_id: studentModal.data.student_id || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
                     name: studentModal.data.name || "",
-                    email: studentModal.data.email || "",
+                    email: studentModal.data.email || "student@thelawkaksha.com",
                     phone: studentModal.data.phone || "+91 98000 00000",
-                    target_exam: studentModal.data.target_exam || "CSEET Law & Management",
+                    target_exam: studentModal.data.target_exam || "CA Foundation Paper 2",
                     is_active: studentModal.data.is_active !== undefined ? studentModal.data.is_active : true,
                     drm_access: studentModal.data.drm_access !== undefined ? studentModal.data.drm_access : true,
-                    enrolled_books: studentModal.data.enrolled_books || ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
-                    joined_date: studentModal.data.joined_date || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                    enrolled_books: studentModal.data.enrolled_books || ["CA Foundation Business Laws"],
+                    joined_date: studentModal.data.joined_date || "Today",
                   };
                   const next = isAdd ? [...students, payload] : students.map((s) => (s.id === payload.id ? payload : s));
                   setStudents(next);
                   localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                   setStudentModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Enrolling student in MongoDB Atlas..." : "Updating in Atlas...");
                   try {
                     await fetch(`${API_URL}/api/admin/students${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast(isAdd ? "Student enrolled in MongoDB Atlas!" : "Student updated in Atlas!");
-                  } catch (e) {
-                    showToast("Saved locally (offline mode)");
-                  }
+                    showToast("Student saved in Atlas!");
+                  } catch (e) {}
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
               >
                 Save Student
               </button>
@@ -1927,413 +2406,6 @@ export default function AdminPortalPage() {
         </div>
       )}
 
-      {/* CASE STUDY MODAL */}
-      {caseModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
-                {caseModal.mode === "add" ? "Add Weekly Case Study" : "Edit Case Study Problem"}
-              </h3>
-              <button onClick={() => setCaseModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Feature Day</label>
-                  <select
-                    value={caseModal.data.day || "Monster Monday"}
-                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, day: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  >
-                    <option value="Monster Monday">Monster Monday</option>
-                    <option value="Midweek Law Madness">Midweek Law Madness</option>
-                    <option value="Final Boss Friday">Final Boss Friday</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Difficulty Badge</label>
-                  <input
-                    type="text"
-                    value={caseModal.data.badge || "High Difficulty"}
-                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, badge: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Statutory Subject / Act *</label>
-                <input
-                  type="text"
-                  value={caseModal.data.subject || ""}
-                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, subject: e.target.value } })}
-                  placeholder="e.g. Indian Contract Act, 1872"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Case Title *</label>
-                <input
-                  type="text"
-                  value={caseModal.data.title || ""}
-                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, title: e.target.value } })}
-                  placeholder="e.g. The Anticipatory Breach & Measure of Damages"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Case Scenario / Problem Statement *</label>
-                <textarea
-                  rows={3}
-                  value={caseModal.data.scenario || ""}
-                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, scenario: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Model Answer (4-Step Statutory Structure) *</label>
-                <textarea
-                  rows={3}
-                  value={caseModal.data.modelAnswer || ""}
-                  onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, modelAnswer: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Legal Precedent / Citation</label>
-                  <input
-                    type="text"
-                    value={caseModal.data.precedent || ""}
-                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, precedent: e.target.value } })}
-                    placeholder="e.g. Frost v. Knight (1872)"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Evaluation Marks</label>
-                  <input
-                    type="text"
-                    value={caseModal.data.marks || "6/6 Marks"}
-                    onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, marks: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setCaseModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (!caseModal.data.title || !caseModal.data.scenario) return alert("Please fill title and scenario");
-                  const isAdd = caseModal.mode === "add";
-                  const payload: CaseStudyItem = {
-                    id: caseModal.data.id || `case-${Date.now()}`,
-                    day: caseModal.data.day || "Monster Monday",
-                    badge: caseModal.data.badge || "High Difficulty",
-                    subject: caseModal.data.subject || "Indian Contract Act, 1872",
-                    title: caseModal.data.title || "",
-                    scenario: caseModal.data.scenario || "",
-                    modelAnswer: caseModal.data.modelAnswer || "",
-                    precedent: caseModal.data.precedent || "Standard Citation",
-                    marks: caseModal.data.marks || "6/6 Marks",
-                  };
-                  const next = isAdd ? [...cases, payload] : cases.map((c) => (c.id === payload.id ? payload : c));
-                  setCases(next);
-                  localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
-                  setCaseModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Adding case to MongoDB Atlas..." : "Updating in Atlas...");
-                  try {
-                    await fetch(`${API_URL}/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {
-                      method: isAdd ? "POST" : "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(payload),
-                    });
-                    showToast(isAdd ? "Case study saved in MongoDB Atlas!" : "Case study updated in Atlas!");
-                  } catch (e) {
-                    showToast("Saved locally (offline mode)");
-                  }
-                }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
-              >
-                Save Case
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MCQ MODAL */}
-      {mcqModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
-                {mcqModal.mode === "add" ? "Add MCQ Question" : "Edit MCQ Question"}
-              </h3>
-              <button onClick={() => setMcqModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
-                  <input
-                    type="text"
-                    value={mcqModal.data.subject || ""}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, subject: e.target.value } })}
-                    placeholder="e.g. Sale of Goods Act, 1930"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Section Reference</label>
-                  <input
-                    type="text"
-                    value={mcqModal.data.section || ""}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, section: e.target.value } })}
-                    placeholder="e.g. Section 16(1)"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Question Text *</label>
-                <textarea
-                  rows={2}
-                  value={mcqModal.data.question || ""}
-                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, question: e.target.value } })}
-                  placeholder="Enter the objective question statement..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block font-semibold text-slate-700">Options (Select radio for Correct Option) *</label>
-                {[0, 1, 2, 3].map((optIdx) => (
-                  <div key={optIdx} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="correctOption"
-                      checked={mcqModal.data.correctOption === optIdx}
-                      onChange={() => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, correctOption: optIdx } })}
-                      className="w-5 h-5 accent-violet-600 cursor-pointer shrink-0"
-                    />
-                    <span className="font-bold font-mono w-4">{String.fromCharCode(65 + optIdx)}.</span>
-                    <input
-                      type="text"
-                      value={mcqModal.data.options?.[optIdx] || ""}
-                      onChange={(e) => {
-                        const nextOpts = [...(mcqModal.data.options || ["", "", "", ""])];
-                        nextOpts[optIdx] = e.target.value;
-                        setMcqModal({ ...mcqModal, data: { ...mcqModal.data, options: nextOpts } });
-                      }}
-                      placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
-                      className="flex-1 p-2 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Bare Act Citation / Explanation</label>
-                <textarea
-                  rows={2}
-                  value={mcqModal.data.explanation || ""}
-                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, explanation: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setMcqModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (!mcqModal.data.question) return alert("Please enter question text");
-                  const isAdd = mcqModal.mode === "add";
-                  const payload: McqQuestionItem = {
-                    id: mcqModal.data.id || `mcq-${Date.now()}`,
-                    subject: mcqModal.data.subject || "Business Law",
-                    section: mcqModal.data.section || "General",
-                    question: mcqModal.data.question || "",
-                    options: mcqModal.data.options || ["", "", "", ""],
-                    correctOption: Number(mcqModal.data.correctOption) || 0,
-                    explanation: mcqModal.data.explanation || "",
-                  };
-                  const next = isAdd ? [...mcqs, payload] : mcqs.map((m) => (m.id === payload.id ? payload : m));
-                  setMcqs(next);
-                  localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
-                  setMcqModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Adding MCQ to MongoDB Atlas..." : "Updating in Atlas...");
-                  try {
-                    await fetch(`${API_URL}/api/admin/mcqs${!isAdd ? "/" + payload.id : ""}`, {
-                      method: isAdd ? "POST" : "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(payload),
-                    });
-                    showToast(isAdd ? "MCQ added to MongoDB Atlas!" : "MCQ updated in Atlas!");
-                  } catch (e) {
-                    showToast("Saved locally (offline mode)");
-                  }
-                }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
-              >
-                Save Question
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* COUPON MODAL */}
-      {couponModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
-                {couponModal.mode === "add" ? "Create Discount Coupon" : "Edit Coupon"}
-              </h3>
-              <button onClick={() => setCouponModal({ open: false, mode: "add", data: {} })} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 cursor-pointer" aria-label="Close modal">
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Coupon Code (e.g. EXEMPTION2026) *</label>
-                <input
-                  type="text"
-                  value={couponModal.data.code || ""}
-                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, code: e.target.value.toUpperCase() } })}
-                  placeholder="EXEMPTION2026"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono font-bold uppercase text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Discount (% Off) *</label>
-                  <input
-                    type="number"
-                    value={couponModal.data.discountPercent || 20}
-                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, discountPercent: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Min. Order (₹)</label>
-                  <input
-                    type="number"
-                    value={couponModal.data.minOrder || 200}
-                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, minOrder: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Max Usages</label>
-                  <input
-                    type="number"
-                    value={couponModal.data.maxUses || 100}
-                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, maxUses: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Expiry Date</label>
-                  <input
-                    type="date"
-                    value={couponModal.data.expiryDate || "2026-12-31"}
-                    onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, expiryDate: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Status</label>
-                <select
-                  value={couponModal.data.status || "Active"}
-                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as any } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-base sm:text-xs min-h-[44px] sm:min-h-0"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Expired">Expired</option>
-                  <option value="Disabled">Disabled</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setCouponModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (!couponModal.data.code) return alert("Please enter coupon code");
-                  const isAdd = couponModal.mode === "add";
-                  const payload: CouponRecord = {
-                    id: couponModal.data.id || `cp-${Date.now()}`,
-                    code: (couponModal.data.code || "DISCOUNT").toUpperCase().trim(),
-                    discountPercent: Number(couponModal.data.discountPercent) || 20,
-                    minOrder: Number(couponModal.data.minOrder) || 200,
-                    maxUses: Number(couponModal.data.maxUses) || 100,
-                    usedCount: Number(couponModal.data.usedCount) || 0,
-                    expiryDate: couponModal.data.expiryDate || "2026-12-31",
-                    status: couponModal.data.status || "Active",
-                  };
-                  const next = isAdd ? [...coupons, payload] : coupons.map((c) => (c.id === payload.id ? payload : c));
-                  setCoupons(next);
-                  localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
-                  setCouponModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Adding coupon to MongoDB Atlas..." : "Updating in Atlas...");
-                  try {
-                    await fetch(`${API_URL}/api/admin/coupons${!isAdd ? "/" + payload.id : ""}`, {
-                      method: isAdd ? "POST" : "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(payload),
-                    });
-                    showToast(isAdd ? `Coupon ${payload.code} saved in MongoDB Atlas!` : `Coupon ${payload.code} updated!`);
-                  } catch (e) {
-                    showToast("Saved locally (offline mode)");
-                  }
-                }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
-              >
-                Save Coupon
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
