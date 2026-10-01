@@ -89,6 +89,31 @@ const CSEET_BOOKS = [
   },
 ];
 
+const CA_FOUNDATION_BOOKS = [
+  {
+    id: "ca-foundation-business-laws",
+    title: "CA Foundation Business Laws Codex",
+    volume: "Volume 1",
+    subtitle: "ICAI Paper 2 • 7 Chapters Complete",
+    badge: "Paper 2 • 7 Acts",
+    description: "Complete master curriculum notes covering Contract Act 1872, Sale of Goods Act 1930, Partnership Act 1932, LLP Act 2008, Companies Act 2013, Negotiable Instruments Act 1881 & Regulatory Framework.",
+    unitsList: [
+      "Chapter 1: Indian Regulatory Framework",
+      "Chapter 2: The Indian Contract Act, 1872",
+      "Chapter 3: The Sale of Goods Act, 1930",
+      "Chapter 4: The Indian Partnership Act, 1932",
+      "Chapter 5: The Limited Liability Partnership Act, 2008",
+      "Chapter 6: The Companies Act, 2013",
+      "Chapter 7: The Negotiable Instruments Act, 1881"
+    ],
+    coverImage: "/covers/vol1-codex.png",
+    coverGradient: "from-amber-600 to-orange-700",
+    tagBg: "bg-amber-50 text-amber-700 border-amber-100",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    totalPages: "250+ Pages",
+  },
+];
+
 type TabType = "home" | "chapters" | "cases" | "mcqtest" | "ldr";
 const NAV_ITEMS: { id: TabType; label: string; icon: any }[] = [
   { id: "home", label: "Dashboard", icon: LayoutDashboard },
@@ -99,8 +124,10 @@ const NAV_ITEMS: { id: TabType; label: string; icon: any }[] = [
 ];
 export default function StudentDashboardPage() {
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [activeCourse, setActiveCourse] = useState<"ca" | "cs">("ca");
   const [activeTab, setActiveTab] = useState<TabType>("home");
   const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch4");
@@ -115,15 +142,18 @@ export default function StudentDashboardPage() {
   const [studentName, setStudentName] = useState("Aarav Sharma");
   const [studentProfile, setStudentProfile] = useState<StudentProfileData>({
     name: "Aarav Sharma",
-    email: "aarav.sharma@thelawkaksha.com",
+    email: "student@thelawkaksha.com",
     targetExam: "CSEET Law & Management",
-    student_id: "LAW-2026-9821",
+    student_id: "LRK-2026-004182",
     avatarColor: "violet",
   });
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
-  // purchased books: derived from session / treat as purchased for logged-in students
+  // purchased books: synced from MongoDB Atlas based on actual purchases / subscriptions
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>(["cseet-business-law", "cseet-management"]);
+  // live synced case studies and MCQs from MongoDB Atlas
+  const [liveCases, setLiveCases] = useState<any[]>(WEEKLY_CASES);
+  const [liveMcqs, setLiveMcqs] = useState<any[]>([]);
   // PDF viewer modal
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean; url: string; title: string }>({ open: false, url: "", title: "" });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -134,6 +164,7 @@ export default function StudentDashboardPage() {
       const adminSession = localStorage.getItem("lawkaksha_admin_session");
       if (!studentSession && !adminSession) { setIsAuthorized(false); setIsCheckingAuth(false); router.push("/login"); return; }
       setIsAuthorized(true); setIsCheckingAuth(false);
+      if (adminSession) setIsAdminUser(true);
       const params = new URLSearchParams(window.location.search);
       const courseParam = params.get("course");
       if (courseParam === "cs") { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }
@@ -167,6 +198,36 @@ export default function StudentDashboardPage() {
       } catch (e) { setStreak(1); }
     }
   }, [router]);
+
+  // Sync entitlements and content live from MongoDB Atlas
+  useEffect(() => {
+    async function syncAtlasData() {
+      if (!studentProfile.email && !studentProfile.student_id) return;
+      try {
+        const query = new URLSearchParams({
+          email: studentProfile.email || "",
+          studentId: studentProfile.student_id || "",
+        });
+        const res = await fetch(`${API_URL}/api/student/dashboard?${query.toString()}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          if (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0) {
+            setPurchasedBooks((prev) => Array.from(new Set([...prev, ...data.unlockedItemIds])));
+          }
+          if (Array.isArray(data.cases) && data.cases.length > 0) {
+            setLiveCases(data.cases);
+          }
+          if (Array.isArray(data.mcqs) && data.mcqs.length > 0) {
+            setLiveMcqs(data.mcqs);
+          }
+        }
+      } catch (err) {
+        // Fallback to local default data
+      }
+    }
+    syncAtlasData();
+  }, [studentProfile.email, studentProfile.student_id, API_URL]);
 
   const handleLogout = () => {
     if (typeof window !== "undefined") {
@@ -420,80 +481,114 @@ export default function StudentDashboardPage() {
 
               {/* 2 BOOKS CARDS */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {CSEET_BOOKS.map((book) => (
-                  <div
-                    key={book.id}
-                    className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between"
-                  >
-                    {/* Top color gradient banner */}
-                    <div className={`h-2.5 w-full bg-gradient-to-r ${book.coverGradient}`} />
+                {(activeCourse === "ca" ? CA_FOUNDATION_BOOKS : CSEET_BOOKS).map((book) => {
+                  const isBookUnlocked =
+                    isAdminUser ||
+                    purchasedBooks.includes(book.id) ||
+                    purchasedBooks.includes("all-access") ||
+                    purchasedBooks.includes("course-ca-foundation-sub") ||
+                    purchasedBooks.includes("course-cseet-sub") ||
+                    (activeCourse === "ca" && (purchasedBooks.includes("ca-foundation-business-laws") || purchasedBooks.includes("ca-foundation"))) ||
+                    (activeCourse === "cs" && (purchasedBooks.includes("cseet-business-law") || purchasedBooks.includes("cseet-management") || purchasedBooks.includes("cseet")));
 
-                    <div className="p-6 flex-1 flex flex-col">
-                      <div className="flex items-start gap-4">
-                        {/* Book Cover Thumbnail */}
-                        <div className="relative w-20 h-28 shrink-0 rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
-                          <Image
-                            src={book.coverImage}
-                            alt={book.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                  return (
+                    <div
+                      key={book.id}
+                      className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between"
+                    >
+                      {/* Top color gradient banner */}
+                      <div className={`h-2.5 w-full bg-gradient-to-r ${book.coverGradient}`} />
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${book.tagBg}`}>
-                              {book.badge}
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-400">
-                              {book.totalPages}
-                            </span>
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-start gap-4">
+                          {/* Book Cover Thumbnail */}
+                          <div className="relative w-20 h-28 shrink-0 rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
+                            <Image
+                              src={book.coverImage}
+                              alt={book.title}
+                              fill
+                              className="object-cover"
+                            />
                           </div>
-                          <h3 className="text-base font-bold text-slate-800 leading-snug">
-                            {book.title}
-                          </h3>
-                          <p className="text-xs text-violet-600 font-medium mt-0.5">
-                            {book.subtitle}
-                          </p>
-                        </div>
-                      </div>
 
-                      <p className="text-xs text-slate-500 leading-relaxed mt-4 flex-1">
-                        {book.description}
-                      </p>
-
-                      {/* Included Units */}
-                      <div className="mt-4 pt-3 border-t border-slate-100">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                          Included in this Book
-                        </p>
-                        <div className="space-y-1">
-                          {book.unitsList.map((unit, uIdx) => (
-                            <div key={uIdx} className="flex items-center gap-2 text-xs text-slate-600">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                              <span className="truncate">{unit}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${book.tagBg}`}>
+                                {book.badge}
+                              </span>
+                              {isBookUnlocked ? (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" /> Enrolled
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-50 text-amber-800 border-amber-200 flex items-center gap-1">
+                                  <Lock className="w-3 h-3" /> Locked
+                                </span>
+                              )}
+                              <span className="text-[10px] font-medium text-slate-400">
+                                {book.totalPages}
+                              </span>
                             </div>
-                          ))}
+                            <h3 className="text-base font-bold text-slate-800 leading-snug">
+                              {book.title}
+                            </h3>
+                            <p className="text-xs text-violet-600 font-medium mt-0.5">
+                              {book.subtitle}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Read Action Button */}
-                      <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                          <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>Protected In-Web View</span>
+                        <p className="text-xs text-slate-500 leading-relaxed mt-4 flex-1">
+                          {book.description}
+                        </p>
+
+                        {/* Included Units */}
+                        <div className="mt-4 pt-3 border-t border-slate-100">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                            Included in this Book
+                          </p>
+                          <div className="space-y-1">
+                            {book.unitsList.map((unit, uIdx) => (
+                              <div key={uIdx} className="flex items-center gap-2 text-xs text-slate-600">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                <span className="truncate">{unit}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <button
-                          onClick={() => setPdfViewer({ open: true, url: book.pdfUrl, title: `${book.title} (${book.subtitle})` })}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition-all shadow-sm cursor-pointer hover:shadow-md hover:shadow-violet-200"
-                        >
-                          <BookOpen className="w-4 h-4" />
-                          Read Now
-                        </button>
+
+                        {/* Read Action Button */}
+                        <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                            <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{isBookUnlocked ? "Protected In-Web View" : "DRM Encrypted"}</span>
+                          </div>
+                          {isBookUnlocked ? (
+                            <button
+                              onClick={() => setPdfViewer({ open: true, url: book.pdfUrl, title: `${book.title} (${book.subtitle})` })}
+                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold transition-all shadow-sm cursor-pointer hover:shadow-md hover:shadow-violet-200"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                              Read Now
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSampleBookTitle(book.title);
+                                setSampleBookId(book.id);
+                                setSampleModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-sm cursor-pointer hover:shadow-md hover:shadow-amber-200"
+                            >
+                              <Lock className="w-4 h-4" />
+                              Unlock Course (₹99)
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Security notice banner */}
@@ -515,11 +610,11 @@ export default function StudentDashboardPage() {
                 <p className="text-sm text-slate-500 mt-1">Master the 4-step answer structure: Monster Monday, Midweek Law Madness & Final Boss Friday.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {WEEKLY_CASES.map((cs) => (
-                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                {(liveCases && liveCases.length > 0 ? liveCases : WEEKLY_CASES).map((cs: any) => (
+                  <div key={cs.id || cs._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-violet-600 uppercase tracking-wide">{cs.day}</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cs.badgeColor}`}>{cs.badge}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cs.badgeColor || "bg-violet-100 text-violet-700 border-violet-200"}`}>{cs.badge || "Live Case"}</span>
                     </div>
                     <div>
                       <span className="text-[11px] text-slate-400 block mb-1">{cs.subject}</span>
@@ -531,7 +626,7 @@ export default function StudentDashboardPage() {
                       <p className="text-xs text-slate-500 leading-relaxed">{cs.modelAnswer}</p>
                     </div>
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                      <span className="font-mono text-slate-400">{cs.precedent}</span>
+                      <span className="font-mono text-slate-400">{cs.precedent || "Direct Statutory Analysis"}</span>
                       <span className="text-emerald-600 font-bold">6/6 Marks</span>
                     </div>
                   </div>

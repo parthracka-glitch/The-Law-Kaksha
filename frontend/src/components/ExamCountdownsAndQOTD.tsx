@@ -163,6 +163,9 @@ const MCQ_POOL: MCQScenario[] = [
 ];
 
 export function ExamCountdownsAndQOTD() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const [examTargets, setExamTargets] = useState<ExamTarget[]>(EXAM_TARGETS);
+  const [mcqList, setMcqList] = useState<MCQScenario[]>(MCQ_POOL);
   const [selectedExamId, setSelectedExamId] = useState<string>("ca-found");
   const [activeQuestionIdx, setActiveQuestionIdx] = useState<number>(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -176,9 +179,50 @@ export function ExamCountdownsAndQOTD() {
     seconds: number;
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
+  // Fetch live exam countdowns and QOTD from MongoDB Atlas
+  useEffect(() => {
+    async function fetchLiveSiteData() {
+      try {
+        const res = await fetch(`${API_URL}/api/public/site-data`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          if (Array.isArray(data.examSettings) && data.examSettings.length > 0) {
+            setExamTargets(data.examSettings);
+            if (!data.examSettings.some((e: any) => e.id === selectedExamId)) {
+              setSelectedExamId(data.examSettings[0].id);
+            }
+          }
+          if (data.qotd && data.qotd.question) {
+            const formattedLiveQotd: MCQScenario = {
+              id: "live-qotd",
+              subject: data.qotd.subject || "Daily Legal Drill",
+              statutoryRef: data.qotd.statutoryRef || "High Yield Topic",
+              question: data.qotd.question,
+              options: Array.isArray(data.qotd.options)
+                ? data.qotd.options.map((opt: any, idx: number) => ({
+                    text: typeof opt === "string" ? opt : opt.text,
+                    isCorrect: idx === (data.qotd.correctOption ?? 0) || Boolean(opt.isCorrect),
+                    pct: typeof opt === "object" && opt.pct ? opt.pct : (idx === (data.qotd.correctOption ?? 0) ? 78 : 7),
+                  }))
+                : MCQ_POOL[0].options,
+              explanationTitle: data.qotd.explanationTitle || "Concept Rationale",
+              explanation: data.qotd.explanation || "Direct statutory interpretation.",
+              keyDistinction: data.qotd.keyDistinction || "Admin Verified Practice Question.",
+            };
+            setMcqList([formattedLiveQotd, ...MCQ_POOL]);
+          }
+        }
+      } catch (e) {
+        // Fallback silently to pre-bundled local data
+      }
+    }
+    fetchLiveSiteData();
+  }, [API_URL]);
+
   const activeExam =
-    EXAM_TARGETS.find((e) => e.id === selectedExamId) || EXAM_TARGETS[0];
-  const activeMCQ = MCQ_POOL[activeQuestionIdx];
+    examTargets.find((e) => e.id === selectedExamId) || examTargets[0] || EXAM_TARGETS[0];
+  const activeMCQ = mcqList[activeQuestionIdx] || MCQ_POOL[0];
 
   // Dynamic Countdown Timer Calculation
   useEffect(() => {
@@ -208,7 +252,7 @@ export function ExamCountdownsAndQOTD() {
   const handleNextQuestion = () => {
     setSelectedOption(null);
     setIsAnswered(false);
-    setActiveQuestionIdx((prev) => (prev + 1) % MCQ_POOL.length);
+    setActiveQuestionIdx((prev) => (prev + 1) % mcqList.length);
   };
 
   const handleResetQuestion = () => {
@@ -258,7 +302,7 @@ export function ExamCountdownsAndQOTD() {
 
               {/* Course Selection Tabs */}
               <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                {EXAM_TARGETS.map((exam) => (
+                {examTargets.map((exam) => (
                   <button
                     key={exam.id}
                     onClick={() => setSelectedExamId(exam.id)}
@@ -268,7 +312,7 @@ export function ExamCountdownsAndQOTD() {
                         : "text-[#6E6E73] hover:text-[#1D1D1F]"
                     }`}
                   >
-                    {exam.id === "ca-found" ? "CA Foundation" : "CSEET Law"}
+                    {exam.name.includes("CA") ? "CA Foundation" : "CSEET Law"}
                   </button>
                 ))}
               </div>

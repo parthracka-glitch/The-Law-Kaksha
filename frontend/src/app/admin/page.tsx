@@ -404,7 +404,10 @@ export default function AdminPortalPage() {
   const [mcqModal, setMcqModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<McqQuestionItem> }>({ open: false, mode: "add", data: {} });
   const [couponModal, setCouponModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CouponRecord> }>({ open: false, mode: "add", data: {} });
 
-  // Load from LocalStorage
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const [isAtlasConnected, setIsAtlasConnected] = useState<boolean>(true);
+
+  // Load initial cache and sync with MongoDB Atlas
   useEffect(() => {
     if (typeof window !== "undefined") {
       const adminSession = localStorage.getItem("lawkaksha_admin_session");
@@ -417,6 +420,7 @@ export default function AdminPortalPage() {
       setIsAuthorized(true);
       setIsCheckingAuth(false);
 
+      // 1. Instant optimistic load from localStorage
       try {
         localStorage.removeItem("lawkaksha_admin_orders");
         const p = localStorage.getItem("lawkaksha_admin_products");
@@ -432,6 +436,59 @@ export default function AdminPortalPage() {
         const cp = localStorage.getItem("lawkaksha_admin_coupons");
         if (cp) setCoupons(JSON.parse(cp));
       } catch (e) {}
+
+      // 2. Live fetch from MongoDB Atlas
+      const syncWithAtlas = async () => {
+        try {
+          const [pRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes] = await Promise.allSettled([
+            fetch(`${API_URL}/api/admin/products`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/students`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/cases`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/mcqs`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
+          ]);
+
+          if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
+            setProducts(pRes.value.products);
+            localStorage.setItem("lawkaksha_admin_products", JSON.stringify(pRes.value.products));
+          }
+          if (sRes.status === "fulfilled" && sRes.value?.subscriptions?.length) {
+            setSubscriptions(sRes.value.subscriptions);
+            localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(sRes.value.subscriptions));
+          }
+          if (stdRes.status === "fulfilled" && stdRes.value?.students?.length) {
+            setStudents(stdRes.value.students);
+            localStorage.setItem("lawkaksha_admin_students", JSON.stringify(stdRes.value.students));
+          }
+          if (cRes.status === "fulfilled" && cRes.value?.cases?.length) {
+            setCases(cRes.value.cases);
+            localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(cRes.value.cases));
+          }
+          if (mRes.status === "fulfilled" && mRes.value?.mcqs?.length) {
+            setMcqs(mRes.value.mcqs);
+            localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(mRes.value.mcqs));
+          }
+          if (cpRes.status === "fulfilled" && cpRes.value?.coupons?.length) {
+            setCoupons(cpRes.value.coupons);
+            localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(cpRes.value.coupons));
+          }
+          if (exRes.status === "fulfilled" && exRes.value?.examSettings?.length) {
+            setExamSettings(exRes.value.examSettings);
+          }
+          if (qRes.status === "fulfilled" && qRes.value?.qotd) {
+            setQotd(qRes.value.qotd);
+          }
+          setIsAtlasConnected(true);
+        } catch (err) {
+          console.warn("[Admin] Running in local cache mode:", err);
+          setIsAtlasConnected(false);
+        }
+      };
+
+      syncWithAtlas();
     }
   }, [router]);
 
@@ -594,7 +651,16 @@ export default function AdminPortalPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${
+              isAtlasConnected
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                : "bg-amber-50 text-amber-800 border-amber-200"
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${isAtlasConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+              <span>{isAtlasConnected ? "MongoDB Atlas Active" : "Local Sync Active"}</span>
+            </div>
+
             <Link
               href="/student"
               target="_blank"
@@ -799,12 +865,19 @@ export default function AdminPortalPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <button
-                                onClick={() => {
+                                onClick={async () => {
                                   const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
                                   const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus as any } : item));
                                   setSubscriptions(updated);
                                   localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
                                   showToast(`Access ${nextStatus} for ${sub.studentName}`);
+                                  try {
+                                    await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ accessStatus: nextStatus }),
+                                    });
+                                  } catch (e) {}
                                 }}
                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
                                   sub.accessStatus === "Active"
@@ -826,12 +899,15 @@ export default function AdminPortalPage() {
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (confirm(`Delete subscription record for ${sub.studentName}?`)) {
                                       const filtered = subscriptions.filter((s) => s.id !== sub.id);
                                       setSubscriptions(filtered);
                                       localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(filtered));
                                       showToast(`Subscription ${sub.id} deleted.`);
+                                      try {
+                                        await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
+                                      } catch (e) {}
                                     }
                                   }}
                                   title="Delete Subscription"
@@ -920,12 +996,15 @@ export default function AdminPortalPage() {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`Delete product ${prod.title}?`)) {
                               const filtered = products.filter((p) => p.id !== prod.id);
                               setProducts(filtered);
                               localStorage.setItem("lawkaksha_admin_products", JSON.stringify(filtered));
                               showToast(`Deleted ${prod.title}`);
+                              try {
+                                await fetch(`${API_URL}/api/admin/products/${prod.id}`, { method: "DELETE" });
+                              } catch (e) {}
                             }
                           }}
                           className="p-2 rounded-xl bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
@@ -1007,11 +1086,18 @@ export default function AdminPortalPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <button
-                                onClick={() => {
+                                onClick={async () => {
                                   const updated = students.map((s) => (s.id === std.id ? { ...s, drm_access: !s.drm_access } : s));
                                   setStudents(updated);
                                   localStorage.setItem("lawkaksha_admin_students", JSON.stringify(updated));
                                   showToast(`DRM access ${std.drm_access ? "Revoked" : "Granted"} for ${std.name}`);
+                                  try {
+                                    await fetch(`${API_URL}/api/admin/students/${std.id}`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ drm_access: !std.drm_access }),
+                                    });
+                                  } catch (e) {}
                                 }}
                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
                                   std.drm_access
@@ -1036,12 +1122,15 @@ export default function AdminPortalPage() {
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (confirm(`Delete student record for ${std.name}?`)) {
                                       const filtered = students.filter((s) => s.id !== std.id);
                                       setStudents(filtered);
                                       localStorage.setItem("lawkaksha_admin_students", JSON.stringify(filtered));
                                       showToast(`Deleted student ${std.name}`);
+                                      try {
+                                        await fetch(`${API_URL}/api/admin/students/${std.id}`, { method: "DELETE" });
+                                      } catch (e) {}
                                     }
                                   }}
                                   title="Delete Student"
@@ -1111,12 +1200,15 @@ export default function AdminPortalPage() {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm("Delete this case study?")) {
                               const filtered = cases.filter((c) => c.id !== cs.id);
                               setCases(filtered);
                               localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(filtered));
                               showToast("Case study deleted.");
+                              try {
+                                await fetch(`${API_URL}/api/admin/cases/${cs.id}`, { method: "DELETE" });
+                              } catch (e) {}
                             }
                           }}
                           className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
@@ -1162,12 +1254,15 @@ export default function AdminPortalPage() {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm("Delete this question?")) {
                               const filtered = mcqs.filter((m) => m.id !== q.id);
                               setMcqs(filtered);
                               localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(filtered));
                               showToast("Question deleted.");
+                              try {
+                                await fetch(`${API_URL}/api/admin/mcqs/${q.id}`, { method: "DELETE" });
+                              } catch (e) {}
                             }
                           }}
                           className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
@@ -1259,12 +1354,15 @@ export default function AdminPortalPage() {
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (confirm(`Delete coupon ${cp.code}?`)) {
                             const filtered = coupons.filter((c) => c.id !== cp.id);
                             setCoupons(filtered);
                             localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(filtered));
                             showToast(`Deleted coupon ${cp.code}`);
+                            try {
+                              await fetch(`${API_URL}/api/admin/coupons/${cp.id}`, { method: "DELETE" });
+                            } catch (e) {}
                           }
                         }}
                         className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
@@ -1298,11 +1396,19 @@ export default function AdminPortalPage() {
                         <input
                           type="date"
                           value={ex.date}
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const next = [...examSettings];
                             next[idx].date = e.target.value;
                             setExamSettings(next);
-                            showToast("Updated target exam date.");
+                            showToast("Saving exam date to MongoDB Atlas...");
+                            try {
+                              await fetch(`${API_URL}/api/admin/exam-settings`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ examSettings: next }),
+                              });
+                              showToast("Updated target exam date in MongoDB Atlas!");
+                            } catch (err) {}
                           }}
                           className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold outline-none focus:border-violet-500"
                         />
@@ -1359,7 +1465,19 @@ export default function AdminPortalPage() {
 
                   <div className="pt-2">
                     <button
-                      onClick={() => showToast("Question of the Day updated successfully!")}
+                      onClick={async () => {
+                        showToast("Saving QOTD to MongoDB Atlas...");
+                        try {
+                          await fetch(`${API_URL}/api/admin/qotd`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ qotd }),
+                          });
+                          showToast("Question of the Day updated in MongoDB Atlas!");
+                        } catch (err) {
+                          showToast("Saved locally (offline mode)");
+                        }
+                      }}
                       className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
                     >
                       Save QOTD Updates
@@ -1494,33 +1612,37 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!subModal.data.studentName) return alert("Please enter student name");
-                  if (subModal.mode === "add") {
-                    const newSub: SubscriptionRecord = {
-                      id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-                      studentName: subModal.data.studentName || "",
-                      studentRoll: subModal.data.studentRoll || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
-                      email: subModal.data.email || "student@thelawkaksha.com",
-                      phone: subModal.data.phone || "+91 98000 00000",
-                      item: subModal.data.item || "Volume 1 & 2 Master Digital Pass",
-                      targetExam: subModal.data.targetExam || "CSEET Law & Management",
-                      amount: subModal.data.amount || "₹449",
-                      date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-                      paymentMode: subModal.data.paymentMode || "UPI / Razorpay",
-                      accessStatus: subModal.data.accessStatus || "Active",
-                    };
-                    const next = [...subscriptions, newSub];
-                    setSubscriptions(next);
-                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
-                    showToast("Access pass granted successfully!");
-                  } else {
-                    const next = subscriptions.map((s) => (s.id === subModal.data.id ? { ...s, ...subModal.data } : s));
-                    setSubscriptions(next as any);
-                    localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
-                    showToast("Subscription updated!");
-                  }
+                  const isAdd = subModal.mode === "add";
+                  const payload: SubscriptionRecord = {
+                    id: subModal.data.id || `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                    studentName: subModal.data.studentName || "",
+                    studentRoll: subModal.data.studentRoll || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
+                    email: subModal.data.email || "student@thelawkaksha.com",
+                    phone: subModal.data.phone || "+91 98000 00000",
+                    item: subModal.data.item || "Volume 1 & 2 Master Digital Pass",
+                    targetExam: subModal.data.targetExam || "CSEET Law & Management",
+                    amount: subModal.data.amount || "₹449",
+                    date: subModal.data.date || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                    paymentMode: subModal.data.paymentMode || "UPI / Razorpay",
+                    accessStatus: subModal.data.accessStatus || "Active",
+                  };
+                  const next = isAdd ? [...subscriptions, payload] : subscriptions.map((s) => (s.id === payload.id ? payload : s));
+                  setSubscriptions(next);
+                  localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(next));
                   setSubModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Granting pass in MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/subscriptions${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? "Access pass granted in MongoDB Atlas!" : "Subscription updated in Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >
@@ -1644,34 +1766,38 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!productModal.data.title) return alert("Please enter a title");
-                  if (productModal.mode === "add") {
-                    const newProd: ProductItem = {
-                      id: `prod-${Date.now()}`,
-                      title: productModal.data.title || "Untitled Book",
-                      subtitle: productModal.data.subtitle || "",
-                      category: productModal.data.category || "CSEET",
-                      format: "Digital Codex (In-Web DRM)",
-                      price: productModal.data.price || 249,
-                      originalPrice: productModal.data.originalPrice || 499,
-                      pages: productModal.data.pages || "150 Pages",
-                      status: productModal.data.status || "Active",
-                      pdfUrl: productModal.data.pdfUrl || "/api/pdf/cseet-business-law-full.pdf",
-                      description: productModal.data.description || "",
-                      units: ["Unit 1", "Unit 2"],
-                    };
-                    const next = [...products, newProd];
-                    setProducts(next);
-                    localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
-                    showToast("Digital Codex added successfully!");
-                  } else {
-                    const next = products.map((p) => (p.id === productModal.data.id ? { ...p, ...productModal.data } : p));
-                    setProducts(next as any);
-                    localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
-                    showToast("Codex details updated!");
-                  }
+                  const isAdd = productModal.mode === "add";
+                  const payload: ProductItem = {
+                    id: productModal.data.id || `prod-${Date.now()}`,
+                    title: productModal.data.title || "Untitled Book",
+                    subtitle: productModal.data.subtitle || "",
+                    category: productModal.data.category || "CSEET",
+                    format: "Digital Codex (In-Web DRM)",
+                    price: Number(productModal.data.price) || 249,
+                    originalPrice: Number(productModal.data.originalPrice) || 499,
+                    pages: productModal.data.pages || "150 Pages",
+                    status: productModal.data.status || "Active",
+                    pdfUrl: productModal.data.pdfUrl || "/api/pdf/cseet-business-law-full.pdf",
+                    description: productModal.data.description || "",
+                    units: productModal.data.units || ["Unit 1", "Unit 2"],
+                  };
+                  const next = isAdd ? [...products, payload] : products.map((p) => (p.id === payload.id ? payload : p));
+                  setProducts(next);
+                  localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
                   setProductModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Adding Codex to MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/products${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? "Digital Codex saved to MongoDB Atlas!" : "Codex updated in Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >
@@ -1761,32 +1887,36 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!studentModal.data.name) return alert("Please enter student name");
-                  if (studentModal.mode === "add") {
-                    const newStd: StudentRecord = {
-                      id: `std-${Date.now()}`,
-                      student_id: studentModal.data.student_id || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
-                      name: studentModal.data.name || "",
-                      email: studentModal.data.email || "",
-                      phone: studentModal.data.phone || "+91 98000 00000",
-                      target_exam: studentModal.data.target_exam || "CSEET Law & Management",
-                      is_active: true,
-                      drm_access: true,
-                      enrolled_books: ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
-                      joined_date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-                    };
-                    const next = [...students, newStd];
-                    setStudents(next);
-                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
-                    showToast("Student enrolled successfully!");
-                  } else {
-                    const next = students.map((s) => (s.id === studentModal.data.id ? { ...s, ...studentModal.data } : s));
-                    setStudents(next as any);
-                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
-                    showToast("Student info updated!");
-                  }
+                  const isAdd = studentModal.mode === "add";
+                  const payload: StudentRecord = {
+                    id: studentModal.data.id || `std-${Date.now()}`,
+                    student_id: studentModal.data.student_id || `LRK-2026-00${Math.floor(1000 + Math.random() * 9000)}`,
+                    name: studentModal.data.name || "",
+                    email: studentModal.data.email || "",
+                    phone: studentModal.data.phone || "+91 98000 00000",
+                    target_exam: studentModal.data.target_exam || "CSEET Law & Management",
+                    is_active: studentModal.data.is_active !== undefined ? studentModal.data.is_active : true,
+                    drm_access: studentModal.data.drm_access !== undefined ? studentModal.data.drm_access : true,
+                    enrolled_books: studentModal.data.enrolled_books || ["Business Law (Volume 1)", "Business Law & Management (Volume 2)"],
+                    joined_date: studentModal.data.joined_date || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                  };
+                  const next = isAdd ? [...students, payload] : students.map((s) => (s.id === payload.id ? payload : s));
+                  setStudents(next);
+                  localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                   setStudentModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Enrolling student in MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/students${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? "Student enrolled in MongoDB Atlas!" : "Student updated in Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >
@@ -1908,31 +2038,35 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!caseModal.data.title || !caseModal.data.scenario) return alert("Please fill title and scenario");
-                  if (caseModal.mode === "add") {
-                    const newCase: CaseStudyItem = {
-                      id: `case-${Date.now()}`,
-                      day: caseModal.data.day || "Monster Monday",
-                      badge: caseModal.data.badge || "High Difficulty",
-                      subject: caseModal.data.subject || "Indian Contract Act, 1872",
-                      title: caseModal.data.title || "",
-                      scenario: caseModal.data.scenario || "",
-                      modelAnswer: caseModal.data.modelAnswer || "",
-                      precedent: caseModal.data.precedent || "Standard Citation",
-                      marks: caseModal.data.marks || "6/6 Marks",
-                    };
-                    const next = [...cases, newCase];
-                    setCases(next);
-                    localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
-                    showToast("Case study added!");
-                  } else {
-                    const next = cases.map((c) => (c.id === caseModal.data.id ? { ...c, ...caseModal.data } : c));
-                    setCases(next as any);
-                    localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
-                    showToast("Case study updated!");
-                  }
+                  const isAdd = caseModal.mode === "add";
+                  const payload: CaseStudyItem = {
+                    id: caseModal.data.id || `case-${Date.now()}`,
+                    day: caseModal.data.day || "Monster Monday",
+                    badge: caseModal.data.badge || "High Difficulty",
+                    subject: caseModal.data.subject || "Indian Contract Act, 1872",
+                    title: caseModal.data.title || "",
+                    scenario: caseModal.data.scenario || "",
+                    modelAnswer: caseModal.data.modelAnswer || "",
+                    precedent: caseModal.data.precedent || "Standard Citation",
+                    marks: caseModal.data.marks || "6/6 Marks",
+                  };
+                  const next = isAdd ? [...cases, payload] : cases.map((c) => (c.id === payload.id ? payload : c));
+                  setCases(next);
+                  localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
                   setCaseModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Adding case to MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? "Case study saved in MongoDB Atlas!" : "Case study updated in Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >
@@ -2037,29 +2171,33 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!mcqModal.data.question) return alert("Please enter question text");
-                  if (mcqModal.mode === "add") {
-                    const newMcq: McqQuestionItem = {
-                      id: `mcq-${Date.now()}`,
-                      subject: mcqModal.data.subject || "Business Law",
-                      section: mcqModal.data.section || "General",
-                      question: mcqModal.data.question || "",
-                      options: mcqModal.data.options || ["", "", "", ""],
-                      correctOption: mcqModal.data.correctOption || 0,
-                      explanation: mcqModal.data.explanation || "",
-                    };
-                    const next = [...mcqs, newMcq];
-                    setMcqs(next);
-                    localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
-                    showToast("Question added to bank!");
-                  } else {
-                    const next = mcqs.map((m) => (m.id === mcqModal.data.id ? { ...m, ...mcqModal.data } : m));
-                    setMcqs(next as any);
-                    localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
-                    showToast("Question updated!");
-                  }
+                  const isAdd = mcqModal.mode === "add";
+                  const payload: McqQuestionItem = {
+                    id: mcqModal.data.id || `mcq-${Date.now()}`,
+                    subject: mcqModal.data.subject || "Business Law",
+                    section: mcqModal.data.section || "General",
+                    question: mcqModal.data.question || "",
+                    options: mcqModal.data.options || ["", "", "", ""],
+                    correctOption: Number(mcqModal.data.correctOption) || 0,
+                    explanation: mcqModal.data.explanation || "",
+                  };
+                  const next = isAdd ? [...mcqs, payload] : mcqs.map((m) => (m.id === payload.id ? payload : m));
+                  setMcqs(next);
+                  localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
                   setMcqModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Adding MCQ to MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/mcqs${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? "MCQ added to MongoDB Atlas!" : "MCQ updated in Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >
@@ -2159,30 +2297,34 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!couponModal.data.code) return alert("Please enter coupon code");
-                  if (couponModal.mode === "add") {
-                    const newCoupon: CouponRecord = {
-                      id: `cp-${Date.now()}`,
-                      code: couponModal.data.code || "DISCOUNT",
-                      discountPercent: couponModal.data.discountPercent || 20,
-                      minOrder: couponModal.data.minOrder || 200,
-                      maxUses: couponModal.data.maxUses || 100,
-                      usedCount: 0,
-                      expiryDate: couponModal.data.expiryDate || "2026-12-31",
-                      status: couponModal.data.status || "Active",
-                    };
-                    const next = [...coupons, newCoupon];
-                    setCoupons(next);
-                    localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
-                    showToast(`Created coupon ${newCoupon.code}`);
-                  } else {
-                    const next = coupons.map((c) => (c.id === couponModal.data.id ? { ...c, ...couponModal.data } : c));
-                    setCoupons(next as any);
-                    localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
-                    showToast(`Updated coupon ${couponModal.data.code}`);
-                  }
+                  const isAdd = couponModal.mode === "add";
+                  const payload: CouponRecord = {
+                    id: couponModal.data.id || `cp-${Date.now()}`,
+                    code: (couponModal.data.code || "DISCOUNT").toUpperCase().trim(),
+                    discountPercent: Number(couponModal.data.discountPercent) || 20,
+                    minOrder: Number(couponModal.data.minOrder) || 200,
+                    maxUses: Number(couponModal.data.maxUses) || 100,
+                    usedCount: Number(couponModal.data.usedCount) || 0,
+                    expiryDate: couponModal.data.expiryDate || "2026-12-31",
+                    status: couponModal.data.status || "Active",
+                  };
+                  const next = isAdd ? [...coupons, payload] : coupons.map((c) => (c.id === payload.id ? payload : c));
+                  setCoupons(next);
+                  localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
                   setCouponModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Adding coupon to MongoDB Atlas..." : "Updating in Atlas...");
+                  try {
+                    await fetch(`${API_URL}/api/admin/coupons${!isAdd ? "/" + payload.id : ""}`, {
+                      method: isAdd ? "POST" : "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
+                    });
+                    showToast(isAdd ? `Coupon ${payload.code} saved in MongoDB Atlas!` : `Coupon ${payload.code} updated!`);
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm cursor-pointer"
               >

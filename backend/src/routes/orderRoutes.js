@@ -183,7 +183,7 @@ router.post("/orders/verify", (req, res) => {
 
     // Insert active subscription record
     const subscriptionsTable = Database.table("subscriptions");
-    subscriptionsTable.insert({
+    const subRecord = {
       id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       userId: student.id,
       studentName: student.name,
@@ -197,7 +197,37 @@ router.post("/orders/verify", (req, res) => {
       paymentMode: "UPI / Razorpay",
       accessStatus: "Active",
       status: "ACTIVE",
-    });
+      unlockedItemIds,
+    };
+    subscriptionsTable.insert(subRecord);
+
+    // Sync directly to MongoDB Atlas
+    const { isConnected } = require("../db/mongo");
+    if (isConnected()) {
+      const User = require("../models/User");
+      const Subscription = require("../models/Subscription");
+
+      User.findOneAndUpdate(
+        { email: student.email.toLowerCase() },
+        {
+          $addToSet: {
+            unlockedItemIds: { $each: unlockedItemIds },
+            enrolled_books: { $each: (order.items || []).map((i) => i.title) },
+          },
+          $set: {
+            name: student.name,
+            phone: student.phone,
+            student_id: student.student_id,
+            target_exam: order.target_exam,
+            drm_access: true,
+            is_active: true,
+          },
+        },
+        { upsert: true }
+      ).catch((e) => console.error("[Orders] Atlas user sync error:", e));
+
+      Subscription.create(subRecord).catch((e) => console.error("[Orders] Atlas sub create error:", e));
+    }
 
     const token = jwt.sign(
       {

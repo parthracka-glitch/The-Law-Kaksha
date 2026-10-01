@@ -1,7 +1,7 @@
 /**
  * The Law Kaksha - Express Backend API Server
  * CA Foundation Business Laws + CSEET Business Law & Management
- * Subscription-based platform at Rs. 99/month
+ * Connected to MongoDB Atlas Cluster0 with Local Fault-Tolerant Fallback
  */
 
 const express = require("express");
@@ -12,12 +12,21 @@ const dotenv = require("dotenv");
 // Load environment variables
 dotenv.config();
 
-// Ensure Database & Seeder are initialized
+// Ensure Database & Mongo Connection
 const Database = require("./db/database");
-const seed = require("./db/seed");
+const seedLocal = require("./db/seed");
+const { connectMongo, isConnected } = require("./db/mongo");
+const seedMongo = require("./db/mongoSeed");
 
-// Run seeder once on server startup
-seed();
+// Run local seeder
+seedLocal();
+
+// Connect to MongoDB Atlas in background and seed
+connectMongo().then(() => {
+  seedMongo();
+}).catch((err) => {
+  console.warn("[MongoDB] Startup connection error:", err.message);
+});
 
 // Import Routers
 const authRoutes = require("./routes/authRoutes");
@@ -26,6 +35,7 @@ const contentRoutes = require("./routes/contentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -60,6 +70,7 @@ app.use("/api", contentRoutes);
 app.use("/api", quizRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", adminRoutes);
+app.use("/api/student", studentRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {
@@ -73,7 +84,9 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString(),
     service: "The Law Kaksha API Server",
     database: {
-      usersCount: usersTable.count(),
+      type: "MongoDB Atlas Cluster0",
+      mongoConnected: isConnected(),
+      localFallbackUsersCount: usersTable.count(),
       coursesCount: coursesTable.count(),
       actsCount: actsTable.count(),
     },
@@ -87,6 +100,7 @@ app.get("/", (req, res) => {
     message: "Welcome to The Law Kaksha API Server — CA Foundation & CSEET Platform",
     healthCheck: "/api/health",
     courses: "/api/courses",
+    database: isConnected() ? "Connected to MongoDB Atlas" : "Local Cache",
   });
 });
 

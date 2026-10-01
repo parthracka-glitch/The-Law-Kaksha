@@ -1137,5 +1137,31 @@
       "updated_at": "2026-10-01T01:42:52.890Z",
       "gateway_payment_id": "pay_LK_1790818972889"
     }
+  ],
+  "products": [
+    {
+      "id": "prod-1790827643169",
+      "title": "CA Foundation Contract Act Crash Codex",
+      "subtitle": "High speed revision notes with 50 practical questions",
+      "category": "CA Foundation",
+      "format": "Digital Codex (In-Web DRM)",
+      "price": 99,
+      "originalPrice": 499,
+      "pages": "150+ Pages",
+      "status": "Active",
+      "pdfUrl": "/api/pdf/cseet-business-law-full.pdf",
+      "description": "Instant crash revision codex for CA Foundation students.",
+      "units": [
+        "Unit 1",
+        "Unit 2"
+      ],
+      "highlights": [
+        "In-Web DRM Reading"
+      ],
+      "cover_image": "/assets/ca-cs-hero-books-v2.png",
+      "isSample": false,
+      "created_at": "2026-10-01T04:07:23.222Z",
+      "updated_at": "2026-10-01T04:07:23.222Z"
+    }
   ]
 }

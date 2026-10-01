@@ -1,14 +1,17 @@
 /**
  * The Law Kaksha — Catalog Routes
- * Serves courses, acts/units, shopping catalog products, and content for CA Foundation & CSEET
+ * Serves courses, acts/units, study codices from MongoDB Atlas for CA Foundation & CSEET
  */
 
 const express = require("express");
 const router = express.Router();
+const Product = require("../models/Product");
+const SiteSetting = require("../models/SiteSetting");
 const Database = require("../db/database");
+const { isConnected } = require("../db/mongo");
 
-// Academic Catalog: Official CA Foundation & CSEET Subscription Courses
-const CATALOG_PRODUCTS = [
+// Base courses
+const DEFAULT_COURSES = [
   {
     id: "course-ca-foundation-sub",
     slug: "ca-foundation-business-laws-monthly-access",
@@ -20,7 +23,7 @@ const CATALOG_PRODUCTS = [
     price: 99,
     original_price: 299,
     badge: "₹99 / Month",
-    category: "CA Foundation Paper 2",
+    category: "CA Foundation",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
     cover_image: "/assets/ca-cs-hero-books-v2.png",
@@ -42,7 +45,7 @@ const CATALOG_PRODUCTS = [
     price: 99,
     original_price: 299,
     badge: "₹99 / Month",
-    category: "CSEET Paper 2",
+    category: "CSEET",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
     cover_image: "/assets/ca-cs-hero-books-v2.png",
@@ -55,54 +58,114 @@ const CATALOG_PRODUCTS = [
   },
 ];
 
+// GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
+router.get("/public/site-data", async (req, res) => {
+  try {
+    let products = [];
+    let examSettings = [];
+    let qotd = null;
 
-// GET /api/catalog — List all catalog products with rich filters
-router.get("/catalog", (req, res) => {
-  let products = [...CATALOG_PRODUCTS];
+    if (isConnected()) {
+      products = await Product.find({ status: "Active" }).sort({ createdAt: -1 }).lean();
+      const examDoc = await SiteSetting.findOne({ key: "exam_countdown" }).lean();
+      if (examDoc) examSettings = examDoc.value;
+      const qotdDoc = await SiteSetting.findOne({ key: "qotd" }).lean();
+      if (qotdDoc) qotd = qotdDoc.value;
+    } else {
+      products = Database.table("products").find((p) => p.status === "Active");
+    }
 
-  if (req.query.type && req.query.type !== "all") {
-    products = products.filter((p) => p.type === req.query.type);
+    res.status(200).json({
+      success: true,
+      source: isConnected() ? "mongodb_atlas" : "local_cache",
+      products,
+      examSettings,
+      qotd,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching site data." });
   }
-  if (req.query.courseId && req.query.courseId !== "all") {
-    products = products.filter((p) => p.courseId === req.query.courseId);
-  }
-  if (req.query.search) {
-    const q = req.query.search.toLowerCase().trim();
-    products = products.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.subtitle.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-    );
-  }
+});
 
-  res.status(200).json({
-    success: true,
-    count: products.length,
-    products,
-    items: products,
-  });
+// GET /api/catalog — List all catalog products (DB + Courses)
+router.get("/catalog", async (req, res) => {
+  try {
+    let dbProducts = [];
+    if (isConnected()) {
+      dbProducts = await Product.find({ status: "Active" }).lean();
+    } else {
+      dbProducts = Database.table("products").find((p) => p.status === "Active");
+    }
+
+    // Adapt DB products into catalog format
+    const formattedDbProducts = dbProducts.map((p) => ({
+      ...p,
+      original_price: p.originalPrice || 499,
+      badge: `₹${p.price}`,
+    }));
+
+    let allProducts = [...DEFAULT_COURSES, ...formattedDbProducts];
+
+    if (req.query.type && req.query.type !== "all") {
+      allProducts = allProducts.filter((p) => p.type === req.query.type);
+    }
+    if (req.query.category && req.query.category !== "all") {
+      allProducts = allProducts.filter(
+        (p) => p.category === req.query.category || p.category === "Both"
+      );
+    }
+    if (req.query.search) {
+      const q = req.query.search.toLowerCase().trim();
+      allProducts = allProducts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          (p.subtitle && p.subtitle.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q))
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      source: isConnected() ? "mongodb_atlas" : "local_cache",
+      count: allProducts.length,
+      products: allProducts,
+      items: allProducts,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching catalog." });
+  }
 });
 
 // GET /api/catalog/:id — Get a single product's complete details
-router.get("/catalog/:id", (req, res) => {
-  const product = CATALOG_PRODUCTS.find(
-    (p) => p.id === req.params.id || p.slug === req.params.id
-  );
+router.get("/catalog/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    // Check in default courses
+    let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id);
 
-  if (!product) {
-    return res.status(404).json({
-      success: false,
-      message: "Product not found in catalog.",
+    if (!product) {
+      if (isConnected()) {
+        product = await Product.findOne({ id }).lean();
+      } else {
+        product = Database.table("products").findOne((p) => p.id === id);
+      }
+    }
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found in catalog." });
+    }
+
+    res.status(200).json({
+      success: true,
+      product: {
+        ...product,
+        original_price: product.originalPrice || product.original_price || 499,
+      },
+      item: product,
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching product details." });
   }
-
-  res.status(200).json({
-    success: true,
-    product,
-    item: product,
-  });
 });
 
 // GET /api/courses — List all courses
