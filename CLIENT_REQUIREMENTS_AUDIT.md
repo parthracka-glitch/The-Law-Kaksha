@@ -77,12 +77,26 @@
 
 ---
 
-## Open Business & Technical Questions for Client
+## Resolved Client Specifications & Production Parameters
 
-1. **Payment Gateway & Keys:** Are we using Razorpay Test Mode for initial staging verification, or do you have Live Razorpay API Keys and Webhook Secret ready?
-2. **₹99 Introductory Offer Duration & Renewal:**
-   - Is the ₹99 price a 30-day monthly recurring subscription, or a one-time introductory purchase per course?
-   - What should the regular renewal price be after the 30-day intro period?
-3. **Dual-Course Purchase Rule:** Can a single student account purchase and enroll in both CA Foundation and CSEET simultaneously, and should the ₹99 intro offer apply to both or only the first purchase?
-4. **GST & Invoicing:** Does The Law कक्षा require GST calculation (e.g., 18% GST added at checkout or inclusive) and formal automated GST PDF tax invoices emailed upon purchase?
-5. **Storage Provider:** For production uploaded PDFs/assets, should files continue to be stored on secure local server disk (`/uploads` with stream proxy) or an S3/Cloudflare R2 bucket?
+1. **Storage Provider:** **Cloudinary** (configured via `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` with fallback to secure local stream).
+2. **GST & Invoicing:** **Not yet** — Keep checkout direct, transparent, and simple without GST tax lines.
+3. **₹99 Introductory Offer Duration & Renewal:** **Monthly recurring (30 days validity per course)** with automatic days remaining calculation and 30-day renewal in Admin.
+4. **Payment Gateway Mode:** **Razorpay** checkout integration.
+5. **Launch Courses Only:** **CA Foundation Business Laws** (7 chapters) and **CSEET Business Law & Management** (8 units).
+
+---
+
+## Deliverables Status Matrix
+
+| Area | Requirement | Status | Implementation Details |
+|---|---|---|---|
+| **Storage Architecture** | Cloudinary CDN for all PDFs & covers with local stream fallback | ✅ **Done** | Implemented `backend/src/utils/cloudinary.js` with Multer buffer upload & `POST /api/admin/upload`. |
+| **Pricing & Offer** | ₹99/Month Monthly Offer for CA Foundation & CSEET; Simple pricing without GST | ✅ **Done** | Updated pricing to ₹99/Month with 30-day recurring duration tracking in Admin & Catalog. |
+| **Course Scope** | Launch ONLY CA Foundation (7 chapters) & CSEET (8 units) | ✅ **Done** | All CA Inter & Final references pruned; 7 chapters & 8 units configured. |
+| **Admin Panel** | Full PDF-to-Product, Act-Wise Resource Manager, Cloudinary Uploader & Sec 16(1) Editor | ✅ **Done** | Created Act-Wise Resources Hub tab (`/admin`), Cloudinary Uploader, and Section 16(1) live editor. |
+| **Section 16(1) Diagnostic** | 2/6 Marks Average Aspirant vs 6/6 Marks Model Answer Comparison Block | ✅ **Done** | Implemented `Section16ComparisonBlock.tsx` on landing page with ICAI step rubric. |
+| **Daily Case Scenarios** | Cover all 7 CA Foundation Acts & CSEET with Atlas sync | ✅ **Done** | Expanded `MCQ_POOL` in `ExamCountdownsAndQOTD.tsx` to all 7 CA Foundation Acts. |
+| **DRM Reader & Aspect Ratio** | Unstretched PDF zoom, anti-copy/anti-print watermark across all resources | ✅ **Done** | Dynamic canvas aspect ratio calculation implemented in `SecurePdfReader.tsx`. |
+| **Payment Gateway Mode** | Razorpay checkout integration | ✅ **Done** | Configured Razorpay client/server hooks. |
+
