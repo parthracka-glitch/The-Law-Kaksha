@@ -35,7 +35,6 @@ import {
   Layers,
   FileUp,
   RefreshCw,
-  Scale,
   Eye,
   AlertTriangle,
 } from "lucide-react";
@@ -150,21 +149,6 @@ export interface QotdSetting {
   options: string[];
   correctOption: number;
   explanation: string;
-}
-
-export interface Section16ComparisonSetting {
-  act: string;
-  section: string;
-  marks: string;
-  topic: string;
-  question: string;
-  aspirantScore: string;
-  aspirantTitle: string;
-  aspirantAnswer: string;
-  aspirantIssues: string[];
-  modelScore: string;
-  modelTitle: string;
-  modelAnswer: string;
 }
 
 // --- INITIAL SEED DATA ---
@@ -427,7 +411,7 @@ export default function AdminPortalPage() {
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
-  type TabType = "overview" | "subscriptions" | "products" | "resources" | "students" | "cases" | "mcq" | "coupons" | "qotd" | "comparison";
+  type TabType = "overview" | "subscriptions" | "products" | "resources" | "students" | "cases" | "mcq" | "coupons" | "qotd";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -455,24 +439,6 @@ export default function AdminPortalPage() {
     options: ["Doctrine of Subrogation", "Doctrine of Holding Out", "Doctrine of Ultra Vires", "Doctrine of Estoppel in Pais"],
     correctOption: 1,
     explanation: "Under Section 28 of the Indian Partnership Act 1932, anyone who represents or allows himself to be represented as a partner is liable as a partner by Holding Out.",
-  });
-  const [section16Comparison, setSection16Comparison] = useState<Section16ComparisonSetting>({
-    act: "The Sale of Goods Act, 1930",
-    section: "Section 16(1)",
-    marks: "6 Marks (ICAI Standard)",
-    topic: "Doctrine of Caveat Emptor & Implied Condition as to Quality or Fitness",
-    question: "Under Section 16(1) of the Sale of Goods Act, 1930, explain the conditions under which an implied condition as to quality or fitness applies even when not expressly stated.",
-    aspirantScore: "2 / 6 Marks",
-    aspirantTitle: "Typical 2/6 Marks Aspirant Answer",
-    aspirantAnswer: "Caveat Emptor means let the buyer beware. The buyer should inspect goods himself before buying. However, if the buyer told the seller why he is buying and seller is in business, seller is responsible. (Priest v. Last)",
-    aspirantIssues: [
-      "Fails to cite exact statutory 3-element test of Section 16(1)",
-      "Missing explanation of 'communication of purpose by implication'",
-      "No mention of patent or trade name proviso exception",
-    ],
-    modelScore: "6 / 6 Marks",
-    modelTitle: "The Law कक्षा 6/6 Model Legal Answer",
-    modelAnswer: "Under Section 16(1) of the Sale of Goods Act, 1930, the general rule of Caveat Emptor is displaced and an implied condition arises if: (1) Buyer makes known to seller the particular purpose (expressly or by implication), (2) Buyer relies on seller's skill or judgment, (3) Goods are of a description which seller supplies in the course of business. Exception: Proviso to Sec 16(1) provides no implied condition for specified articles sold under patent or trade name.",
   });
 
   // File Upload State
@@ -526,7 +492,7 @@ export default function AdminPortalPage() {
       // 2. Live fetch from MongoDB Atlas
       const syncWithAtlas = async () => {
         try {
-          const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, compRes] = await Promise.allSettled([
+          const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes] = await Promise.allSettled([
             fetch(`${API_URL}/api/admin/products`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/resources`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
@@ -536,7 +502,6 @@ export default function AdminPortalPage() {
             fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/section16-comparison`).then((r) => r.json()),
           ]);
 
           if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
@@ -572,9 +537,6 @@ export default function AdminPortalPage() {
           }
           if (qRes.status === "fulfilled" && qRes.value?.qotd) {
             setQotd(qRes.value.qotd);
-          }
-          if (compRes.status === "fulfilled" && compRes.value?.comparison) {
-            setSection16Comparison(compRes.value.comparison);
           }
           setIsAtlasConnected(true);
         } catch (err) {
@@ -652,7 +614,6 @@ export default function AdminPortalPage() {
     { id: "subscriptions" as TabType, label: "Monthly Passes & Access", icon: CreditCard, badge: subscriptions.length },
     { id: "products" as TabType, label: "Study Books & Codices", icon: BookOpen, badge: products.length },
     { id: "resources" as TabType, label: "Act-Wise Resources Hub", icon: Layers, badge: resources.length },
-    { id: "comparison" as TabType, label: "Sec 16(1) Evaluator", icon: Scale },
     { id: "students" as TabType, label: "Students & DRM Rights", icon: Users, badge: students.length },
     { id: "cases" as TabType, label: "Weekly Cases", icon: Flame },
     { id: "mcq" as TabType, label: "MCQ Test Bank", icon: Sparkles },
@@ -996,103 +957,6 @@ export default function AdminPortalPage() {
                       </div>
                     </div>
                   ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB: SECTION 16(1) COMPARISON BLOCK EDITOR */}
-          {activeTab === "comparison" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">Section 16(1) Sale of Goods Answer Writing Diagnostic</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Configure the interactive "2/6 Marks Average Aspirant vs 6/6 Marks ICAI Model Answer" comparison displayed on the landing page.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Statutory Act</label>
-                    <input
-                      type="text"
-                      value={section16Comparison.act}
-                      onChange={(e) => setSection16Comparison({ ...section16Comparison, act: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Section Citation</label>
-                    <input
-                      type="text"
-                      value={section16Comparison.section}
-                      onChange={(e) => setSection16Comparison({ ...section16Comparison, section: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">ICAI Weightage Marks</label>
-                    <input
-                      type="text"
-                      value={section16Comparison.marks}
-                      onChange={(e) => setSection16Comparison({ ...section16Comparison, marks: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-violet-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Problem Question Text</label>
-                  <textarea
-                    rows={2}
-                    value={section16Comparison.question}
-                    onChange={(e) => setSection16Comparison({ ...section16Comparison, question: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-                  <div className="p-4 rounded-xl bg-rose-50/50 border border-rose-100 space-y-2">
-                    <label className="block text-xs font-bold text-rose-800">Average Aspirant Answer (2/6)</label>
-                    <textarea
-                      rows={4}
-                      value={section16Comparison.aspirantAnswer}
-                      onChange={(e) => setSection16Comparison({ ...section16Comparison, aspirantAnswer: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-rose-200 text-xs text-slate-800 outline-none focus:border-rose-500 bg-white"
-                    />
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
-                    <label className="block text-xs font-bold text-emerald-800">Law Kaksha Model Answer (6/6)</label>
-                    <textarea
-                      rows={4}
-                      value={section16Comparison.modelAnswer}
-                      onChange={(e) => setSection16Comparison({ ...section16Comparison, modelAnswer: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-emerald-200 text-xs text-slate-800 outline-none focus:border-emerald-500 bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3">
-                  <button
-                    onClick={async () => {
-                      showToast("Saving comparison block to MongoDB Atlas...");
-                      try {
-                        await fetch(`${API_URL}/api/admin/section16-comparison`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ comparison: section16Comparison }),
-                        });
-                        showToast("Section 16(1) comparison block updated in MongoDB Atlas!");
-                      } catch (e) {
-                        showToast("Saved locally (offline mode)");
-                      }
-                    }}
-                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm cursor-pointer"
-                  >
-                    Save Comparison Updates
-                  </button>
-                </div>
               </div>
             </div>
           )}
