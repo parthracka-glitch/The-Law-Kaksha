@@ -23,6 +23,7 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
+import { Book3DViewer } from "./Book3DViewer";
 
 interface SecurePdfReaderProps {
   isOpen: boolean;
@@ -77,6 +78,7 @@ export function SecurePdfReader({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<ReaderTheme>("dark");
+  const [viewerMode, setViewerMode] = useState<"3d" | "flat">("3d");
   const [sidebarTab, setSidebarTab] = useState<"contents" | "bookmarks" | "shortcuts" | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [readingTime, setReadingTime] = useState(0);
@@ -671,6 +673,34 @@ export function SecurePdfReader({
           </div>
         </div>
 
+        {/* 3D CODEX vs FLAT STUDIO MODE SWITCHER */}
+        <div className="flex items-center bg-black/10 dark:bg-white/10 p-0.5 rounded-full border border-current/15 shrink-0 mx-2 shadow-xs">
+          <button
+            onClick={() => setViewerMode("3d")}
+            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              viewerMode === "3d"
+                ? "bg-[#BFAFE5] text-[#221D1D] shadow-xs font-bold"
+                : "opacity-70 hover:opacity-100"
+            }`}
+            title="3D Leatherbound Codex with Realistic Turning Pages"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#221D1D]" />
+            <span className="text-[11px] font-bold">3D Book</span>
+          </button>
+          <button
+            onClick={() => setViewerMode("flat")}
+            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              viewerMode === "flat"
+                ? "bg-[#AED7E9] text-[#221D1D] shadow-xs font-bold"
+                : "opacity-70 hover:opacity-100"
+            }`}
+            title="Studio Single Page View"
+          >
+            <FileText className="w-3.5 h-3.5 text-[#221D1D]" />
+            <span className="text-[11px] font-bold">Flat View</span>
+          </button>
+        </div>
+
         {/* RIGHT: 1-TAP ICONS */}
         <div className="flex items-center gap-1 shrink-0">
           {/* 1-Tap Theme Toggle */}
@@ -1033,93 +1063,112 @@ export function SecurePdfReader({
             </div>
           )}
 
-          {/* LOADED PDF PAGE WITH SECURITY WATERMARK */}
+          {/* LOADED PDF PAGE: 3D CODEX OR FLAT CANVAS */}
           {!loading && !error && (
-            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20">
-              <div
-                className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} shrink-0`}
-                style={{
-                  width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
-                  height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
-                  background: "#ffffff",
-                }}
-                onContextMenu={blockContext}
-              >
-                {/* CANVAS RENDERING SURFACE */}
-                <canvas
-                  ref={canvasRef}
-                  className="block"
+            viewerMode === "3d" ? (
+              <div className="w-full flex-1 flex items-center justify-center min-h-[500px] sm:min-h-[620px] pb-20">
+                <Book3DViewer
+                  pdfDoc={pdfDoc}
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  onPageChange={(p) => setCurrentPage(p)}
+                  isPreviewMode={isPreviewMode}
+                  maxAllowedPage={maxAllowedPage}
+                  onBuy={onBuy}
+                  studentName={activeStudent.name}
+                  studentRoll={activeStudent.roll}
+                  bookTitle={title}
+                  theme={theme}
+                  price={price}
+                />
+              </div>
+            ) : (
+              <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20">
+                <div
+                  className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} shrink-0`}
                   style={{
                     width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
                     height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
+                    background: "#ffffff",
                   }}
-                />
+                  onContextMenu={blockContext}
+                >
+                  {/* CANVAS RENDERING SURFACE */}
+                  <canvas
+                    ref={canvasRef}
+                    className="block"
+                    style={{
+                      width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
+                      height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
+                    }}
+                  />
 
-                {/* ANTI-SCREENSHOT / DRM MULTI-LAYER WATERMARK OVERLAY */}
-                <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5">
-                  {/* Top Header Watermark */}
-                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
-                    <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
-                    <span>ROLL: {activeStudent.roll}</span>
-                  </div>
+                  {/* ANTI-SCREENSHOT / DRM MULTI-LAYER WATERMARK OVERLAY */}
+                  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5">
+                    {/* Top Header Watermark */}
+                    <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
+                      <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
+                      <span>ROLL: {activeStudent.roll}</span>
+                    </div>
 
-                  {/* Multi-point Center Diagonal Watermark Grid */}
-                  <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
-                    <div className="text-[11px] sm:text-xs font-bold text-[#221D1D] tracking-wider">
-                      CONFIDENTIAL STUDY NOTES • PROPERTY OF THE LAW KAKSHA
+                    {/* Multi-point Center Diagonal Watermark Grid */}
+                    <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
+                      <div className="text-[11px] sm:text-xs font-bold text-[#221D1D] tracking-wider">
+                        CONFIDENTIAL STUDY NOTES • PROPERTY OF THE LAW KAKSHA
+                      </div>
+                      <div className="text-xs sm:text-sm font-extrabold text-[#221D1D] tracking-widest uppercase">
+                        LICENSED TO: {activeStudent.name.toUpperCase()} • ID: {activeStudent.roll}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-[#4D433F] tracking-wider">
+                        STRICTLY FORBIDDEN TO SCREENSHOT, COPY OR DISTRIBUTE
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm font-extrabold text-[#221D1D] tracking-widest uppercase">
-                      LICENSED TO: {activeStudent.name.toUpperCase()} • ID: {activeStudent.roll}
-                    </div>
-                    <div className="text-[10px] sm:text-[11px] font-bold text-[#4D433F] tracking-wider">
-                      STRICTLY FORBIDDEN TO SCREENSHOT, COPY OR DISTRIBUTE
-                    </div>
-                  </div>
 
-                  {/* Bottom Footer Watermark */}
-                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
-                    <span>STUDENT: {activeStudent.name}</span>
-                    <span>SECURE IN-WEB DRM READER</span>
+                    {/* Bottom Footer Watermark */}
+                    <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
+                      <span>STUDENT: {activeStudent.name}</span>
+                      <span>SECURE IN-WEB DRM READER</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* FOOTNOTE */}
-              <div className="mt-3 text-[11px] opacity-60 font-mono text-center">
-                Page {currentPage} of {isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}
-              </div>
-
-              {/* UNLOCK CARD WHEN REACHING PREVIEW LIMIT */}
-              {isPreviewMode && currentPage >= maxAllowedPage && (
-                <div className="w-full max-w-xl mx-auto my-6 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A1E24] border-2 border-[#BFAFE5] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 z-20">
-                  <div className="w-12 h-12 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] dark:text-white flex items-center justify-center mx-auto shadow-xs">
-                    <Lock className="w-6 h-6 text-[#221D1D] dark:text-[#AED7E9]" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B] bg-[#F4C5C0]/40 px-3 py-1 rounded-full border border-[#F4C5C0]">
-                      End of Sample Preview ({maxAllowedPage} / {totalPages > 0 ? totalPages : maxAllowedPage} Pages)
-                    </span>
-                    <h4 className="text-base sm:text-xl font-bold font-serif text-[#221D1D] dark:text-white mt-2">
-                      Unlock the Complete Edition of {title}
-                    </h4>
-                    <p className="text-xs text-[#4D433F] dark:text-slate-300 max-w-md mx-auto leading-relaxed mt-1">
-                      Get instant digital access to all chapters, unit breakdowns, practice questions, and landmark case precedents inside your personal Student Dashboard with continuous DRM watermark security.
-                    </p>
-                  </div>
-                  {onBuy && (
-                    <div className="pt-2 flex justify-center">
-                      <button
-                        onClick={onBuy}
-                        className="px-6 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
-                      >
-                        <span>Unlock Full Codex {price ? `• ₹${price}` : ""}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                {/* FOOTNOTE */}
+                <div className="mt-3 text-[11px] opacity-60 font-mono text-center">
+                  Page {currentPage} of {isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}
                 </div>
-              )}
-            </div>
+
+                {/* UNLOCK CARD WHEN REACHING PREVIEW LIMIT */}
+                {isPreviewMode && currentPage >= maxAllowedPage && (
+                  <div className="w-full max-w-xl mx-auto my-6 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A1E24] border-2 border-[#BFAFE5] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 z-20">
+                    <div className="w-12 h-12 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] dark:text-white flex items-center justify-center mx-auto shadow-xs">
+                      <Lock className="w-6 h-6 text-[#221D1D] dark:text-[#AED7E9]" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B] bg-[#F4C5C0]/40 px-3 py-1 rounded-full border border-[#F4C5C0]">
+                        End of Sample Preview ({maxAllowedPage} / {totalPages > 0 ? totalPages : maxAllowedPage} Pages)
+                      </span>
+                      <h4 className="text-base sm:text-xl font-bold font-serif text-[#221D1D] dark:text-white mt-2">
+                        Unlock the Complete Edition of {title}
+                      </h4>
+                      <p className="text-xs text-[#4D433F] dark:text-slate-300 max-w-md mx-auto leading-relaxed mt-1">
+                        Get instant digital access to all chapters, unit breakdowns, practice questions, and landmark case precedents inside your personal Student Dashboard with continuous DRM watermark security.
+                      </p>
+                    </div>
+                    {onBuy && (
+                      <div className="pt-2 flex justify-center">
+                        <button
+                          onClick={onBuy}
+                          className="px-6 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
+                        >
+                          <span>Unlock Full Codex {price ? `• ₹${price}` : ""}</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
           )}
         </div>
       </div>
