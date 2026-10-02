@@ -167,40 +167,44 @@ function CoursesCatalogContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between text-[#1D1D1F]">
+    <div className="min-h-screen bg-white flex flex-col justify-between text-[#221D1D]">
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full space-y-10">
         {/* 1. Header & Hero Banner */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0B1E40] tracking-tight">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] text-xs font-semibold mb-1">
+            <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+            <span>Curriculum &amp; Study Notes</span>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#221D1D] tracking-tight">
             Courses, Smart Question Banks &amp; Study Notes
           </h1>
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-[#4D433F] leading-relaxed max-w-2xl mx-auto">
             Browse all available statutory question banks, unit-wise notes, weekly case studies, and examination test series for CA Foundation and CSEET.
           </p>
         </div>
 
         {/* 2. Simple Minimal Filter & Search Bar */}
-        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-[#E7E4E7] shadow-xs">
           {/* Program Toggle */}
-          <div className="flex p-1 bg-slate-100 rounded-xl w-full sm:w-auto gap-1 overflow-x-auto scrollable-tabs">
+          <div className="flex p-1 bg-[#F7F7F5] rounded-xl w-full sm:w-auto gap-1 overflow-x-auto scrollable-tabs border border-[#E7E4E7]">
             <button
               onClick={() => setSelectedCourse("all")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center ${
                 selectedCourse === "all"
-                  ? "bg-[#004B99] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
+                  : "text-[#77716E] hover:text-[#221D1D]"
               }`}
             >
               All ({products.length})
             </button>
             <button
               onClick={() => setSelectedCourse("course-ca-foundation")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
                 selectedCourse === "course-ca-foundation"
-                  ? "bg-[#004B99] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
+                  : "text-[#77716E] hover:text-[#221D1D]"
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -208,10 +212,10 @@ function CoursesCatalogContent() {
             </button>
             <button
               onClick={() => setSelectedCourse("course-cseet")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
                 selectedCourse === "course-cseet"
-                  ? "bg-[#004B99] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
+                  : "text-[#77716E] hover:text-[#221D1D]"
               }`}
             >
               <GraduationCap className="w-3.5 h-3.5" />
@@ -221,23 +225,23 @@ function CoursesCatalogContent() {
 
           {/* Simple Search Input */}
           <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#77716E]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search curriculum..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#005FD8]/20 focus:border-[#005FD8] text-slate-900"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] focus:outline-none focus:ring-2 focus:ring-[#BFAFE5] focus:border-transparent text-[#221D1D]"
             />
           </div>
         </div>
 
         {/* 3. The 2 Dedicated Course Cards */}
         {filteredProducts.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto">
-            <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No course found</h3>
-            <p className="text-xs text-slate-500">
+          <div className="bg-white border border-[#E7E4E7] rounded-3xl p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto">
+            <BookOpen className="w-10 h-10 text-[#77716E] mx-auto" />
+            <h3 className="text-base font-bold text-[#221D1D]">No course found</h3>
+            <p className="text-xs text-[#77716E]">
               Clear your search keyword to view the CA Foundation and CSEET courses.
             </p>
             <button
@@ -245,7 +249,7 @@ function CoursesCatalogContent() {
                 setSearch("");
                 setSelectedCourse("all");
               }}
-              className="px-5 py-2 rounded-xl bg-[#004B99] text-white text-xs font-semibold cursor-pointer shadow-xs"
+              className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold cursor-pointer shadow-xs"
             >
               Reset Filters
             </button>
@@ -253,28 +257,27 @@ function CoursesCatalogContent() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
             {filteredProducts.map((product) => {
-              const isCA = product.id.includes("ca") || product.courseId === "course-ca-foundation";
               return (
                 <div
                   key={product.id}
-                  className="bg-white border border-slate-200 rounded-3xl p-7 sm:p-8 shadow-[0_2px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:border-blue-300 transition-all duration-300 flex flex-col justify-between space-y-6 relative group"
+                  className="bg-white border border-[#E7E4E7] rounded-3xl p-7 sm:p-8 shadow-xs hover:border-[#AED7E9] hover:shadow-sm transition-all duration-300 flex flex-col justify-between space-y-6 relative group"
                 >
                   <div className="space-y-5">
                     {/* Header Badges */}
                     <div className="flex items-center justify-between gap-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#005FD8] border border-blue-200">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5]">
                         {product.badge || "Launch Offer @ ₹99/mo"}
                       </span>
-                      <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-xs font-medium text-[#77716E] flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
                         <span>{product.pages_or_duration}</span>
                       </span>
                     </div>
 
                     {/* Course Graphic & Icon */}
                     <Link href={`/product/${product.id}`} className="block">
-                      <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 p-6 flex items-center justify-center group-hover:bg-blue-50/50 transition-colors">
-                        <div className="relative rounded-xl overflow-hidden shadow-md max-w-[180px] sm:max-w-[200px]">
+                      <div className="w-full bg-[#F7F7F5] rounded-2xl border border-[#E7E4E7] p-6 flex items-center justify-center group-hover:bg-[#F7F7F5]/80 transition-colors">
+                        <div className="relative rounded-xl overflow-hidden shadow-xs max-w-[180px] sm:max-w-[200px]">
                           <Image
                             src={product.cover_image || "/assets/ca-cs-hero-books-v2.png"}
                             alt={product.title}
@@ -289,33 +292,33 @@ function CoursesCatalogContent() {
                     {/* Course Title & Overview */}
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#005FD8] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#221D1D] bg-[#C4E1EC]/60 px-2 py-0.5 rounded-full border border-[#AED7E9]">
                           {product.examBody}
                         </span>
-                        <span className="text-xs text-slate-500 font-semibold">
+                        <span className="text-xs text-[#77716E] font-medium">
                           {product.category}
                         </span>
                       </div>
 
-                      <Link href={`/product/${product.id}`} className="block group-hover:text-[#005FD8] transition-colors">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#0B1E40] leading-snug font-serif">
+                      <Link href={`/product/${product.id}`} className="block group-hover:text-[#4B8097] transition-colors">
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#221D1D] leading-snug font-serif">
                           {product.title}
                         </h2>
                       </Link>
 
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-2 font-normal">
+                      <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed mt-2 font-normal">
                         {product.description}
                       </p>
                     </div>
 
                     {/* Key Highlights Checklist */}
-                    <div className="space-y-2 pt-4 border-t border-slate-100">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <div className="space-y-2 pt-4 border-t border-[#E7E4E7]">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#77716E]">
                         Everything Included in Plan:
                       </h4>
                       {(product.highlights || []).map((hl, idx) => (
-                        <div key={idx} className="flex items-start gap-2 text-xs text-slate-700">
-                          <CheckCircle2 className="w-4 h-4 text-[#005FD8] shrink-0 mt-0.5" />
+                        <div key={idx} className="flex items-start gap-2 text-xs text-[#4D433F]">
+                          <CheckCircle2 className="w-4 h-4 text-[#4B8097] shrink-0 mt-0.5" />
                           <span className="leading-snug">{hl}</span>
                         </div>
                       ))}
@@ -323,20 +326,20 @@ function CoursesCatalogContent() {
                   </div>
 
                   {/* Pricing & CTA Controls */}
-                  <div className="space-y-4 pt-5 border-t border-slate-100">
+                  <div className="space-y-4 pt-5 border-t border-[#E7E4E7]">
                     <div className="flex items-baseline justify-between">
                       <div>
-                        <span className="text-3xl font-extrabold text-slate-900 tracking-tight font-serif">
+                        <span className="text-3xl font-extrabold text-[#221D1D] tracking-tight font-serif">
                           ₹{product.price}
                         </span>
-                        <span className="text-xs font-bold text-slate-500 ml-1">/month</span>
+                        <span className="text-xs font-bold text-[#77716E] ml-1">/month</span>
                         {product.original_price > product.price && (
-                          <span className="ml-2 text-xs text-slate-400 line-through">
+                          <span className="ml-2 text-xs text-[#77716E] line-through">
                             ₹{product.original_price}
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      <span className="text-[11px] font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
                         Monthly Access • Cancel Anytime
                       </span>
                     </div>
@@ -344,15 +347,15 @@ function CoursesCatalogContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button
                         onClick={() => handleOpenPreview(product)}
-                        className="py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        className="py-3 px-4 rounded-full border border-[#221D1D] hover:bg-[#F7F7F5] bg-white text-[#221D1D] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                       >
-                        <Eye className="w-4 h-4 text-[#005FD8]" />
+                        <Eye className="w-4 h-4 text-[#221D1D]" />
                         <span>Free Sample</span>
                       </button>
 
                       <Link
                         href={`/product/${product.id}`}
-                        className="py-3 px-4 rounded-xl bg-[#004B99] hover:bg-[#003D7A] text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 text-center"
+                        className="py-3 px-4 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] border border-[#E7E4E7] text-[#221D1D] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 text-center"
                       >
                         <span>View Details</span>
                         <ArrowRight className="w-4 h-4" />
@@ -361,9 +364,9 @@ function CoursesCatalogContent() {
 
                     <button
                       onClick={() => handleSubscribeNow(product)}
-                      className="w-full py-3.5 px-4 rounded-xl bg-[#0B1E40] hover:bg-[#152E5A] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      className="w-full py-3.5 px-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
-                      <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
+                      <ShoppingBag className="w-4 h-4 text-[#221D1D]" />
                       <span>Enroll Now (₹{product.price}/mo)</span>
                     </button>
                   </div>
@@ -396,7 +399,7 @@ export default function CoursesCatalogPage() {
         <div className="min-h-screen bg-white flex flex-col justify-between">
           <Navbar />
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-[#005FD8] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#AED7E9] border-t-transparent rounded-full animate-spin" />
           </div>
           <Footer />
         </div>

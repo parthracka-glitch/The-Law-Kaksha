@@ -76,7 +76,7 @@ router.post("/register", async (req, res) => {
       is_active: true,
       drm_access: true,
       enrolled_books: [course],
-      unlockedItemIds: ["prod-vol1", "prod-vol2"],
+      unlockedItemIds: [],
     };
 
     let createdUser;
@@ -199,12 +199,51 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // -------------------------------------------------------------
+    // SINGLE DEVICE ENFORCEMENT (1 Login Per Device Policy)
+    // -------------------------------------------------------------
+    const incomingDeviceId = req.body.deviceId ? String(req.body.deviceId).trim() : "";
+    const incomingDeviceName = req.body.deviceName ? String(req.body.deviceName).trim() : "Current Web Browser";
+    const forceSwitchDevice = Boolean(req.body.forceSwitchDevice);
+
+    if (user.role === "student" && incomingDeviceId) {
+      const activeDevId = user.activeDeviceId || "";
+      const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
+      const isRecent = Date.now() - lastActive < 4 * 60 * 60 * 1000; // within 4 hours
+
+      if (activeDevId && activeDevId !== incomingDeviceId && isRecent && !forceSwitchDevice) {
+        return res.status(409).json({
+          success: false,
+          conflict: true,
+          code: "DEVICE_CONFLICT",
+          activeDeviceName: user.activeDeviceName || "Another Device",
+          message: `This account is currently active on another device (${user.activeDeviceName || "Authorized Hardware"}). Simultaneous logins are strictly prohibited to prevent account sharing.`,
+        });
+      }
+
+      // Update active device binding
+      const updatedFields = {
+        activeDeviceId: incomingDeviceId,
+        activeDeviceName: incomingDeviceName,
+        lastActiveAt: new Date().toISOString(),
+      };
+
+      if (isConnected()) {
+        await User.updateOne({ id: user.id }, { $set: updatedFields });
+      }
+      const usersTable = Database.table("users");
+      usersTable.update(user.id, updatedFields);
+      user.activeDeviceId = incomingDeviceId;
+      user.activeDeviceName = incomingDeviceName;
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
         role: user.role,
         student_id: user.student_id,
+        deviceId: incomingDeviceId,
       },
       JWT_SECRET,
       { expiresIn: "30d" }
@@ -234,6 +273,7 @@ router.post("/login", async (req, res) => {
         user: safeUser,
         role: user.role,
         subscription: activeSub || null,
+        activeDeviceId: incomingDeviceId,
       },
     });
   } catch (err) {
@@ -242,7 +282,87 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 3. GET /api/auth/me
+// 3. POST /api/auth/device-heartbeat (Validates active device session lock)
+router.post("/device-heartbeat", async (req, res) => {
+  try {
+    const { email, studentId, deviceId } = req.body;
+    if (!deviceId || (!email && !studentId)) {
+      return res.status(200).json({ success: true, active: true });
+    }
+
+    let user = null;
+    if (isConnected()) {
+      user = await User.findOne({
+        $or: [
+          { email: (email || "").toLowerCase().trim() },
+          { student_id: (studentId || "").trim() },
+        ],
+      }).lean();
+    }
+
+    if (!user) {
+      const usersTable = Database.table("users");
+      user = usersTable.findOne(
+        (u) =>
+          (email && u.email && u.email.toLowerCase() === email.toLowerCase().trim()) ||
+          (studentId && u.student_id === studentId.trim())
+      );
+    }
+
+    if (!user) {
+      return res.status(200).json({ success: true, active: true });
+    }
+
+    // Check device match
+    const activeDev = user.activeDeviceId || "";
+    if (activeDev && activeDev !== deviceId) {
+      return res.status(200).json({
+        success: false,
+        conflict: true,
+        activeDeviceName: user.activeDeviceName || "Another Device",
+        message: "Your session was terminated because this account logged in on another device.",
+      });
+    }
+
+    // Refresh heartbeat timestamp
+    if (isConnected()) {
+      await User.updateOne({ id: user.id }, { $set: { lastActiveAt: new Date() } });
+    }
+
+    return res.status(200).json({ success: true, active: true });
+  } catch (err) {
+    return res.status(200).json({ success: true, active: true });
+  }
+});
+
+// 4. POST /api/auth/logout (Releases active device session)
+router.post("/logout", async (req, res) => {
+  try {
+    const { email, studentId } = req.body;
+    const cleanEmail = (email || "").toLowerCase().trim();
+    const cleanId = (studentId || "").trim();
+
+    if (isConnected()) {
+      await User.updateOne(
+        { $or: [{ email: cleanEmail }, { student_id: cleanId }] },
+        { $set: { activeDeviceId: "", lastActiveAt: new Date(0) } }
+      );
+    }
+    const usersTable = Database.table("users");
+    const localUser = usersTable.findOne(
+      (u) => (cleanEmail && u.email?.toLowerCase() === cleanEmail) || (cleanId && u.student_id === cleanId)
+    );
+    if (localUser) {
+      usersTable.update(localUser.id, { activeDeviceId: "", lastActiveAt: new Date(0).toISOString() });
+    }
+
+    return res.status(200).json({ success: true, message: "Logged out successfully." });
+  } catch (err) {
+    return res.status(200).json({ success: true });
+  }
+});
+
+// 5. GET /api/auth/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
     let activeSub = null;

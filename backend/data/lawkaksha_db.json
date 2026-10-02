@@ -1,6 +1,51 @@
 {
   "users": [
     {
+      "id": "usr-1790915236844",
+      "student_id": "LRK-2026-004182",
+      "name": "Enrolled Candidate",
+      "email": "student@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "role": "student",
+      "is_active": 1,
+      "unlockedItemIds": [
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-02T04:27:16.844Z",
+      "updated_at": "2026-10-02T04:27:52.157Z",
+      "password_hash": "$2b$10$wqVvqVyFEkNnzMUW/mn06uLnhTHFNIJCZLM7qD4M5/4SNuZThr7Ju",
+      "tempPassword": "Law@4103",
+      "activeDeviceId": "DEV-SECONDARY-PHONE",
+      "activeDeviceName": "Safari on iPhone 15 Pro",
+      "lastActiveAt": "2026-10-02T04:27:52.157Z"
+    },
+    {
+      "id": "usr-1790891230387-209",
+      "student_id": "LRK-2026-009366",
+      "name": "Test Student",
+      "email": "teststudent@example.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$fGeXTRipZceho9PEJCyu6.zdSbBiLZVhh3CbP62m3JL2X31fPOTj6",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [
+        "prod-vol1",
+        "prod-vol2"
+      ],
+      "created_at": "2026-10-01T21:47:10.387Z",
+      "updated_at": "2026-10-01T21:47:10.387Z"
+    },
+    {
       "id": "usr-admin-001",
       "student_id": "LK-ADM-000001",
       "name": "The Law Kaksha Admin",
@@ -880,12 +925,104 @@
       "updated_at": "2026-09-30T15:48:34.231Z"
     }
   ],
-  "subscriptions": [],
+  "subscriptions": [
+    {
+      "id": "LK-SUB-2026-8368",
+      "userId": "usr-1790915236844",
+      "studentName": "Enrolled Candidate",
+      "studentRoll": "LRK-2026-004182",
+      "email": "student@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "Business Law Volume 1",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹249",
+      "date": "2 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "book-vol-1",
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-02T04:27:37.341Z",
+      "updated_at": "2026-10-02T04:27:37.341Z"
+    },
+    {
+      "id": "LK-SUB-2026-1337",
+      "userId": "usr-1790915236844",
+      "studentName": "Enrolled Candidate",
+      "studentRoll": "LRK-2026-004182",
+      "email": "student@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "Business Law Volume 1",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹249",
+      "date": "2 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "book-vol-1"
+      ],
+      "created_at": "2026-10-02T04:27:16.877Z",
+      "updated_at": "2026-10-02T04:27:16.877Z"
+    }
+  ],
   "enrollments": [],
   "reviews": [],
   "quiz_attempts": [],
   "coupons": [],
-  "orders": [],
+  "orders": [
+    {
+      "id": "TEST-ORDER-DEVICE-1",
+      "gateway_order_id": "order_dev_1",
+      "customer_name": "Enrolled Candidate",
+      "customer_email": "student@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "book-vol-1",
+          "title": "Business Law Volume 1",
+          "price": 249,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 249,
+      "discount_amount": 0,
+      "total_amount": 249,
+      "status": "COMPLETED",
+      "created_at": "2026-10-02T04:27:37.224Z",
+      "updated_at": "2026-10-02T04:27:37.224Z"
+    },
+    {
+      "id": "TEST-ORD-001",
+      "gateway_order_id": "order_test_1",
+      "customer_name": "Enrolled Candidate",
+      "customer_email": "student@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "book-vol-1",
+          "title": "Business Law Volume 1",
+          "price": 249,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 249,
+      "discount_amount": 0,
+      "total_amount": 249,
+      "status": "COMPLETED",
+      "created_at": "2026-10-02T04:27:16.840Z",
+      "updated_at": "2026-10-02T04:27:16.840Z"
+    }
+  ],
   "products": [
     {
       "id": "prod-1790827643169",
@@ -911,5 +1048,8 @@
       "created_at": "2026-10-01T04:07:23.222Z",
       "updated_at": "2026-10-01T04:07:23.222Z"
     }
-  ]
+  ],
+  "resources": [],
+  "weekly_cases": [],
+  "mcqs": []
 }

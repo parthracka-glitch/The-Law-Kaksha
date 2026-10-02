@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-slate-900 flex flex-col antialiased selection:bg-sky-200 selection:text-slate-900">
+    <main className="min-h-screen bg-white text-[#221D1D] flex flex-col antialiased selection:bg-[#C4E1EC] selection:text-[#221D1D]">
       {/* 1. Clean Navigation Bar */}
       <Navbar />
 

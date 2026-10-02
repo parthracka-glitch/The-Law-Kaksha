@@ -10,6 +10,7 @@ const Subscription = require("../models/Subscription");
 const Product = require("../models/Product");
 const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
+const McqTest = require("../models/McqTest");
 const SiteSetting = require("../models/SiteSetting");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
@@ -31,6 +32,7 @@ router.get("/dashboard", async (req, res) => {
     let products = [];
     let cases = [];
     let mcqs = [];
+    let mcqTests = [];
     let examSettings = [];
     let qotd = null;
 
@@ -55,10 +57,11 @@ router.get("/dashboard", async (req, res) => {
       }
 
       // 3. Find live platform resources uploaded by Admin
-      [products, cases, mcqs] = await Promise.all([
+      [products, cases, mcqs, mcqTests] = await Promise.all([
         Product.find({ status: "Active" }).lean(),
         WeeklyCase.find().sort({ createdAt: 1 }).lean(),
         McqQuestion.find().sort({ createdAt: 1 }).lean(),
+        McqTest.find({ status: "Active" }).sort({ createdAt: -1 }).lean(),
       ]);
 
       const examSettingDoc = await SiteSetting.findOne({ key: "exam_countdown" }).lean();
@@ -81,6 +84,7 @@ router.get("/dashboard", async (req, res) => {
       products = Database.table("products").find();
       cases = Database.table("weekly_cases").find();
       mcqs = Database.table("mcqs").find();
+      mcqTests = Database.table("mcq_tests").find();
     }
 
     // Determine unlocked item IDs
@@ -109,12 +113,17 @@ router.get("/dashboard", async (req, res) => {
         unlockedSet.add("prod-vol2");
         unlockedSet.add("prod-combo");
       }
-      if (itemTitle.includes("ca foundation")) {
+      if (itemTitle.includes("ca foundation") || itemTitle.includes("question bank")) {
         unlockedSet.add("course-ca-foundation-sub");
+        unlockedSet.add("ca-foundation-business-laws");
+        unlockedSet.add("ca-foundation");
         unlockedSet.add("prod-vol1");
       }
       if (itemTitle.includes("cseet")) {
         unlockedSet.add("course-cseet-sub");
+        unlockedSet.add("cseet-business-law");
+        unlockedSet.add("cseet-management");
+        unlockedSet.add("cseet");
         unlockedSet.add("prod-vol2");
       }
     });
@@ -131,12 +140,74 @@ router.get("/dashboard", async (req, res) => {
       availableProducts: products,
       cases,
       mcqs,
+      mcqTests,
       examSettings,
       qotd,
+      lawXp: student?.lawXp || 150,
+      streakDays: student?.streakDays || 1,
+      completedUnits: student?.completedUnits || ["ca-ch1-u1", "ca-ch4-u1"],
+      lastRead: student?.lastRead || {
+        title: "Indian Partnership Act, 1932 (Unit 1)",
+        url: "/notes/unit-1-general-nature-of-partnership.pdf",
+        date: "Today",
+        progress: 50,
+      },
+      bookmarks: student?.bookmarks || [],
     });
   } catch (err) {
     console.error("[Student API] Dashboard fetch error:", err);
     res.status(500).json({ success: false, message: "Error fetching student dashboard." });
+  }
+});
+
+/**
+ * POST /api/student/sync-progress
+ * Body: { email, studentId, xpGained, completedUnits, lastRead, streakDays, bookmarks }
+ * Synchronizes student XP, badges, completed chapters, and bookmarks in Atlas!
+ */
+router.post("/sync-progress", async (req, res) => {
+  try {
+    const { email, studentId, xpGained, xpTotal, completedUnits, lastRead, streakDays, bookmarks } = req.body;
+    if (!email && !studentId) {
+      return res.status(400).json({ success: false, message: "Email or studentId required." });
+    }
+
+    if (isConnected()) {
+      const updateData = {};
+      if (typeof xpTotal === "number") updateData.lawXp = xpTotal;
+      else if (typeof xpGained === "number") updateData.$inc = { lawXp: xpGained };
+      if (completedUnits && Array.isArray(completedUnits)) updateData.completedUnits = completedUnits;
+      if (lastRead && typeof lastRead === "object") updateData.lastRead = lastRead;
+      if (typeof streakDays === "number") updateData.streakDays = streakDays;
+      if (bookmarks && Array.isArray(bookmarks)) updateData.bookmarks = bookmarks;
+
+      const updatedUser = await User.findOneAndUpdate(
+        {
+          $or: [
+            ...(email ? [{ email: String(email).toLowerCase().trim() }] : []),
+            ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ],
+        },
+        updateData,
+        { new: true }
+      ).select("-password_hash");
+
+      return res.status(200).json({
+        success: true,
+        source: "mongodb_atlas",
+        student: updatedUser,
+        lawXp: updatedUser?.lawXp || 0,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      source: "local_cache",
+      lawXp: xpTotal || 150,
+    });
+  } catch (err) {
+    console.error("[Student API] Sync progress error:", err);
+    res.status(500).json({ success: false, message: "Error updating student progress." });
   }
 });
 

@@ -5,6 +5,7 @@
 
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const Database = require("../db/database");
 const { JWT_SECRET } = require("../middleware/authMiddleware");
 
@@ -139,46 +140,67 @@ router.post("/orders/verify", (req, res) => {
     const unlockedItemIds = [];
     (order.items || []).forEach((it) => {
       const id = it.id || "";
-      if (id === "ca-book-vol-1" || id === "book-vol-1" || id === "prod-vol1") {
-        unlockedItemIds.push("book-vol-1");
-      } else if (id === "ca-book-vol-2" || id === "book-vol-2" || id === "prod-vol2") {
-        unlockedItemIds.push("book-vol-2");
-      } else if (id === "prod-combo") {
-        unlockedItemIds.push("book-vol-1");
-        unlockedItemIds.push("book-vol-2");
-      } else if (id.includes("mcq")) {
+      if (id) unlockedItemIds.push(id);
+      if (id === "ca-book-vol-1" || id === "book-vol-1" || id === "prod-vol1" || id.includes("ca-foundation") || id.includes("ca-book") || id.includes("question-bank")) {
+        unlockedItemIds.push("book-vol-1", "ca-foundation-business-laws", "course-ca-foundation-sub", "ca-foundation");
+      }
+      if (id === "ca-book-vol-2" || id === "book-vol-2" || id === "prod-vol2" || id.includes("cseet")) {
+        unlockedItemIds.push("book-vol-2", "cseet-business-law", "cseet-management", "course-cseet-sub", "cseet");
+      }
+      if (id === "prod-combo" || id === "all-access") {
+        unlockedItemIds.push("book-vol-1", "book-vol-2", "ca-foundation-business-laws", "cseet-business-law", "course-ca-foundation-sub", "course-cseet-sub", "all-access");
+      }
+      if (id.includes("mcq")) {
         unlockedItemIds.push("book-mcq");
-      } else if (id.includes("ldr")) {
+      }
+      if (id.includes("ldr")) {
         unlockedItemIds.push("book-ldr");
-      } else {
-        unlockedItemIds.push(id);
       }
     });
 
     // Create or retrieve student account
     const usersTable = Database.table("users");
+    const cleanEmail = (order.customer_email || "").toLowerCase().trim();
     let student = usersTable.findOne(
-      (u) => u.email.toLowerCase() === order.customer_email.toLowerCase()
+      (u) => (u.email && u.email.toLowerCase() === cleanEmail)
     );
 
     const isCSEET = (order.target_exam || "").toLowerCase().includes("cseet");
-    const studentId = student?.student_id || (isCSEET ? "LRK-2026-009821" : "LRK-2026-004182");
+    const studentId = student?.student_id || (isCSEET ? `LRK-2026-CS${Math.floor(1000 + Math.random() * 9000)}` : `LRK-2026-CA${Math.floor(1000 + Math.random() * 9000)}`);
+    const tempPassword = student?.tempPassword || order.tempPassword || `Law@${Math.floor(1000 + Math.random() * 9000)}`;
+    const passwordHash = student?.password_hash || bcrypt.hashSync(tempPassword, 10);
+    const deviceId = req.body.deviceId || order.deviceId || `DEV-${Date.now()}`;
+    const deviceName = req.body.deviceName || order.deviceName || "Primary Device";
 
     if (!student) {
       student = usersTable.insert({
         id: `usr-${Date.now()}`,
         student_id: studentId,
-        name: order.customer_name,
-        email: order.customer_email.toLowerCase(),
-        phone: order.customer_phone,
+        name: order.customer_name || "Enrolled Student",
+        email: cleanEmail,
+        boundGmail: cleanEmail,
+        phone: order.customer_phone || "",
+        password_hash: passwordHash,
+        tempPassword: tempPassword,
         target_exam: order.target_exam,
         role: "student",
         is_active: 1,
+        drm_access: 1,
         unlockedItemIds,
+        activeDeviceId: deviceId,
+        activeDeviceName: deviceName,
+        lastActiveAt: new Date().toISOString(),
       });
     } else {
       const combined = Array.from(new Set([...(student.unlockedItemIds || []), ...unlockedItemIds]));
-      usersTable.update(student.id, { unlockedItemIds: combined });
+      usersTable.update(student.id, {
+        unlockedItemIds: combined,
+        password_hash: passwordHash,
+        tempPassword: tempPassword,
+        activeDeviceId: deviceId,
+        activeDeviceName: deviceName,
+        lastActiveAt: new Date().toISOString(),
+      });
     }
 
     // Insert active subscription record
@@ -187,8 +209,8 @@ router.post("/orders/verify", (req, res) => {
       id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       userId: student.id,
       studentName: student.name,
-      studentRoll: student.student_id,
-      email: student.email,
+      studentRoll: studentId,
+      email: cleanEmail,
       phone: student.phone,
       item: (order.items || []).map((i) => i.title).join(", "),
       targetExam: order.target_exam,
@@ -208,7 +230,7 @@ router.post("/orders/verify", (req, res) => {
       const Subscription = require("../models/Subscription");
 
       User.findOneAndUpdate(
-        { email: student.email.toLowerCase() },
+        { email: cleanEmail },
         {
           $addToSet: {
             unlockedItemIds: { $each: unlockedItemIds },
@@ -217,10 +239,16 @@ router.post("/orders/verify", (req, res) => {
           $set: {
             name: student.name,
             phone: student.phone,
-            student_id: student.student_id,
+            student_id: studentId,
             target_exam: order.target_exam,
             drm_access: true,
             is_active: true,
+            password_hash: passwordHash,
+            tempPassword: tempPassword,
+            boundGmail: cleanEmail,
+            activeDeviceId: deviceId,
+            activeDeviceName: deviceName,
+            lastActiveAt: new Date(),
           },
         },
         { upsert: true }
@@ -232,9 +260,10 @@ router.post("/orders/verify", (req, res) => {
     const token = jwt.sign(
       {
         id: student.id,
-        email: student.email,
-        role: student.role,
-        student_id: student.student_id,
+        email: cleanEmail,
+        role: student.role || "student",
+        student_id: studentId,
+        deviceId: deviceId,
       },
       JWT_SECRET,
       { expiresIn: "30d" }
@@ -252,9 +281,18 @@ router.post("/orders/verify", (req, res) => {
       },
       student: {
         ...safeStudent,
+        student_id: studentId,
         unlockedItemIds,
       },
+      credentials: {
+        studentId: studentId,
+        tempPassword: tempPassword,
+        email: cleanEmail,
+      },
+      studentId: studentId,
+      tempPassword: tempPassword,
       unlockedItemIds,
+      deviceId,
       token,
     };
 

@@ -15,6 +15,7 @@ const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
+const McqTest = require("../models/McqTest");
 const Resource = require("../models/Resource");
 const Coupon = require("../models/Coupon");
 const SiteSetting = require("../models/SiteSetting");
@@ -250,8 +251,83 @@ router.delete("/admin/cases/:id", async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 4. MCQ QUESTION BANK CRUD (Direct to MongoDB Atlas)
+// 4. GOOGLE FORM MCQ TESTS CRUD (Direct to MongoDB Atlas)
 // -----------------------------------------------------------------------------
+router.get("/admin/mcq-tests", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const tests = await McqTest.find().sort({ createdAt: -1 }).lean();
+      return res.status(200).json({ success: true, source: "mongodb_atlas", tests });
+    }
+    const testsTable = Database.table("mcq_tests");
+    res.status(200).json({ success: true, source: "local_cache", tests: testsTable.find() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching MCQ tests." });
+  }
+});
+
+router.post("/admin/mcq-tests", async (req, res) => {
+  try {
+    const payload = {
+      id: req.body.id || `gtest-${Date.now()}`,
+      title: req.body.title || "Weekly Google Form Mock Test",
+      course: req.body.course || "ca",
+      subject: req.body.subject || "The Indian Contract Act, 1872",
+      formUrl: req.body.formUrl || "",
+      questionCount: Number(req.body.questionCount) || 30,
+      duration: Number(req.body.duration) || 30,
+      totalMarks: Number(req.body.totalMarks) || 30,
+      status: req.body.status || "Active",
+      instructions: req.body.instructions || "Attempt all questions in one sitting. Follow ICAI / ICSI pattern.",
+    };
+
+    if (isConnected()) {
+      const created = await McqTest.findOneAndUpdate({ id: payload.id }, payload, {
+        upsert: true,
+        new: true,
+      });
+      Database.table("mcq_tests").insert(payload);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", test: created });
+    }
+
+    const created = Database.table("mcq_tests").insert(payload);
+    res.status(201).json({ success: true, test: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating MCQ test." });
+  }
+});
+
+router.put("/admin/mcq-tests/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (isConnected()) {
+      const updated = await McqTest.findOneAndUpdate({ id }, req.body, { new: true });
+      Database.table("mcq_tests").update(id, req.body);
+      return res.status(200).json({ success: true, source: "mongodb_atlas", test: updated });
+    }
+    const updated = Database.table("mcq_tests").update(id, req.body);
+    res.status(200).json({ success: true, test: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating MCQ test." });
+  }
+});
+
+router.delete("/admin/mcq-tests/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (isConnected()) {
+      await McqTest.deleteOne({ id });
+      Database.table("mcq_tests").delete(id);
+      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    }
+    const success = Database.table("mcq_tests").delete(id);
+    res.status(200).json({ success });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting MCQ test." });
+  }
+});
+
+// Legacy backward compatibility for individual MCQs
 router.get("/admin/mcqs", async (req, res) => {
   try {
     if (isConnected()) {
@@ -262,65 +338,6 @@ router.get("/admin/mcqs", async (req, res) => {
     res.status(200).json({ success: true, source: "local_cache", mcqs: mcqTable.find() });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching MCQs." });
-  }
-});
-
-router.post("/admin/mcqs", async (req, res) => {
-  try {
-    const payload = {
-      id: req.body.id || `mcq-${Date.now()}`,
-      subject: req.body.subject || "Indian Contract Act",
-      section: req.body.section || "Section 10",
-      question: req.body.question || "Statutory Question",
-      options: req.body.options || ["Option A", "Option B", "Option C", "Option D"],
-      correctOption: Number(req.body.correctOption) || 0,
-      explanation: req.body.explanation || "Statutory reference explanation.",
-      courseId: req.body.courseId || "course-cseet",
-    };
-
-    if (isConnected()) {
-      const created = await McqQuestion.findOneAndUpdate({ id: payload.id }, payload, {
-        upsert: true,
-        new: true,
-      });
-      Database.table("mcqs").insert(payload);
-      return res.status(201).json({ success: true, source: "mongodb_atlas", mcq: created });
-    }
-
-    const created = Database.table("mcqs").insert(payload);
-    res.status(201).json({ success: true, mcq: created });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error creating MCQ." });
-  }
-});
-
-router.put("/admin/mcqs/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (isConnected()) {
-      const updated = await McqQuestion.findOneAndUpdate({ id }, req.body, { new: true });
-      Database.table("mcqs").update(id, req.body);
-      return res.status(200).json({ success: true, source: "mongodb_atlas", mcq: updated });
-    }
-    const updated = Database.table("mcqs").update(id, req.body);
-    res.status(200).json({ success: true, mcq: updated });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error updating MCQ." });
-  }
-});
-
-router.delete("/admin/mcqs/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (isConnected()) {
-      await McqQuestion.deleteOne({ id });
-      Database.table("mcqs").delete(id);
-      return res.status(200).json({ success: true, source: "mongodb_atlas" });
-    }
-    const success = Database.table("mcqs").delete(id);
-    res.status(200).json({ success });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error deleting MCQ." });
   }
 });
 

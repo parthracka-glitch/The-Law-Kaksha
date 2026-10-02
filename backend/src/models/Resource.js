@@ -20,6 +20,7 @@ const ResourceSchema = new mongoose.Schema(
     status: { type: String, enum: ["Published", "Draft", "Coming Soon"], default: "Published" },
     order: { type: Number, default: 0 },
     pages: { type: String, default: "10-30 Pages" },
+    previewPagesLimit: { type: Number, default: 5 },
     cloudinaryPublicId: { type: String, default: "" },
   },
   { timestamps: true }

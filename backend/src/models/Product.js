@@ -17,6 +17,8 @@ const ProductSchema = new mongoose.Schema(
     highlights: [{ type: String }],
     cover_image: { type: String, default: "/assets/ca-cs-hero-books-v2.png" },
     isSample: { type: Boolean, default: false },
+    previewPagesLimit: { type: Number, default: 5 },
+    samplePagesRange: { type: String, default: "1-5" },
   },
   { timestamps: true }
 );

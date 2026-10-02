@@ -104,27 +104,27 @@ export default function ReviewsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full space-y-12">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] text-[#1D1D1F] text-xs font-medium">
-            <Star className="w-3.5 h-3.5 fill-[#FF9500] text-[#FF9500]" />
-            Verified Student Testimonials
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] text-xs font-medium">
+            <Star className="w-3.5 h-3.5 fill-[#F7892A] text-[#F7892A]" />
+            <span>Verified Student Testimonials</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-[#1D1D1F] tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-[#221D1D] tracking-tight leading-[1.1]">
             Trusted by Top Rankers &amp; Exemption Holders
           </h1>
-          <p className="text-sm sm:text-base text-[#86868B] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[#4D433F] max-w-2xl mx-auto leading-relaxed">
             Read honest feedback from CA Foundation and CSEET students who transformed their scores with The Law Kaksha materials.
           </p>
         </div>
 
-        {/* Apple Segmented Control */}
+        {/* Filter Segmented Control */}
         <div className="flex items-center justify-center">
-          <div className="inline-flex p-1 bg-black/[0.04] border border-black/[0.06] rounded-full gap-1">
+          <div className="inline-flex p-1 bg-white border border-[#E7E4E7] rounded-full gap-1 shadow-sm">
             {[
               { id: "all", label: `All Reviews (${reviews.length})` },
               { id: "toppers", label: "Top Rankers" },
@@ -134,10 +134,10 @@ export default function ReviewsPage() {
               <button
                 key={tab.id}
                 onClick={() => setSelectedFilter(tab.id)}
-                className={`px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   selectedFilter === tab.id
-                    ? "bg-[#1D1D1F] text-white shadow-sm"
-                    : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                    ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-sm"
+                    : "text-[#4D433F] hover:text-[#221D1D]"
                 }`}
               >
                 {tab.label}
@@ -151,7 +151,7 @@ export default function ReviewsPage() {
           {filteredReviews.map((review) => (
             <div
               key={review.id}
-              className="bg-white border border-black/[0.06] rounded-3xl p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-6 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-black/[0.12] transition-all"
+              className="bg-white border border-[#E7E4E7] rounded-3xl p-7 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md hover:border-[#D8D4D8] transition-all"
             >
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
@@ -159,34 +159,34 @@ export default function ReviewsPage() {
                     {[...Array(review.rating || 5)].map((_, i) => (
                       <Star
                         key={i}
-                        className="w-4 h-4 fill-[#FF9500] text-[#FF9500]"
+                        className="w-4 h-4 fill-[#F7892A] text-[#F7892A]"
                       />
                     ))}
                   </div>
-                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                    <Check className="w-3 h-3 text-emerald-600" /> Verified Student
+                  <span className="text-[10px] font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9] flex items-center gap-1">
+                    <Check className="w-3 h-3 text-[#4B8097]" /> Verified Student
                   </span>
                 </div>
 
-                <h3 className="text-base font-semibold text-[#1D1D1F] tracking-tight leading-snug">
+                <h3 className="text-base font-serif font-bold text-[#221D1D] tracking-tight leading-snug">
                   &ldquo;{review.title}&rdquo;
                 </h3>
 
-                <p className="text-xs sm:text-sm text-[#6E6E73] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed">
                   {review.comment}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-black/[0.04] flex items-center justify-between">
+              <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-semibold text-[#1D1D1F]">
+                  <div className="text-xs font-semibold text-[#221D1D]">
                     {review.student_name}
                   </div>
-                  <div className="text-[11px] text-[#0071E3] font-medium mt-0.5">
+                  <div className="text-[11px] text-[#77716E] font-medium mt-0.5">
                     {review.student_rank}
                   </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#0071E3]/[0.08] text-[#0071E3] flex items-center justify-center font-semibold text-xs">
+                <div className="w-8 h-8 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center font-bold text-xs border border-[#AED7E9]">
                   {review.student_name.slice(0, 2).toUpperCase()}
                 </div>
               </div>
@@ -198,7 +198,7 @@ export default function ReviewsPage() {
         <div className="text-center pt-6">
           <Link
             href="/courses"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#1D1D1F] hover:bg-black text-white text-xs sm:text-sm font-medium shadow-sm transition-all active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
           >
             <span>Start Your CA Law Preparation Today</span>
             <ArrowRight className="w-4 h-4" />

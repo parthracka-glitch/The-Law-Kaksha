@@ -15,9 +15,25 @@ const UserSchema = new mongoose.Schema(
     enrolled_books: [{ type: String }],
     unlockedItemIds: [{ type: String }],
     streakDays: { type: Number, default: 1 },
+    lawXp: { type: Number, default: 120 },
+    completedUnits: [{ type: String }],
+    bookmarks: [{ type: String }],
+    lastRead: {
+      title: { type: String, default: "Indian Partnership Act, 1932 (Unit 1)" },
+      url: { type: String, default: "/notes/unit-1-general-nature-of-partnership.pdf" },
+      date: { type: String, default: "Just now" },
+      progress: { type: Number, default: 45 },
+    },
     todayMinutes: { type: Number, default: 0 },
     todayGoalMinutes: { type: Number, default: 45 },
     joined_date: { type: String, default: "Today" },
+    // Single Device Session Security Fields
+    activeDeviceId: { type: String, default: "" },
+    activeDeviceName: { type: String, default: "" },
+    activeSessionToken: { type: String, default: "" },
+    lastActiveAt: { type: Date, default: Date.now },
+    tempPassword: { type: String, default: "" },
+    boundGmail: { type: String, default: "" },
   },
   { timestamps: true }
 );

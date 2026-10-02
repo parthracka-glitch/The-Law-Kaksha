@@ -409,20 +409,20 @@ export function ExamCountdownsAndQOTD() {
   return (
     <section
       id="countdown-qotd"
-      className="py-12 md:py-16 bg-white"
+      className="py-12 md:py-16 bg-[#F7F7F5]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] text-[#1D1D1F] text-xs font-medium">
-            <Clock className="w-3.5 h-3.5 text-[#0071E3]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] text-xs font-bold">
+            <Clock className="w-3.5 h-3.5 text-[#221D1D]" />
             <span>Exam Timelines &amp; Daily Practice</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-[#1D1D1F] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#221D1D] tracking-tight">
             Stay on Track for Your Upcoming Attempt
           </h2>
-          <p className="text-xs sm:text-sm text-[#86868B]">
+          <p className="text-xs sm:text-sm text-[#77716E]">
             Check your remaining preparation days and practice law questions daily.
           </p>
         </div>
@@ -433,21 +433,21 @@ export function ExamCountdownsAndQOTD() {
           {/* ======================================================== */}
           {/* 1. LEFT CARD: EXAM COUNTDOWN & TIMELINE TRACKER (5 Cols) */}
           {/* ======================================================== */}
-          <div className="lg:col-span-5 rounded-3xl bg-white border border-black/[0.06] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 sm:space-y-6">
+          <div className="lg:col-span-5 rounded-3xl bg-white border border-[#E7E4E7] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-5 sm:space-y-6">
             
             {/* Header & Course Switcher */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#86868B]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#77716E]">
                   Target Exam
                 </span>
-                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> Live Countdown
+                <span className="text-xs font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9] flex items-center gap-1">
+                  <Flame className="w-3 h-3 text-[#221D1D]" /> Live Countdown
                 </span>
               </div>
 
               {/* Course Selection Tabs */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
+              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
                 {examTargets.map((exam) => {
                   const examName = exam?.name || (exam as any)?.exam || "";
                   const isCA = examName.toLowerCase().includes("ca") || (exam?.id || "").includes("ca");
@@ -455,10 +455,10 @@ export function ExamCountdownsAndQOTD() {
                     <button
                       key={exam.id}
                       onClick={() => setSelectedExamId(exam.id)}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer text-center truncate min-h-[44px] flex items-center justify-center ${
+                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer text-center truncate min-h-[44px] flex items-center justify-center ${
                         selectedExamId === exam.id
-                          ? "bg-white text-[#1D1D1F] shadow-xs font-semibold"
-                          : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                          ? "bg-white text-[#221D1D] shadow-xs font-bold"
+                          : "text-[#77716E] hover:text-[#221D1D]"
                       }`}
                     >
                       {isCA ? "CA Foundation" : "CSEET Law"}
@@ -470,67 +470,67 @@ export function ExamCountdownsAndQOTD() {
 
             {/* Exam Title & Details */}
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-semibold text-[#1D1D1F] tracking-tight">
+              <h3 className="text-base sm:text-lg font-bold text-[#221D1D] tracking-tight">
                 {activeExam?.name || (activeExam as any)?.exam || "CA Foundation Business Laws"}
               </h3>
-              <p className="text-xs text-[#86868B]">{activeExam?.level || (activeExam as any)?.session || "ICAI Paper 2 • 7 Chapters"}</p>
+              <p className="text-xs text-[#77716E]">{activeExam?.level || (activeExam as any)?.session || "ICAI Paper 2 • 7 Chapters"}</p>
             </div>
 
-            {/* 4-Digit Timer Block matching Apple Aesthetic */}
+            {/* 4-Digit Timer Block */}
             <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+                <div className="text-xl sm:text-3xl font-bold text-[#221D1D] font-mono tracking-tight">
                   {timeLeft.days}
                 </div>
-                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[#77716E] tracking-wider mt-0.5">
                   Days
                 </div>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+                <div className="text-xl sm:text-3xl font-bold text-[#221D1D] font-mono tracking-tight">
                   {String(timeLeft.hours).padStart(2, "0")}
                 </div>
-                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[#77716E] tracking-wider mt-0.5">
                   Hours
                 </div>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                <div className="text-xl sm:text-3xl font-semibold text-[#1D1D1F] font-mono tracking-tight">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+                <div className="text-xl sm:text-3xl font-bold text-[#221D1D] font-mono tracking-tight">
                   {String(timeLeft.minutes).padStart(2, "0")}
                 </div>
-                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[#77716E] tracking-wider mt-0.5">
                   Mins
                 </div>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F5F5F7] border border-black/[0.04]">
-                <div className="text-xl sm:text-3xl font-semibold text-[#0071E3] font-mono tracking-tight">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+                <div className="text-xl sm:text-3xl font-bold text-[#221D1D] font-mono tracking-tight">
                   {String(timeLeft.seconds).padStart(2, "0")}
                 </div>
-                <div className="text-[10px] uppercase font-semibold text-[#86868B] tracking-wider mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[#77716E] tracking-wider mt-0.5">
                   Secs
                 </div>
               </div>
             </div>
 
             {/* Preparation Roadmap Progress */}
-            <div className="space-y-3 pt-2 border-t border-black/[0.05]">
-              <div className="flex items-center justify-between text-xs text-[#6E6E73]">
+            <div className="space-y-3 pt-2 border-t border-[#E7E4E7]">
+              <div className="flex items-center justify-between text-xs text-[#4D433F]">
                 <span>Syllabus Coverage:</span>
-                <span className="font-semibold text-[#1D1D1F]">
+                <span className="font-bold text-[#221D1D]">
                   100% Comprehensive
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#F5F5F7] overflow-hidden">
-                <div className="h-full bg-[#0071E3] rounded-full w-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#F7F7F5] overflow-hidden">
+                <div className="h-full bg-[#AED7E9] rounded-full w-full" />
               </div>
 
               <div className="pt-2 flex items-center justify-between">
                 <Link
                   href="/student"
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white text-xs font-medium transition-all shadow-xs min-h-[44px]"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs min-h-[44px]"
                 >
                   <span>Open Student Learning Desk</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -543,13 +543,13 @@ export function ExamCountdownsAndQOTD() {
           {/* ======================================================== */}
           {/* 2. RIGHT CARD: DAILY HIGH-YIELD MCQ CHALLENGE (7 Cols)   */}
           {/* ======================================================== */}
-          <div className="lg:col-span-7 rounded-3xl bg-white border border-black/[0.06] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4 sm:space-y-5">
+          <div className="lg:col-span-7 rounded-3xl bg-white border border-[#E7E4E7] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4 sm:space-y-5">
             
             {/* Top Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#0071E3] animate-pulse" />
-                <span className="text-xs font-semibold text-[#1D1D1F]">
+                <span className="w-2 h-2 rounded-full bg-[#AED7E9] animate-pulse" />
+                <span className="text-xs font-bold text-[#221D1D]">
                   Daily High-Yield Case Challenge
                 </span>
               </div>
@@ -558,16 +558,16 @@ export function ExamCountdownsAndQOTD() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleToggleBookmark(activeMCQ.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer min-h-[36px] ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[36px] ${
                     bookmarkedList[activeMCQ.id]
-                      ? "bg-[#0071E3]/[0.08] text-[#0071E3] border border-[#0071E3]/20"
-                      : "bg-black/[0.04] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.06]"
+                      ? "bg-[#BFAFE5]/30 text-[#221D1D] border border-[#BFAFE5]"
+                      : "bg-[#F7F7F5] text-[#77716E] hover:text-[#221D1D] hover:bg-[#E7E4E7]/60 border border-[#E7E4E7]"
                   }`}
                   title="Bookmark for Last Day Revision (LDR)"
                 >
                   <Bookmark
                     className={`w-3.5 h-3.5 ${
-                      bookmarkedList[activeMCQ.id] ? "fill-current text-[#0071E3]" : "text-[#86868B]"
+                      bookmarkedList[activeMCQ.id] ? "fill-current text-[#221D1D]" : "text-[#77716E]"
                     }`}
                   />
                   <span>
@@ -579,17 +579,17 @@ export function ExamCountdownsAndQOTD() {
 
             {/* Subject Pill & Question Index Switcher */}
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center text-[11px] font-medium text-[#0071E3] bg-[#0071E3]/[0.08] border border-[#0071E3]/15 px-2.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center text-[11px] font-bold text-[#221D1D] bg-[#AED7E9]/40 border border-[#AED7E9] px-2.5 py-0.5 rounded-full">
                 {activeMCQ.subject}
               </span>
 
-              <div className="flex items-center gap-1.5 text-xs text-[#86868B]">
+              <div className="flex items-center gap-1.5 text-xs text-[#77716E]">
                 <span>
                   Q{activeQuestionIdx + 1} of {MCQ_POOL.length}
                 </span>
                 <button
                   onClick={handleNextQuestion}
-                  className="text-[#6E6E73] hover:text-[#0071E3] p-1 rounded-full hover:bg-black/[0.04] transition-colors cursor-pointer"
+                  className="text-[#77716E] hover:text-[#221D1D] p-1 rounded-full hover:bg-[#F7F7F5] transition-colors cursor-pointer"
                   title="Next Case Scenario"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -598,7 +598,7 @@ export function ExamCountdownsAndQOTD() {
             </div>
 
             {/* Question Text */}
-            <h4 className="text-xs sm:text-sm font-medium text-[#1D1D1F] leading-relaxed">
+            <h4 className="text-xs sm:text-sm font-semibold text-[#221D1D] leading-relaxed">
               {activeMCQ.question}
             </h4>
 
@@ -613,17 +613,17 @@ export function ExamCountdownsAndQOTD() {
 
                 if (!isAnswered) {
                   cardClasses +=
-                    "bg-white border-black/[0.08] text-[#1D1D1F] hover:border-black/[0.2] hover:bg-[#FBFBFD]";
+                    "bg-white border-[#E7E4E7] text-[#221D1D] hover:border-[#AED7E9] hover:bg-[#F7F7F5]";
                 } else {
                   if (opt.isCorrect) {
                     cardClasses +=
-                      "bg-emerald-50/80 border-emerald-500/40 text-emerald-950 font-medium";
+                      "bg-[#AED7E9]/30 border-[#AED7E9] text-[#221D1D] font-bold";
                   } else if (isSelected && !opt.isCorrect) {
                     cardClasses +=
-                      "bg-rose-50/80 border-rose-500/40 text-rose-950 font-medium";
+                      "bg-[#F4C5C0]/40 border-[#C35F3B]/50 text-[#221D1D] font-semibold";
                   } else {
                     cardClasses +=
-                      "bg-[#F5F5F7] border-black/[0.04] text-[#86868B] opacity-75";
+                      "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E] opacity-75";
                   }
                 }
 
@@ -640,12 +640,12 @@ export function ExamCountdownsAndQOTD() {
                     {/* Background Poll Bar when answered */}
                     {isAnswered && (
                       <div
-                        className={`absolute top-0 bottom-0 left-0 transition-all duration-700 opacity-15 ${
+                        className={`absolute top-0 bottom-0 left-0 transition-all duration-700 opacity-20 ${
                           opt.isCorrect
-                            ? "bg-emerald-500"
+                            ? "bg-[#AED7E9]"
                             : isSelected
-                            ? "bg-rose-500"
-                            : "bg-slate-400"
+                            ? "bg-[#C35F3B]"
+                            : "bg-[#77716E]"
                         }`}
                         style={{ width: `${opt.pct}%` }}
                       />
@@ -654,14 +654,14 @@ export function ExamCountdownsAndQOTD() {
                     <div className="relative z-10 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
                         <span
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 transition-colors ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${
                             isAnswered
                               ? opt.isCorrect
-                                ? "bg-emerald-600 text-white"
+                                ? "bg-[#AED7E9] text-[#221D1D]"
                                 : isSelected
-                                ? "bg-rose-600 text-white"
-                                : "bg-black/[0.08] text-[#6E6E73]"
-                              : "bg-black/[0.04] text-[#424245] border border-black/[0.08]"
+                                ? "bg-[#C35F3B] text-white"
+                                : "bg-[#E7E4E7] text-[#77716E]"
+                              : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
                           }`}
                         >
                           {letter}
@@ -672,13 +672,13 @@ export function ExamCountdownsAndQOTD() {
                       {/* Right feedback icon & percentage */}
                       {isAnswered && (
                         <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                          <span className="text-[11px] font-mono font-medium">
+                          <span className="text-[11px] font-mono font-bold text-[#221D1D]">
                             {opt.pct}%
                           </span>
                           {opt.isCorrect ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <CheckCircle2 className="w-4 h-4 text-[#221D1D] shrink-0" />
                           ) : isSelected ? (
-                            <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <XCircle className="w-4 h-4 text-[#C35F3B] shrink-0" />
                           ) : null}
                         </div>
                       )}
@@ -690,32 +690,32 @@ export function ExamCountdownsAndQOTD() {
 
             {/* Statutory Explanation Card */}
             {isAnswered && (
-              <div className="p-4 rounded-2xl bg-[#F5F5F7] border border-black/[0.06] space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-[#0071E3]" />
-                    <span className="text-xs font-semibold text-[#1D1D1F]">
+                    <BookOpen className="w-3.5 h-3.5 text-[#221D1D]" />
+                    <span className="text-xs font-bold text-[#221D1D]">
                       {activeMCQ.explanationTitle}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#0071E3] bg-[#0071E3]/[0.08] px-2 py-0.5 rounded-full border border-[#0071E3]/15 font-medium">
+                  <span className="text-[10px] font-mono text-[#221D1D] bg-[#AED7E9]/40 px-2 py-0.5 rounded-full border border-[#AED7E9] font-bold">
                     {activeMCQ.statutoryRef}
                   </span>
                 </div>
 
-                <p className="text-xs text-[#424245] leading-relaxed">
+                <p className="text-xs text-[#4D433F] leading-relaxed">
                   {activeMCQ.explanation}
                 </p>
 
-                <div className="pt-1.5 text-[11px] text-[#6E6E73] border-t border-black/[0.05] flex items-start gap-1.5">
-                  <span className="font-semibold text-[#1D1D1F] shrink-0">Examiner Rule:</span>
+                <div className="pt-1.5 text-[11px] text-[#77716E] border-t border-[#E7E4E7] flex items-start gap-1.5">
+                  <span className="font-bold text-[#221D1D] shrink-0">Examiner Rule:</span>
                   <span>{activeMCQ.keyDistinction}</span>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-black/[0.05]">
+                <div className="pt-2 flex items-center justify-between border-t border-[#E7E4E7]">
                   <button
                     onClick={handleResetQuestion}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-[#6E6E73] hover:text-[#1D1D1F] transition-colors cursor-pointer min-h-[44px] px-2"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#77716E] hover:text-[#221D1D] transition-colors cursor-pointer min-h-[44px] px-2"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Try Again</span>
@@ -723,7 +723,7 @@ export function ExamCountdownsAndQOTD() {
 
                   <button
                     onClick={handleNextQuestion}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0071E3] hover:text-[#0077ED] transition-colors cursor-pointer min-h-[44px] px-2"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#221D1D] bg-[#BFAFE5] hover:bg-[#A08DC9] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer min-h-[36px]"
                   >
                     <span>Next Case Scenario</span>
                     <ArrowRight className="w-3.5 h-3.5" />

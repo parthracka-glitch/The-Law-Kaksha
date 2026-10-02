@@ -11,37 +11,37 @@ export function HeroSection() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-white pt-6 pb-16 md:pt-10 md:pb-24 lg:pt-12 lg:pb-28">
+      <section className="relative overflow-hidden bg-[#AED7E9] p-3 sm:p-6 md:p-8">
+        {/* Main White Content Card Framed by Sky Blue */}
+        <div className="max-w-7xl mx-auto bg-white rounded-3xl md:rounded-[2.5rem] border border-[#E7E4E7] shadow-[0_10px_40px_rgba(34,29,29,0.08)] px-6 py-12 md:px-12 md:py-16 lg:py-20 relative overflow-hidden">
 
+          {/* Subtle Watermark Flower Petals in Background */}
+          <div className="hidden sm:block absolute right-0 top-0 w-[380px] h-[380px] opacity-[0.03] pointer-events-none select-none z-0 overflow-hidden">
+            <Image
+              src="/assets/element lawkaksha.png"
+              alt="Motif"
+              width={380}
+              height={380}
+              className="w-full h-full object-contain"
+            />
+          </div>
 
-        {/* Subtle Watermark Flower Petals in Background */}
-        <div className="hidden sm:block absolute right-0 top-0 w-[380px] h-[380px] opacity-[0.035] pointer-events-none select-none z-0 overflow-hidden">
-          <Image
-            src="/assets/element lawkaksha.png"
-            alt="Motif"
-            width={380}
-            height={380}
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: 3-Book Visual with Soft Blended Edges */}
             <div className="lg:col-span-6 flex justify-center lg:justify-start order-2 lg:order-1">
-              <div className="relative w-full max-w-[520px] flex items-center justify-center">
-                {/* Soft ambient aura for seamless background merging */}
+              <div className="relative w-full max-w-[500px] flex items-center justify-center">
+                {/* Soft ambient aura in soft sky blue */}
                 <div
-                  className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-3xl opacity-60"
+                  className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-3xl opacity-50"
                   style={{
                     background:
-                      "radial-gradient(circle at 50% 50%, rgba(219, 234, 254, 0.9) 0%, rgba(239, 246, 255, 0.5) 50%, transparent 75%)",
+                      "radial-gradient(circle at 50% 50%, #C4E1EC 0%, #AED7E9 50%, transparent 75%)",
                   }}
                 />
 
                 {/* 3D Books Image with Soft Feathered Mask on Edges */}
                 <div
-                  className="relative w-full aspect-square max-h-[520px] select-none pointer-events-none"
+                  className="relative w-full aspect-square max-h-[500px] select-none pointer-events-none"
                   style={{
                     WebkitMaskImage:
                       "radial-gradient(ellipse 90% 90% at 50% 50%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0.8) 84%, rgba(0, 0, 0, 0.25) 94%, transparent 100%)",
@@ -62,31 +62,31 @@ export function HeroSection() {
               </div>
             </div>
 
-            {/* Right Column: Exact Typography, Subtitle, CTAs & Stats from SVG */}
+            {/* Right Column: Typography, Subtitle, CTAs */}
             <div className="lg:col-span-6 space-y-6 text-center lg:text-left order-1 lg:order-2">
               {/* Launch Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005FD8] text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C4E1EC] border border-[#AED7E9] text-[#221D1D] text-xs font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
                 <span>Launch Offer • CA Foundation &amp; CSEET @ ₹99/mo</span>
               </div>
 
-              {/* Main Headline matching SVG */}
-              <h1 className="font-serif font-extrabold text-[clamp(1.75rem,5vw,4.15rem)] leading-[1.12] tracking-tight text-[#0B1E40]">
+              {/* Main Headline */}
+              <h1 className="font-serif font-black text-[clamp(2rem,5.5vw,4.25rem)] leading-[1.1] tracking-tight text-[#221D1D]">
                 Law, Made Simple.
                 <br />
-                <span className="text-[#005FD8] font-bold">Learning, Made Smarter.</span>
+                <span className="text-[#4B8097] font-serif font-black">Learning, Made Smarter.</span>
               </h1>
 
-              {/* Subtitle matching SVG */}
-              <p className="text-base sm:text-lg lg:text-xl text-[#475569] leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
-                Simplified notes, practical resources and exam-focused preparation for CA &amp; CS students.
+              {/* Subtitle */}
+              <p className="text-base sm:text-lg lg:text-xl text-[#4D433F] leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
+                Simplified notes, practical resources and exam-focused preparation for CA Foundation &amp; CSEET students across India.
               </p>
 
-              {/* CTA Action Buttons matching SVG */}
-              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1">
+              {/* CTA Action Buttons with Lavender as Primary CTA */}
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
                 <Link
                   href="#pricing"
-                  className="inline-flex items-center justify-center gap-2 bg-[#004B99] hover:bg-[#003D7A] text-white text-base font-semibold px-8 py-3.5 rounded-xl shadow-md shadow-blue-900/10 transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
+                  className="inline-flex items-center justify-center gap-2 bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-base font-bold px-8 py-3.5 rounded-full shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
                 >
                   <span>Start Learning</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -95,7 +95,7 @@ export function HeroSection() {
                 <button
                   type="button"
                   onClick={() => setSampleModalOpen(true)}
-                  className="inline-flex items-center justify-center border-2 border-[#005FD8] text-[#005FD8] hover:bg-blue-50/80 text-base font-semibold px-8 py-3.5 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
+                  className="inline-flex items-center justify-center bg-white border border-[#221D1D] text-[#221D1D] hover:bg-[#F7F7F5] text-base font-bold px-8 py-3.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
                 >
                   <span>Browse Free Notes</span>
                 </button>

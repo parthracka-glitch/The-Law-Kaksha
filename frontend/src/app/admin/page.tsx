@@ -66,6 +66,8 @@ export interface ProductItem {
   pdfUrl: string;
   description: string;
   units: string[];
+  previewPagesLimit?: number;
+  samplePagesRange?: string;
 }
 
 export interface ResourceItem {
@@ -83,6 +85,7 @@ export interface ResourceItem {
   order: number;
   pages: string;
   cloudinaryPublicId?: string;
+  previewPagesLimit?: number;
 }
 
 export interface SubscriptionRecord {
@@ -126,14 +129,17 @@ export interface CaseStudyItem {
   marks: string;
 }
 
-export interface McqQuestionItem {
+export interface GoogleFormTestItem {
   id: string;
+  title: string;
+  course: "ca" | "cs" | "both";
   subject: string;
-  section: string;
-  question: string;
-  options: string[];
-  correctOption: number;
-  explanation: string;
+  formUrl: string;
+  questionCount: number;
+  duration: number; // in minutes
+  totalMarks: number;
+  status: "Active" | "Draft";
+  instructions: string;
 }
 
 export interface CouponRecord {
@@ -383,34 +389,42 @@ const INITIAL_CASES: CaseStudyItem[] = [
   },
 ];
 
-const INITIAL_MCQS: McqQuestionItem[] = [
+const INITIAL_MCQ_TESTS: GoogleFormTestItem[] = [
   {
-    id: "mcq-1",
-    subject: "Sale of Goods Act, 1930",
-    section: "Section 16(1)",
-    question: "Under Section 16(1) of the Sale of Goods Act, 1930, when is an implied condition as to quality or fitness created without an express declaration by the buyer?",
-    options: [
-      "When the good is capable of only one obvious normal use and buyer relies on seller's judgment.",
-      "Whenever the goods are purchased from any retail store.",
-      "Only when a written warranty card is stamped by the manufacturer.",
-      "Never, because Caveat Emptor applies strictly to all sales.",
-    ],
-    correctOption: 0,
-    explanation: "Under Priest v. Last, where goods have only one customary use, disclosure of purpose is implied, creating an exception to Caveat Emptor.",
+    id: "gtest-1",
+    title: "Weekly Mock Test 1 — Indian Contract Act (Sec 1-75)",
+    course: "ca",
+    subject: "The Indian Contract Act, 1872",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD9L8n4n5v7x9m0/viewform",
+    questionCount: 30,
+    duration: 30,
+    totalMarks: 30,
+    status: "Active",
+    instructions: "Strict 30-minute timed evaluation. 0.25 negative marking applies for incorrect attempts under ICAI guidelines.",
   },
   {
-    id: "mcq-2",
-    subject: "Indian Contract Act, 1872",
-    section: "Section 2(d)",
-    question: "According to the Indian Contract Act 1872, consideration may move from:",
-    options: [
-      "The promisee only.",
-      "The promisor only.",
-      "The promisee or any other third person (Chinnaya v. Ramayya).",
-      "Only a person with registered power of attorney.",
-    ],
-    correctOption: 2,
-    explanation: "In India, unlike English Law, consideration can proceed from a stranger to the contract (Chinnaya v. Ramayya), though a stranger to contract cannot sue.",
+    id: "gtest-2",
+    title: "Unit Test 2 — Sale of Goods Act & Caveat Emptor",
+    course: "ca",
+    subject: "The Sale of Goods Act, 1930",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD9L8n4n5v7x9m1/viewform",
+    questionCount: 25,
+    duration: 25,
+    totalMarks: 25,
+    status: "Active",
+    instructions: "High-yield Section 16 implied condition exceptions and unpaid seller rights.",
+  },
+  {
+    id: "gtest-3",
+    title: "CSEET Paper 2 Master Mock Drill — 8 Units",
+    course: "cs",
+    subject: "Business Law & General Management",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD9L8n4n5v7x9m2/viewform",
+    questionCount: 40,
+    duration: 40,
+    totalMarks: 50,
+    status: "Active",
+    instructions: "Full 8-unit simulation for CSEET legal aptitude & business management paper.",
   },
 ];
 
@@ -461,7 +475,7 @@ export default function AdminPortalPage() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(INITIAL_SUBSCRIPTIONS);
   const [students, setStudents] = useState<StudentRecord[]>(INITIAL_STUDENTS);
   const [cases, setCases] = useState<CaseStudyItem[]>(INITIAL_CASES);
-  const [mcqs, setMcqs] = useState<McqQuestionItem[]>(INITIAL_MCQS);
+  const [mcqTests, setMcqTests] = useState<GoogleFormTestItem[]>(INITIAL_MCQ_TESTS);
   const [coupons, setCoupons] = useState<CouponRecord[]>(INITIAL_COUPONS);
   const [examSettings, setExamSettings] = useState<ExamCountdownSetting[]>([
     { id: "ex-1", exam: "CSEET Paper 2 (Business Law & Management)", date: "2026-11-12", session: "November 2026 Attempt" },
@@ -488,7 +502,8 @@ export default function AdminPortalPage() {
   const [studentModal, setStudentModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<StudentRecord> }>({ open: false, mode: "add", data: {} });
   const [subModal, setSubModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<SubscriptionRecord> }>({ open: false, mode: "add", data: {} });
   const [caseModal, setCaseModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CaseStudyItem> }>({ open: false, mode: "add", data: {} });
-  const [mcqModal, setMcqModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<McqQuestionItem> }>({ open: false, mode: "add", data: {} });
+  const [mcqModal, setMcqModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<GoogleFormTestItem> }>({ open: false, mode: "add", data: {} });
+  const [previewFormModal, setPreviewFormModal] = useState<{ open: boolean; url: string; title: string }>({ open: false, url: "", title: "" });
   const [couponModal, setCouponModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CouponRecord> }>({ open: false, mode: "add", data: {} });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -520,7 +535,7 @@ export default function AdminPortalPage() {
         const c = localStorage.getItem("lawkaksha_admin_cases");
         if (c) setCases(JSON.parse(c));
         const m = localStorage.getItem("lawkaksha_admin_mcqs");
-        if (m) setMcqs(JSON.parse(m));
+        if (m) setMcqTests(JSON.parse(m));
         const cp = localStorage.getItem("lawkaksha_admin_coupons");
         if (cp) setCoupons(JSON.parse(cp));
         const ann = localStorage.getItem("lawkaksha_admin_announcement");
@@ -536,7 +551,7 @@ export default function AdminPortalPage() {
             fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/students`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/cases`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/mcqs`).then((r) => r.json()),
+            fetch(`${API_URL}/api/admin/mcq-tests`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
             fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
@@ -563,9 +578,9 @@ export default function AdminPortalPage() {
             setCases(cRes.value.cases);
             localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(cRes.value.cases));
           }
-          if (mRes.status === "fulfilled" && mRes.value?.mcqs?.length) {
-            setMcqs(mRes.value.mcqs);
-            localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(mRes.value.mcqs));
+          if (mRes.status === "fulfilled" && mRes.value?.tests?.length) {
+            setMcqTests(mRes.value.tests);
+            localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(mRes.value.tests));
           }
           if (cpRes.status === "fulfilled" && cpRes.value?.coupons?.length) {
             setCoupons(cpRes.value.coupons);
@@ -730,9 +745,9 @@ export default function AdminPortalPage() {
 
   if (isCheckingAuth || !isAuthorized) {
     return (
-      <div className="min-h-screen bg-[#F6F5FF] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <div className="w-9 h-9 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-sm font-semibold text-slate-700">Verifying administrator authorization...</p>
+      <div className="min-h-screen bg-[#F7F7F5] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="w-9 h-9 border-2 border-[#AED7E9] border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-bold text-[#221D1D]">Verifying administrator authorization...</p>
       </div>
     );
   }
@@ -743,17 +758,17 @@ export default function AdminPortalPage() {
     { id: "books_and_notes" as TabType, label: "Books & Notes", icon: BookOpen, badge: products.length + resources.length },
     { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
     { id: "cases" as TabType, label: "Case Studies", icon: Flame },
-    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles },
+    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles, badge: mcqTests.length },
     { id: "coupons" as TabType, label: "Coupons", icon: Percent },
     { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F6F5FF] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-[#F7F7F5] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* TOAST NOTIFICATION */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-full bg-[#221D1D] text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -761,32 +776,32 @@ export default function AdminPortalPage() {
       {/* MOBILE SIDEBAR BACKDROP */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* 1. SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-slate-100 flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-[#E7E4E7] flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* LOGO & ADMIN BADGE */}
-        <div className="px-4 pt-5 pb-4 border-b border-slate-100">
+        <div className="px-4 pt-5 pb-4 border-b border-[#E7E4E7]">
           <div className="flex items-center justify-between gap-2">
             <Link href="/" className="flex items-center shrink-0">
               <div className="relative h-8 w-28">
                 <Image src="/assets/logo-transparent.png" alt="The Law Kaksha" fill className="object-contain object-left" priority />
               </div>
             </Link>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-50 border border-violet-100">
-              <ShieldCheck className="w-3.5 h-3.5 text-violet-600" />
-              <span className="text-[11px] font-bold text-violet-900">Admin</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#221D1D]" />
+              <span className="text-[11px] font-bold text-[#221D1D]">Admin</span>
             </div>
           </div>
         </div>
 
         {/* NAVIGATION ITEMS */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {NAV_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -798,17 +813,17 @@ export default function AdminPortalPage() {
                   setSearchQuery("");
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer text-left min-h-[44px] ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[44px] ${
                   isActive
-                    ? "bg-violet-50 text-violet-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                    ? "bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9] shadow-xs"
+                    : "text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
                 }`}
               >
-                <Icon className={`shrink-0 ${isActive ? "text-violet-600" : "text-slate-400"}`} style={{ width: 18, height: 18 }} />
+                <Icon className={`shrink-0 ${isActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 17, height: 17 }} />
                 <span className="truncate">{tab.label}</span>
                 {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className={`ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    isActive ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-600"
+                  <span className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    isActive ? "bg-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
                   }`}>
                     {tab.badge}
                   </span>
@@ -819,19 +834,19 @@ export default function AdminPortalPage() {
         </nav>
 
         {/* BOTTOM ADMIN PROFILE */}
-        <div className="p-3.5 border-t border-slate-100">
-          <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-100">
-            <div className="w-8 h-8 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+        <div className="p-3.5 border-t border-[#E7E4E7]">
+          <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+            <div className="w-8 h-8 rounded-full bg-[#AED7E9] text-[#221D1D] text-xs font-bold flex items-center justify-center shrink-0 shadow-xs border border-[#98C5D8]">
               AD
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-800 truncate">Academic Admin</p>
-              <p className="text-[10px] text-slate-400 leading-none mt-0.5">The Law Kaksha Hub</p>
+              <p className="text-xs font-bold text-[#221D1D] truncate">Academic Admin</p>
+              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">The Law Kaksha Hub</p>
             </div>
             <button
               onClick={handleLogout}
               title="Log Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-[#77716E] hover:text-[#C35F3B] hover:bg-[#F4C5C0]/30 transition-colors cursor-pointer"
             >
               <LogOut style={{ width: 14, height: 14 }} />
             </button>
@@ -842,21 +857,21 @@ export default function AdminPortalPage() {
       {/* 2. MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
         {/* STICKY TOP HEADER */}
-        <header className="sticky top-0 z-20 bg-[#F6F5FF]/80 backdrop-blur-sm border-b border-slate-100 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#E7E4E7] px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="lg:hidden p-2 rounded-xl bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-base font-semibold text-slate-800">
+              <h1 className="text-base font-serif font-bold text-[#221D1D]">
                 {NAV_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
               </h1>
-              <p className="text-[11px] text-slate-400 leading-none mt-0.5">
+              <p className="text-[11px] text-[#77716E] leading-none mt-0.5">
                 Cloudinary Storage, DRM Rights, Student Passes &amp; Act-Wise Resources
               </p>
             </div>
@@ -865,20 +880,20 @@ export default function AdminPortalPage() {
           <div className="flex items-center gap-2.5">
             <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${
               isAtlasConnected
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-amber-50 text-amber-800 border-amber-200"
+                ? "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]"
+                : "bg-[#F4C5C0]/30 text-[#C35F3B] border-[#F4C5C0]"
             }`}>
-              <span className={`w-2 h-2 rounded-full ${isAtlasConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+              <span className={`w-2 h-2 rounded-full ${isAtlasConnected ? "bg-[#4B8097] animate-pulse" : "bg-[#F7892A]"}`} />
               <span>{isAtlasConnected ? "MongoDB Atlas Active" : "Local Sync Active"}</span>
             </div>
 
             <Link
               href="/student"
               target="_blank"
-              className="px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-violet-700 hover:border-violet-200 shadow-xs flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] hover:bg-[#F7F7F5] shadow-xs flex items-center gap-1.5 transition-all"
             >
               <span>Student View</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-[#77716E]" />
             </Link>
           </div>
         </header>
@@ -890,89 +905,89 @@ export default function AdminPortalPage() {
           {activeTab === "overview" && (
             <div className="space-y-6">
               {/* TOP HERO BANNER */}
-              <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-violet-200">
+              <div className="rounded-3xl bg-[#AED7E9] p-6 text-[#221D1D] border border-[#98C5D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                 <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-violet-200">Admin Portal</span>
-                  <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-                  <p className="text-violet-100 text-xs sm:text-sm leading-relaxed max-w-lg">
-                    Overview of subscriptions, courses, notes, and registered students.
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#4D433F] bg-white/60 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">Admin Operations Portal</span>
+                  <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-1">Dashboard Overview</h2>
+                  <p className="text-[#4D433F] text-xs sm:text-sm leading-relaxed max-w-lg">
+                    Real-time overview of active student passes, DRM codices, daily case studies, and live revenue.
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
-                    <TrendingUp className="w-5 h-5 text-emerald-300 mx-auto mb-1" />
-                    <p className="text-xl font-extrabold">₹{totalRevenue.toLocaleString()}</p>
-                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Total Sales</p>
+                  <div className="text-center bg-white/80 backdrop-blur-xs rounded-2xl p-4 min-w-[100px] border border-[#E7E4E7]">
+                    <TrendingUp className="w-5 h-5 text-[#221D1D] mx-auto mb-1" />
+                    <p className="text-xl font-bold font-serif text-[#221D1D]">₹{totalRevenue.toLocaleString()}</p>
+                    <p className="text-[10px] text-[#4D433F] uppercase tracking-wide font-semibold">Total Sales</p>
                   </div>
-                  <div className="text-center bg-white/10 backdrop-blur-sm rounded-2xl p-4 min-w-[90px]">
-                    <Key className="w-5 h-5 text-amber-300 mx-auto mb-1" />
-                    <p className="text-xl font-extrabold">{activeSubsCount}</p>
-                    <p className="text-[10px] text-violet-200 uppercase tracking-wide">Active Passes</p>
+                  <div className="text-center bg-white/80 backdrop-blur-xs rounded-2xl p-4 min-w-[100px] border border-[#E7E4E7]">
+                    <Key className="w-5 h-5 text-[#4B8097] mx-auto mb-1" />
+                    <p className="text-xl font-bold font-serif text-[#221D1D]">{activeSubsCount}</p>
+                    <p className="text-[10px] text-[#4D433F] uppercase tracking-wide font-semibold">Active Passes</p>
                   </div>
                 </div>
               </div>
 
               {/* STAT CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-3">
+                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
                     <BookOpen className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Books &amp; Notes</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{products.length + resources.length} Materials</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
+                  <p className="text-xs text-[#77716E] font-medium">Books &amp; Notes</p>
+                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{products.length + resources.length} Materials</h3>
+                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
+                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#BFAFE5]">
                     <CreditCard className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Subscriptions</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{subscriptions.length} Passes</h3>
-                  <p className="text-[11px] text-amber-600 font-medium mt-1">{activeSubsCount} Active Passes</p>
+                  <p className="text-xs text-[#77716E] font-medium">Subscriptions</p>
+                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{subscriptions.length} Passes</h3>
+                  <p className="text-[11px] text-[#221D1D] font-semibold mt-1">{activeSubsCount} Active Passes</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
+                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
                     <Users className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">Students</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">{students.length} Registered</h3>
-                  <p className="text-[11px] text-sky-600 font-medium mt-1">{activeStudentsCount} Active Access</p>
+                  <p className="text-xs text-[#77716E] font-medium">Students</p>
+                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{students.length} Registered</h3>
+                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{activeStudentsCount} Active Access</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                    <ShieldCheck className="w-5 h-5" />
+                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
+                    <ShieldCheck className="w-5 h-5 text-[#4B8097]" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium">DRM Protection</p>
-                  <h3 className="text-xl font-bold text-slate-800 mt-0.5">Active</h3>
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-1">Secure Read Mode</p>
+                  <p className="text-xs text-[#77716E] font-medium">DRM Protection</p>
+                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">Active</h3>
+                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">Secure Read Mode</p>
                 </div>
               </div>
 
               {/* BROADCAST ANNOUNCEMENT BANNER MANAGER */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div className="bg-white rounded-3xl p-6 border border-[#E7E4E7] shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                    <div className="w-8 h-8 rounded-xl bg-[#C4E1EC]/60 border border-[#AED7E9] flex items-center justify-center text-[#221D1D]">
                       <Megaphone className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-800">Live Broadcast Announcement Bar</h3>
-                      <p className="text-[11px] text-slate-400">Display instant real-time alerts across the homepage and student portal.</p>
+                      <h3 className="text-sm font-bold text-[#221D1D]">Live Broadcast Announcement Bar</h3>
+                      <p className="text-[11px] text-[#77716E]">Display instant real-time alerts across the homepage and student portal.</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#4D433F] select-none">
                       <span>Status:</span>
                       <button
                         type="button"
                         onClick={() => setAnnouncement((prev) => ({ ...prev, enabled: !prev.enabled }))}
-                        className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                           announcement.enabled
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                            ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]"
+                            : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
                         }`}
                       >
                         {announcement.enabled ? "● Live / Active" : "○ Hidden / Disabled"}
@@ -983,15 +998,15 @@ export default function AdminPortalPage() {
 
                 {/* LIVE PREVIEW STRIP */}
                 {announcement.enabled && (
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
+                  <div className="p-3.5 rounded-2xl bg-[#AED7E9] text-[#221D1D] border border-[#98C5D8] flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white uppercase tracking-wider shrink-0">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/60 text-[#221D1D] border border-[#AED7E9] uppercase tracking-wider shrink-0">
                         {announcement.badge || "ANNOUNCEMENT"}
                       </span>
-                      <p className="font-medium truncate">{announcement.text || "No announcement text entered"}</p>
+                      <p className="font-semibold truncate">{announcement.text || "No announcement text entered"}</p>
                     </div>
                     {announcement.link && (
-                      <span className="text-[10px] font-bold underline shrink-0 flex items-center gap-1 opacity-90">
+                      <span className="text-[10px] font-bold underline shrink-0 flex items-center gap-1 opacity-90 text-[#221D1D]">
                         <span>View</span>
                         <ExternalLink className="w-3 h-3" />
                       </span>
@@ -1002,39 +1017,39 @@ export default function AdminPortalPage() {
                 {/* EDIT FIELDS */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
                   <div className="md:col-span-2">
-                    <label className="block font-semibold text-slate-600 mb-1">Badge Tag</label>
+                    <label className="block font-semibold text-[#221D1D] mb-1">Badge Tag</label>
                     <input
                       type="text"
                       value={announcement.badge}
                       onChange={(e) => setAnnouncement({ ...announcement, badge: e.target.value.toUpperCase() })}
                       placeholder="e.g. OFFER, LIVE, ALERT"
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:border-violet-500 uppercase"
+                      className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs font-bold outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white uppercase text-[#221D1D]"
                     />
                   </div>
                   <div className="md:col-span-6">
-                    <label className="block font-semibold text-slate-600 mb-1">Announcement Message *</label>
+                    <label className="block font-semibold text-[#221D1D] mb-1">Announcement Message *</label>
                     <input
                       type="text"
                       value={announcement.text}
                       onChange={(e) => setAnnouncement({ ...announcement, text: e.target.value })}
                       placeholder="e.g. CA Foundation Business Laws Marathon session this Sunday!"
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
+                      className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
                     />
                   </div>
                   <div className="md:col-span-4">
-                    <label className="block font-semibold text-slate-600 mb-1">Target Action Link (Optional)</label>
+                    <label className="block font-semibold text-[#221D1D] mb-1">Target Action Link (Optional)</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         value={announcement.link || ""}
                         onChange={(e) => setAnnouncement({ ...announcement, link: e.target.value })}
                         placeholder="e.g. /courses or /student"
-                        className="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
+                        className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] text-xs outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
                       />
                       <button
                         onClick={handleSaveAnnouncement}
                         disabled={isSavingAnnouncement}
-                        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                        className="px-4 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer disabled:opacity-50"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>{isSavingAnnouncement ? "Saving..." : "Save"}</span>
@@ -1052,16 +1067,16 @@ export default function AdminPortalPage() {
               {/* HEADER */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Subscriptions &amp; Student Passes</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage 30-day monthly passes, renewals, and WhatsApp reminder triggers.</p>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Subscriptions &amp; Student Passes</h2>
+                  <p className="text-xs text-[#4D433F] mt-0.5">Manage 30-day monthly passes, renewals, and WhatsApp reminder triggers.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExportSubscriptions}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                     title="Export all subscriptions as CSV file"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-500" />
+                    <Download className="w-3.5 h-3.5 text-[#77716E]" />
                     <span>Export CSV</span>
                   </button>
                   <button
@@ -1076,7 +1091,7 @@ export default function AdminPortalPage() {
                         item: "CA Foundation Business Laws (Monthly Access)",
                       }
                     })}
-                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add Subscription</span>
@@ -1086,23 +1101,23 @@ export default function AdminPortalPage() {
 
               {/* EXPIRING SOON ALERT BANNER */}
               {expiringSoonCount > 0 && (
-                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in shadow-xs">
+                <div className="p-4 rounded-3xl bg-[#F7892A]/10 border border-[#F7892A]/30 text-[#221D1D] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in shadow-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-                      <AlertTriangle className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-2xl bg-[#F7892A]/20 flex items-center justify-center text-[#C35F3B] shrink-0">
+                      <AlertTriangle className="w-4 h-4 text-[#C35F3B]" />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900">
+                      <p className="font-bold text-[#221D1D]">
                         {expiringSoonCount} Student Pass{expiringSoonCount > 1 ? "es" : ""} Expiring Soon (≤ 5 Days)
                       </p>
-                      <p className="text-slate-600 text-[11px] mt-0.5">
+                      <p className="text-[#4D433F] text-[11px] mt-0.5">
                         Click the green WhatsApp button next to any student to send an instant pre-formatted renewal link.
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setSubFilterTab("expiring_soon")}
-                    className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-full bg-[#AED7E9] hover:bg-[#98C5D8] text-[#221D1D] font-bold text-xs shrink-0 transition-colors cursor-pointer"
                   >
                     View {expiringSoonCount} Expiring
                   </button>
@@ -1110,59 +1125,59 @@ export default function AdminPortalPage() {
               )}
 
               {/* SEARCH & SUB-FILTERS */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl overflow-x-auto">
+              <div className="bg-white rounded-3xl p-4 border border-[#E7E4E7] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-full overflow-x-auto border border-[#E7E4E7]">
                   <button
                     onClick={() => setSubFilterTab("all")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "all" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "all" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     All Passes ({subscriptions.length})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("active")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "active" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "active" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     Active ({activeSubsCount})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("expiring_soon")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "expiring_soon" ? "bg-white text-amber-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "expiring_soon" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     Expiring Soon ({expiringSoonCount})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("revoked")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "revoked" ? "bg-white text-rose-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "revoked" ? "bg-[#C35F3B] text-white shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     Revoked ({subscriptions.filter((s) => s.accessStatus === "Revoked").length})
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80 w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-2 bg-[#F7F7F5] px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 text-[#77716E] shrink-0" />
                   <input
                     type="text"
                     placeholder="Search student, roll, email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+                    className="w-full text-xs text-[#221D1D] bg-transparent outline-none placeholder:text-[#77716E]"
                   />
                 </div>
               </div>
 
               {/* SUBSCRIPTIONS LIST */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
+                    <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#221D1D] font-semibold">
                       <tr>
                         <th className="py-3 px-4">ID &amp; Date</th>
                         <th className="py-3 px-4">Student</th>
@@ -1173,7 +1188,7 @@ export default function AdminPortalPage() {
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#E7E4E7]">
                       {subscriptions
                         .filter((s) => {
                           if (subFilterTab === "active") return s.accessStatus === "Active";
@@ -1190,30 +1205,30 @@ export default function AdminPortalPage() {
                         .map((sub) => {
                           const isExpiring = sub.accessStatus === "Active" && sub.daysRemaining !== undefined && sub.daysRemaining <= 5;
                           return (
-                            <tr key={sub.id} className="hover:bg-slate-50/50">
+                            <tr key={sub.id} className="hover:bg-[#F7F7F5]/60 transition-colors">
                               <td className="py-3.5 px-4">
-                                <p className="font-mono font-bold text-slate-800">{sub.id}</p>
-                                <p className="text-[10px] text-slate-400">{sub.date}</p>
+                                <p className="font-mono font-bold text-[#221D1D]">{sub.id}</p>
+                                <p className="text-[10px] text-[#77716E]">{sub.date}</p>
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="font-bold text-slate-800">{sub.studentName}</p>
-                                <p className="text-[11px] text-violet-600 font-mono">{sub.studentRoll}</p>
-                                <p className="text-[10px] text-slate-400">{sub.email}</p>
-                                {sub.phone && <p className="text-[10px] text-slate-500 font-mono">{sub.phone}</p>}
+                                <p className="font-bold text-[#221D1D]">{sub.studentName}</p>
+                                <p className="text-[11px] text-[#221D1D] font-mono bg-[#BFAFE5]/30 px-1.5 py-0.5 rounded-md inline-block mt-0.5">{sub.studentRoll}</p>
+                                <p className="text-[10px] text-[#77716E]">{sub.email}</p>
+                                {sub.phone && <p className="text-[10px] text-[#77716E] font-mono">{sub.phone}</p>}
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="text-slate-800 font-semibold">{sub.item}</p>
-                                <p className="text-[10px] text-slate-400">{sub.targetExam}</p>
+                                <p className="text-[#221D1D] font-semibold">{sub.item}</p>
+                                <p className="text-[10px] text-[#77716E]">{sub.targetExam}</p>
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="text-xs font-bold text-violet-700">{sub.amount}</p>
-                                <p className="text-[10px] text-slate-400">{sub.paymentMode}</p>
+                                <p className="text-xs font-bold font-serif text-[#221D1D]">{sub.amount}</p>
+                                <p className="text-[10px] text-[#77716E]">{sub.paymentMode}</p>
                               </td>
                               <td className="py-3.5 px-4">
                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                                   isExpiring
-                                    ? "bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
-                                    : "bg-sky-50 text-sky-700 border-sky-100"
+                                    ? "bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/40 animate-pulse"
+                                    : "bg-[#C4E1EC]/60 text-[#221D1D] border-[#AED7E9]"
                                 }`}>
                                   {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days"}
                                 </span>
@@ -1282,7 +1297,7 @@ export default function AdminPortalPage() {
                                   <button
                                     onClick={() => setSubModal({ open: true, mode: "edit", data: sub })}
                                     title="Edit Subscription"
-                                    className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-lg bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] transition-colors cursor-pointer border border-[#E7E4E7]"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
@@ -1322,7 +1337,7 @@ export default function AdminPortalPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">Books &amp; PDF Notes</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#4D433F] mt-0.5">
                     Manage study books, subject codices, and chapter PDF notes with in-app PDF inspector.
                   </p>
                 </div>
@@ -1333,7 +1348,7 @@ export default function AdminPortalPage() {
                       mode: "add",
                       data: { status: "Active", format: "Digital Codex (In-Web DRM)", category: "CA Foundation", price: 99, originalPrice: 299 }
                     })}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add Book</span>
@@ -1351,7 +1366,7 @@ export default function AdminPortalPage() {
                         isSample: false,
                       }
                     })}
-                    className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add PDF Note</span>
@@ -1360,29 +1375,29 @@ export default function AdminPortalPage() {
               </div>
 
               {/* SUB-VIEW SWITCHER & FILTERS */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div className="bg-white rounded-3xl p-4 border border-[#E7E4E7] shadow-sm flex flex-wrap items-center justify-between gap-3">
                 {/* View Selector Pills */}
-                <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl">
+                <div className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-full border border-[#E7E4E7]">
                   <button
                     onClick={() => setMaterialSubTab("all")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      materialSubTab === "all" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      materialSubTab === "all" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     All Material ({products.length + resources.length})
                   </button>
                   <button
                     onClick={() => setMaterialSubTab("books")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      materialSubTab === "books" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      materialSubTab === "books" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     Books &amp; Courses ({products.length})
                   </button>
                   <button
                     onClick={() => setMaterialSubTab("notes")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      materialSubTab === "notes" ? "bg-white text-violet-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      materialSubTab === "notes" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
                     }`}
                   >
                     PDF Notes ({resources.length})
@@ -1392,11 +1407,11 @@ export default function AdminPortalPage() {
                 {/* Course & Type Dropdown Filters */}
                 <div className="flex items-center gap-2.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-500">Course:</span>
+                    <span className="text-xs font-semibold text-[#4D433F]">Course:</span>
                     <select
                       value={selectedCourseFilter}
                       onChange={(e) => setSelectedCourseFilter(e.target.value)}
-                      className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                      className="p-2 rounded-2xl border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white"
                     >
                       <option value="all">All Courses</option>
                       <option value="ca-foundation">CA Foundation</option>
@@ -1406,11 +1421,11 @@ export default function AdminPortalPage() {
 
                   {materialSubTab !== "books" && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-500">Type:</span>
+                      <span className="text-xs font-semibold text-[#4D433F]">Type:</span>
                       <select
                         value={selectedTypeFilter}
                         onChange={(e) => setSelectedTypeFilter(e.target.value)}
-                        className="p-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-violet-500 bg-white"
+                        className="p-2 rounded-2xl border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white"
                       >
                         <option value="all">All Types</option>
                         <option value="notes">Chapter Notes</option>
@@ -1429,10 +1444,10 @@ export default function AdminPortalPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-violet-600" />
-                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Full Books &amp; Codices</h3>
+                      <BookOpen className="w-4 h-4 text-[#4B8097]" />
+                      <h3 className="text-sm font-bold text-[#221D1D] uppercase tracking-wider font-serif">Full Books &amp; Codices</h3>
                     </div>
-                    <span className="text-xs font-semibold text-slate-400">{products.length} active</span>
+                    <span className="text-xs font-medium text-[#77716E]">{products.length} active</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1444,23 +1459,23 @@ export default function AdminPortalPage() {
                         return true;
                       })
                       .map((prod) => (
-                        <div key={prod.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <div key={prod.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                                 {prod.category}
                               </span>
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
                                 {prod.status}
                               </span>
                             </div>
 
                             <div>
-                              <h4 className="text-base font-bold text-slate-800 leading-snug">{prod.title}</h4>
-                              <p className="text-xs text-violet-600 font-medium mt-0.5">{prod.subtitle}</p>
+                              <h4 className="text-base font-serif font-bold text-[#221D1D] leading-snug">{prod.title}</h4>
+                              <p className="text-xs text-[#77716E] font-medium mt-0.5">{prod.subtitle}</p>
                             </div>
 
-                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                            <p className="text-xs text-[#4D433F] leading-relaxed line-clamp-2">
                               {prod.description}
                             </p>
 
@@ -1476,14 +1491,18 @@ export default function AdminPortalPage() {
                             </div>
                           </div>
 
-                          <div className="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+                          <div className="p-4 bg-[#F7F7F5] border-t border-[#E7E4E7] flex items-center justify-between">
                             <div>
                               <div className="flex items-baseline gap-1.5">
-                                <span className="text-base font-extrabold text-slate-900">₹{prod.price}</span>
-                                <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice}</span>
-                                <span className="text-[10px] text-emerald-700 font-bold">/ Month</span>
+                                <span className="text-base font-bold text-[#221D1D]">₹{prod.price}</span>
+                                <span className="text-xs text-[#77716E] line-through">₹{prod.originalPrice}</span>
+                                {prod.originalPrice > prod.price && (
+                                  <span className="text-[10px] text-[#4B8097] font-semibold">
+                                    {Math.round(((prod.originalPrice - prod.price) / prod.originalPrice) * 100)}% off
+                                  </span>
+                                )}
                               </div>
-                              <span className="text-[10px] text-slate-400">{prod.pages} • In-Web DRM</span>
+                              <span className="text-[10px] text-[#77716E]">{prod.pages} • In-Web DRM</span>
                             </div>
 
                             <div className="flex items-center gap-1.5">
@@ -1497,7 +1516,7 @@ export default function AdminPortalPage() {
                                   pages: prod.pages,
                                   isSample: false,
                                 })}
-                                className="p-2 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 text-xs font-semibold transition-all cursor-pointer"
+                                className="p-2 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] hover:bg-[#C4E1EC] border border-[#AED7E9] text-xs font-semibold transition-all cursor-pointer"
                                 title="Inspect & Preview PDF in Admin"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -1505,7 +1524,7 @@ export default function AdminPortalPage() {
 
                               <button
                                 onClick={() => setProductModal({ open: true, mode: "edit", data: prod })}
-                                className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 hover:border-violet-200 text-xs font-semibold transition-all cursor-pointer"
+                                className="p-2 rounded-2xl bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-xs font-semibold transition-all cursor-pointer"
                                 title="Edit Book"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -1522,7 +1541,7 @@ export default function AdminPortalPage() {
                                     showToast("Product deleted.");
                                   }
                                 }}
-                                className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
+                                className="p-2 rounded-2xl bg-white border border-[#F4C5C0] text-[#C35F3B] hover:bg-[#F4C5C0]/30 text-xs font-semibold transition-all cursor-pointer"
                                 title="Delete Book"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1540,10 +1559,10 @@ export default function AdminPortalPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-sky-600" />
-                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Chapter Notes &amp; PDF Resources</h3>
+                      <FileText className="w-4 h-4 text-[#4B8097]" />
+                      <h3 className="text-sm font-bold text-[#221D1D] uppercase tracking-wider font-serif">Chapter Notes &amp; PDF Resources</h3>
                     </div>
-                    <span className="text-xs font-semibold text-slate-400">{resources.length} notes</span>
+                    <span className="text-xs font-medium text-[#77716E]">{resources.length} notes</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1551,40 +1570,40 @@ export default function AdminPortalPage() {
                       .filter((r) => selectedCourseFilter === "all" || r.course === selectedCourseFilter)
                       .filter((r) => selectedTypeFilter === "all" || r.type === selectedTypeFilter)
                       .map((res) => (
-                        <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <div key={res.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
                           <div className="space-y-2.5">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                                 {res.course === "ca-foundation" ? "CA Foundation" : "CSEET"} • Ch {res.chapterNumber}
                               </span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                res.status === "Published" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                                res.status === "Published" ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]" : "bg-[#F7892A]/15 text-[#C35F3B] border border-[#F7892A]/40"
                               }`}>
                                 {res.status}
                               </span>
                             </div>
 
                             <div>
-                              <p className="text-[10px] font-bold text-slate-400">{res.actName}</p>
-                              <h4 className="text-xs font-bold text-slate-800 leading-snug mt-0.5">{res.title}</h4>
+                              <p className="text-[10px] font-bold text-[#77716E]">{res.actName}</p>
+                              <h4 className="text-xs font-bold text-[#221D1D] leading-snug mt-0.5">{res.title}</h4>
                             </div>
 
-                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                            <p className="text-[11px] text-[#4D433F] leading-relaxed line-clamp-2">
                               {res.description}
                             </p>
 
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-                              <span className="font-mono text-slate-600">{res.pages}</span>
+                            <div className="pt-2 border-t border-[#E7E4E7] flex items-center justify-between text-[10px] text-[#77716E]">
+                              <span className="font-mono text-[#221D1D]">{res.pages}</span>
                               {res.isSample && (
-                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                <span className="text-[10px] font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2 py-0.5 rounded-full border border-[#AED7E9]">
                                   Sample PDF
                                 </span>
                               )}
                             </div>
                           </div>
 
-                          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
-                            <span className="text-[10px] text-slate-400 truncate max-w-[100px]" title={res.pdfUrl}>
+                          <div className="pt-3 mt-3 border-t border-[#E7E4E7] flex items-center justify-between">
+                            <span className="text-[10px] text-[#77716E] truncate max-w-[100px]" title={res.pdfUrl}>
                               {res.pdfUrl.split("/").pop()}
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -1599,7 +1618,7 @@ export default function AdminPortalPage() {
                                   pages: res.pages,
                                   isSample: res.isSample,
                                 })}
-                                className="p-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors cursor-pointer"
+                                className="p-2 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] hover:bg-[#C4E1EC] border border-[#AED7E9] text-xs font-semibold transition-colors cursor-pointer"
                                 title="Inspect & Preview PDF in Admin"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -1607,7 +1626,7 @@ export default function AdminPortalPage() {
 
                               <button
                                 onClick={() => setResourceModal({ open: true, mode: "edit", data: res })}
-                                className="p-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"
+                                className="p-2 rounded-2xl bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
                                 title="Edit Note"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -1624,7 +1643,7 @@ export default function AdminPortalPage() {
                                     showToast("Resource deleted.");
                                   }
                                 }}
-                                className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                                className="p-2 rounded-2xl bg-white border border-[#F4C5C0] text-[#C35F3B] hover:bg-[#F4C5C0]/30 transition-colors cursor-pointer"
                                 title="Delete Note"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1644,21 +1663,21 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Students Directory</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">View registered students, DRM permissions, and export contact roster.</p>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Students Directory</h2>
+                  <p className="text-xs text-[#4D433F] mt-0.5">View registered students, DRM permissions, and export contact roster.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExportStudents}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                     title="Export all students as CSV file"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-500" />
+                    <Download className="w-3.5 h-3.5 text-[#77716E]" />
                     <span>Export CSV</span>
                   </button>
                   <button
                     onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
-                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add Student</span>
@@ -1667,10 +1686,10 @@ export default function AdminPortalPage() {
               </div>
 
               {/* STUDENTS LIST */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold">
+                    <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#77716E] font-semibold">
                       <tr>
                         <th className="py-3 px-4">Student &amp; Roll No.</th>
                         <th className="py-3 px-4">Contact Info</th>
@@ -1680,24 +1699,24 @@ export default function AdminPortalPage() {
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#E7E4E7]">
                       {students.map((std) => (
-                        <tr key={std.id} className="hover:bg-slate-50/50">
+                        <tr key={std.id} className="hover:bg-[#F7F7F5]/50 transition-colors">
                           <td className="py-3.5 px-4">
-                            <p className="font-bold text-slate-800">{std.name}</p>
-                            <p className="text-[10px] text-violet-600 font-mono">{std.student_id}</p>
+                            <p className="font-bold text-[#221D1D]">{std.name}</p>
+                            <p className="text-[10px] text-[#4B8097] font-mono">{std.student_id}</p>
                           </td>
                           <td className="py-3.5 px-4">
-                            <p className="text-slate-700">{std.email}</p>
-                            <p className="text-[10px] text-slate-400">{std.phone}</p>
+                            <p className="text-[#4D433F]">{std.email}</p>
+                            <p className="text-[10px] text-[#77716E]">{std.phone}</p>
                           </td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-700">
+                          <td className="py-3.5 px-4 font-semibold text-[#4D433F]">
                             {std.target_exam}
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="flex flex-wrap gap-1">
                               {std.enrolled_books?.map((b, i) => (
-                                <span key={i} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-100">
+                                <span key={i} className="text-[10px] bg-[#F7F7F5] text-[#4D433F] px-2 py-0.5 rounded-full border border-[#E7E4E7]">
                                   {b}
                                 </span>
                               ))}
@@ -1705,7 +1724,7 @@ export default function AdminPortalPage() {
                           </td>
                           <td className="py-3.5 px-4">
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              std.drm_access ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
+                              std.drm_access ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]" : "bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0]"
                             }`}>
                               {std.drm_access ? "Active" : "Blocked"}
                             </span>
@@ -1714,7 +1733,7 @@ export default function AdminPortalPage() {
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
-                                className="p-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700"
+                                className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] transition-colors cursor-pointer"
                                 title="Edit Student"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -1731,7 +1750,7 @@ export default function AdminPortalPage() {
                                     showToast("Student deleted.");
                                   }
                                 }}
-                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600"
+                                className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B] transition-colors cursor-pointer"
                                 title="Delete Student"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1752,12 +1771,12 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Weekly Case Studies</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Manage weekly practice cases, scenarios, and model answers.</p>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Weekly Case Studies</h2>
+                  <p className="text-xs text-[#4D433F] mt-0.5">Manage weekly practice cases, scenarios, and model answers.</p>
                 </div>
                 <button
                   onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", subject: "Indian Contract Act, 1872", marks: "6/6 Marks" } })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Case Study</span>
@@ -1766,29 +1785,29 @@ export default function AdminPortalPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {cases.map((cs) => (
-                  <div key={cs.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                  <div key={cs.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-violet-600 uppercase">{cs.day}</span>
-                        <span className="text-[10px] font-bold bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-100">{cs.badge}</span>
+                        <span className="text-xs font-bold text-[#4B8097] uppercase">{cs.day}</span>
+                        <span className="text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] px-2 py-0.5 rounded-full border border-[#F4C5C0]">{cs.badge}</span>
                       </div>
                       <div>
-                        <span className="text-[11px] text-slate-400 block">{cs.subject}</span>
-                        <h3 className="text-sm font-bold text-slate-800 leading-snug">{cs.title}</h3>
+                        <span className="text-[11px] text-[#77716E] block">{cs.subject}</span>
+                        <h3 className="text-sm font-bold text-[#221D1D] leading-snug">{cs.title}</h3>
                       </div>
-                      <p className="text-xs text-slate-600 italic bg-slate-50 p-3 rounded-xl border border-slate-100 line-clamp-3">
+                      <p className="text-xs text-[#4D433F] italic bg-[#F7F7F5] p-3 rounded-2xl border border-[#E7E4E7] line-clamp-3">
                         &ldquo;{cs.scenario}&rdquo;
                       </p>
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-0.5">Model Solution</span>
-                        <p className="text-xs text-slate-500 line-clamp-3">{cs.modelAnswer}</p>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097] block mb-0.5">Model Solution</span>
+                        <p className="text-xs text-[#77716E] line-clamp-3">{cs.modelAnswer}</p>
                       </div>
                     </div>
 
-                    <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400 truncate max-w-[150px]">{cs.precedent}</span>
+                    <div className="pt-3 mt-4 border-t border-[#E7E4E7] flex items-center justify-between">
+                      <span className="text-[10px] text-[#77716E] truncate max-w-[150px]">{cs.precedent}</span>
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Case">
+                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D]" title="Edit Case">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
@@ -1803,7 +1822,7 @@ export default function AdminPortalPage() {
                               showToast("Case deleted.");
                             }
                           }}
-                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
+                          className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B]"
                           title="Delete Case"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1816,65 +1835,180 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 6: MCQ TESTS */}
+          {/* TAB 6: GOOGLE FORM MCQ TESTS */}
           {activeTab === "mcq" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">MCQ Tests</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Create and manage multiple choice practice questions and answer keys.</p>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Google Form MCQ Tests</h2>
+                  <p className="text-xs text-[#4D433F] mt-0.5">
+                    Directly attach &amp; publish Google Form MCQ quizzes, chapter mock drills, and full-length exam papers.
+                  </p>
                 </div>
                 <button
-                  onClick={() => setMcqModal({ open: true, mode: "add", data: { correctOption: 0, subject: "Indian Contract Act, 1872", options: ["Option A", "Option B", "Option C", "Option D"] } })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  onClick={() =>
+                    setMcqModal({
+                      open: true,
+                      mode: "add",
+                      data: {
+                        course: "ca",
+                        subject: "The Indian Contract Act, 1872",
+                        questionCount: 30,
+                        duration: 30,
+                        totalMarks: 30,
+                        status: "Active",
+                        formUrl: "",
+                        instructions: "Attempt all questions in one sitting. Follow official exam guidelines.",
+                      },
+                    })
+                  }
+                  className="px-4 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Question</span>
+                  <span>Add Google Form Test</span>
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {mcqs.map((mcq, idx) => (
-                  <div key={mcq.id || idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-100">{mcq.subject}</span>
-                        <span className="text-xs font-mono font-bold text-slate-600">{mcq.section}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => setMcqModal({ open: true, mode: "edit", data: mcq })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Question">
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (confirm("Delete this MCQ?")) {
-                              const next = mcqs.filter((m) => m.id !== mcq.id);
-                              setMcqs(next);
-                              localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
-                              try {
-                                await fetch(`${API_URL}/api/admin/mcqs/${mcq.id}`, { method: "DELETE" });
-                              } catch (e) {}
-                              showToast("MCQ deleted.");
-                            }
-                          }}
-                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
-                          title="Delete Question"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">{mcq.question}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {mcq.options?.map((opt, oIdx) => (
-                        <div key={oIdx} className={`p-2.5 rounded-xl border ${oIdx === mcq.correctOption ? "bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold" : "bg-slate-50 border-slate-100 text-slate-600"}`}>
-                          <span className="font-bold mr-1.5">{String.fromCharCode(65 + oIdx)}.</span> {opt}
-                        </div>
-                      ))}
-                    </div>
+              {/* TESTS LIST */}
+              {mcqTests.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center mx-auto border border-[#AED7E9]">
+                    <Sparkles className="w-6 h-6" />
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-sm font-bold text-[#221D1D]">No Google Form Tests Added Yet</h3>
+                  <p className="text-xs text-[#77716E] max-w-sm mx-auto">
+                    Click &quot;Add Google Form Test&quot; above to paste your Google Form link and make it available to enrolled students.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {mcqTests.map((test) => (
+                    <div
+                      key={test.id}
+                      className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 flex flex-col justify-between hover:shadow-md transition-all space-y-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              test.course === "ca"
+                                ? "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
+                                : test.course === "cs"
+                                ? "bg-[#C4E1EC]/60 text-[#221D1D] border-[#AED7E9]"
+                                : "bg-[#BFAFE5]/30 text-[#221D1D] border-[#BFAFE5]"
+                            }`}
+                          >
+                            {test.course === "ca" ? "CA Foundation" : test.course === "cs" ? "CSEET" : "All Courses"}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              test.status === "Active"
+                                ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]"
+                                : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
+                            }`}
+                          >
+                            {test.status}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[11px] text-[#4B8097] font-semibold block">{test.subject}</span>
+                          <h3 className="text-sm font-bold text-[#221D1D] leading-snug mt-0.5">{test.title}</h3>
+                        </div>
+
+                        {/* Test Spec Pills */}
+                        <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                          <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
+                            📝 {test.questionCount || 30} Questions
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
+                            ⏱️ {test.duration || 30} Mins
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
+                            🎯 {test.totalMarks || 30} Marks
+                          </span>
+                        </div>
+
+                        {test.instructions && (
+                          <p className="text-xs text-[#77716E] bg-[#F7F7F5] p-2.5 rounded-2xl border border-[#E7E4E7] leading-relaxed line-clamp-2">
+                            {test.instructions}
+                          </p>
+                        )}
+
+                        {/* URL snippet */}
+                        <div className="p-2 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] flex items-center justify-between gap-2 text-xs">
+                          <span className="text-[#77716E] truncate font-mono text-[11px] flex-1">
+                            {test.formUrl || "No Google Form URL provided"}
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (test.formUrl) {
+                                navigator.clipboard.writeText(test.formUrl);
+                                showToast("Google Form link copied to clipboard!");
+                              }
+                            }}
+                            className="p-1 rounded-lg text-[#77716E] hover:text-[#221D1D] transition-colors"
+                            title="Copy Form URL"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPreviewFormModal({ open: true, url: test.formUrl, title: test.title })}
+                            className="px-3 py-1.5 rounded-full bg-[#C4E1EC]/60 hover:bg-[#C4E1EC] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 border border-[#AED7E9] transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Preview Form</span>
+                          </button>
+                          {test.formUrl && (
+                            <a
+                              href={test.formUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-full hover:bg-[#F7F7F5] text-[#77716E] hover:text-[#221D1D] transition-colors"
+                              title="Open in new tab"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setMcqModal({ open: true, mode: "edit", data: test })}
+                            className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D]"
+                            title="Edit Test"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm(`Delete test "${test.title}"?`)) {
+                                const next = mcqTests.filter((t) => t.id !== test.id);
+                                setMcqTests(next);
+                                localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
+                                try {
+                                  await fetch(`${API_URL}/api/admin/mcq-tests/${test.id}`, { method: "DELETE" });
+                                } catch (e) {}
+                                showToast("Test deleted.");
+                              }
+                            }}
+                            className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B]"
+                            title="Delete Test"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -1883,12 +2017,12 @@ export default function AdminPortalPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Discount Coupons</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Create and manage discount promo codes for subscriptions.</p>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Discount Coupons</h2>
+                  <p className="text-xs text-[#4D433F] mt-0.5">Create and manage discount promo codes for subscriptions.</p>
                 </div>
                 <button
                   onClick={() => setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 20, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31" } })}
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Coupon</span>
@@ -1897,23 +2031,23 @@ export default function AdminPortalPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {coupons.map((cp) => (
-                  <div key={cp.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+                  <div key={cp.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-base font-extrabold font-mono text-violet-700 bg-violet-50 px-3 py-1 rounded-xl border border-violet-100">
+                      <span className="text-base font-extrabold font-mono text-[#221D1D] bg-[#BFAFE5]/40 px-3 py-1 rounded-xl border border-[#BFAFE5]">
                         {cp.code}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                      <span className="text-[10px] font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
                         {cp.status}
                       </span>
                     </div>
-                    <div className="space-y-1 text-xs text-slate-600">
+                    <div className="space-y-1 text-xs text-[#4D433F]">
                       <p><strong>Discount:</strong> {cp.discountPercent}% OFF</p>
                       <p><strong>Min Order:</strong> ₹{cp.minOrder}</p>
                       <p><strong>Redeemed:</strong> {cp.usedCount} / {cp.maxUses} times</p>
                       <p><strong>Expires:</strong> {cp.expiryDate}</p>
                     </div>
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
-                      <button onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })} className="p-1.5 rounded-lg bg-violet-50 text-violet-700" title="Edit Coupon">
+                    <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-1.5">
+                      <button onClick={() => setCouponModal({ open: true, mode: "edit", data: cp })} className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D]" title="Edit Coupon">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
@@ -1928,7 +2062,7 @@ export default function AdminPortalPage() {
                             showToast("Coupon deleted.");
                           }
                         }}
-                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600"
+                        className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B]"
                         title="Delete Coupon"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1944,13 +2078,13 @@ export default function AdminPortalPage() {
           {activeTab === "qotd" && (
             <div className="space-y-6">
               {/* EXAM COUNTDOWN SETTINGS */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-800">Exam Countdown Dates</h3>
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-6 space-y-4">
+                <h3 className="text-sm font-serif font-bold text-[#221D1D]">Exam Countdown Dates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {examSettings.map((ex, idx) => (
-                    <div key={ex.id || idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
-                      <p className="text-xs font-bold text-slate-800">{ex.exam}</p>
-                      <p className="text-[11px] text-slate-400">{ex.session}</p>
+                    <div key={ex.id || idx} className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-2">
+                      <p className="text-xs font-bold text-[#221D1D]">{ex.exam}</p>
+                      <p className="text-[11px] text-[#77716E]">{ex.session}</p>
                       <div className="pt-1">
                         <input
                           type="date"
@@ -1968,7 +2102,7 @@ export default function AdminPortalPage() {
                               showToast("Updated exam date!");
                             } catch (err) {}
                           }}
-                          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold outline-none focus:border-violet-500"
+                          className="px-3 py-1.5 rounded-xl border border-[#E7E4E7] bg-white text-xs font-semibold text-[#221D1D] outline-none focus:border-[#BFAFE5]"
                         />
                       </div>
                     </div>
@@ -1977,47 +2111,47 @@ export default function AdminPortalPage() {
               </div>
 
               {/* QUESTION OF THE DAY EDIT */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-bold text-slate-800">Question of the Day (QOTD)</h3>
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-6 space-y-4">
+                <h3 className="text-sm font-serif font-bold text-[#221D1D]">Question of the Day (QOTD)</h3>
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Question Text</label>
+                    <label className="block font-semibold text-[#4D433F] mb-1">Question Text</label>
                     <textarea
                       rows={2}
                       value={qotd.question}
                       onChange={(e) => setQotd({ ...qotd, question: e.target.value })}
-                      className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                      className="w-full p-3 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-semibold text-slate-700 mb-1">Act / Subject</label>
+                      <label className="block font-semibold text-[#4D433F] mb-1">Act / Subject</label>
                       <input
                         type="text"
                         value={qotd.act}
                         onChange={(e) => setQotd({ ...qotd, act: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                        className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
                       />
                     </div>
                     <div>
-                      <label className="block font-semibold text-slate-700 mb-1">Section</label>
+                      <label className="block font-semibold text-[#4D433F] mb-1">Section</label>
                       <input
                         type="text"
                         value={qotd.section}
                         onChange={(e) => setQotd({ ...qotd, section: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                        className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Explanation</label>
+                    <label className="block font-semibold text-[#4D433F] mb-1">Explanation</label>
                     <textarea
                       rows={2}
                       value={qotd.explanation}
                       onChange={(e) => setQotd({ ...qotd, explanation: e.target.value })}
-                      className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-800 outline-none focus:border-violet-500 bg-slate-50"
+                      className="w-full p-3 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
                     />
                   </div>
 
@@ -2036,7 +2170,7 @@ export default function AdminPortalPage() {
                           showToast("Saved locally (offline mode)");
                         }
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+                      className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer"
                     >
                       Save Question of the Day
                     </button>
@@ -2053,70 +2187,70 @@ export default function AdminPortalPage() {
 
       {/* 1. RESOURCE ADD / EDIT MODAL */}
       {resourceModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {resourceModal.mode === "add" ? "Add PDF Note" : "Edit PDF Note"}
               </h3>
-              <button onClick={() => setResourceModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setResourceModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Course *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Course *</label>
                   <select
                     value={resourceModal.data.course || "ca-foundation"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, course: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="ca-foundation">CA Foundation</option>
                     <option value="cseet">CSEET</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Chapter Number *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Chapter Number *</label>
                   <input
                     type="number"
                     value={resourceModal.data.chapterNumber || 1}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, chapterNumber: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Act / Subject Name *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Act / Subject Name *</label>
                 <input
                   type="text"
                   value={resourceModal.data.actName || ""}
                   onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, actName: e.target.value } })}
                   placeholder="e.g. The Indian Partnership Act, 1932"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Note Title *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Note Title *</label>
                 <input
                   type="text"
                   value={resourceModal.data.title || ""}
                   onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, title: e.target.value } })}
                   placeholder="e.g. Unit 1: General Nature of Partnership"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Type</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Type</label>
                   <select
                     value={resourceModal.data.type || "notes"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, type: e.target.value as any } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="notes">Chapter Notes</option>
                     <option value="flowchart">Flowchart</option>
@@ -2126,11 +2260,11 @@ export default function AdminPortalPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Status</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
                   <select
                     value={resourceModal.data.status || "Published"}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, status: e.target.value as any } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="Published">Published (Active)</option>
                     <option value="Coming soon">Coming soon</option>
@@ -2140,14 +2274,14 @@ export default function AdminPortalPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">PDF File / Cloudinary URL *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">PDF File / Cloudinary URL *</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={resourceModal.data.pdfUrl || ""}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, pdfUrl: e.target.value } })}
                     placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
-                    className="flex-1 p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
+                    className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                   />
                   <input
                     type="file"
@@ -2170,7 +2304,7 @@ export default function AdminPortalPage() {
                     type="button"
                     disabled={isUploadingFile}
                     onClick={() => resourceFileInputRef.current?.click()}
-                    className="px-3 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl text-xs font-bold flex items-center gap-1 shrink-0"
+                    className="px-3 py-2 bg-[#C4E1EC]/60 hover:bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] rounded-2xl text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
                     <span>{isUploadingFile ? "Uploading..." : "Upload PDF"}</span>
@@ -2178,24 +2312,38 @@ export default function AdminPortalPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="res-sample-checkbox"
-                  checked={Boolean(resourceModal.data.isSample)}
-                  onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, isSample: e.target.checked } })}
-                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500 w-4 h-4"
-                />
-                <label htmlFor="res-sample-checkbox" className="font-semibold text-slate-700 cursor-pointer">
-                  Mark as Free Preview Sample (accessible without login)
-                </label>
+              <div className="flex items-center gap-4 pt-1">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="res-sample-checkbox"
+                    checked={Boolean(resourceModal.data.isSample)}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, isSample: e.target.checked } })}
+                    className="rounded-md border-[#E7E4E7] text-[#4B8097] focus:ring-[#BFAFE5] w-4 h-4 cursor-pointer accent-[#4B8097]"
+                  />
+                  <label htmlFor="res-sample-checkbox" className="font-semibold text-[#4D433F] cursor-pointer text-xs">
+                    Free Sample Preview
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[#77716E] text-[11px] font-semibold">Preview Limit:</label>
+                  <input
+                    type="number"
+                    value={resourceModal.data.previewPagesLimit || 5}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, previewPagesLimit: Number(e.target.value) } })}
+                    className="w-14 p-1.5 rounded-xl border border-[#E7E4E7] text-xs font-bold text-[#4B8097] text-center"
+                    placeholder="5"
+                  />
+                  <span className="text-[10px] text-[#77716E]">Pages</span>
+                </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setResourceModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -2218,6 +2366,7 @@ export default function AdminPortalPage() {
                     order: Number(resourceModal.data.order) || 1,
                     pages: resourceModal.data.pages || "20 Pages",
                     cloudinaryPublicId: resourceModal.data.cloudinaryPublicId || "",
+                    previewPagesLimit: Number(resourceModal.data.previewPagesLimit) || 5,
                   };
 
                   const next = isAdd ? [...resources, payload] : resources.map((r) => (r.id === payload.id ? payload : r));
@@ -2236,7 +2385,7 @@ export default function AdminPortalPage() {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save PDF Note
               </button>
@@ -2247,70 +2396,70 @@ export default function AdminPortalPage() {
 
       {/* 2. SUBSCRIPTION ADD / EDIT MODAL */}
       {subModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {subModal.mode === "add" ? "Add Subscription" : "Edit Subscription"}
               </h3>
-              <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setSubModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Student Name *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Student Name *</label>
                   <input
                     type="text"
                     value={subModal.data.studentName || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentName: e.target.value } })}
                     placeholder="e.g. Student Name"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Roll / Student ID *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Roll / Student ID *</label>
                   <input
                     type="text"
                     value={subModal.data.studentRoll || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, studentRoll: e.target.value } })}
                     placeholder="LRK-2026-004182"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Email Address</label>
                   <input
                     type="email"
                     value={subModal.data.email || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, email: e.target.value } })}
                     placeholder="student@thelawkaksha.com"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Phone Number</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Phone Number</label>
                   <input
                     type="text"
                     value={subModal.data.phone || ""}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, phone: e.target.value } })}
                     placeholder="+91 98765 43210"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Course / Pass *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Course / Pass *</label>
                 <select
                   value={subModal.data.item || "CA Foundation Business Laws (Monthly Access)"}
                   onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, item: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="CA Foundation Business Laws (Monthly Access)">CA Foundation Business Laws (₹99/Month)</option>
                   <option value="CSEET Business Law & Management (Monthly Access)">CSEET Business Law &amp; Management (₹99/Month)</option>
@@ -2319,20 +2468,20 @@ export default function AdminPortalPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Fee Amount (₹)</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Fee Amount (₹)</label>
                   <input
                     type="text"
                     value={subModal.data.amount || "₹99"}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, amount: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-bold text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-bold text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Payment Method</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Payment Method</label>
                   <select
                     value={subModal.data.paymentMode || "UPI / Razorpay"}
                     onChange={(e) => setSubModal({ ...subModal, data: { ...subModal.data, paymentMode: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                   >
                     <option value="UPI / Razorpay">UPI / Razorpay</option>
                     <option value="Razorpay / Cards">Razorpay / Cards</option>
@@ -2342,10 +2491,10 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setSubModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -2383,7 +2532,7 @@ export default function AdminPortalPage() {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Subscription
               </button>
@@ -2394,70 +2543,95 @@ export default function AdminPortalPage() {
 
       {/* 3. PRODUCT / COURSE MODAL */}
       {productModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {productModal.mode === "add" ? "Add Course / Book" : "Edit Course / Book"}
               </h3>
-              <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Course Title *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Course Title *</label>
                 <input
                   type="text"
                   value={productModal.data.title || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, title: e.target.value } })}
                   placeholder="e.g. CA Foundation Business Laws"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subtitle *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Subtitle *</label>
                 <input
                   type="text"
                   value={productModal.data.subtitle || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, subtitle: e.target.value } })}
                   placeholder="e.g. Complete 7 Chapters Study Notes &amp; Cases"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Monthly Price (₹) *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Monthly Price (₹) *</label>
                   <input
                     type="number"
                     value={productModal.data.price || 99}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, price: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Original Price (₹)</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Original Price (₹)</label>
                   <input
                     type="number"
                     value={productModal.data.originalPrice || 299}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, originalPrice: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Preview Page Limit (Sample)</label>
+                  <input
+                    type="number"
+                    value={productModal.data.previewPagesLimit || 5}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, previewPagesLimit: Number(e.target.value) } })}
+                    placeholder="e.g. 5"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-bold text-[#4B8097]"
+                  />
+                  <span className="text-[10px] text-[#77716E]">Restricts free preview to first N pages</span>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Sample Page Range</label>
+                  <input
+                    type="text"
+                    value={productModal.data.samplePagesRange || "1-5"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, samplePagesRange: e.target.value } })}
+                    placeholder="e.g. 1-5"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
+                  />
+                  <span className="text-[10px] text-[#77716E]">Display label for free sample</span>
+                </div>
+              </div>
+
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">PDF URL / Upload</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">PDF URL / Upload</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={productModal.data.pdfUrl || ""}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pdfUrl: e.target.value } })}
                     placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
-                    className="flex-1 p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs font-mono"
+                    className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
                   />
                   <input
                     type="file"
@@ -2480,7 +2654,7 @@ export default function AdminPortalPage() {
                     type="button"
                     disabled={isUploadingFile}
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-xl text-xs font-bold flex items-center gap-1 shrink-0"
+                    className="px-3 py-2 bg-[#C4E1EC]/60 hover:bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] rounded-2xl text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
                     <span>Upload PDF</span>
@@ -2489,10 +2663,10 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setProductModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -2513,6 +2687,8 @@ export default function AdminPortalPage() {
                     pdfUrl: productModal.data.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
                     description: productModal.data.description || "",
                     units: productModal.data.units || ["Chapter 1", "Chapter 2"],
+                    previewPagesLimit: Number(productModal.data.previewPagesLimit) || 5,
+                    samplePagesRange: productModal.data.samplePagesRange || "1-5",
                   };
                   const next = isAdd ? [...products, payload] : products.map((p) => (p.id === payload.id ? payload : p));
                   setProducts(next);
@@ -2530,7 +2706,7 @@ export default function AdminPortalPage() {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Course
               </button>
@@ -2541,57 +2717,57 @@ export default function AdminPortalPage() {
 
       {/* 4. STUDENT MODAL */}
       {studentModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {studentModal.mode === "add" ? "Add Student" : "Edit Student"}
               </h3>
-              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Student Name *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Student Name *</label>
                 <input
                   type="text"
                   value={studentModal.data.name || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, name: e.target.value } })}
                   placeholder="e.g. Student Name"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Student / Roll ID *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Student / Roll ID *</label>
                 <input
                   type="text"
                   value={studentModal.data.student_id || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, student_id: e.target.value } })}
                   placeholder="LRK-2026-001234"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Email Address *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Email Address *</label>
                 <input
                   type="email"
                   value={studentModal.data.email || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, email: e.target.value } })}
                   placeholder="student@thelawkaksha.com"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Target Exam</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Target Exam</label>
                 <select
                   value={studentModal.data.target_exam || "CA Foundation Paper 2"}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, target_exam: e.target.value } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="CA Foundation Paper 2">CA Foundation Paper 2 (Business Laws)</option>
                   <option value="CSEET Law & Management">CSEET Paper 2 (Business Law &amp; Management)</option>
@@ -2599,10 +2775,10 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setStudentModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -2635,7 +2811,7 @@ export default function AdminPortalPage() {
                     showToast("Student saved!");
                   } catch (e) {}
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Student
               </button>
@@ -2646,25 +2822,25 @@ export default function AdminPortalPage() {
 
       {/* 5. CASE STUDY MODAL */}
       {caseModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {caseModal.mode === "add" ? "Add Case Study" : "Edit Case Study"}
               </h3>
-              <button onClick={() => setCaseModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setCaseModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Day Tag</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Day Tag</label>
                   <select
                     value={caseModal.data.day || "Monster Monday"}
                     onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, day: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="Monster Monday">Monster Monday</option>
                     <option value="Midweek Law Madness">Midweek Law Madness</option>
@@ -2672,89 +2848,89 @@ export default function AdminPortalPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Difficulty Badge</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Difficulty Badge</label>
                   <input
                     type="text"
                     value={caseModal.data.badge || "High Difficulty"}
                     onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, badge: e.target.value } })}
                     placeholder="e.g. High Difficulty"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Subject / Act *</label>
                 <input
                   type="text"
                   value={caseModal.data.subject || ""}
                   onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, subject: e.target.value } })}
                   placeholder="e.g. Indian Contract Act, 1872"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Case Title *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Case Title *</label>
                 <input
                   type="text"
                   value={caseModal.data.title || ""}
                   onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, title: e.target.value } })}
                   placeholder="e.g. Anticipatory Breach &amp; Measure of Damages"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Scenario Problem *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Scenario Problem *</label>
                 <textarea
                   rows={3}
                   value={caseModal.data.scenario || ""}
                   onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, scenario: e.target.value } })}
                   placeholder="Enter the case study problem scenario..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5] text-[#221D1D]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Model Solution *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Model Solution *</label>
                 <textarea
                   rows={3}
                   value={caseModal.data.modelAnswer || ""}
                   onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, modelAnswer: e.target.value } })}
                   placeholder="Enter the model legal analysis and solution..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5] text-[#221D1D]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Case Law Precedent</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Case Law Precedent</label>
                   <input
                     type="text"
                     value={caseModal.data.precedent || ""}
                     onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, precedent: e.target.value } })}
                     placeholder="e.g. Frost v. Knight"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Marks Weightage</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Marks Weightage</label>
                   <input
                     type="text"
                     value={caseModal.data.marks || "6/6 Marks"}
                     onChange={(e) => setCaseModal({ ...caseModal, data: { ...caseModal.data, marks: e.target.value } })}
                     placeholder="e.g. 6/6 Marks"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setCaseModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -2786,7 +2962,7 @@ export default function AdminPortalPage() {
                     showToast("Case study saved!");
                   } catch (e) {}
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Case Study
               </button>
@@ -2795,211 +2971,298 @@ export default function AdminPortalPage() {
         </div>
       )}
 
-      {/* 6. MCQ QUESTION MODAL */}
+      {/* 6. GOOGLE FORM MCQ TEST MODAL */}
       {mcqModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
-                {mcqModal.mode === "add" ? "Add MCQ Question" : "Edit MCQ Question"}
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
+                {mcqModal.mode === "add" ? "Add Google Form MCQ Test" : "Edit Google Form MCQ Test"}
               </h3>
-              <button onClick={() => setMcqModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setMcqModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Subject / Act *</label>
-                  <input
-                    type="text"
-                    value={mcqModal.data.subject || ""}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, subject: e.target.value } })}
-                    placeholder="e.g. Indian Contract Act, 1872"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Section Citation</label>
-                  <input
-                    type="text"
-                    value={mcqModal.data.section || ""}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, section: e.target.value } })}
-                    placeholder="e.g. Section 2(d)"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Question Text *</label>
-                <textarea
-                  rows={2}
-                  value={mcqModal.data.question || ""}
-                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, question: e.target.value } })}
-                  placeholder="Enter multiple choice question..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                <label className="block font-semibold text-[#4D433F] mb-1">Test Title *</label>
+                <input
+                  type="text"
+                  value={mcqModal.data.title || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, title: e.target.value } })}
+                  placeholder="e.g. Weekly Mock Test 1 — Indian Contract Act (Sec 1-75)"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-semibold text-[#221D1D]"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block font-semibold text-slate-700">Options &amp; Correct Answer</label>
-                {[0, 1, 2, 3].map((optIdx) => {
-                  const opts = mcqModal.data.options || ["", "", "", ""];
-                  return (
-                    <div key={optIdx} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="correct-option"
-                        checked={mcqModal.data.correctOption === optIdx}
-                        onChange={() => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, correctOption: optIdx } })}
-                        className="w-4 h-4 text-violet-600"
-                      />
-                      <span className="font-bold text-slate-600 w-4">{String.fromCharCode(65 + optIdx)}.</span>
-                      <input
-                        type="text"
-                        value={opts[optIdx] || ""}
-                        onChange={(e) => {
-                          const nextOpts = [...opts];
-                          nextOpts[optIdx] = e.target.value;
-                          setMcqModal({ ...mcqModal, data: { ...mcqModal.data, options: nextOpts } });
-                        }}
-                        placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
-                        className="flex-1 p-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-violet-500"
-                      />
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Target Course *</label>
+                  <select
+                    value={mcqModal.data.course || "ca"}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, course: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
+                  >
+                    <option value="ca">CA Foundation (Paper 2)</option>
+                    <option value="cs">CSEET (Paper 2)</option>
+                    <option value="both">Both Courses</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
+                  <select
+                    value={mcqModal.data.status || "Active"}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, status: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
+                  >
+                    <option value="Active">Active (Published to Students)</option>
+                    <option value="Draft">Draft (Hidden)</option>
+                  </select>
+                </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Explanation / Legal Reasoning</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Subject / Act Name *</label>
+                <input
+                  type="text"
+                  value={mcqModal.data.subject || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, subject: e.target.value } })}
+                  placeholder="e.g. The Indian Contract Act, 1872"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#4D433F] mb-1">Google Form URL / Embed Link *</label>
+                <input
+                  type="text"
+                  value={mcqModal.data.formUrl || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, formUrl: e.target.value } })}
+                  placeholder="https://docs.google.com/forms/d/e/.../viewform or https://forms.gle/..."
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-[11px] text-[#221D1D]"
+                />
+                <p className="text-[10px] text-[#77716E] mt-1">
+                  Paste the Google Form share link. Students will be able to take the test directly.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5">
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Questions</label>
+                  <input
+                    type="number"
+                    value={mcqModal.data.questionCount || 30}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, questionCount: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Duration (Mins)</label>
+                  <input
+                    type="number"
+                    value={mcqModal.data.duration || 30}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, duration: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Total Marks</label>
+                  <input
+                    type="number"
+                    value={mcqModal.data.totalMarks || 30}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, totalMarks: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-[#221D1D]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#4D433F] mb-1">Test Guidelines &amp; Instructions</label>
                 <textarea
                   rows={2}
-                  value={mcqModal.data.explanation || ""}
-                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, explanation: e.target.value } })}
-                  placeholder="Explain why this answer is legally correct..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-slate-50"
+                  value={mcqModal.data.instructions || ""}
+                  onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, instructions: e.target.value } })}
+                  placeholder="e.g. Negative marking 0.25 applies as per ICAI guidelines. Complete in one sitting."
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5] text-[#221D1D]"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setMcqModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={async () => {
-                  if (!mcqModal.data.question) return alert("Please enter question");
+                  if (!mcqModal.data.title) return alert("Please enter test title");
+                  if (!mcqModal.data.formUrl) return alert("Please enter Google Form URL");
                   const isAdd = mcqModal.mode === "add";
-                  const payload: McqQuestionItem = {
-                    id: mcqModal.data.id || `mcq-${Date.now()}`,
+                  const payload: GoogleFormTestItem = {
+                    id: mcqModal.data.id || `gtest-${Date.now()}`,
+                    title: mcqModal.data.title || "Weekly Google Form Mock Test",
+                    course: (mcqModal.data.course as any) || "ca",
                     subject: mcqModal.data.subject || "Business Laws",
-                    section: mcqModal.data.section || "",
-                    question: mcqModal.data.question || "",
-                    options: mcqModal.data.options || ["Option A", "Option B", "Option C", "Option D"],
-                    correctOption: mcqModal.data.correctOption || 0,
-                    explanation: mcqModal.data.explanation || "",
+                    formUrl: mcqModal.data.formUrl || "",
+                    questionCount: Number(mcqModal.data.questionCount) || 30,
+                    duration: Number(mcqModal.data.duration) || 30,
+                    totalMarks: Number(mcqModal.data.totalMarks) || 30,
+                    status: (mcqModal.data.status as any) || "Active",
+                    instructions: mcqModal.data.instructions || "Attempt in one continuous sitting.",
                   };
-                  const next = isAdd ? [...mcqs, payload] : mcqs.map((m) => (m.id === payload.id ? payload : m));
-                  setMcqs(next);
+                  const next = isAdd ? [payload, ...mcqTests] : mcqTests.map((t) => (t.id === payload.id ? payload : t));
+                  setMcqTests(next);
                   localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
                   setMcqModal({ open: false, mode: "add", data: {} });
+                  showToast(isAdd ? "Adding Google Form test..." : "Updating test...");
                   try {
-                    await fetch(`${API_URL}/api/admin/mcqs${!isAdd ? "/" + payload.id : ""}`, {
+                    await fetch(`${API_URL}/api/admin/mcq-tests${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast("MCQ Question saved!");
-                  } catch (e) {}
+                    showToast("Google Form test saved to MongoDB Atlas!");
+                  } catch (e) {
+                    showToast("Saved locally (offline mode)");
+                  }
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
-                Save Question
+                Save Google Form Test
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 7. COUPON MODAL */}
+      {/* 7. GOOGLE FORM IN-APP PREVIEW MODAL */}
+      {previewFormModal.open && (
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full h-[85vh] shadow-2xl border border-[#E7E4E7] flex flex-col overflow-hidden animate-in fade-in">
+            <div className="px-5 py-3.5 border-b border-[#E7E4E7] flex items-center justify-between bg-[#F7F7F5]">
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="w-4 h-4 text-[#4B8097]" />
+                <h3 className="text-xs font-bold text-[#221D1D] truncate font-serif">{previewFormModal.title}</h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#BFAFE5]/40 text-[#221D1D] shrink-0 border border-[#BFAFE5]">
+                  Google Form Live Preview
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {previewFormModal.url && (
+                  <a
+                    href={previewFormModal.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-xs font-semibold flex items-center gap-1 shadow-xs"
+                  >
+                    <span>Open in Tab</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                <button
+                  onClick={() => setPreviewFormModal({ open: false, url: "", title: "" })}
+                  className="p-1.5 rounded-xl hover:bg-[#E7E4E7] text-[#77716E] cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 w-full bg-[#F7F7F5] relative">
+              {previewFormModal.url ? (
+                <iframe
+                  src={previewFormModal.url.includes("embedded=true") ? previewFormModal.url : `${previewFormModal.url}?embedded=true`}
+                  className="w-full h-full border-none"
+                  title="Google Form Preview"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-[#77716E] p-6 text-center">
+                  <AlertTriangle className="w-8 h-8 mb-2 text-[#C35F3B]" />
+                  <p className="text-xs font-semibold">No valid Google Form URL provided.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. COUPON MODAL */}
       {couponModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {couponModal.mode === "add" ? "Add Coupon" : "Edit Coupon"}
               </h3>
-              <button onClick={() => setCouponModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
+              <button onClick={() => setCouponModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
+                <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Coupon Code *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Coupon Code *</label>
                 <input
                   type="text"
                   value={couponModal.data.code || ""}
                   onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, code: e.target.value.toUpperCase() } })}
                   placeholder="e.g. EXAM2026"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 font-mono font-bold uppercase text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono font-bold uppercase text-xs text-[#221D1D]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Discount % *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Discount % *</label>
                   <input
                     type="number"
                     value={couponModal.data.discountPercent || 20}
                     onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, discountPercent: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Min Order (₹)</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Min Order (₹)</label>
                   <input
                     type="number"
                     value={couponModal.data.minOrder || 99}
                     onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, minOrder: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Max Uses</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Max Uses</label>
                   <input
                     type="number"
                     value={couponModal.data.maxUses || 500}
                     onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, maxUses: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Expiry Date</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Expiry Date</label>
                   <input
                     type="date"
                     value={couponModal.data.expiryDate || "2026-12-31"}
                     onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, expiryDate: e.target.value } })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 text-xs"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Status</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
                 <select
                   value={couponModal.data.status || "Active"}
                   onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as any } })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-violet-500 bg-white text-xs"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="Active">Active</option>
                   <option value="Expired">Expired</option>
@@ -3008,10 +3271,10 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
               <button
                 onClick={() => setCouponModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
               >
                 Cancel
               </button>
@@ -3042,7 +3305,7 @@ export default function AdminPortalPage() {
                     showToast("Coupon saved!");
                   } catch (e) {}
                 }}
-                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-sm"
+                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Coupon
               </button>
@@ -3051,29 +3314,29 @@ export default function AdminPortalPage() {
         </div>
       )}
 
-      {/* 8. IN-APP PDF PREVIEW INSPECTOR MODAL */}
+      {/* 9. IN-APP PDF PREVIEW INSPECTOR MODAL */}
       {previewPdfModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl border border-[#E7E4E7] flex flex-col max-h-[92vh] overflow-hidden">
             {/* MODAL HEADER */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/80">
+            <div className="px-5 py-4 border-b border-[#E7E4E7] flex items-center justify-between gap-3 bg-[#F7F7F5]">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-800">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                     {previewPdfModal.category || "Study Resource"}
                   </span>
                   {previewPdfModal.isSample && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
                       Free Preview
                     </span>
                   )}
                   {previewPdfModal.pages && (
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-[#77716E] font-mono">
                       {previewPdfModal.pages}
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-bold text-slate-800 truncate mt-1">
+                <h3 className="text-sm font-bold text-[#221D1D] truncate mt-1 font-serif">
                   {previewPdfModal.title}
                 </h3>
               </div>
@@ -3083,7 +3346,7 @@ export default function AdminPortalPage() {
                   href={previewPdfModal.pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-violet-700 text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
                   title="Open source PDF in new browser tab"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -3091,7 +3354,7 @@ export default function AdminPortalPage() {
                 </a>
                 <button
                   onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl text-[#77716E] hover:text-[#221D1D] hover:bg-[#E7E4E7] transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -3099,8 +3362,8 @@ export default function AdminPortalPage() {
             </div>
 
             {/* MODAL BODY (PDF PREVIEW + SIMULATED WATERMARK) */}
-            <div className="flex-1 p-4 bg-slate-100/70 overflow-hidden relative flex flex-col">
-              <div className="relative flex-1 w-full rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-inner flex flex-col">
+            <div className="flex-1 p-4 bg-[#F7F7F5] overflow-hidden relative flex flex-col">
+              <div className="relative flex-1 w-full rounded-2xl overflow-hidden border border-[#E7E4E7] bg-white shadow-inner flex flex-col">
                 <iframe
                   src={`${previewPdfModal.pdfUrl}#toolbar=0`}
                   title={previewPdfModal.title}
@@ -3108,21 +3371,21 @@ export default function AdminPortalPage() {
                 />
 
                 {/* SIMULATED DRM WATERMARK STRIP */}
-                <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-mono pointer-events-none flex items-center gap-2 border border-white/10 shadow-lg">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-[#221D1D]/90 backdrop-blur-md text-white text-[11px] font-mono pointer-events-none flex items-center gap-2 border border-white/10 shadow-lg">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#4B8097]" />
                   <span>The Law Kaksha DRM Protected • In-Web Reader Mode</span>
                 </div>
               </div>
             </div>
 
             {/* MODAL FOOTER */}
-            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 bg-white">
-              <span className="truncate max-w-md font-mono text-[11px] text-slate-400" title={previewPdfModal.pdfUrl}>
+            <div className="px-5 py-3 border-t border-[#E7E4E7] flex items-center justify-between text-xs text-[#77716E] bg-white">
+              <span className="truncate max-w-md font-mono text-[11px] text-[#77716E]" title={previewPdfModal.pdfUrl}>
                 Source: {previewPdfModal.pdfUrl}
               </span>
               <button
                 onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
-                className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer"
               >
                 Close Inspector
               </button>

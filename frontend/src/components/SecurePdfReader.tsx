@@ -540,40 +540,40 @@ export function SecurePdfReader({
 
   if (!isOpen) return null;
 
-  // Executive minimal theme palette
+  // Design Token Theming Palette
   const themeStyles = {
     dark: {
-      appBg: "#0F141C",
-      headerBg: "bg-[#0F141C]/90 backdrop-blur-xl border-white/[0.08] text-slate-100",
-      canvasBg: "#0A0D13",
+      appBg: "#1A1E24",
+      headerBg: "bg-[#1A1E24]/90 backdrop-blur-xl border-white/[0.08] text-slate-100",
+      canvasBg: "#111418",
       pageShadow: "shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]",
-      tocBg: "bg-[#0F141C] border-white/[0.08] text-slate-100",
-      dockBg: "bg-[#141A23]/90 backdrop-blur-xl border-white/[0.1] text-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.45)]",
+      tocBg: "bg-[#1A1E24] border-white/[0.08] text-slate-100",
+      dockBg: "bg-[#242B35]/90 backdrop-blur-xl border-white/[0.1] text-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.45)]",
       btnGhost: "hover:bg-white/10 active:bg-white/15 text-slate-300 hover:text-white",
-      btnActive: "bg-white/15 text-white",
-      accent: "text-violet-400",
+      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+      accent: "text-[#BFAFE5]",
     },
     sepia: {
-      appBg: "#F4EDE2",
-      headerBg: "bg-[#F4EDE2]/90 backdrop-blur-xl border-amber-900/[0.08] text-[#342717]",
-      canvasBg: "#EBE3D5",
+      appBg: "#F7F4EB",
+      headerBg: "bg-[#F7F4EB]/90 backdrop-blur-xl border-[#AED7E9]/[0.15] text-[#221D1D]",
+      canvasBg: "#EDE7D9",
       pageShadow: "shadow-[0_20px_50px_-12px_rgba(60,40,15,0.15),0_0_0_1px_rgba(100,70,20,0.08)]",
-      tocBg: "bg-[#F4EDE2] border-amber-900/[0.08] text-[#342717]",
-      dockBg: "bg-[#EFE8DC]/90 backdrop-blur-xl border-amber-900/[0.12] text-[#342717] shadow-[0_12px_40px_rgba(60,40,15,0.12)]",
-      btnGhost: "hover:bg-amber-900/10 active:bg-amber-900/15 text-[#5C452A] hover:text-[#342717]",
-      btnActive: "bg-amber-900/15 text-[#342717]",
-      accent: "text-amber-800",
+      tocBg: "bg-[#F7F4EB] border-[#AED7E9]/[0.15] text-[#221D1D]",
+      dockBg: "bg-[#EFE8DC]/90 backdrop-blur-xl border-[#AED7E9]/[0.2] text-[#221D1D] shadow-[0_12px_40px_rgba(60,40,15,0.12)]",
+      btnGhost: "hover:bg-[#AED7E9]/10 active:bg-[#AED7E9]/15 text-[#4D433F] hover:text-[#221D1D]",
+      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+      accent: "text-[#4B8097]",
     },
     light: {
-      appBg: "#F8FAFC",
-      headerBg: "bg-white/90 backdrop-blur-xl border-slate-200/80 text-slate-800",
-      canvasBg: "#EFF2F6",
-      pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)]",
-      tocBg: "bg-white border-slate-200 text-slate-800",
-      dockBg: "bg-white/90 backdrop-blur-xl border-slate-200 text-slate-800 shadow-[0_12px_40px_rgba(0,0,0,0.08)]",
-      btnGhost: "hover:bg-slate-100 active:bg-slate-200 text-slate-600 hover:text-slate-900",
-      btnActive: "bg-slate-100 text-slate-900 font-semibold",
-      accent: "text-violet-600",
+      appBg: "#F7F7F5",
+      headerBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D]",
+      canvasBg: "#EFEFEA",
+      pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(231,228,231,0.8)]",
+      tocBg: "bg-white border-[#E7E4E7] text-[#221D1D]",
+      dockBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D] shadow-[0_12px_40px_rgba(0,0,0,0.08)]",
+      btnGhost: "hover:bg-[#F7F7F5] active:bg-[#E7E4E7] text-[#4D433F] hover:text-[#221D1D]",
+      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+      accent: "text-[#4B8097]",
     },
     oled: {
       appBg: "#000000",
@@ -583,8 +583,8 @@ export function SecurePdfReader({
       tocBg: "bg-black border-neutral-800 text-neutral-100",
       dockBg: "bg-[#0A0A0A]/90 backdrop-blur-xl border-neutral-800 text-neutral-100 shadow-[0_12px_40px_rgba(0,0,0,0.8)]",
       btnGhost: "hover:bg-neutral-800 active:bg-neutral-700 text-neutral-300 hover:text-white",
-      btnActive: "bg-neutral-800 text-white",
-      accent: "text-violet-400",
+      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+      accent: "text-[#BFAFE5]",
     },
   }[theme];
 
@@ -612,7 +612,7 @@ export function SecurePdfReader({
         }
       `}</style>
 
-      {/* 1. ULTRA-MINIMAL TOP BAR (100% REAL & STREAMLINED) */}
+      {/* 1. ULTRA-MINIMAL TOP BAR */}
       <header
         className={`h-12 sm:h-13 px-3 sm:px-5 border-b shrink-0 z-30 flex items-center justify-between transition-colors ${themeStyles.headerBg}`}
       >
@@ -628,7 +628,7 @@ export function SecurePdfReader({
             <List className="w-4 h-4" />
             <span className="hidden sm:inline text-xs font-medium">Contents</span>
             {totalPages > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-400 font-mono font-medium">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#AED7E9]/40 text-[#221D1D] font-mono font-bold">
                 {totalPages} {totalPages === 1 ? "Page" : "Pages"}
               </span>
             )}
@@ -652,9 +652,9 @@ export function SecurePdfReader({
             className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs ${themeStyles.btnGhost}`}
             title={`Theme: ${theme.toUpperCase()} (Tap to switch)`}
           >
-            {theme === "dark" && <Moon className="w-4 h-4 text-violet-300" />}
-            {theme === "sepia" && <Coffee className="w-4 h-4 text-amber-500" />}
-            {theme === "light" && <Sun className="w-4 h-4 text-amber-500" />}
+            {theme === "dark" && <Moon className="w-4 h-4 text-[#BFAFE5]" />}
+            {theme === "sepia" && <Coffee className="w-4 h-4 text-[#4B8097]" />}
+            {theme === "light" && <Sun className="w-4 h-4 text-[#F7892A]" />}
             {theme === "oled" && <Moon className="w-4 h-4 text-neutral-400" />}
             <span className="hidden sm:inline capitalize text-[11px] font-medium opacity-80">{theme}</span>
           </button>
@@ -663,11 +663,11 @@ export function SecurePdfReader({
           <button
             onClick={() => toggleBookmark(currentPage)}
             className={`p-2 rounded-xl transition-all cursor-pointer ${
-              isBookmarked ? "text-amber-400" : themeStyles.btnGhost
+              isBookmarked ? "text-[#F7892A]" : themeStyles.btnGhost
             }`}
             title={isBookmarked ? "Page Bookmarked" : "Bookmark this Page (B)"}
           >
-            <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-amber-400" : "opacity-70"}`} />
+            <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-[#F7892A]" : "opacity-70"}`} />
           </button>
 
           {/* Rotate (Desktop) */}
@@ -694,7 +694,7 @@ export function SecurePdfReader({
           <button
             onClick={onClose}
             title="Close (Esc)"
-            className="p-2 rounded-xl hover:bg-rose-500/15 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+            className="p-2 rounded-xl hover:bg-[#C35F3B]/15 text-[#77716E] hover:text-[#C35F3B] transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -707,12 +707,12 @@ export function SecurePdfReader({
         {/* MOBILE BACKDROP FOR SIDEBAR DRAWER */}
         {sidebarTab && (
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-150"
+            className="fixed inset-0 bg-[#221D1D]/50 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-150"
             onClick={() => setSidebarTab(null)}
           />
         )}
 
-        {/* COLLAPSIBLE SIDEBAR DRAWER (100% REAL CONTENTS / BOOKMARKS / GUIDE) */}
+        {/* COLLAPSIBLE SIDEBAR DRAWER */}
         {sidebarTab && (
           <aside
             className={`fixed md:relative inset-y-0 left-0 w-[85vw] max-w-sm md:w-80 shrink-0 border-r flex flex-col z-40 shadow-2xl animate-in slide-in-from-left duration-200 ${themeStyles.tocBg}`}
@@ -723,7 +723,7 @@ export function SecurePdfReader({
                 <button
                   onClick={() => setSidebarTab("contents")}
                   className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    sidebarTab === "contents" ? "bg-violet-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
+                    sidebarTab === "contents" ? "bg-[#AED7E9] text-[#221D1D] shadow-xs font-bold" : "opacity-70 hover:opacity-100"
                   }`}
                 >
                   {pdfOutline.length > 0 ? "Sections" : "Pages"}
@@ -731,7 +731,7 @@ export function SecurePdfReader({
                 <button
                   onClick={() => setSidebarTab("bookmarks")}
                   className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    sidebarTab === "bookmarks" ? "bg-amber-600 text-white shadow-xs" : "opacity-70 hover:opacity-100"
+                    sidebarTab === "bookmarks" ? "bg-[#F7892A] text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
                   <span>Bookmarks</span>
@@ -740,7 +740,7 @@ export function SecurePdfReader({
                 <button
                   onClick={() => setSidebarTab("shortcuts")}
                   className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    sidebarTab === "shortcuts" ? "bg-slate-700 text-white shadow-xs" : "opacity-70 hover:opacity-100"
+                    sidebarTab === "shortcuts" ? "bg-[#4D433F] text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
                   Guide
@@ -756,11 +756,10 @@ export function SecurePdfReader({
               </button>
             </div>
 
-            {/* TAB 1: 100% REAL CONTENTS OR REAL PAGE INDEX */}
+            {/* TAB 1: REAL CONTENTS OR REAL PAGE INDEX */}
             {sidebarTab === "contents" && (
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
                 {pdfOutline.length > 0 ? (
-                  // REAL EMBEDDED PDF OUTLINE
                   <>
                     <div className="flex items-center justify-between px-1 mb-1">
                       <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
@@ -784,7 +783,7 @@ export function SecurePdfReader({
                           }}
                           className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                             isActive
-                              ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20 font-semibold"
+                              ? "bg-[#AED7E9] text-[#221D1D] border-[#98C5D8] shadow-md shadow-[#AED7E9]/30 font-bold"
                               : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-85 hover:opacity-100 font-normal"
                           }`}
                         >
@@ -795,7 +794,6 @@ export function SecurePdfReader({
                     })}
                   </>
                 ) : (
-                  // REAL EXACT PAGES LIST (NO ASSUMPTIONS)
                   <>
                     <div className="flex items-center justify-between px-1 mb-1">
                       <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">
@@ -820,7 +818,7 @@ export function SecurePdfReader({
                             }}
                             className={`p-3 rounded-2xl border text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                               isActive
-                                ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/20 font-bold"
+                                ? "bg-[#AED7E9] text-[#221D1D] border-[#98C5D8] shadow-md shadow-[#AED7E9]/30 font-bold"
                                 : "bg-black/[0.03] hover:bg-black/[0.06] border-transparent opacity-80 hover:opacity-100 font-medium"
                             }`}
                           >
@@ -844,7 +842,7 @@ export function SecurePdfReader({
                   </span>
                   <button
                     onClick={() => toggleBookmark(currentPage)}
-                    className="text-[11px] font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] font-semibold text-[#F7892A] hover:text-[#C35F3B] flex items-center gap-1 cursor-pointer"
                   >
                     <span>+ Bookmark Current Pg {currentPage}</span>
                   </button>
@@ -873,7 +871,7 @@ export function SecurePdfReader({
                         }}
                         className="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
                       >
-                        <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-mono text-xs font-semibold flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-lg bg-[#F7892A]/20 text-[#F7892A] font-mono text-xs font-semibold flex items-center justify-center">
                           {bmPage}
                         </div>
                         <p className="text-xs font-medium">Page {bmPage}</p>
@@ -881,7 +879,7 @@ export function SecurePdfReader({
 
                       <button
                         onClick={() => toggleBookmark(bmPage)}
-                        className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-400 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+                        className="p-1 rounded-lg hover:bg-[#C35F3B]/20 text-[#C35F3B] opacity-60 hover:opacity-100 transition-colors cursor-pointer"
                         title="Delete bookmark"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -939,7 +937,7 @@ export function SecurePdfReader({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-violet-600 text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+                className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
                 title="Previous Page (←)"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -948,7 +946,7 @@ export function SecurePdfReader({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-violet-600 text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
                 title="Next Page (→)"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -959,7 +957,7 @@ export function SecurePdfReader({
           {/* LOADING STATE */}
           {loading && (
             <div className="flex flex-col items-center justify-center my-auto gap-3 text-white/70 py-20">
-              <Loader2 className="w-7 h-7 animate-spin text-violet-400" />
+              <Loader2 className="w-7 h-7 animate-spin text-[#4B8097]" />
               <p className="text-xs font-medium opacity-80">Loading Study Codex...</p>
             </div>
           )}
@@ -967,11 +965,11 @@ export function SecurePdfReader({
           {/* ERROR STATE */}
           {error && (
             <div className="flex flex-col items-center justify-center my-auto gap-3 max-w-sm text-center p-6 rounded-2xl bg-black/20 border border-white/10 backdrop-blur-md">
-              <BookOpen className="w-6 h-6 text-rose-400 mx-auto" />
+              <BookOpen className="w-6 h-6 text-[#C35F3B] mx-auto" />
               <p className="text-xs opacity-75">{error}</p>
               <button
                 onClick={() => loadPdf(pdfUrl)}
-                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer mx-auto"
+                className="px-4 py-2 rounded-xl bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer mx-auto"
               >
                 <RefreshCw className="w-3 h-3" />
                 Retry
@@ -991,7 +989,7 @@ export function SecurePdfReader({
                 }}
                 onContextMenu={blockContext}
               >
-                {/* CANVAS RENDERING SURFACE - LOCKED 1:1 ASPECT RATIO (NO STRETCH) */}
+                {/* CANVAS RENDERING SURFACE */}
                 <canvas
                   ref={canvasRef}
                   className="block"
@@ -1004,26 +1002,26 @@ export function SecurePdfReader({
                 {/* ANTI-SCREENSHOT / DRM MULTI-LAYER WATERMARK OVERLAY */}
                 <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5">
                   {/* Top Header Watermark */}
-                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-slate-800 font-bold uppercase tracking-wider">
+                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
                     <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
                     <span>ROLL: {activeStudent.roll}</span>
                   </div>
 
                   {/* Multi-point Center Diagonal Watermark Grid */}
                   <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
-                    <div className="text-[11px] sm:text-xs font-bold text-slate-900 tracking-wider">
+                    <div className="text-[11px] sm:text-xs font-bold text-[#221D1D] tracking-wider">
                       CONFIDENTIAL STUDY NOTES • PROPERTY OF THE LAW KAKSHA
                     </div>
-                    <div className="text-xs sm:text-sm font-extrabold text-violet-950 tracking-widest uppercase">
+                    <div className="text-xs sm:text-sm font-extrabold text-[#221D1D] tracking-widest uppercase">
                       LICENSED TO: {activeStudent.name.toUpperCase()} • ID: {activeStudent.roll}
                     </div>
-                    <div className="text-[10px] sm:text-[11px] font-bold text-slate-800 tracking-wider">
+                    <div className="text-[10px] sm:text-[11px] font-bold text-[#4D433F] tracking-wider">
                       STRICTLY FORBIDDEN TO SCREENSHOT, COPY OR DISTRIBUTE
                     </div>
                   </div>
 
                   {/* Bottom Footer Watermark */}
-                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-slate-800 font-bold uppercase tracking-wider">
+                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
                     <span>STUDENT: {activeStudent.name}</span>
                     <span>SECURE IN-WEB DRM READER</span>
                   </div>
@@ -1039,7 +1037,7 @@ export function SecurePdfReader({
         </div>
       </div>
 
-      {/* 3. ULTRA-SLEEK, MINIMAL & PROFESSIONAL FLOATING CONTROLLER (SINGLE-ROW APPLE-GRADE ISLAND) */}
+      {/* 3. ULTRA-SLEEK FLOATING CONTROLLER ISLAND */}
       {totalPages > 0 && (
         <footer
           className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[92%] sm:w-auto min-w-[320px] sm:min-w-[420px] h-12 px-2.5 sm:px-4 rounded-full border shadow-xl flex items-center justify-between gap-2.5 sm:gap-4 transition-all duration-200 ${themeStyles.dockBg}`}
@@ -1071,7 +1069,7 @@ export function SecurePdfReader({
               max={totalPages}
               value={currentPage}
               onChange={(e) => setCurrentPage(Number(e.target.value))}
-              className="w-full h-1 bg-current opacity-20 hover:opacity-40 rounded-full appearance-none cursor-pointer accent-violet-500 focus:outline-none transition-opacity"
+              className="w-full h-1 bg-current opacity-20 hover:opacity-40 rounded-full appearance-none cursor-pointer accent-[#AED7E9] focus:outline-none transition-opacity"
               title={`Page ${currentPage} of ${totalPages}`}
             />
             <button

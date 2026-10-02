@@ -91,38 +91,38 @@ export function SecurePdfReaderModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md select-none p-2 sm:p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/50 backdrop-blur-md select-none p-2 sm:p-4 animate-in fade-in duration-150"
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Main Ultra-Clean Reader Window */}
+      {/* Main Reader Window */}
       <div
         className={`relative w-full max-w-5xl h-[94vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border transition-colors ${
           isDarkMode
-            ? "bg-[#0b1120] text-slate-100 border-slate-800"
-            : "bg-[#FBFBFD] text-[#1D1D1F] border-black/[0.08]"
+            ? "bg-[#1A1E24] text-slate-100 border-white/[0.08]"
+            : "bg-[#F7F7F5] text-[#221D1D] border-[#E7E4E7]"
         }`}
       >
         {/* MINIMAL TOP HEADER */}
         <div
           className={`px-4 sm:px-6 py-3.5 border-b flex items-center justify-between gap-3 shrink-0 ${
-            isDarkMode ? "bg-[#0f172a] border-slate-800" : "bg-white/80 backdrop-blur-xl border-black/[0.06]"
+            isDarkMode ? "bg-[#1A1E24] border-white/[0.08]" : "bg-white/95 backdrop-blur-xl border-[#E7E4E7]"
           }`}
         >
           {/* Book Title & Student Badge */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[#0071E3]/[0.08] flex items-center justify-center text-[#0071E3] shrink-0">
-              <BookOpen className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full bg-[#AED7E9]/40 flex items-center justify-center text-[#221D1D] shrink-0 border border-[#AED7E9]">
+              <BookOpen className="w-4 h-4 text-[#4B8097]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-[#0071E3]">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-[#4B8097]">
                   Student Edition
                 </span>
-                <span className="text-[10px] text-[#86868B] hidden sm:inline">
+                <span className="text-[10px] text-[#77716E] hidden sm:inline">
                   • Licensed to {student.name || student.rollNumber}
                 </span>
               </div>
-              <h3 className="text-xs sm:text-sm font-semibold truncate max-w-xs sm:max-w-md text-[#1D1D1F] dark:text-white">
+              <h3 className="text-xs sm:text-sm font-bold truncate max-w-xs sm:max-w-md text-[#221D1D] dark:text-white">
                 {book.title}
               </h3>
             </div>
@@ -134,10 +134,10 @@ export function SecurePdfReaderModal({
             <div className="relative hidden md:block">
               <select
                 onChange={(e) => scrollToPage(Number(e.target.value))}
-                className={`text-xs font-medium py-1.5 pl-3.5 pr-8 rounded-full border focus:outline-none focus:border-[#0071E3] cursor-pointer appearance-none ${
+                className={`text-xs font-semibold py-1.5 pl-3.5 pr-8 rounded-full border focus:outline-none focus:border-[#AED7E9] cursor-pointer appearance-none ${
                   isDarkMode
                     ? "bg-slate-900 border-slate-700 text-slate-200"
-                    : "bg-black/[0.04] border-black/[0.06] text-[#1D1D1F] hover:bg-black/[0.08]"
+                    : "bg-[#F7F7F5] border-[#E7E4E7] text-[#221D1D] hover:bg-[#E7E4E7]"
                 }`}
                 defaultValue=""
               >
@@ -150,26 +150,26 @@ export function SecurePdfReaderModal({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-black/40 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#77716E] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Zoom Controls */}
             <div
               className={`flex items-center rounded-full border px-1.5 py-0.5 text-xs ${
-                isDarkMode ? "bg-slate-900 border-slate-700" : "bg-black/[0.04] border-black/[0.06]"
+                isDarkMode ? "bg-slate-900 border-slate-700" : "bg-[#F7F7F5] border-[#E7E4E7]"
               }`}
             >
               <button
                 onClick={() => setZoomLevel((z) => Math.max(85, z - 15))}
-                className="p-1 text-[#86868B] hover:text-[#1D1D1F] cursor-pointer"
+                className="p-1 text-[#77716E] hover:text-[#221D1D] cursor-pointer"
                 title="Zoom Out"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="px-1.5 text-[10px] font-mono font-semibold text-[#0071E3]">{zoomLevel}%</span>
+              <span className="px-1.5 text-[10px] font-mono font-bold text-[#4B8097]">{zoomLevel}%</span>
               <button
                 onClick={() => setZoomLevel((z) => Math.min(130, z + 15))}
-                className="p-1 text-[#86868B] hover:text-[#1D1D1F] cursor-pointer"
+                className="p-1 text-[#77716E] hover:text-[#221D1D] cursor-pointer"
                 title="Zoom In"
               >
                 <ZoomIn className="w-3.5 h-3.5" />
@@ -181,8 +181,8 @@ export function SecurePdfReaderModal({
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={`p-1.5 rounded-full border transition-colors cursor-pointer ${
                 isDarkMode
-                  ? "bg-slate-800 border-slate-700 text-sky-400"
-                  : "bg-black/[0.04] border-black/[0.06] text-[#1D1D1F] hover:bg-black/[0.08]"
+                  ? "bg-slate-800 border-slate-700 text-[#BFAFE5]"
+                  : "bg-[#F7F7F5] border-[#E7E4E7] text-[#221D1D] hover:bg-[#E7E4E7]"
               }`}
               title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
@@ -192,7 +192,7 @@ export function SecurePdfReaderModal({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#86868B] hover:text-[#1D1D1F] flex items-center justify-center transition-colors cursor-pointer ml-1"
+              className="w-8 h-8 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#77716E] hover:text-[#221D1D] flex items-center justify-center transition-colors cursor-pointer ml-1 border border-[#E7E4E7]"
               aria-label="Close Reader"
             >
               <X className="w-4 h-4" />
@@ -203,8 +203,8 @@ export function SecurePdfReaderModal({
         {/* CONTINUOUS SCROLLABLE DOCUMENT CANVAS */}
         <div
           ref={containerRef}
-          className={`flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 flex flex-col items-center selection:bg-[#0071E3]/20 ${
-            isDarkMode ? "bg-[#030712]" : "bg-[#F5F5F7]"
+          className={`flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 flex flex-col items-center selection:bg-[#BFAFE5]/30 ${
+            isDarkMode ? "bg-[#111418]" : "bg-[#F7F7F5]"
           }`}
           style={{ fontSize: `${(zoomLevel / 100) * 14}px` }}
         >
@@ -219,11 +219,11 @@ export function SecurePdfReaderModal({
                   <p>
                     <strong>1. Separate Legal Entity &amp; Lifting the Veil:</strong> Under Section 9 of the Companies Act 2013, upon registration, the subscribers to the memorandum become a body corporate capable of exercising all corporate functions. In <em>Salomon v. Salomon &amp; Co. Ltd.</em> and the Indian landmark <em>Tata Engineering &amp; Locomotive Co. Ltd. v. State of Bihar</em>, courts reaffirmed that a company is an independent juristic person distinct from its members.
                   </p>
-                  <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs space-y-1.5 font-sans">
-                    <p className="font-semibold text-[#0071E3] dark:text-sky-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" /> Section 8 Companies (Non-Profit Objects):
+                  <div className="p-4 rounded-2xl bg-[#AED7E9]/20 dark:bg-sky-950/40 border border-[#AED7E9] dark:border-sky-800 text-xs space-y-1.5 font-sans">
+                    <p className="font-bold text-[#221D1D] dark:text-sky-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" /> Section 8 Companies (Non-Profit Objects):
                     </p>
-                    <p className="text-[#515154] dark:text-slate-300">
+                    <p className="text-[#4D433F] dark:text-slate-300">
                       Section 8 Companies are prohibited from distributing dividend to members and must apply profits solely in promoting statutory objects (commerce, art, science, sports, education, research, social welfare, charity, protection of environment).
                     </p>
                   </div>
@@ -287,8 +287,8 @@ export function SecurePdfReaderModal({
                   <p>
                     <strong>Section 96(1) AGM Timelines:</strong> AGM shall be held within <strong>6 months</strong> from FY closing, gap between 2 AGMs &le; <strong>15 months</strong>. First AGM must be within <strong>9 months</strong> from closing of first FY (No ROC extension allowed).
                   </p>
-                  <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 font-sans text-xs space-y-1">
-                    <p className="font-semibold text-[#0071E3] dark:text-sky-400">Public Company Quorum Mandates [§103(1)(a)]:</p>
+                  <div className="p-4 rounded-2xl bg-[#AED7E9]/20 dark:bg-sky-950/40 border border-[#AED7E9] dark:border-sky-800 font-sans text-xs space-y-1">
+                    <p className="font-bold text-[#221D1D] dark:text-sky-400">Public Company Quorum Mandates [§103(1)(a)]:</p>
                     <p>• Up to 1,000 members: <strong>5 members personally present</strong></p>
                     <p>• 1,001 to 5,000 members: <strong>15 members personally present</strong></p>
                     <p>• Exceeding 5,000 members: <strong>30 members personally present</strong></p>
@@ -332,9 +332,9 @@ export function SecurePdfReaderModal({
               title: "5-Pillar Descriptive Model Answers & Scoring Rubrics",
               content: (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-sans space-y-1.5 text-slate-800 dark:text-slate-200">
-                    <p className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                      <Check className="w-4 h-4 text-emerald-600" />
+                  <div className="p-4 rounded-2xl bg-[#AED7E9]/20 dark:bg-sky-950/40 border border-[#AED7E9] dark:border-sky-800 text-xs font-sans space-y-1.5 text-[#221D1D] dark:text-slate-200">
+                    <p className="font-bold text-[#4B8097] dark:text-sky-300 flex items-center gap-1.5">
+                      <Check className="w-4 h-4 text-[#4B8097]" />
                       5-Pillar Descriptive Answer Framework (6/6 Marks):
                     </p>
                     <p>1. Exact Statutory Section &amp; Rule Citation</p>
@@ -354,46 +354,46 @@ export function SecurePdfReaderModal({
               }}
               className={`w-full max-w-3xl rounded-3xl p-8 sm:p-12 font-serif leading-relaxed shadow-[0_2px_12px_rgba(0,0,0,0.03)] border relative transition-all ${
                 isDarkMode
-                  ? "bg-[#0f172a] text-slate-100 border-slate-800"
-                  : "bg-white text-[#1D1D1F] border-black/[0.06]"
+                  ? "bg-[#1A1E24] text-slate-100 border-white/[0.08]"
+                  : "bg-white text-[#221D1D] border-[#E7E4E7]"
               }`}
             >
               {/* Running Header */}
               <div
                 className={`flex items-center justify-between pb-3.5 mb-6 border-b text-[10px] font-sans ${
-                  isDarkMode ? "border-slate-800 text-slate-400" : "border-black/[0.04] text-[#86868B]"
+                  isDarkMode ? "border-slate-800 text-slate-400" : "border-[#E7E4E7] text-[#77716E]"
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <Scale className="w-3.5 h-3.5 text-[#0071E3]" />
-                  <span className="font-semibold uppercase tracking-wider text-[#0071E3]">
+                  <Scale className="w-3.5 h-3.5 text-[#4B8097]" />
+                  <span className="font-bold uppercase tracking-wider text-[#4B8097]">
                     The Law Kaksha • Master Codex
                   </span>
                 </div>
-                <span className="font-mono font-medium text-[#86868B]">
+                <span className="font-mono font-bold text-[#77716E]">
                   Page {pData.page} of {totalPages}
                 </span>
               </div>
 
               {/* Chapter Badge & Title */}
               <div className="mb-5">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0071E3] font-sans">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#4B8097] font-sans">
                   {pData.chapter}
                 </span>
-                <h3 className="text-base sm:text-xl font-semibold font-serif mt-1 tracking-tight text-[#1D1D1F] dark:text-white">
+                <h3 className="text-base sm:text-xl font-bold font-serif mt-1 tracking-tight text-[#221D1D] dark:text-white">
                   {pData.title}
                 </h3>
               </div>
 
               {/* Page Body */}
-              <div className="text-xs sm:text-sm leading-relaxed space-y-3.5">
+              <div className="text-xs sm:text-sm leading-relaxed space-y-3.5 text-[#4D433F] dark:text-slate-200">
                 {pData.content}
               </div>
 
               {/* Running Footer */}
               <div
-                className={`mt-10 pt-3.5 border-t flex items-center justify-between text-[10px] font-sans text-[#86868B] ${
-                  isDarkMode ? "border-slate-800" : "border-black/[0.04]"
+                className={`mt-10 pt-3.5 border-t flex items-center justify-between text-[10px] font-sans text-[#77716E] ${
+                  isDarkMode ? "border-slate-800" : "border-[#E7E4E7]"
                 }`}
               >
                 <span>Student Digital Edition</span>
@@ -406,13 +406,13 @@ export function SecurePdfReaderModal({
         {/* MINIMAL BOTTOM BAR */}
         <div
           className={`px-6 py-3 border-t flex items-center justify-between text-xs shrink-0 ${
-            isDarkMode ? "bg-[#0f172a] border-slate-800 text-slate-400" : "bg-white border-black/[0.06] text-[#86868B]"
+            isDarkMode ? "bg-[#1A1E24] border-white/[0.08] text-slate-400" : "bg-white border-[#E7E4E7] text-[#77716E]"
           }`}
         >
-          <span className="text-[11px] font-medium">
+          <span className="text-[11px] font-semibold text-[#4D433F]">
             Continuous Scroll Active • 18 Pages Loaded
           </span>
-          <span className="font-mono text-[10px] font-medium text-[#0071E3]">
+          <span className="font-mono text-[10px] font-bold text-[#4B8097]">
             License ID: {student.rollNumber}
           </span>
         </div>

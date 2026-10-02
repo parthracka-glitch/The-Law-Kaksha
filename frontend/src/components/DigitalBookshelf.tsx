@@ -27,9 +27,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "1872",
     exam: "ICAI",
     chapters: "Units 1 to 9 • Essentials & Special Contracts",
-    spineColor: "bg-[#005FD8]",
-    textColor: "text-white",
-    borderColor: "border-[#004BB0]",
+    spineColor: "bg-[#AED7E9]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#98C5D8]",
     heightClass: "h-28 sm:h-36",
   },
   {
@@ -39,9 +39,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "1930",
     exam: "ICAI",
     chapters: "Conditions, Warranties & Unpaid Seller",
-    spineColor: "bg-[#0B1E40]",
-    textColor: "text-slate-100",
-    borderColor: "border-[#061227]",
+    spineColor: "bg-[#221D1D]",
+    textColor: "text-white",
+    borderColor: "border-[#4D433F]",
     heightClass: "h-26 sm:h-32",
   },
   {
@@ -51,9 +51,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "1932",
     exam: "ICAI",
     chapters: "Units 1, 2 & 3 • Mutual Agency & Dissolution",
-    spineColor: "bg-[#059669]",
-    textColor: "text-white",
-    borderColor: "border-[#047857]",
+    spineColor: "bg-[#C4E1EC]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#AED7E9]",
     heightClass: "h-28 sm:h-36",
   },
   {
@@ -63,9 +63,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "2008",
     exam: "ICAI & ICSI",
     chapters: "LLP Incorporation & Governance",
-    spineColor: "bg-[#334155]",
-    textColor: "text-slate-100",
-    borderColor: "border-[#1E293B]",
+    spineColor: "bg-[#98C5D8]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#6799AE]",
     heightClass: "h-26 sm:h-34",
   },
   {
@@ -75,9 +75,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "2013",
     exam: "ICAI & ICSI",
     chapters: "Essential Features, MoA, AoA & Sec 8",
-    spineColor: "bg-[#0A192F]",
-    textColor: "text-amber-300",
-    borderColor: "border-amber-400/40",
+    spineColor: "bg-[#BFAFE5]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#A08DC9]",
     heightClass: "h-32 sm:h-40",
     isFeatured: true,
   },
@@ -88,9 +88,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "1881",
     exam: "ICAI & ICSI",
     chapters: "Promissory Notes, Cheques & Sec 138",
-    spineColor: "bg-[#4338CA]",
-    textColor: "text-indigo-50",
-    borderColor: "border-[#3730A3]",
+    spineColor: "bg-[#AED7E9]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#C4E1EC]",
     heightClass: "h-28 sm:h-36",
   },
   {
@@ -100,9 +100,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "ICAI",
     exam: "ICAI",
     chapters: "Sources of Law, Court Systems & Tribunals",
-    spineColor: "bg-[#0284C7]",
-    textColor: "text-sky-50",
-    borderColor: "border-[#0369A1]",
+    spineColor: "bg-[#DDA994]",
+    textColor: "text-[#221D1D]",
+    borderColor: "border-[#C35F3B]",
     heightClass: "h-26 sm:h-32",
   },
   {
@@ -112,9 +112,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     year: "ICSI",
     exam: "ICSI",
     chapters: "Fayol & Taylor Theories, Planning & Ethics",
-    spineColor: "bg-[#1E293B]",
-    textColor: "text-slate-100",
-    borderColor: "border-[#0F172A]",
+    spineColor: "bg-[#4D433F]",
+    textColor: "text-white",
+    borderColor: "border-[#221D1D]",
     heightClass: "h-28 sm:h-36",
   },
 ];
@@ -131,22 +131,22 @@ export function DigitalBookshelf() {
   };
 
   return (
-    <section id="bookshelf" className="py-8 sm:py-10 bg-white text-[#1D1D1F] overflow-hidden">
+    <section id="bookshelf" className="py-8 sm:py-10 bg-white text-[#221D1D] overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Compact Digital Bookshelf Card */}
-        <div className="w-full bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl px-5 py-6 sm:px-8 sm:py-7 shadow-[0_2px_16px_rgba(0,0,0,0.03)] flex flex-col items-center relative overflow-hidden">
+        <div className="w-full bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl px-5 py-6 sm:px-8 sm:py-7 shadow-xs flex flex-col items-center relative overflow-hidden">
           
           {/* Header */}
           <div className="text-center max-w-xl mx-auto space-y-1.5 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#005FD8] text-[11px] font-semibold mb-1">
-              <BookOpen className="w-3.5 h-3.5 text-[#005FD8]" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] text-[11px] font-semibold mb-1">
+              <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
               <span>Statutory Notes Shelf</span>
             </div>
             
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E40] tracking-tight font-serif">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#221D1D] tracking-tight font-serif">
               The digital bookshelf for CA &amp; CS students
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed font-sans max-w-md mx-auto">
               Browse encrypted statutory chapter notes, unit breakdowns, and weekly case problems.
             </p>
 
@@ -154,7 +154,7 @@ export function DigitalBookshelf() {
             <div className="pt-2 flex items-center justify-center">
               <Link
                 href="/courses"
-                className="px-5 py-2.5 rounded-xl bg-[#005FD8] hover:bg-[#004BB0] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <span>Explore All Notes</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -165,7 +165,7 @@ export function DigitalBookshelf() {
           {/* Virtual Bookshelf with Interactive Book Spines */}
           <div className="w-full pt-6 pb-0 flex flex-col items-center justify-end relative z-10">
             {/* Mobile swipe hint */}
-            <span className="text-[11px] text-slate-400 font-medium sm:hidden block pb-2 tracking-tight">
+            <span className="text-[11px] text-[#77716E] font-medium sm:hidden block pb-2 tracking-tight">
               Swipe across &amp; tap any volume to read
             </span>
 
@@ -181,7 +181,7 @@ export function DigitalBookshelf() {
                   >
                     {/* Book Spine Container */}
                     <div
-                      className={`w-11 sm:w-9 md:w-11 ${book.heightClass} ${book.spineColor} ${book.textColor} border ${book.borderColor} rounded-t-md shadow-[2px_3px_8px_rgba(0,0,0,0.12)] flex flex-col justify-between py-2.5 px-1 relative overflow-hidden group transition-shadow duration-300 hover:shadow-[0_10px_20px_rgba(0,0,0,0.18)]`}
+                      className={`w-11 sm:w-9 md:w-11 ${book.heightClass} ${book.spineColor} ${book.textColor} border ${book.borderColor} rounded-t-md shadow-sm flex flex-col justify-between py-2.5 px-1 relative overflow-hidden group transition-shadow duration-300`}
                     >
                       {/* Top Spine Accent */}
                       <div className="w-full space-y-0.5 opacity-70">
@@ -211,8 +211,8 @@ export function DigitalBookshelf() {
               })}
             </div>
 
-            {/* Modern Architectural Slate/Glass Shelf Base */}
-            <div className="w-full max-w-3xl h-3.5 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded-full border-t border-slate-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] mt-[-2px] relative z-0" />
+            {/* Modern Shelf Base */}
+            <div className="w-full max-w-3xl h-3.5 bg-[#E7E4E7] rounded-full border-t border-[#D8D4D8] shadow-xs mt-[-2px] relative z-0" />
           </div>
         </div>
       </div>

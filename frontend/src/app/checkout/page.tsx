@@ -190,46 +190,46 @@ export default function CheckoutPage() {
   // Render Order Success Screen
   if (completedOrder) {
     return (
-      <div className="min-h-screen bg-white flex flex-col justify-between">
+      <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between">
         <Navbar />
 
         <main className="flex-1 max-w-2xl mx-auto px-4 py-12 w-full space-y-6">
-          <div className="bg-white border border-emerald-200 rounded-3xl p-6 sm:p-10 shadow-xs text-center space-y-6 relative overflow-hidden">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-              <CheckCircle2 className="w-9 h-9" />
+          <div className="bg-white border border-[#E7E4E7] rounded-3xl p-6 sm:p-10 shadow-sm text-center space-y-6 relative overflow-hidden">
+            <div className="w-16 h-16 bg-[#AED7E9]/30 text-[#4B8097] rounded-full flex items-center justify-center mx-auto border border-[#AED7E9]">
+              <CheckCircle2 className="w-9 h-9 text-[#4B8097]" />
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#221D1D] bg-[#AED7E9]/40 px-3 py-1 rounded-full border border-[#AED7E9]">
                 DRM License Activated • Payment Verified
               </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-serif">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D]">
                 Welcome to The Law Kaksha!
               </h1>
-              <p className="text-xs sm:text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-[#4D433F]">
                 Your payment of <strong>₹{completedOrder.total_amount || cartTotal}</strong> is confirmed. Your in-web DRM codex reader access is instantly activated.
               </p>
             </div>
 
             {/* Credentials & Details Card */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-3 text-xs">
-              <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Access Pass Ref:</span>
-                <span className="font-mono font-bold text-slate-900">{completedOrder.id}</span>
+            <div className="bg-[#F7F7F5] border border-[#E7E4E7] rounded-2xl p-5 text-left space-y-3 text-xs">
+              <div className="flex justify-between items-center pb-2 border-b border-[#E7E4E7]">
+                <span className="text-[#77716E]">Access Pass Ref:</span>
+                <span className="font-mono font-bold text-[#221D1D]">{completedOrder.id}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Official Student Roll ID:</span>
-                <span className="font-mono font-extrabold text-violet-700 bg-violet-50 px-2.5 py-0.5 rounded-full border border-violet-200">
+              <div className="flex justify-between items-center pb-2 border-b border-[#E7E4E7]">
+                <span className="text-[#77716E]">Official Student Roll ID:</span>
+                <span className="font-mono font-bold text-[#221D1D] bg-[#BFAFE5]/30 px-2.5 py-0.5 rounded-full border border-[#BFAFE5]">
                   {completedOrder.studentId}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Enrolled Student:</span>
-                <span className="font-semibold text-slate-900">{completedOrder.studentName}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#E7E4E7]">
+                <span className="text-[#77716E]">Enrolled Student:</span>
+                <span className="font-semibold text-[#221D1D]">{completedOrder.studentName}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500">DRM Security Status:</span>
-                <span className="font-mono font-semibold text-emerald-600 flex items-center gap-1">
+                <span className="text-[#77716E]">DRM Security Status:</span>
+                <span className="font-mono font-semibold text-[#4B8097] flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>ACTIVE IN-WEB READER ACCESS</span>
                 </span>
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
             <div className="space-y-3">
               <Link
                 href="/student"
-                className="w-full py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full py-3.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-semibold text-sm shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Enter Student Portal &amp; Open Codex</span>
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
               </Link>
               <Link
                 href="/courses"
-                className="block text-xs font-semibold text-slate-500 hover:text-slate-900"
+                className="block text-xs font-semibold text-[#77716E] hover:text-[#221D1D]"
               >
                 Browse Additional Study Codices
               </Link>
@@ -262,25 +262,28 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-serif">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] text-xs font-medium mb-1">
+            <span>Encrypted Checkout</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D] tracking-tight">
             Secure Digital Checkout
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600">
+          <p className="text-xs sm:text-sm text-[#4D433F]">
             256-bit encrypted checkout with instant in-web DRM reader access to your statutory codices
           </p>
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3">
-            <p className="text-sm text-slate-600">Your basket is empty.</p>
+          <div className="bg-white border border-[#E7E4E7] rounded-3xl p-10 text-center space-y-3 shadow-sm">
+            <p className="text-sm text-[#4D433F]">Your basket is empty.</p>
             <Link
               href="/courses"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold"
             >
               <span>Explore Codices</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -290,19 +293,19 @@ export default function CheckoutPage() {
           <form onSubmit={handleProcessPayment} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Student Details */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="bg-white border border-sky-100 rounded-2xl p-6 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <div className="w-6 h-6 rounded-lg bg-sky-50 text-[#0284C7] flex items-center justify-center font-bold text-xs">
+              <div className="bg-white border border-[#E7E4E7] rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#E7E4E7] pb-3">
+                  <div className="w-6 h-6 rounded-full bg-[#C4E1EC] text-[#221D1D] flex items-center justify-center font-bold text-xs">
                     1
                   </div>
-                  <h2 className="text-sm font-bold text-slate-900 font-serif">
+                  <h2 className="text-base font-serif font-bold text-[#221D1D]">
                     Student Information &amp; DRM License
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
                       Full Name *
                     </label>
                     <input
@@ -312,12 +315,12 @@ export default function CheckoutPage() {
                       placeholder="Enter your full name"
                       value={studentData.name}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:border-violet-500"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
                       Email (Vault Login) *
                     </label>
                     <input
@@ -327,12 +330,12 @@ export default function CheckoutPage() {
                       placeholder="Enter your email"
                       value={studentData.email}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:border-violet-500"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
                       WhatsApp Contact *
                     </label>
                     <input
@@ -342,19 +345,19 @@ export default function CheckoutPage() {
                       placeholder="Enter your contact number"
                       value={studentData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:border-violet-500 font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
                       Target Exam
                     </label>
                     <select
                       name="exam"
                       value={studentData.exam}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:border-violet-500"
+                      className="w-full px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                     >
                       <option value="CA Foundation Paper 2: Business Laws">CA Foundation (Paper 2: Business Laws)</option>
                       <option value="CSEET Paper 2: Business Law & Management">CSEET (Paper 2: Law &amp; Management)</option>
@@ -364,19 +367,19 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-violet-50/70 border border-violet-100 text-xs text-violet-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-violet-600 shrink-0" />
+                <div className="p-3.5 rounded-2xl bg-[#C4E1EC]/40 border border-[#AED7E9] text-xs text-[#221D1D] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#221D1D] shrink-0" />
                   <span>100% In-Web DRM Reader Access. Zero waiting for courier delivery.</span>
                 </div>
               </div>
 
               {/* Payment Rail Selection */}
-              <div className="bg-white border border-sky-100 rounded-2xl p-6 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <div className="w-6 h-6 rounded-lg bg-sky-50 text-[#0284C7] flex items-center justify-center font-bold text-xs">
+              <div className="bg-white border border-[#E7E4E7] rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#E7E4E7] pb-3">
+                  <div className="w-6 h-6 rounded-full bg-[#C4E1EC] text-[#221D1D] flex items-center justify-center font-bold text-xs">
                     2
                   </div>
-                  <h2 className="text-sm font-bold text-slate-900 font-serif">
+                  <h2 className="text-base font-serif font-bold text-[#221D1D]">
                     Payment Method
                   </h2>
                 </div>
@@ -385,32 +388,32 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("upi")}
-                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
+                    className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
                       paymentMethod === "upi"
-                        ? "border-violet-600 bg-violet-50/60 ring-2 ring-violet-500/20"
-                        : "border-slate-200 hover:border-slate-300 bg-white"
+                        ? "border-[#BFAFE5] bg-[#BFAFE5]/20 ring-2 ring-[#BFAFE5]/40"
+                        : "border-[#E7E4E7] hover:border-[#D8D4D8] bg-[#F7F7F5]"
                     }`}
                   >
-                    <QrCode className="w-5 h-5 text-violet-600 shrink-0" />
+                    <QrCode className="w-5 h-5 text-[#221D1D] shrink-0" />
                     <div>
-                      <div className="text-xs font-bold text-slate-900">Instant UPI / QR</div>
-                      <div className="text-[10px] text-slate-500">GPay, PhonePe, Paytm</div>
+                      <div className="text-xs font-bold text-[#221D1D]">Instant UPI / QR</div>
+                      <div className="text-[11px] text-[#4D433F]">GPay, PhonePe, Paytm</div>
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
-                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
+                    className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer min-h-[48px] ${
                       paymentMethod === "card"
-                        ? "border-violet-600 bg-violet-50/60 ring-2 ring-violet-500/20"
-                        : "border-slate-200 hover:border-slate-300 bg-white"
+                        ? "border-[#BFAFE5] bg-[#BFAFE5]/20 ring-2 ring-[#BFAFE5]/40"
+                        : "border-[#E7E4E7] hover:border-[#D8D4D8] bg-[#F7F7F5]"
                     }`}
                   >
-                    <CreditCard className="w-5 h-5 text-violet-600 shrink-0" />
+                    <CreditCard className="w-5 h-5 text-[#221D1D] shrink-0" />
                     <div>
-                      <div className="text-xs font-bold text-slate-900">Cards &amp; NetBanking</div>
-                      <div className="text-[10px] text-slate-500">All Indian Banks</div>
+                      <div className="text-xs font-bold text-[#221D1D]">Cards &amp; NetBanking</div>
+                      <div className="text-[11px] text-[#4D433F]">All Indian Banks</div>
                     </div>
                   </button>
                 </div>
@@ -419,47 +422,47 @@ export default function CheckoutPage() {
 
             {/* Right Column: Order Summary & Pay Button */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="bg-white border border-sky-100 rounded-2xl p-6 shadow-xs space-y-4 sticky top-24">
-                <h2 className="text-sm font-bold text-slate-900 font-serif border-b border-slate-100 pb-3">
+              <div className="bg-white border border-[#E7E4E7] rounded-3xl p-6 shadow-sm space-y-4 sticky top-24">
+                <h2 className="text-base font-serif font-bold text-[#221D1D] border-b border-[#E7E4E7] pb-3">
                   Order Review ({items.length} {items.length === 1 ? "Item" : "Items"})
                 </h2>
 
-                <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto pr-1">
+                <div className="divide-y divide-[#E7E4E7] max-h-60 overflow-y-auto pr-1">
                   {items.map((item) => (
                     <div key={item.id} className="py-2.5 flex justify-between gap-2 text-xs">
                       <div>
-                        <div className="font-bold text-slate-900 line-clamp-1">{item.title}</div>
-                        <div className="text-[10px] text-violet-600 uppercase font-semibold">In-Web DRM Codex • Qty: {item.quantity}</div>
+                        <div className="font-semibold text-[#221D1D] line-clamp-1">{item.title}</div>
+                        <div className="text-[10px] text-[#77716E] uppercase font-semibold">In-Web DRM Codex • Qty: {item.quantity}</div>
                       </div>
-                      <span className="font-extrabold text-slate-900 shrink-0">₹{item.price * item.quantity}</span>
+                      <span className="font-bold font-serif text-[#221D1D] shrink-0">₹{item.price * item.quantity}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-1.5 pt-3 border-t border-slate-100 text-xs">
-                  <div className="flex justify-between text-slate-600">
+                <div className="space-y-2 pt-3 border-t border-[#E7E4E7] text-xs">
+                  <div className="flex justify-between text-[#4D433F]">
                     <span>Subtotal:</span>
-                    <span className="font-semibold text-slate-900">₹{cartSubtotal}</span>
+                    <span className="font-semibold text-[#221D1D]">₹{cartSubtotal}</span>
                   </div>
                   {couponDiscount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-semibold">
+                    <div className="flex justify-between text-[#4B8097] font-semibold">
                       <span>Discount ({couponDiscount}%):</span>
                       <span>-₹{Math.round((cartSubtotal * couponDiscount) / 100)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-[#4D433F]">
                     <span>Delivery Mode:</span>
-                    <span className="text-emerald-600 font-semibold">Instant In-Web DRM Access</span>
+                    <span className="text-[#4B8097] font-semibold">Instant In-Web DRM Access</span>
                   </div>
-                  <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between text-base font-serif font-bold text-[#221D1D] pt-2 border-t border-[#E7E4E7]">
                     <span>Total Payable:</span>
-                    <span className="text-violet-700 font-bold">₹{cartTotal}</span>
+                    <span>₹{cartTotal}</span>
                   </div>
                 </div>
 
                 {error && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                  <div className="p-3.5 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-[#C35F3B] text-xs flex items-center gap-2 font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
                     <span>{error}</span>
                   </div>
                 )}
@@ -467,10 +470,10 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-xs flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="inline-block w-4 h-4 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
@@ -479,8 +482,8 @@ export default function CheckoutPage() {
                   )}
                 </button>
 
-                <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="flex items-center justify-center gap-1.5 text-xs text-[#77716E] pt-1">
+                  <ShieldCheck className="w-4 h-4 text-[#4B8097]" />
                   <span>256-bit Encrypted Server Payment Verification</span>
                 </div>
               </div>

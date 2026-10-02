@@ -100,8 +100,8 @@ export function Navbar() {
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "py-3 bg-white/95 backdrop-blur-md shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-b border-slate-200/80"
-            : "py-3.5 sm:py-4 bg-white border-b border-slate-100"
+            ? "py-3 bg-white/95 backdrop-blur-md shadow-[0_2px_16px_rgba(34,29,29,0.06)] border-b border-[#E7E4E7]"
+            : "py-3.5 sm:py-4 bg-white border-b border-[#E7E4E7]"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -119,23 +119,23 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Center Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[15px] font-medium text-[#334155]">
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[15px] font-medium text-[#4D433F]">
             {/* Home */}
             <div className="relative py-1 flex flex-col items-center">
               <Link
                 href="/"
                 className={`transition-colors duration-150 ${
-                  pathname === "/" ? "text-[#005FD8] font-semibold" : "text-[#334155] hover:text-[#005FD8]"
+                  pathname === "/" ? "text-[#221D1D] font-bold" : "text-[#4D433F] hover:text-[#221D1D]"
                 }`}
               >
                 Home
               </Link>
               {pathname === "/" && (
-                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#005FD8] rounded-full" />
+                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#AED7E9] rounded-full" />
               )}
             </div>
 
-            {/* Courses & Notes Dropdown (Navigates directly to /courses shopping catalog) */}
+            {/* Courses & Notes Dropdown */}
             <div
               ref={dropdownRef}
               className="relative py-1 flex items-center"
@@ -146,50 +146,50 @@ export function Navbar() {
                 href="/courses"
                 className={`flex items-center gap-1.5 transition-colors duration-150 cursor-pointer ${
                   pathname.startsWith("/courses") || pathname.startsWith("/product")
-                    ? "text-[#005FD8] font-semibold"
-                    : "text-[#334155] hover:text-[#005FD8]"
+                    ? "text-[#221D1D] font-bold"
+                    : "text-[#4D433F] hover:text-[#221D1D]"
                 }`}
               >
                 <span>Courses &amp; Notes</span>
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                    coursesDropdownOpen ? "rotate-180 text-[#005FD8]" : ""
+                  className={`w-4 h-4 text-[#77716E] transition-transform duration-200 ${
+                    coursesDropdownOpen ? "rotate-180 text-[#AED7E9]" : ""
                   }`}
                 />
               </Link>
 
               {(pathname.startsWith("/courses") || pathname.startsWith("/product")) && (
-                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#005FD8] rounded-full" />
+                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#AED7E9] rounded-full" />
               )}
 
               {/* Dropdown Menu */}
               {coursesDropdownOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2.5 w-84 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="bg-white rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] border border-slate-200/90 p-2 space-y-1">
-                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                  <div className="bg-white rounded-2xl shadow-[0_12px_36px_rgba(34,29,29,0.08)] border border-[#E7E4E7] p-2 space-y-1">
+                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#77716E] flex items-center justify-between">
                       <span>Available Courses (2)</span>
-                      <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">₹99/mo</span>
+                      <span className="text-[10px] text-[#221D1D] font-bold bg-[#BFAFE5] px-2 py-0.5 rounded-full">₹99/mo</span>
                     </div>
 
                     {/* 1. CA Foundation */}
                     <Link
                       href="/product/course-ca-foundation-sub"
                       onClick={() => setCoursesDropdownOpen(false)}
-                      className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-all border border-transparent hover:border-blue-100"
+                      className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-all border border-transparent hover:border-[#E7E4E7]"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-blue-100/80 text-[#005FD8] flex items-center justify-center shrink-0 group-hover:bg-[#005FD8] group-hover:text-white transition-colors mt-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#AED7E9] text-[#221D1D] flex items-center justify-center shrink-0 group-hover:bg-[#BFAFE5] transition-colors mt-0.5">
                         <BookOpen className="w-4.5 h-4.5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-slate-900 group-hover:text-[#005FD8] transition-colors">
+                          <span className="text-sm font-bold text-[#221D1D] group-hover:text-[#221D1D] transition-colors">
                             CA Foundation Business Laws
                           </span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C4E1EC] text-[#221D1D]">
                             ICAI
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                        <p className="text-xs text-[#4D433F] line-clamp-1 mt-0.5">
                           7 Chapters • Notes, Case Studies &amp; Model Solutions
                         </p>
                       </div>
@@ -199,32 +199,32 @@ export function Navbar() {
                     <Link
                       href="/product/course-cseet-sub"
                       onClick={() => setCoursesDropdownOpen(false)}
-                      className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-amber-50/70 transition-all border border-transparent hover:border-amber-100"
+                      className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-all border border-transparent hover:border-[#E7E4E7]"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors mt-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#C4E1EC] text-[#221D1D] flex items-center justify-center shrink-0 group-hover:bg-[#AED7E9] transition-colors mt-0.5">
                         <GraduationCap className="w-4.5 h-4.5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                          <span className="text-sm font-bold text-[#221D1D] group-hover:text-[#221D1D] transition-colors">
                             CSEET Business Law &amp; Mgt
                           </span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C4E1EC] text-[#221D1D]">
                             ICSI
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                        <p className="text-xs text-[#4D433F] line-clamp-1 mt-0.5">
                           8 Units • Study Notes, MCQ Drills &amp; Mock Tests
                         </p>
                       </div>
                     </Link>
 
-                    <div className="pt-2 border-t border-slate-100 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-500">
+                    <div className="pt-2 border-t border-[#E7E4E7] px-3 py-1.5 flex items-center justify-between text-[11px] text-[#77716E]">
                       <span>Online PDF Reading Vault</span>
                       <Link
                         href="/courses"
                         onClick={() => setCoursesDropdownOpen(false)}
-                        className="text-[#005FD8] font-bold hover:underline flex items-center gap-1"
+                        className="text-[#221D1D] font-bold hover:text-[#98C5D8] flex items-center gap-1"
                       >
                         <span>View Catalog</span>
                         <ArrowRight className="w-3 h-3" />
@@ -239,7 +239,7 @@ export function Navbar() {
             <div className="relative py-1 flex flex-col items-center">
               <Link
                 href="/#pricing"
-                className="text-[#334155] hover:text-[#005FD8] transition-colors duration-150"
+                className="text-[#4D433F] hover:text-[#221D1D] transition-colors duration-150"
               >
                 Pricing
               </Link>
@@ -250,13 +250,13 @@ export function Navbar() {
               <Link
                 href="/about"
                 className={`transition-colors duration-150 ${
-                  pathname === "/about" ? "text-[#005FD8] font-semibold" : "text-[#334155] hover:text-[#005FD8]"
+                  pathname === "/about" ? "text-[#221D1D] font-bold" : "text-[#4D433F] hover:text-[#221D1D]"
                 }`}
               >
                 About
               </Link>
               {pathname === "/about" && (
-                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#005FD8] rounded-full" />
+                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#AED7E9] rounded-full" />
               )}
             </div>
 
@@ -265,13 +265,13 @@ export function Navbar() {
               <Link
                 href="/contact"
                 className={`transition-colors duration-150 ${
-                  pathname === "/contact" ? "text-[#005FD8] font-semibold" : "text-[#334155] hover:text-[#005FD8]"
+                  pathname === "/contact" ? "text-[#221D1D] font-bold" : "text-[#4D433F] hover:text-[#221D1D]"
                 }`}
               >
                 Contact
               </Link>
               {pathname === "/contact" && (
-                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#005FD8] rounded-full" />
+                <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#AED7E9] rounded-full" />
               )}
             </div>
           </nav>
@@ -281,7 +281,7 @@ export function Navbar() {
             {/* Search Icon Trigger */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2.5 rounded-full text-[#1E293B] hover:text-[#005FD8] hover:bg-slate-100/80 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2.5 rounded-full text-[#221D1D] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Search Chapters & Notes"
             >
               <Search className="w-5 h-5 stroke-[2]" />
@@ -290,42 +290,46 @@ export function Navbar() {
             {/* Shopping Cart */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="p-2.5 rounded-full text-[#1E293B] hover:text-[#005FD8] hover:bg-slate-100/80 transition-colors relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2.5 rounded-full text-[#221D1D] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="View Cart"
             >
               <ShoppingBag className="w-5 h-5 stroke-[2]" />
               {totalItemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#005FD8] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#BFAFE5] text-[#221D1D] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs border border-[#A08DC9]">
                   {totalItemCount}
                 </span>
               )}
             </button>
 
-            {/* "Log In / Student Portal" Pill Button */}
+            {/* Top Corner "Student Dashboard" CTA Button */}
             {activeStudent ? (
               <Link
                 href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 rounded-xl border border-[#005FD8] bg-blue-50/60 text-[#005FD8] text-xs sm:text-sm font-semibold hover:bg-blue-100/70 transition-all duration-200 active:scale-95"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap"
                 title={`${activeStudent.name} (${activeStudent.role === "admin" ? "Admin" : "Student"})`}
               >
-                <div className="w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-[#005FD8] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                <div className="w-5 h-5 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                   {activeStudent.avatarInitials}
                 </div>
-                <span className="truncate max-w-[85px] hidden sm:inline">{activeStudent.name.split(" ")[0]}</span>
+                <span className="hidden xs:inline sm:inline">Student Dashboard</span>
+                <span className="xs:hidden sm:hidden">Dashboard</span>
               </Link>
             ) : (
               <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-xl border border-[#005FD8] text-[#005FD8] hover:bg-[#005FD8] hover:text-white text-sm font-semibold transition-all duration-200 active:scale-95"
+                href="/login?redirect=/student"
+                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap"
+                title="Access Student Portal & Study Notes"
               >
-                Log In
+                <GraduationCap className="w-4 h-4 text-[#221D1D]" />
+                <span className="hidden xs:inline sm:inline">Student Dashboard</span>
+                <span className="xs:hidden sm:hidden">Dashboard</span>
               </Link>
             )}
 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="md:hidden p-2.5 rounded-lg text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
             >
@@ -338,27 +342,27 @@ export function Navbar() {
         {searchOpen && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-2 animate-in slide-in-from-top-2 duration-200">
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <Search className="absolute left-4 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-4 w-4 h-4 text-[#77716E] pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search ICAI / ICSI Chapters, Acts, Case Studies & MCQs..."
-                className="w-full pl-11 pr-16 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#005FD8] focus:bg-white transition"
+                className="w-full pl-11 pr-16 py-2.5 bg-[#F7F7F5] border border-[#E7E4E7] rounded-xl text-sm text-[#221D1D] focus:outline-none focus:ring-2 focus:ring-[#BFAFE5] focus:bg-white transition"
                 autoFocus
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-12 text-xs text-slate-400 hover:text-slate-600"
+                  className="absolute right-12 text-xs text-[#77716E] hover:text-[#221D1D]"
                 >
                   Clear
                 </button>
               )}
               <button
                 type="submit"
-                className="absolute right-3 p-1 text-[#005FD8] hover:text-[#004BB0]"
+                className="absolute right-3 p-1 text-[#221D1D] hover:text-[#98C5D8]"
               >
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -367,12 +371,11 @@ export function Navbar() {
         )}
 
         {/* Mobile Navigation Drawer */}
-        {/* Mobile Navigation Drawer with overlay */}
         {mobileMenuOpen && (
           <>
             {/* Backdrop overlay */}
             <div
-              className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+              className="md:hidden fixed inset-0 bg-[#221D1D]/30 backdrop-blur-sm z-40 animate-in fade-in duration-200"
               onClick={() => setMobileMenuOpen(false)}
               aria-hidden="true"
             />
@@ -383,11 +386,11 @@ export function Navbar() {
               aria-label="Mobile navigation"
             >
               {/* Drawer Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <span className="text-sm font-semibold text-[#1D1D1F]">Menu</span>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#E7E4E7]">
+                <span className="text-sm font-bold text-[#221D1D]">Menu</span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-full hover:bg-slate-100 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="p-2.5 rounded-full hover:bg-[#F7F7F5] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
@@ -397,44 +400,44 @@ export function Navbar() {
               <div className="flex-1 px-4 py-3 space-y-1.5 overflow-y-auto">
                 <Link
                   href="/"
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors min-h-[44px] ${
-                    pathname === "/" ? "bg-blue-50 text-[#005FD8] font-semibold" : "text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                  className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-colors min-h-[44px] ${
+                    pathname === "/" ? "bg-[#AED7E9]/30 text-[#221D1D] font-bold" : "text-[#4D433F] hover:bg-[#F7F7F5] active:bg-[#E7E4E7]"
                   }`}
                 >
                   Home
                 </Link>
 
                 {/* Mobile Courses Section */}
-                <div className="px-4 py-3 bg-slate-50/90 rounded-xl border border-slate-100 space-y-2">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-4 py-3 bg-[#F7F7F5] rounded-xl border border-[#E7E4E7] space-y-2">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#77716E]">
                     Courses &amp; Notes (2)
                   </div>
 
                   <Link
                     href="/product/course-ca-foundation-sub"
-                    className="flex items-center justify-between py-2.5 text-sm font-semibold text-slate-800 hover:text-[#005FD8] active:text-[#005FD8] min-h-[44px]"
+                    className="flex items-center justify-between py-2.5 text-sm font-bold text-[#221D1D] hover:text-[#98C5D8] active:text-[#98C5D8] min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#005FD8]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#AED7E9]" />
                       <span>CA Foundation Business Laws</span>
                     </div>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">ICAI</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#AED7E9] text-[#221D1D]">ICAI</span>
                   </Link>
 
                   <Link
                     href="/product/course-cseet-sub"
-                    className="flex items-center justify-between py-2.5 text-sm font-semibold text-slate-800 hover:text-amber-800 active:text-amber-800 border-t border-slate-100 pt-2.5 min-h-[44px]"
+                    className="flex items-center justify-between py-2.5 text-sm font-bold text-[#221D1D] hover:text-[#98C5D8] active:text-[#98C5D8] border-t border-[#E7E4E7] pt-2.5 min-h-[44px]"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#C4E1EC]" />
                       <span>CSEET Business Law &amp; Mgt</span>
                     </div>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">ICSI</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C4E1EC] text-[#221D1D]">ICSI</span>
                   </Link>
 
                   <Link
                     href="/courses"
-                    className="flex items-center justify-between py-2 text-xs font-bold text-[#005FD8] hover:underline border-t border-slate-100 pt-2.5 min-h-[44px]"
+                    className="flex items-center justify-between py-2 text-xs font-bold text-[#221D1D] hover:underline border-t border-[#E7E4E7] pt-2.5 min-h-[44px]"
                   >
                     <span>Browse All Notes &amp; Catalog</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -443,15 +446,15 @@ export function Navbar() {
 
                 <Link
                   href="/#pricing"
-                  className="flex items-center px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 active:bg-slate-100 rounded-xl transition-colors min-h-[44px]"
+                  className="flex items-center px-4 py-3 text-sm font-medium text-[#4D433F] hover:bg-[#F7F7F5] active:bg-[#E7E4E7] rounded-xl transition-colors min-h-[44px]"
                 >
                   Pricing
                 </Link>
 
                 <Link
                   href="/about"
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors min-h-[44px] ${
-                    pathname === "/about" ? "bg-blue-50 text-[#005FD8] font-semibold" : "text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                  className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-colors min-h-[44px] ${
+                    pathname === "/about" ? "bg-[#AED7E9]/30 text-[#221D1D] font-bold" : "text-[#4D433F] hover:bg-[#F7F7F5] active:bg-[#E7E4E7]"
                   }`}
                 >
                   About
@@ -459,8 +462,8 @@ export function Navbar() {
 
                 <Link
                   href="/contact"
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors min-h-[44px] ${
-                    pathname === "/contact" ? "bg-blue-50 text-[#005FD8] font-semibold" : "text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                  className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-colors min-h-[44px] ${
+                    pathname === "/contact" ? "bg-[#AED7E9]/30 text-[#221D1D] font-bold" : "text-[#4D433F] hover:bg-[#F7F7F5] active:bg-[#E7E4E7]"
                   }`}
                 >
                   Contact
@@ -468,20 +471,22 @@ export function Navbar() {
               </div>
 
               {/* Drawer Footer CTA */}
-              <div className="px-4 py-4 border-t border-slate-100 safe-bottom">
+              <div className="px-4 py-4 border-t border-[#E7E4E7] safe-bottom">
                 {activeStudent ? (
                   <Link
                     href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                    className="w-full flex items-center justify-center py-3 rounded-xl border border-[#005FD8] bg-blue-50 text-[#005FD8] text-sm font-semibold hover:bg-blue-100 active:bg-blue-100 transition min-h-[48px]"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[48px]"
                   >
-                    {activeStudent.role === "admin" ? "Admin Panel" : "Student Dashboard"}
+                    <GraduationCap className="w-4 h-4 text-[#221D1D]" />
+                    <span>{activeStudent.role === "admin" ? "Admin Panel" : "🎓 Student Dashboard"}</span>
                   </Link>
                 ) : (
                   <Link
-                    href="/login"
-                    className="w-full flex items-center justify-center py-3 rounded-xl border border-[#005FD8] bg-blue-50 text-[#005FD8] text-sm font-semibold hover:bg-blue-100 active:bg-blue-100 transition min-h-[48px]"
+                    href="/login?redirect=/student"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[48px]"
                   >
-                    Log In
+                    <GraduationCap className="w-4 h-4 text-[#221D1D]" />
+                    <span>🎓 Student Dashboard (Log In)</span>
                   </Link>
                 )}
               </div>
