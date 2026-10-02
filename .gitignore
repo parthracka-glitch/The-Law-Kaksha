@@ -45,4 +45,5 @@ frontend/next-env.d.ts
 Thumbs.db
 *.tmp
 backend/data/*.tmp
+backend/uploads/
 

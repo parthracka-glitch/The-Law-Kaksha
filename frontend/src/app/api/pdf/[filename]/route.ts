@@ -21,7 +21,17 @@ export async function GET(
       path.join(process.cwd(), "uploads", safeFilename),
     ];
 
-    const filePath = possiblePaths.find((p) => fs.existsSync(p));
+    let filePath = possiblePaths.find((p) => fs.existsSync(p));
+
+    // Fallback to default canonical PDF if specific name not found on disk
+    if (!filePath) {
+      const fallbackPaths = [
+        path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
+        path.join(process.cwd(), "public", "notes", "cseet-business-law-full.pdf"),
+        path.join(process.cwd(), "public", "assets", "The_Law_Kaksha_Clean_PDF_Template.pdf"),
+      ];
+      filePath = fallbackPaths.find((p) => fs.existsSync(p));
+    }
 
     if (!filePath) {
       return NextResponse.json({ error: "PDF not found" }, { status: 404 });

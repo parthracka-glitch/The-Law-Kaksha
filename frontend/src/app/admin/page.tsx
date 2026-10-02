@@ -43,6 +43,7 @@ import {
   Send,
   Share2,
 } from "lucide-react";
+import { SecurePdfReader } from "@/components/SecurePdfReader";
 
 // --- DATA INTERFACES ---
 export interface AnnouncementSetting {
@@ -466,6 +467,12 @@ export default function AdminPortalPage() {
     pages?: string;
     isSample?: boolean;
   }>({ open: false, title: "", pdfUrl: "" });
+
+  const [admin3dReader, setAdmin3dReader] = useState<{ open: boolean; title: string; pdfUrl: string }>({
+    open: false,
+    title: "",
+    pdfUrl: "",
+  });
 
   // Entities state
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -3386,6 +3393,21 @@ export default function AdminPortalPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setAdmin3dReader({
+                      open: true,
+                      title: previewPdfModal.title,
+                      pdfUrl: previewPdfModal.pdfUrl,
+                    });
+                    setPreviewPdfModal({ open: false, title: "", pdfUrl: "" });
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  title="Open in 3D Hardcover Codex Reader"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Launch 3D Reader</span>
+                </button>
                 <a
                   href={previewPdfModal.pdfUrl}
                   target="_blank"
@@ -3427,16 +3449,43 @@ export default function AdminPortalPage() {
               <span className="truncate max-w-md font-mono text-[11px] text-[#77716E]" title={previewPdfModal.pdfUrl}>
                 Source: {previewPdfModal.pdfUrl}
               </span>
-              <button
-                onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
-                className="px-4 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer"
-              >
-                Close Inspector
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setAdmin3dReader({
+                      open: true,
+                      title: previewPdfModal.title,
+                      pdfUrl: previewPdfModal.pdfUrl,
+                    });
+                    setPreviewPdfModal({ open: false, title: "", pdfUrl: "" });
+                  }}
+                  className="px-4 py-1.5 rounded-full bg-[#AED7E9] hover:bg-[#98C5D8] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Experience 3D Flipbook</span>
+                </button>
+                <button
+                  onClick={() => setPreviewPdfModal({ open: false, title: "", pdfUrl: "" })}
+                  className="px-4 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white font-bold text-xs shadow-xs cursor-pointer"
+                >
+                  Close Inspector
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* 10. REAL 3D CODEX READER IN ADMIN PANEL */}
+      <SecurePdfReader
+        isOpen={admin3dReader.open}
+        onClose={() => setAdmin3dReader({ open: false, title: "", pdfUrl: "" })}
+        pdfUrl={admin3dReader.pdfUrl}
+        title={admin3dReader.title}
+        isPurchased={true}
+        studentName="Administrator"
+        studentRoll="LK-ADMIN-CHIEF"
+      />
 
     </div>
   );
