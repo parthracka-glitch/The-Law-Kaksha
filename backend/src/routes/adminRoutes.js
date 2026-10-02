@@ -123,6 +123,8 @@ router.post("/admin/products", async (req, res) => {
       highlights: Array.isArray(req.body.highlights) ? req.body.highlights : ["In-Web DRM Reading"],
       cover_image: req.body.cover_image || "/assets/ca-cs-hero-books-v2.png",
       isSample: Boolean(req.body.isSample),
+      previewPagesLimit: Number(req.body.previewPagesLimit) > 0 ? Number(req.body.previewPagesLimit) : 5,
+      samplePagesRange: req.body.samplePagesRange || "1-5",
     };
 
     if (isConnected()) {
@@ -147,14 +149,18 @@ router.post("/admin/products", async (req, res) => {
 router.put("/admin/products/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    const updateData = { ...req.body };
+    if (updateData.previewPagesLimit) {
+      updateData.previewPagesLimit = Number(updateData.previewPagesLimit);
+    }
     if (isConnected()) {
-      const updated = await Product.findOneAndUpdate({ id }, req.body, { new: true });
-      Database.table("products").update(id, req.body);
+      const updated = await Product.findOneAndUpdate({ id }, updateData, { new: true });
+      Database.table("products").update(id, updateData);
       if (!updated) return res.status(404).json({ success: false, message: "Product not found." });
       return res.status(200).json({ success: true, source: "mongodb_atlas", product: updated });
     }
 
-    const updated = Database.table("products").update(id, req.body);
+    const updated = Database.table("products").update(id, updateData);
     if (!updated) return res.status(404).json({ success: false, message: "Product not found." });
     res.status(200).json({ success: true, source: "local_cache", product: updated });
   } catch (err) {
@@ -744,6 +750,7 @@ router.post("/admin/resources", async (req, res) => {
       order: Number(req.body.order) || 0,
       pages: req.body.pages || "20 Pages",
       cloudinaryPublicId: req.body.cloudinaryPublicId || "",
+      previewPagesLimit: Number(req.body.previewPagesLimit) > 0 ? Number(req.body.previewPagesLimit) : 5,
     };
 
     if (isConnected()) {
@@ -766,14 +773,18 @@ router.post("/admin/resources", async (req, res) => {
 router.put("/admin/resources/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    const updateData = { ...req.body };
+    if (updateData.previewPagesLimit) {
+      updateData.previewPagesLimit = Number(updateData.previewPagesLimit);
+    }
     if (isConnected()) {
-      const updated = await Resource.findOneAndUpdate({ id }, req.body, { new: true });
-      Database.table("resources").update(id, req.body);
+      const updated = await Resource.findOneAndUpdate({ id }, updateData, { new: true });
+      Database.table("resources").update(id, updateData);
       if (!updated) return res.status(404).json({ success: false, message: "Resource not found." });
       return res.status(200).json({ success: true, source: "mongodb_atlas", resource: updated });
     }
 
-    const updated = Database.table("resources").update(id, req.body);
+    const updated = Database.table("resources").update(id, updateData);
     res.status(200).json({ success: true, resource: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating resource." });

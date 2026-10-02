@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
-import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
+import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
+import { SecurePdfReader } from "@/components/SecurePdfReader";
+import { useCart } from "@/context/CartContext";
 
 interface BookSpine {
   id: string;
@@ -17,6 +18,10 @@ interface BookSpine {
   borderColor: string;
   heightClass: string;
   isFeatured?: boolean;
+  pdfUrl?: string;
+  previewPagesLimit?: number;
+  price?: number;
+  badge?: string;
 }
 
 const STATUTORY_BOOKS: BookSpine[] = [
@@ -31,6 +36,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     borderColor: "border-[#98C5D8]",
     heightClass: "h-28 sm:h-36",
+    pdfUrl: "/notes/contract-act-unit-1.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-soga",
@@ -43,6 +51,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-white",
     borderColor: "border-[#4D433F]",
     heightClass: "h-26 sm:h-32",
+    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-partnership",
@@ -55,6 +66,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     borderColor: "border-[#AED7E9]",
     heightClass: "h-28 sm:h-36",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-llp",
@@ -67,6 +81,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     borderColor: "border-[#6799AE]",
     heightClass: "h-26 sm:h-34",
+    pdfUrl: "/notes/llp-act-notes.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-companies",
@@ -80,6 +97,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     borderColor: "border-[#A08DC9]",
     heightClass: "h-32 sm:h-40",
     isFeatured: true,
+    pdfUrl: "/notes/companies-act-unit-1.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-ni",
@@ -92,6 +112,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     borderColor: "border-[#C4E1EC]",
     heightClass: "h-28 sm:h-36",
+    pdfUrl: "/notes/negotiable-instruments-unit-1.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "ca-regulatory",
@@ -104,6 +127,9 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     borderColor: "border-[#C35F3B]",
     heightClass: "h-26 sm:h-32",
+    pdfUrl: "/notes/ca-foundation-framework-notes.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
   {
     id: "cs-management",
@@ -116,18 +142,108 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-white",
     borderColor: "border-[#221D1D]",
     heightClass: "h-28 sm:h-36",
+    pdfUrl: "/notes/management-principles-sample-notes.pdf",
+    previewPagesLimit: 5,
+    price: 99,
   },
 ];
 
 export function DigitalBookshelf() {
-  const [sampleModalOpen, setSampleModalOpen] = useState(false);
-  const [activeSampleTitle, setActiveSampleTitle] = useState("CA Foundation Business Laws");
-  const [activeSampleId, setActiveSampleId] = useState("ca-foundation");
+  const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
+  const [booksList, setBooksList] = useState<BookSpine[]>(STATUTORY_BOOKS);
+
+  // Secure DRM Reader state
+  const [readerState, setReaderState] = useState<{
+    open: boolean;
+    title: string;
+    pdfUrl: string;
+    previewLimit: number;
+    price: number;
+    bookId: string;
+    badge?: string;
+  }>({
+    open: false,
+    title: "",
+    pdfUrl: "",
+    previewLimit: 5,
+    price: 99,
+    bookId: "",
+  });
+
+  // Load any dynamic products added from admin
+  useEffect(() => {
+    async function loadDynamicCodices() {
+      try {
+        let dynamicList: any[] = [];
+        const res = await fetch("/api/catalog");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.products)) {
+            dynamicList = json.products;
+          }
+        }
+        if (dynamicList.length === 0 && typeof window !== "undefined") {
+          const localAdmin = localStorage.getItem("lawkaksha_admin_products");
+          if (localAdmin) {
+            dynamicList = JSON.parse(localAdmin);
+          }
+        }
+
+        if (dynamicList.length > 0) {
+          // Merge dynamic products with unique IDs
+          const customSpines: BookSpine[] = dynamicList
+            .filter((p: any) => p.status === "Active" || !p.status)
+            .map((p: any, idx: number) => {
+              const spinePalettes = [
+                { spineColor: "bg-[#BFAFE5]", textColor: "text-[#221D1D]", borderColor: "border-[#A08DC9]" },
+                { spineColor: "bg-[#AED7E9]", textColor: "text-[#221D1D]", borderColor: "border-[#98C5D8]" },
+                { spineColor: "bg-[#C4E1EC]", textColor: "text-[#221D1D]", borderColor: "border-[#AED7E9]" },
+                { spineColor: "bg-[#DDA994]", textColor: "text-[#221D1D]", borderColor: "border-[#C35F3B]" },
+                { spineColor: "bg-[#221D1D]", textColor: "text-white", borderColor: "border-[#4D433F]" },
+              ];
+              const palette = spinePalettes[idx % spinePalettes.length];
+              return {
+                id: p.id || `custom-book-${idx}`,
+                actName: p.title,
+                shortTitle: p.title.length > 22 ? p.title.slice(0, 20) + "..." : p.title,
+                year: p.category?.includes("CS") ? "ICSI" : "ICAI",
+                exam: p.category?.includes("CS") ? "ICSI" : ("ICAI" as const),
+                chapters: p.subtitle || p.description || "Digital Codex",
+                spineColor: palette.spineColor,
+                textColor: palette.textColor,
+                borderColor: palette.borderColor,
+                heightClass: idx % 2 === 0 ? "h-32 sm:h-40" : "h-28 sm:h-36",
+                pdfUrl: p.pdfUrl || `/api/pdf/${p.slug || p.id}.pdf`,
+                previewPagesLimit: Number(p.previewPagesLimit) || 5,
+                price: Number(p.price) || 99,
+                badge: p.badge || `₹${p.price || 99}`,
+              };
+            });
+
+          // Deduplicate based on id or actName
+          const existingIds = new Set(STATUTORY_BOOKS.map((b) => b.id));
+          const additions = customSpines.filter((c) => !existingIds.has(c.id));
+          if (additions.length > 0) {
+            setBooksList([...STATUTORY_BOOKS, ...additions]);
+          }
+        }
+      } catch (e) {
+        // Fallback to default statutory list
+      }
+    }
+    loadDynamicCodices();
+  }, []);
 
   const handleOpenBookSample = (book: BookSpine) => {
-    setActiveSampleTitle(book.actName);
-    setActiveSampleId(book.exam === "ICSI" ? "cseet" : "ca-foundation");
-    setSampleModalOpen(true);
+    setReaderState({
+      open: true,
+      title: book.actName,
+      pdfUrl: book.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
+      previewLimit: book.previewPagesLimit || 5,
+      price: book.price || 99,
+      bookId: book.id,
+      badge: book.badge,
+    });
   };
 
   return (
@@ -171,7 +287,7 @@ export function DigitalBookshelf() {
 
             {/* Row of Books */}
             <div className="flex items-end justify-start sm:justify-center gap-2.5 sm:gap-3 px-2 max-w-full overflow-x-auto pb-1 scroll-container-x">
-              {STATUTORY_BOOKS.map((book) => {
+              {booksList.map((book) => {
                 return (
                   <div
                     key={book.id}
@@ -217,13 +333,29 @@ export function DigitalBookshelf() {
         </div>
       </div>
 
-      {/* Free Sample PDF Modal for Book Click */}
-      <EnhancedSampleChapterModal
-        isOpen={sampleModalOpen}
-        onClose={() => setSampleModalOpen(false)}
-        bookTitle={activeSampleTitle}
-        bookId={activeSampleId}
-        bookPrice={99}
+      {/* Real DRM Protected Canvas PDF Reader with Preview Limit Enforcement */}
+      <SecurePdfReader
+        isOpen={readerState.open}
+        onClose={() => setReaderState((prev) => ({ ...prev, open: false }))}
+        pdfUrl={readerState.pdfUrl}
+        title={readerState.title}
+        previewPagesLimit={readerState.previewLimit}
+        isPurchased={false}
+        price={readerState.price}
+        onBuy={() => {
+          addToCart({
+            id: readerState.bookId,
+            title: readerState.title,
+            price: readerState.price,
+            originalPrice: 299,
+            format: "pdf",
+            category: "Digital Codex",
+            badge: readerState.badge || `₹${readerState.price}`,
+          });
+          setReaderState((prev) => ({ ...prev, open: false }));
+          setIsCartOpen(true);
+          setCheckoutStep("details");
+        }}
       />
     </section>
   );

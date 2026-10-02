@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
+import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { useCart } from "@/context/CartContext";
 import { apiRequest } from "@/lib/api";
 import {
@@ -40,6 +40,9 @@ interface Product {
   pages_or_duration: string;
   highlights: string[];
   cover_image?: string;
+  previewPagesLimit?: number;
+  samplePagesRange?: string;
+  pdfUrl?: string;
 }
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -104,11 +107,19 @@ function CoursesCatalogContent() {
   );
   const [search, setSearch] = useState("");
 
-  // Sample Modal state
-  const [sampleModalOpen, setSampleModalOpen] = useState(false);
-  const [sampleBook, setSampleBook] = useState({
-    title: "CA Foundation Business Laws Master Set",
-    id: "ca-foundation",
+  // Preview Reader state (DRM-protected with preview page limits)
+  const [previewState, setPreviewState] = useState<{
+    open: boolean;
+    title: string;
+    pdfUrl: string;
+    previewLimit: number;
+    price: number;
+    product?: Product;
+  }>({
+    open: false,
+    title: "",
+    pdfUrl: "",
+    previewLimit: 5,
     price: 99,
   });
 
@@ -144,12 +155,17 @@ function CoursesCatalogContent() {
   });
 
   const handleOpenPreview = (product: Product) => {
-    setSampleBook({
+    const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
+      ? "/notes/management-principles-sample-notes.pdf"
+      : "/notes/unit-1-general-nature-of-partnership.pdf";
+    setPreviewState({
+      open: true,
       title: product.title,
-      id: product.id.includes("cseet") || product.courseId === "course-cseet" ? "cseet" : "ca-foundation",
+      pdfUrl: product.pdfUrl || defaultPdf,
+      previewLimit: product.previewPagesLimit || 5,
       price: product.price,
+      product,
     });
-    setSampleModalOpen(true);
   };
 
   const handleSubscribeNow = (product: Product) => {
@@ -378,13 +394,21 @@ function CoursesCatalogContent() {
 
       </main>
 
-      {/* 2-3 Page Sample Preview Modal */}
-      <EnhancedSampleChapterModal
-        isOpen={sampleModalOpen}
-        onClose={() => setSampleModalOpen(false)}
-        bookTitle={sampleBook.title}
-        bookId={sampleBook.id}
-        bookPrice={sampleBook.price}
+      {/* Real DRM Protected Canvas PDF Reader with Preview Limit Enforcement */}
+      <SecurePdfReader
+        isOpen={previewState.open}
+        onClose={() => setPreviewState((prev) => ({ ...prev, open: false }))}
+        pdfUrl={previewState.pdfUrl}
+        title={previewState.title}
+        previewPagesLimit={previewState.previewLimit}
+        isPurchased={false}
+        price={previewState.price}
+        onBuy={() => {
+          if (previewState.product) {
+            handleSubscribeNow(previewState.product);
+          }
+          setPreviewState((prev) => ({ ...prev, open: false }));
+        }}
       />
 
       <Footer />

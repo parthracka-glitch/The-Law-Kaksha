@@ -20,6 +20,8 @@ import {
   RotateCw,
   HelpCircle,
   FileText,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 
 interface SecurePdfReaderProps {
@@ -29,6 +31,10 @@ interface SecurePdfReaderProps {
   title: string;
   studentName?: string;
   studentRoll?: string;
+  previewPagesLimit?: number;
+  isPurchased?: boolean;
+  price?: number;
+  onBuy?: () => void;
 }
 
 type ReaderTheme = "dark" | "sepia" | "light" | "oled";
@@ -55,6 +61,10 @@ export function SecurePdfReader({
   title,
   studentName = "Student",
   studentRoll = "LK-2026-STU",
+  previewPagesLimit,
+  isPurchased = false,
+  price,
+  onBuy,
 }: SecurePdfReaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,6 +83,12 @@ export function SecurePdfReader({
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const renderTaskRef = useRef<any>(null);
+
+  // Preview Mode Calculation
+  const isPreviewMode = !isPurchased && typeof previewPagesLimit === "number" && previewPagesLimit > 0;
+  const maxAllowedPage = isPreviewMode
+    ? Math.min(previewPagesLimit, totalPages > 0 ? totalPages : previewPagesLimit)
+    : totalPages;
 
   // Multi-Touch Pinch and Swipe Tracking
   const touchStartX = useRef<number | null>(null);
@@ -222,7 +238,16 @@ export function SecurePdfReader({
           pdfjsLib.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`;
         }
 
-        const binResponse = await fetch(`/api/pdf/${filename}`, { cache: "no-store" });
+        let binResponse = await fetch(`/api/pdf/${filename}`, { cache: "no-store" });
+        if (!binResponse.ok) {
+          binResponse = await fetch(url.startsWith("/") ? url : `/notes/${url}`, { cache: "no-store" });
+        }
+        if (!binResponse.ok && !url.includes("/notes/")) {
+          binResponse = await fetch(`/notes/${filename}`, { cache: "no-store" });
+        }
+        if (!binResponse.ok) {
+          throw new Error(`Failed to fetch PDF binary: HTTP ${binResponse.status}`);
+        }
         const arrayBuf = await binResponse.arrayBuffer();
 
         const fallbackTask = pdfjsLib.getDocument({
@@ -435,7 +460,8 @@ export function SecurePdfReader({
 
     if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
       if (deltaX < 0) {
-        setCurrentPage((p) => Math.min(p + 1, totalPages));
+        const limit = isPreviewMode ? maxAllowedPage : totalPages;
+        setCurrentPage((p) => Math.min(p + 1, limit));
       } else {
         setCurrentPage((p) => Math.max(p - 1, 1));
       }
@@ -485,7 +511,8 @@ export function SecurePdfReader({
       // Navigation Shortcuts
       if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) {
         e.preventDefault();
-        setCurrentPage((p) => Math.min(p + 1, totalPages));
+        const limit = isPreviewMode ? maxAllowedPage : totalPages;
+        setCurrentPage((p) => (p >= limit ? limit : Math.min(p + 1, limit)));
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp" || (e.key === " " && e.shiftKey)) {
         e.preventDefault();
         setCurrentPage((p) => Math.max(p - 1, 1));
@@ -701,6 +728,29 @@ export function SecurePdfReader({
           </button>
         </div>
       </header>
+
+      {/* PREVIEW MODE TOP NOTIFICATION BAR */}
+      {isPreviewMode && (
+        <div className="bg-[#BFAFE5] text-[#221D1D] px-3 sm:px-5 py-2 flex items-center justify-between text-xs font-semibold shrink-0 z-30 shadow-xs border-b border-[#A08DC9]">
+          <div className="flex items-center gap-2 truncate mr-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-white text-[10px] font-bold uppercase tracking-wider text-[#221D1D] border border-[#A08DC9] shrink-0">
+              Free Sample Preview ({maxAllowedPage} Pages Limit)
+            </span>
+            <span className="hidden sm:inline text-xs text-[#221D1D] font-medium truncate">
+              You are reading free sample pages. Full study codex contains {totalPages > 0 ? totalPages : "complete"} pages.
+            </span>
+          </div>
+          {onBuy && (
+            <button
+              onClick={onBuy}
+              className="px-3.5 py-1 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs active:scale-95"
+            >
+              <span>Unlock Full Book {price ? `• ₹${price}` : ""}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#AED7E9]" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 2. MAIN READING WORKSPACE & NAVIGATION DRAWER */}
       <div className="flex-1 flex min-h-0 relative">
@@ -944,10 +994,16 @@ export function SecurePdfReader({
               </button>
 
               <button
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
-                title="Next Page (→)"
+                onClick={() => {
+                  if (isPreviewMode && currentPage >= maxAllowedPage) {
+                    if (onBuy) onBuy();
+                    return;
+                  }
+                  setCurrentPage((p) => Math.min(p + 1, isPreviewMode ? maxAllowedPage : totalPages));
+                }}
+                disabled={currentPage >= (isPreviewMode ? maxAllowedPage : totalPages)}
+                className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-30 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+                title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Next Page (→)"}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -1029,9 +1085,40 @@ export function SecurePdfReader({
               </div>
 
               {/* FOOTNOTE */}
-              <div className="mt-3 text-[11px] opacity-40 font-mono text-center">
-                Page {currentPage} of {totalPages}
+              <div className="mt-3 text-[11px] opacity-60 font-mono text-center">
+                Page {currentPage} of {isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}
               </div>
+
+              {/* UNLOCK CARD WHEN REACHING PREVIEW LIMIT */}
+              {isPreviewMode && currentPage >= maxAllowedPage && (
+                <div className="w-full max-w-xl mx-auto my-6 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A1E24] border-2 border-[#BFAFE5] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 z-20">
+                  <div className="w-12 h-12 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] dark:text-white flex items-center justify-center mx-auto shadow-xs">
+                    <Lock className="w-6 h-6 text-[#221D1D] dark:text-[#AED7E9]" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B] bg-[#F4C5C0]/40 px-3 py-1 rounded-full border border-[#F4C5C0]">
+                      End of Sample Preview ({maxAllowedPage} / {totalPages > 0 ? totalPages : maxAllowedPage} Pages)
+                    </span>
+                    <h4 className="text-base sm:text-xl font-bold font-serif text-[#221D1D] dark:text-white mt-2">
+                      Unlock the Complete Edition of {title}
+                    </h4>
+                    <p className="text-xs text-[#4D433F] dark:text-slate-300 max-w-md mx-auto leading-relaxed mt-1">
+                      Get instant digital access to all chapters, unit breakdowns, practice questions, and landmark case precedents inside your personal Student Dashboard with continuous DRM watermark security.
+                    </p>
+                  </div>
+                  {onBuy && (
+                    <div className="pt-2 flex justify-center">
+                      <button
+                        onClick={onBuy}
+                        className="px-6 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
+                      >
+                        <span>Unlock Full Codex {price ? `• ₹${price}` : ""}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1066,26 +1153,26 @@ export function SecurePdfReader({
             <input
               type="range"
               min={1}
-              max={totalPages}
+              max={isPreviewMode ? maxAllowedPage : totalPages}
               value={currentPage}
               onChange={(e) => setCurrentPage(Number(e.target.value))}
               className="w-full h-1 bg-current opacity-20 hover:opacity-40 rounded-full appearance-none cursor-pointer accent-[#AED7E9] focus:outline-none transition-opacity"
-              title={`Page ${currentPage} of ${totalPages}`}
+              title={`Page ${currentPage} of ${isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}`}
             />
             <button
               onClick={() => {
-                const target = prompt(`Jump to page (1 - ${totalPages}):`, String(currentPage));
+                const target = prompt(`Jump to page (1 - ${isPreviewMode ? maxAllowedPage : totalPages}):`, String(currentPage));
                 if (target) {
                   const p = parseInt(target);
-                  if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                  if (!isNaN(p) && p >= 1 && p <= (isPreviewMode ? maxAllowedPage : totalPages)) {
                     setCurrentPage(p);
                   }
                 }
               }}
-              className="font-mono text-[11px] font-medium opacity-85 hover:opacity-100 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors"
+              className="font-mono text-[11px] font-medium opacity-85 hover:opacity-100 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors whitespace-nowrap"
               title="Click to jump to page"
             >
-              {currentPage}/{totalPages}
+              {currentPage}/{isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}
             </button>
           </div>
 
@@ -1096,6 +1183,22 @@ export function SecurePdfReader({
             title="Zoom In (+)"
           >
             <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+
+          {/* NEXT PAGE BUTTON */}
+          <button
+            onClick={() => {
+              if (isPreviewMode && currentPage >= maxAllowedPage) {
+                if (onBuy) onBuy();
+                return;
+              }
+              setCurrentPage((p) => Math.min(p + 1, isPreviewMode ? maxAllowedPage : totalPages));
+            }}
+            disabled={currentPage >= (isPreviewMode ? maxAllowedPage : totalPages)}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
+            title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Next Page (→)"}
+          >
+            <ChevronRight className="w-4 h-4" />
           </button>
 
           {/* 1-TAP FIT TO WIDTH AUTO-CENTER */}

@@ -97,6 +97,9 @@ router.get("/dashboard", async (req, res) => {
 
     // From active subscriptions
     subscriptions.forEach((sub) => {
+      if (sub.productId) unlockedSet.add(String(sub.productId));
+      if (sub.itemId) unlockedSet.add(String(sub.itemId));
+      if (sub.item) unlockedSet.add(String(sub.item));
       if (sub.unlockedItemIds && Array.isArray(sub.unlockedItemIds)) {
         sub.unlockedItemIds.forEach((id) => unlockedSet.add(id));
       }

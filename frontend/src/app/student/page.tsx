@@ -423,7 +423,15 @@ export default function StudentDashboardPage() {
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
   const [badgesModalOpen, setBadgesModalOpen] = useState<boolean>(false);
-  const [pdfViewer, setPdfViewer] = useState<{ open: boolean; url: string; title: string }>({ open: false, url: "", title: "" });
+  const [pdfViewer, setPdfViewer] = useState<{
+    open: boolean;
+    url: string;
+    title: string;
+    previewPagesLimit?: number;
+    isPurchased?: boolean;
+    price?: number;
+    onBuy?: () => void;
+  }>({ open: false, url: "", title: "", isPurchased: true });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [lockedPrompt, setLockedPrompt] = useState<{ open: boolean; courseName: string } | null>(null);
 
@@ -461,8 +469,9 @@ export default function StudentDashboardPage() {
   const [qotdSelected, setQotdSelected] = useState<number | null>(null);
   const [qotdSubmitted, setQotdSubmitted] = useState<boolean>(false);
 
-  // Live Atlas data
+  // Live Atlas & Catalog data
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [liveCases, setLiveCases] = useState<any[]>(WEEKLY_CASES);
   const [liveMcqTests, setLiveMcqTests] = useState<GoogleFormTestItem[]>(DEFAULT_GOOGLE_TESTS);
   const [activeFormModal, setActiveFormModal] = useState<{
@@ -473,7 +482,7 @@ export default function StudentDashboardPage() {
     duration: number;
   } | null>(null);
 
-  const { addToCart } = useCart();
+  const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
 
   // Purchase-Based Access Control: determines if active course stream is unlocked
   const isCaUnlocked = useMemo(() => {
@@ -595,10 +604,20 @@ export default function StudentDashboardPage() {
     } catch (e) {}
   };
 
-  // Open PDF & track Last Read (with purchase-based access control)
-  const handleOpenPdf = (url: string, title: string, subtitle: string, bypassLock?: boolean) => {
+  // Open PDF & track Last Read (with purchase-based access control and custom preview page limits)
+  const handleOpenPdf = (
+    url: string,
+    title: string,
+    subtitle: string,
+    bypassLock?: boolean,
+    isSamplePreview?: boolean,
+    previewPagesLimit?: number,
+    price?: number,
+    onBuy?: () => void
+  ) => {
     // Gate: require active course purchase (unless sample / admin bypass)
-    if (!hasActiveCourseAccess && !bypassLock) {
+    const isUnlocked = hasActiveCourseAccess || bypassLock;
+    if (!isUnlocked && !isSamplePreview) {
       setLockedPrompt({ open: true, courseName: activeCourseName });
       return;
     }
@@ -613,7 +632,15 @@ export default function StudentDashboardPage() {
     try {
       localStorage.setItem("lawkaksha_last_read", JSON.stringify(newLastRead));
     } catch (e) {}
-    setPdfViewer({ open: true, url, title: `${title} - ${subtitle}` });
+    setPdfViewer({
+      open: true,
+      url,
+      title: `${title} - ${subtitle}`,
+      previewPagesLimit: isUnlocked ? undefined : (previewPagesLimit || 5),
+      isPurchased: isUnlocked,
+      price: price || 99,
+      onBuy,
+    });
     awardXp(10, `Reading Session: ${title}`);
   };
 
@@ -723,6 +750,12 @@ export default function StudentDashboardPage() {
           localStorage.setItem("lawkaksha_streak", String(newStreak));
           localStorage.setItem("lawkaksha_last_login", today);
         }
+        const storedProducts = localStorage.getItem("lawkaksha_admin_products");
+        if (storedProducts) {
+          try {
+            setAvailableProducts(JSON.parse(storedProducts));
+          } catch (e) {}
+        }
       } catch (e) {
         setStreak(1);
       }
@@ -749,6 +782,9 @@ export default function StudentDashboardPage() {
         if (data.success) {
           if (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0) {
             setPurchasedBooks((prev) => Array.from(new Set([...prev, ...data.unlockedItemIds])));
+          }
+          if (Array.isArray(data.availableProducts) && data.availableProducts.length > 0) {
+            setAvailableProducts(data.availableProducts);
           }
           if (Array.isArray(data.cases) && data.cases.length > 0) {
             setLiveCases(data.cases);
@@ -1687,6 +1723,175 @@ export default function StudentDashboardPage() {
                 })}
               </div>
 
+              {/* DYNAMIC DIGITAL CODICES (ADMIN UPLOADED & CATALOG) */}
+              {availableProducts.length > 0 && (
+                <div className="space-y-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#4B8097]" />
+                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
+                        Digital Codices &amp; Supplementary Materials ({availableProducts.length})
+                      </h3>
+                    </div>
+                    <span className="text-xs text-[#77716E]">Encrypted In-Web DRM Reader</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {availableProducts.map((prod: any) => {
+                      const isProdUnlocked =
+                        isAdminUser ||
+                        purchasedBooks.includes(prod.id) ||
+                        purchasedBooks.includes(prod._id) ||
+                        (prod.courseId === "course-ca-foundation" && isCaUnlocked) ||
+                        (prod.courseId === "course-cseet" && isCsUnlocked) ||
+                        (prod.category?.includes("CA") && isCaUnlocked) ||
+                        (prod.category?.includes("CS") && isCsUnlocked);
+
+                      const previewLimit = Number(prod.previewPagesLimit) || 5;
+                      const pdfPath = prod.pdfUrl || `/api/pdf/${prod.slug || prod.id}.pdf`;
+
+                      return (
+                        <div
+                          key={prod.id || prod._id}
+                          className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between"
+                        >
+                          <div className="h-2 w-full bg-[#BFAFE5]" />
+                          <div className="p-6 flex-1 flex flex-col">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
+                                    {prod.category || "Study Material"}
+                                  </span>
+                                  {isProdUnlocked ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9] flex items-center gap-1">
+                                      <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Enrolled • Full Access
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/30 flex items-center gap-1">
+                                      <Lock className="w-3 h-3" /> Preview ({previewLimit} Pages)
+                                    </span>
+                                  )}
+                                  {prod.pages && (
+                                    <span className="text-[10px] font-medium text-[#77716E]">
+                                      {prod.pages}
+                                    </span>
+                                  )}
+                                </div>
+                                <h4 className="text-base font-serif font-bold text-[#221D1D] leading-snug">
+                                  {prod.title}
+                                </h4>
+                                {prod.subtitle && (
+                                  <p className="text-xs text-[#4B8097] font-semibold mt-0.5">
+                                    {prod.subtitle}
+                                  </p>
+                                )}
+                              </div>
+                              <span className="text-sm font-bold text-[#221D1D] bg-[#F7F7F5] px-2.5 py-1 rounded-xl border border-[#E7E4E7] shrink-0">
+                                ₹{prod.price || 99}
+                              </span>
+                            </div>
+
+                            {prod.description && (
+                              <p className="text-xs text-[#4D433F] leading-relaxed mt-3 flex-1">
+                                {prod.description}
+                              </p>
+                            )}
+
+                            {Array.isArray(prod.units) && prod.units.length > 0 && (
+                              <div className="mt-3 pt-2.5 border-t border-[#E7E4E7]">
+                                <div className="space-y-1">
+                                  {prod.units.slice(0, 3).map((u: string, uIdx: number) => (
+                                    <div key={uIdx} className="flex items-center gap-2 text-xs text-[#4D433F]">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097] shrink-0" />
+                                      <span className="truncate">{u}</span>
+                                    </div>
+                                  ))}
+                                  {prod.units.length > 3 && (
+                                    <span className="text-[10px] text-[#77716E] pl-5 block">
+                                      +{prod.units.length - 3} more units included
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="pt-4 mt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3">
+                              <span className="text-[10px] font-mono text-[#77716E] truncate max-w-[120px]">
+                                {pdfPath.split("/").pop()}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {isProdUnlocked ? (
+                                  <button
+                                    onClick={() => handleOpenPdf(pdfPath, prod.title, prod.subtitle || "Full Edition", true)}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs cursor-pointer"
+                                  >
+                                    <BookOpen className="w-3.5 h-3.5" />
+                                    <span>Read Full Codex</span>
+                                  </button>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() =>
+                                        handleOpenPdf(
+                                          pdfPath,
+                                          prod.title,
+                                          prod.subtitle || "Free Preview",
+                                          false,
+                                          true,
+                                          previewLimit,
+                                          prod.price || 99,
+                                          () => {
+                                            addToCart({
+                                              id: prod.id,
+                                              title: prod.title,
+                                              price: prod.price || 99,
+                                              originalPrice: prod.originalPrice || 299,
+                                              format: "pdf",
+                                              category: prod.category || "Digital Codex",
+                                              badge: prod.badge || `₹${prod.price || 99}`,
+                                            });
+                                            setIsCartOpen(true);
+                                            setCheckoutStep("details");
+                                          }
+                                        )
+                                      }
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#AED7E9] text-[#221D1D] hover:bg-[#C4E1EC]/40 text-xs font-semibold transition-all cursor-pointer"
+                                    >
+                                      <Eye className="w-3.5 h-3.5 text-[#4B8097]" />
+                                      <span>Sample ({previewLimit} pgs)</span>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        addToCart({
+                                          id: prod.id,
+                                          title: prod.title,
+                                          price: prod.price || 99,
+                                          originalPrice: prod.originalPrice || 299,
+                                          format: "pdf",
+                                          category: prod.category || "Digital Codex",
+                                          badge: prod.badge || `₹${prod.price || 99}`,
+                                        });
+                                        setIsCartOpen(true);
+                                        setCheckoutStep("details");
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                                    >
+                                      <ShoppingBag className="w-3.5 h-3.5 text-[#AED7E9]" />
+                                      <span>Buy (₹{prod.price || 99})</span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* CHAPTER-BY-CHAPTER UNITS LIST */}
               <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between">
@@ -2269,9 +2474,15 @@ export default function StudentDashboardPage() {
 
       <SecurePdfReader
         isOpen={pdfViewer.open}
-        onClose={() => setPdfViewer({ open: false, url: "", title: "" })}
+        onClose={() => setPdfViewer((prev) => ({ ...prev, open: false }))}
         pdfUrl={pdfViewer.url}
         title={pdfViewer.title}
+        previewPagesLimit={pdfViewer.previewPagesLimit}
+        isPurchased={pdfViewer.isPurchased}
+        price={pdfViewer.price}
+        onBuy={pdfViewer.onBuy}
+        studentName={studentName}
+        studentRoll={studentProfile.student_id}
       />
 
       <StudentProfileModal

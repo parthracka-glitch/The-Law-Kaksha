@@ -82,6 +82,19 @@ const uploadToStorage = async (fileInput, options = {}) => {
     fs.copyFileSync(fileInput, targetPath);
   }
 
+  // Also mirror to frontend/public/notes if present
+  const frontendNotesDir = path.join(__dirname, "../../../frontend/public/notes");
+  if (fs.existsSync(frontendNotesDir)) {
+    try {
+      const frontendTarget = path.join(frontendNotesDir, filename);
+      if (Buffer.isBuffer(fileInput)) {
+        fs.writeFileSync(frontendTarget, fileInput);
+      } else if (typeof fileInput === "string" && fs.existsSync(fileInput)) {
+        fs.copyFileSync(fileInput, frontendTarget);
+      }
+    } catch (e) {}
+  }
+
   return {
     url: `/api/pdf/${filename}`,
     publicId: filename,

@@ -13,9 +13,17 @@ export async function GET(
     
     // Sanitize filename to prevent directory traversal
     const safeFilename = path.basename(filename);
-    const filePath = path.join(process.cwd(), "public", "notes", safeFilename);
+    const possiblePaths = [
+      path.join(process.cwd(), "public", "notes", safeFilename),
+      path.join(process.cwd(), "..", "backend", "uploads", safeFilename),
+      path.join(process.cwd(), "public", safeFilename),
+      path.join(process.cwd(), "public", "uploads", safeFilename),
+      path.join(process.cwd(), "uploads", safeFilename),
+    ];
 
-    if (!fs.existsSync(filePath)) {
+    const filePath = possiblePaths.find((p) => fs.existsSync(p));
+
+    if (!filePath) {
       return NextResponse.json({ error: "PDF not found" }, { status: 404 });
     }
 
