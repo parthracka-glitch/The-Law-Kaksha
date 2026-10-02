@@ -5,7 +5,11 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/**/*.test.js",
+    "db:backup": "node src/scripts/backup_restore.js backup",
+    "db:restore:test": "node src/scripts/backup_restore.js backup-and-test",
+    "loadtest": "node src/scripts/load_benchmark.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -17,14 +17,49 @@ export function Footer() {
   const policyContent = {
     privacy: {
       title: "Privacy Policy",
-      subtitle: "The Law Kaksha Student Data Protection & Privacy Standard",
+      subtitle: "Digital Personal Data Protection (DPDP) Act 2023 Standard",
       content: (
         <div className="space-y-4 text-xs text-[#4D433F] leading-relaxed">
           <p>
-            The Law Kaksha (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) respects student privacy. We collect minimal account data (name, email, course enrollment) strictly for delivering academic notes, digital access, and portal services.
+            <strong>The Law Kaksha</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) is committed to safeguarding candidate data in strict alignment with the <em>Digital Personal Data Protection Act, 2023 (DPDP Act)</em> and applicable Indian cybersecurity guidelines.
           </p>
-          <p>
-            Your payment transactions are processed securely by 256-bit SSL encrypted PCI-DSS certified gateways (Razorpay / UPI). We never store debit/credit card numbers or banking PINs.
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">1. Notice & Purpose Limitation</h4>
+            <p>
+              We collect personal data (Full Name, Email Address, WhatsApp/Phone Number, Course Enrollment, and Single-Device Session Fingerprint) strictly for:
+            </p>
+            <ul className="list-disc pl-5 mt-1 space-y-0.5">
+              <li>Authenticating student access to enrolled CA Foundation & CSEET digital resources.</li>
+              <li>Enforcing single-device digital copyright (DRM) to prevent account compromise.</li>
+              <li>Dispatching statutory exam countdown reminders and academic schedule updates.</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">2. Payment & Financial Security</h4>
+            <p>
+              All fee transactions are processed through PCI-DSS Level 1 certified gateways (Razorpay / UPI). The Law Kaksha does not store debit/credit card credentials, CVV codes, or net banking passwords.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">3. Candidate Rights (Right to Correction & Erasure)</h4>
+            <p>
+              Under the DPDP Act 2023, enrolled candidates hold the statutory right to request access to, correction of, or complete deletion of their personal profile data upon completion of their academic term by writing to our designated Data Protection Officer.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">4. Grievance Redressal Officer</h4>
+            <p>
+              In accordance with DPDP rules, any privacy or data grievances may be addressed to:
+              <br />
+              <strong>Grievance Officer:</strong> Academic Compliance Team
+              <br />
+              <strong>Email:</strong> grievance@thelawkaksha.com / support@thelawkaksha.com
+              <br />
+              <strong>Resolution Turnaround:</strong> Maximum 30 calendar days as mandated by statutory guidelines.
+            </p>
+          </div>
+          <p className="text-[11px] text-[#77716E] italic">
+            *Note: All legal and compliance terms are provided for student operational awareness and remain subject to final review by qualified Indian legal counsel.
           </p>
         </div>
       ),
@@ -35,25 +70,55 @@ export function Footer() {
       content: (
         <div className="space-y-4 text-xs text-[#4D433F] leading-relaxed">
           <p>
-            All digital notes, statutory question banks, and model answer rubrics on The Law Kaksha are the proprietary academic materials of The Law Kaksha.
+            Welcome to The Law Kaksha. By accessing this learning portal, enrolling in courses, or reading digital codices, you enter into a binding agreement governed by Indian laws.
           </p>
-          <p>
-            Subscription grants a personal, single-user non-exclusive license for browser reading and examination preparation. Unauthorized redistribution or commercial sale is strictly prohibited.
-          </p>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">1. Proprietary Academic Material</h4>
+            <p>
+              All digital codices, flowchart blueprints, model question banks, Section 16(1) comparative rubrics, and video materials are the exclusive intellectual property of The Law Kaksha, protected under the <em>Indian Copyright Act, 1957</em>.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">2. Single-Device DRM & Fair Use</h4>
+            <p>
+              Each candidate subscription is granted for personal academic preparation on a single authorized device. System-level concurrency checks actively block simultaneous multi-device logins. Screen-scraping, unauthorized redistribution, printing for commercial resale, or reverse engineering of DRM viewers will result in immediate subscription termination without refund.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">3. Jurisdiction & Dispute Resolution</h4>
+            <p>
+              Any disputes arising from the use of this portal shall be subject to the exclusive jurisdiction of the competent courts in New Delhi, India.
+            </p>
+          </div>
         </div>
       ),
     },
     shipping: {
-      title: "Subscription Policy",
-      subtitle: "Instant Digital Access & Academic Delivery",
+      title: "Subscription & Refund Policy",
+      subtitle: "Instant Digital Access & Refund Guidelines",
       content: (
         <div className="space-y-4 text-xs text-[#4D433F] leading-relaxed">
-          <p>
-            Digital PDF notes, chapter tests, and sample readings activate immediately in the student dashboard upon successful subscription confirmation.
-          </p>
-          <p>
-            For any billing or technical access queries, contact our academic support desk at support@thelawkaksha.com.
-          </p>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">1. Instant Digital Fulfillment</h4>
+            <p>
+              Upon successful payment verification via Razorpay / UPI, all digital notes, DRM codices, and student dashboard tools are activated instantaneously. No physical dispatch is involved.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">2. Refund & Cancellation Terms</h4>
+            <p>
+              Because digital academic content is unencrypted and accessible immediately upon purchase, subscriptions are generally non-refundable once unlocked.
+            </p>
+            <p className="mt-1">
+              <strong>Exception:</strong> If a technical issue on our server prevents access to your course materials for more than 48 consecutive hours and our technical support desk cannot resolve it, a 100% refund will be credited to the original payment source within 5 to 7 working days.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-bold text-[#221D1D] mb-1">3. Support Desk</h4>
+            <p>
+              For subscription assistance or payment confirmation questions, please contact our academic team at <strong>support@thelawkaksha.com</strong> or WhatsApp our helpline.
+            </p>
+          </div>
         </div>
       ),
     },
@@ -63,10 +128,10 @@ export function Footer() {
       content: (
         <div className="space-y-4 text-xs text-[#4D433F] leading-relaxed">
           <p>
-            The Law Kaksha is an independent supplementary education portal. It is not officially affiliated with or endorsed by The Institute of Chartered Accountants of India (ICAI) or The Institute of Company Secretaries of India (ICSI).
+            <strong>The Law Kaksha</strong> is an independent preparatory platform designed to aid students in mastering Business Laws and Jurisprudence. It is not affiliated with, authorized by, or endorsed by <em>The Institute of Chartered Accountants of India (ICAI)</em> or <em>The Institute of Company Secretaries of India (ICSI)</em>.
           </p>
           <p>
-            Students are advised to refer to the official curriculum and study guidelines published by ICAI and ICSI for their respective examination attempts.
+            Candidates must always consult the official study material, statutory pronouncements, and examination announcements issued directly by ICAI and ICSI.
           </p>
         </div>
       ),

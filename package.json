@@ -8,7 +8,14 @@
     "dev:backend": "npm run dev --prefix backend",
     "build:frontend": "npm run build --prefix frontend",
     "start:frontend": "npm run start --prefix frontend",
-    "start:backend": "npm run start --prefix backend"
+    "start:backend": "npm run start --prefix backend",
+    "test": "npm test --prefix backend",
+    "test:api": "npm test --prefix backend",
+    "typecheck": "npm run typecheck --prefix frontend",
+    "check": "npm run typecheck --prefix frontend && npm test --prefix backend",
+    "db:backup": "npm run db:backup --prefix backend",
+    "db:restore:test": "npm run db:restore:test --prefix backend",
+    "loadtest": "npm run loadtest --prefix backend"
   },
   "keywords": [
     "law-kaksha",

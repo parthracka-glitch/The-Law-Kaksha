@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,11 +13,14 @@ import {
   Smartphone,
   ShieldAlert,
   Laptop,
+  KeyRound,
+  CheckCircle2,
+  X,
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams ? searchParams.get("redirect") : null;
@@ -29,6 +32,16 @@ export default function LoginPage() {
   const [deviceConflictData, setDeviceConflictData] = useState<{
     activeDeviceName: string;
   } | null>(null);
+
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState<1 | 2>(1);
+  const [forgotIdentifier, setForgotIdentifier] = useState("");
+  const [forgotToken, setForgotToken] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState("");
+  const [forgotError, setForgotError] = useState("");
 
   const handleLogin = async (e?: React.FormEvent, forceSwitch = false) => {
     if (e) e.preventDefault();
@@ -102,6 +115,64 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotMsg("");
+    try {
+      const res = (await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ identifier: forgotIdentifier.trim() }),
+      })) as any;
+      if (res && res.success) {
+        setForgotMsg(res.message || "Reset instructions generated.");
+        if (res.resetToken) {
+          setForgotToken(res.resetToken);
+        }
+        setForgotStep(2);
+      } else {
+        setForgotError(res?.message || "Failed to process request.");
+      }
+    } catch (err: any) {
+      setForgotError(err?.message || "Connection error. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotMsg("");
+    try {
+      const res = (await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          token: forgotToken.trim(),
+          newPassword: forgotNewPassword.trim(),
+        }),
+      })) as any;
+      if (res && res.success) {
+        setForgotMsg(res.message || "Password updated successfully!");
+        setTimeout(() => {
+          setShowForgotModal(false);
+          setForgotStep(1);
+          setForgotToken("");
+          setForgotNewPassword("");
+          setForgotMsg("");
+        }, 2000);
+      } else {
+        setForgotError(res?.message || "Failed to reset password.");
+      }
+    } catch (err: any) {
+      setForgotError(err?.message || "Invalid or expired token.");
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -223,9 +294,23 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
-                  Password *
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-[#221D1D]">
+                    Password *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotModal(true);
+                      setForgotStep(1);
+                      setForgotError("");
+                      setForgotMsg("");
+                    }}
+                    className="text-xs font-medium text-[#4D433F] hover:text-[#221D1D] hover:underline underline-offset-2 cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#77716E]" />
                   <input
@@ -272,6 +357,142 @@ export default function LoginPage() {
       <footer className="text-center py-3 text-xs text-[#77716E]">
         The Law कक्षा • Academic Learning Space
       </footer>
+
+      {/* Forgot / Reset Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-2xl bg-[#BFAFE5]/20 flex items-center justify-center text-[#221D1D]">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-[#221D1D]">
+                  {forgotStep === 1 ? "Reset Account Password" : "Enter New Password"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="p-1 rounded-full hover:bg-neutral-100 text-neutral-500 cursor-pointer transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {forgotError && (
+              <div className="p-3 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{forgotError}</span>
+              </div>
+            )}
+
+            {forgotMsg && (
+              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 font-medium">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{forgotMsg}</span>
+              </div>
+            )}
+
+            {forgotStep === 1 ? (
+              <form onSubmit={handleForgotSubmit} className="space-y-4">
+                <p className="text-xs text-[#77716E] leading-relaxed">
+                  Enter your registered Email address or Student Roll ID. We will generate secure reset credentials for you.
+                </p>
+                <div>
+                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                    Registered Email or Student Roll ID
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={forgotIdentifier}
+                    onChange={(e) => setForgotIdentifier(e.target.value)}
+                    placeholder="e.g. candidate@example.com or LRK-2026-..."
+                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px]"
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="px-4 py-2.5 rounded-full border border-[#E7E4E7] text-xs font-semibold text-[#4D433F] hover:bg-neutral-50 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {forgotLoading ? "Processing..." : "Continue"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleResetSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                    Reset Token / Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={forgotToken}
+                    onChange={(e) => setForgotToken(e.target.value)}
+                    placeholder="Paste reset token"
+                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px] font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                    New Secure Password (min. 8 characters)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={forgotNewPassword}
+                    onChange={(e) => setForgotNewPassword(e.target.value)}
+                    placeholder="Enter at least 8 characters"
+                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px]"
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setForgotStep(1)}
+                    className="px-4 py-2.5 rounded-full border border-[#E7E4E7] text-xs font-semibold text-[#4D433F] hover:bg-neutral-50 transition cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {forgotLoading ? "Saving..." : "Update Password"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -1,32 +1,6 @@
 {
   "users": [
     {
-      "id": "usr-1790917534080-649",
-      "student_id": "LRK-2026-003331",
-      "name": "Audit Test Student",
-      "email": "audit_student_533978@thelawkaksha.com",
-      "phone": "+91 98765 43210",
-      "password_hash": "$2b$10$b7exJkrbadSIQhkuvggL0e9LXKv98jWlH7eF1r4Us2fe4zbq2C1iu",
-      "role": "student",
-      "selectedCourse": "CA Foundation Paper 2: Business Laws",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "is_active": true,
-      "drm_access": true,
-      "enrolled_books": [
-        "CA Foundation Paper 2: Business Laws"
-      ],
-      "unlockedItemIds": [],
-      "created_at": "2026-10-02T05:05:34.080Z",
-      "updated_at": "2026-10-02T05:05:34.527Z",
-      "activeDeviceId": "DEV-NEW-533978",
-      "activeDeviceName": "Current Web Browser",
-      "lastActiveAt": "2026-10-02T05:05:34.527Z",
-      "resetPasswordToken": "",
-      "resetPasswordExpires": null,
-      "activeSessionToken": "",
-      "tempPassword": ""
-    },
-    {
       "id": "usr-1790917328512-873",
       "student_id": "LRK-2026-005424",
       "name": "Audit Test Student",
@@ -404,12 +378,12 @@
         "ca-foundation"
       ],
       "created_at": "2026-10-02T04:27:16.844Z",
-      "updated_at": "2026-10-02T05:05:34.093Z",
+      "updated_at": "2026-10-02T05:02:08.533Z",
       "password_hash": "$2b$10$wqVvqVyFEkNnzMUW/mn06uLnhTHFNIJCZLM7qD4M5/4SNuZThr7Ju",
       "tempPassword": "Law@4103",
-      "activeDeviceId": "DEV-ORDER-DEVICE-3998",
+      "activeDeviceId": "DEV-ORDER-DEVICE-8413",
       "activeDeviceName": "Google Chrome on Windows 11",
-      "lastActiveAt": "2026-10-02T05:05:34.093Z"
+      "lastActiveAt": "2026-10-02T05:02:08.533Z"
     },
     {
       "id": "usr-1790891230387-209",
@@ -1315,30 +1289,6 @@
   ],
   "subscriptions": [
     {
-      "id": "LK-SUB-2026-4775",
-      "userId": "usr-1790915236844",
-      "studentName": "Enrolled Candidate",
-      "studentRoll": "LRK-2026-004182",
-      "email": "student@thelawkaksha.com",
-      "phone": "+91 98765 43210",
-      "item": "Business Law Volume 1",
-      "targetExam": "CA Foundation Paper 2: Business Laws",
-      "amount": "₹249",
-      "date": "2 Oct 2026",
-      "paymentMode": "UPI / Razorpay",
-      "accessStatus": "Active",
-      "status": "ACTIVE",
-      "unlockedItemIds": [
-        "book-vol-1",
-        "book-vol-1",
-        "ca-foundation-business-laws",
-        "course-ca-foundation-sub",
-        "ca-foundation"
-      ],
-      "created_at": "2026-10-02T05:05:34.095Z",
-      "updated_at": "2026-10-02T05:05:34.095Z"
-    },
-    {
       "id": "LK-SUB-2026-6421",
       "userId": "usr-1790915236844",
       "studentName": "Enrolled Candidate",
@@ -1748,53 +1698,6 @@
   "quiz_attempts": [],
   "coupons": [],
   "orders": [
-    {
-      "id": "LK-ORD-533998",
-      "gateway_order_id": "order_1790917534085",
-      "customer_name": "Enrolled Candidate",
-      "customer_email": "student@thelawkaksha.com",
-      "customer_phone": "+91 98765 43210",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "items": [
-        {
-          "id": "book-vol-1",
-          "title": "Business Law Volume 1",
-          "price": 249,
-          "quantity": 1,
-          "format": "pdf"
-        }
-      ],
-      "subtotal": 249,
-      "discount_amount": 0,
-      "total_amount": 249,
-      "status": "COMPLETED",
-      "created_at": "2026-10-02T05:05:34.091Z",
-      "updated_at": "2026-10-02T05:05:34.091Z"
-    },
-    {
-      "id": "LK-ORD-434873",
-      "gateway_order_id": "order_1790917534078_9228",
-      "customer_name": "Test Aspirant",
-      "customer_email": "aspirant@thelawkaksha.com",
-      "customer_phone": "+91 98765 43210",
-      "target_exam": "CA Foundation Paper 2: Business Laws",
-      "items": [
-        {
-          "id": "ca-foundation-business-laws",
-          "title": "CA Foundation Business Laws Codex",
-          "price": 99,
-          "quantity": 1,
-          "format": "pdf"
-        }
-      ],
-      "subtotal": 99,
-      "discount_amount": 0,
-      "total_amount": 99,
-      "status": "PENDING",
-      "payment_method": "ONLINE",
-      "created_at": "2026-10-02T05:05:34.078Z",
-      "updated_at": "2026-10-02T05:05:34.078Z"
-    },
     {
       "id": "LK-ORD-328413",
       "gateway_order_id": "order_1790917328521",

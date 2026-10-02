@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true, index: true },
-    student_id: { type: String, default: "" },
+    student_id: { type: String, default: "", index: true },
     name: { type: String, required: true },
     email: { type: String, required: true, lowercase: true, trim: true, index: true },
-    phone: { type: String, default: "" },
+    phone: { type: String, default: "", index: true },
     password_hash: { type: String },
     role: { type: String, enum: ["student", "admin"], default: "student" },
     target_exam: { type: String, default: "CA Foundation Paper 2" },
@@ -34,6 +34,8 @@ const UserSchema = new mongoose.Schema(
     lastActiveAt: { type: Date, default: Date.now },
     tempPassword: { type: String, default: "" },
     boundGmail: { type: String, default: "" },
+    resetPasswordToken: { type: String, default: "" },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

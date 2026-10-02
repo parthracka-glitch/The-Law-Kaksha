@@ -18,4 +18,7 @@ const SubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+SubscriptionSchema.index({ email: 1, accessStatus: 1 });
+SubscriptionSchema.index({ studentRoll: 1, accessStatus: 1 });
+
 module.exports = mongoose.models.Subscription || mongoose.model("Subscription", SubscriptionSchema);

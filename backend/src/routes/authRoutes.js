@@ -7,6 +7,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const Database = require("../db/database");
@@ -115,7 +116,11 @@ router.post("/register", async (req, res) => {
 // 2. POST /api/auth/login
 router.post("/login", async (req, res) => {
   try {
-    const identifier = req.body.identifier || req.body.email || req.body.phone;
+    const identifier =
+      req.body.identifier ||
+      req.body.email ||
+      req.body.phone ||
+      req.body.emailOrPhone;
     const password = req.body.password;
 
     if (!identifier || !password) {
@@ -386,6 +391,157 @@ router.get("/me", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("[Auth] Me error:", err);
     return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
+// 6. POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const identifier =
+      req.body.identifier ||
+      req.body.email ||
+      req.body.phone ||
+      req.body.emailOrPhone;
+    if (!identifier) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter your registered Email or Student ID.",
+      });
+    }
+
+    const cleanQuery = String(identifier).trim().toLowerCase();
+    let user = null;
+
+    if (isConnected()) {
+      user = await User.findOne({
+        $or: [
+          { email: cleanQuery },
+          { student_id: cleanQuery.toUpperCase() },
+          { student_id: cleanQuery },
+          { phone: cleanQuery },
+        ],
+      });
+    }
+
+    if (!user) {
+      const usersTable = Database.table("users");
+      user = usersTable.findOne(
+        (u) =>
+          (u.email && u.email.toLowerCase() === cleanQuery) ||
+          (u.student_id && u.student_id.toLowerCase() === cleanQuery) ||
+          (u.phone && u.phone === cleanQuery)
+      );
+    }
+
+    // OWASP A07: Uniform response to prevent account enumeration
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account matches that email or ID, password reset instructions have been generated.",
+      });
+    }
+
+    // Generate secure random reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    if (isConnected() && user.save) {
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = expiresAt;
+      await user.save();
+    } else {
+      const usersTable = Database.table("users");
+      usersTable.update(user.id, {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: expiresAt.toISOString(),
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "If an account matches that email or ID, password reset instructions have been generated.",
+      resetToken: process.env.NODE_ENV !== "production" ? resetToken : undefined,
+    });
+  } catch (err) {
+    console.error("[Auth] Forgot password error:", err);
+    return res.status(500).json({ success: false, message: "Unable to process password reset request." });
+  }
+});
+
+// 7. POST /api/auth/reset-password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token and new password are required.",
+      });
+    }
+
+    if (String(newPassword).length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long.",
+      });
+    }
+
+    let user = null;
+    const now = new Date();
+
+    if (isConnected()) {
+      user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: now },
+      });
+    }
+
+    if (!user) {
+      const usersTable = Database.table("users");
+      user = usersTable.findOne(
+        (u) =>
+          u.resetPasswordToken === token &&
+          u.resetPasswordExpires &&
+          new Date(u.resetPasswordExpires) > now
+      );
+    }
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Password reset token is invalid or has expired. Please request a new one.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(String(newPassword), 10);
+
+    if (isConnected() && user.save) {
+      user.password_hash = hashedPassword;
+      user.resetPasswordToken = "";
+      user.resetPasswordExpires = null;
+      user.activeDeviceId = "";
+      user.activeSessionToken = "";
+      user.tempPassword = "";
+      await user.save();
+    } else {
+      const usersTable = Database.table("users");
+      usersTable.update(user.id, {
+        password_hash: hashedPassword,
+        resetPasswordToken: "",
+        resetPasswordExpires: null,
+        activeDeviceId: "",
+        activeSessionToken: "",
+        tempPassword: "",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password has been successfully updated. You may now log in with your new password.",
+    });
+  } catch (err) {
+    console.error("[Auth] Reset password error:", err);
+    return res.status(500).json({ success: false, message: "Unable to reset password." });
   }
 });
 

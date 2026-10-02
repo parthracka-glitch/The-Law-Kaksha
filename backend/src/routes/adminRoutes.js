@@ -22,8 +22,12 @@ const SiteSetting = require("../models/SiteSetting");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
+const { requireAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// Enforce Administrator privileges for all /admin/* endpoints
+router.use("/admin", requireAdmin);
 
 // -----------------------------------------------------------------------------
 // 1. ANALYTICS / OVERVIEW

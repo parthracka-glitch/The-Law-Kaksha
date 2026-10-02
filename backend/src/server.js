@@ -41,6 +41,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
+// OWASP A02: Disable X-Powered-By
+app.disable("x-powered-by");
+
+// OWASP A02: Production Security Headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
+  next();
+});
+
 // Middlewares
 app.use(
   cors({
@@ -60,8 +72,54 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+
+app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
+
+// OWASP A05: NoSQL / Mongo Operator Injection Sanitizer
+function sanitizePayload(obj) {
+  if (!obj || typeof obj !== "object") return;
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith("$") || key.includes(".")) {
+      delete obj[key];
+    } else if (typeof obj[key] === "object") {
+      sanitizePayload(obj[key]);
+    }
+  }
+}
+app.use((req, res, next) => {
+  if (req.body) sanitizePayload(req.body);
+  if (req.query) sanitizePayload(req.query);
+  if (req.params) sanitizePayload(req.params);
+  next();
+});
+
+// OWASP A07: In-Memory Sliding-Window Rate Limiter for Authentication
+const authRateLimitMap = new Map();
+const AUTH_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_AUTH_REQUESTS = 60; // 60 requests per minute per IP
+app.use("/api/auth", (req, res, next) => {
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "global";
+  const now = Date.now();
+  const entry = authRateLimitMap.get(ip) || { count: 0, resetAt: now + AUTH_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + AUTH_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  authRateLimitMap.set(ip, entry);
+
+  if (entry.count > MAX_AUTH_REQUESTS) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many authentication attempts. Please slow down and try again in 1 minute.",
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+});
 
 // Mount API Routes
 app.use("/api/auth", authRoutes);
@@ -71,6 +129,19 @@ app.use("/api", quizRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/student", studentRoutes);
+
+// Kubernetes / Render Liveness & Readiness Probes
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/readyz", (req, res) => {
+  const ready = isConnected() || Database.table("users").count() > 0;
+  if (ready) {
+    return res.status(200).json({ status: "ready", mongoConnected: isConnected() });
+  }
+  return res.status(503).json({ status: "not_ready", message: "Database engine not initialized" });
+});
 
 // Health Check
 app.get("/api/health", (req, res) => {
@@ -101,6 +172,17 @@ app.get("/", (req, res) => {
     healthCheck: "/api/health",
     courses: "/api/courses",
     database: isConnected() ? "Connected to MongoDB Atlas" : "Local Cache",
+  });
+});
+
+// Centralized Global Error Handler (OWASP A10 & A02: Prevents stack trace leak)
+app.use((err, req, res, next) => {
+  console.error("[The Law Kaksha API Error]", err);
+  const status = err.status || 500;
+  res.status(status).json({
+    success: false,
+    message: status === 500 ? "Internal server error. Please try again later." : err.message,
+    referenceCode: Date.now().toString(36).toUpperCase(),
   });
 });
 

@@ -509,6 +509,41 @@ export default function AdminPortalPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const [isAtlasConnected, setIsAtlasConnected] = useState<boolean>(true);
 
+  // Authenticated Admin API Fetch Helper with Bearer Token Injection
+  const adminFetch = (endpoint: string, init?: RequestInit) => {
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("lawkaksha_token") || "";
+      if (!token) {
+        try {
+          const sess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
+          token = sess.token || "";
+        } catch (e) {}
+      }
+    }
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (init?.headers) {
+      if (init.headers instanceof Headers) {
+        init.headers.forEach((val, key) => {
+          headers[key] = val;
+        });
+      } else if (Array.isArray(init.headers)) {
+        init.headers.forEach(([key, val]) => {
+          headers[key] = val;
+        });
+      } else {
+        Object.assign(headers, init.headers);
+      }
+    }
+    return fetch(`${API_URL}${endpoint}`, {
+      ...init,
+      headers,
+    });
+  };
+
   // Load initial cache and sync with MongoDB Atlas
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -546,16 +581,16 @@ export default function AdminPortalPage() {
       const syncWithAtlas = async () => {
         try {
           const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, annRes] = await Promise.allSettled([
-            fetch(`${API_URL}/api/admin/products`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/resources`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/subscriptions`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/students`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/cases`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/mcq-tests`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/coupons`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/exam-settings`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/qotd`).then((r) => r.json()),
-            fetch(`${API_URL}/api/admin/announcement`).then((r) => r.json()),
+            adminFetch(`/api/admin/products`).then((r) => r.json()),
+            adminFetch(`/api/admin/resources`).then((r) => r.json()),
+            adminFetch(`/api/admin/subscriptions`).then((r) => r.json()),
+            adminFetch(`/api/admin/students`).then((r) => r.json()),
+            adminFetch(`/api/admin/cases`).then((r) => r.json()),
+            adminFetch(`/api/admin/mcq-tests`).then((r) => r.json()),
+            adminFetch(`/api/admin/coupons`).then((r) => r.json()),
+            adminFetch(`/api/admin/exam-settings`).then((r) => r.json()),
+            adminFetch(`/api/admin/qotd`).then((r) => r.json()),
+            adminFetch(`/api/admin/announcement`).then((r) => r.json()),
           ]);
 
           if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
@@ -629,7 +664,7 @@ export default function AdminPortalPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`${API_URL}/api/admin/upload`, {
+      const res = await adminFetch(`/api/admin/upload`, {
         method: "POST",
         body: formData,
       });
@@ -664,13 +699,22 @@ export default function AdminPortalPage() {
     ).length;
   }, [subscriptions]);
 
-  // 1-Click CSV Export Utility
+  // 1-Click CSV Export Utility (Hardened against CSV Formula / DDE Injection)
   const exportToCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+    const sanitizeCell = (cell: string | number) => {
+      let str = String(cell ?? "");
+      // Neutralize CSV / Excel formula injection (starts with =, +, -, @, tab, cr)
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str;
+      }
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
     const csvContent =
       "data:text/csv;charset=utf-8," +
       [
-        headers.map((h) => `"${String(h).replace(/"/g, '""')}"`).join(","),
-        ...rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")),
+        headers.map((h) => sanitizeCell(h)).join(","),
+        ...rows.map((row) => row.map((cell) => sanitizeCell(cell)).join(",")),
       ].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -730,7 +774,7 @@ export default function AdminPortalPage() {
     setIsSavingAnnouncement(true);
     try {
       localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(announcement));
-      await fetch(`${API_URL}/api/admin/announcement`, {
+      await adminFetch(`/api/admin/announcement`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ announcement }),
@@ -1242,7 +1286,7 @@ export default function AdminPortalPage() {
                                     localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
                                     showToast(`Access ${nextStatus} for ${sub.studentName}`);
                                     try {
-                                      await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
+                                      await adminFetch(`/api/admin/subscriptions/${sub.id}`, {
                                         method: "PUT",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ accessStatus: nextStatus }),
@@ -1282,7 +1326,7 @@ export default function AdminPortalPage() {
                                       localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(renewed));
                                       showToast(`Renewed 30 days for ${sub.studentName}`);
                                       try {
-                                        await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, {
+                                        await adminFetch(`/api/admin/subscriptions/${sub.id}`, {
                                           method: "PUT",
                                           headers: { "Content-Type": "application/json" },
                                           body: JSON.stringify({ daysRemaining: 30, accessStatus: "Active" }),
@@ -1309,7 +1353,7 @@ export default function AdminPortalPage() {
                                         localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(filtered));
                                         showToast(`Subscription ${sub.id} deleted.`);
                                         try {
-                                          await fetch(`${API_URL}/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
+                                          await adminFetch(`/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
                                         } catch (e) {}
                                       }
                                     }}
@@ -1536,7 +1580,7 @@ export default function AdminPortalPage() {
                                     setProducts(next);
                                     localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
                                     try {
-                                      await fetch(`${API_URL}/api/admin/products/${prod.id}`, { method: "DELETE" });
+                                      await adminFetch(`/api/admin/products/${prod.id}`, { method: "DELETE" });
                                     } catch (e) {}
                                     showToast("Product deleted.");
                                   }
@@ -1638,7 +1682,7 @@ export default function AdminPortalPage() {
                                     setResources(next);
                                     localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(next));
                                     try {
-                                      await fetch(`${API_URL}/api/admin/resources/${res.id}`, { method: "DELETE" });
+                                      await adminFetch(`/api/admin/resources/${res.id}`, { method: "DELETE" });
                                     } catch (e) {}
                                     showToast("Resource deleted.");
                                   }
@@ -1745,7 +1789,7 @@ export default function AdminPortalPage() {
                                     setStudents(next);
                                     localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                                     try {
-                                      await fetch(`${API_URL}/api/admin/students/${std.id}`, { method: "DELETE" });
+                                      await adminFetch(`/api/admin/students/${std.id}`, { method: "DELETE" });
                                     } catch (e) {}
                                     showToast("Student deleted.");
                                   }
@@ -1817,7 +1861,7 @@ export default function AdminPortalPage() {
                               setCases(next);
                               localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
                               try {
-                                await fetch(`${API_URL}/api/admin/cases/${cs.id}`, { method: "DELETE" });
+                                await adminFetch(`/api/admin/cases/${cs.id}`, { method: "DELETE" });
                               } catch (e) {}
                               showToast("Case deleted.");
                             }
@@ -1993,7 +2037,7 @@ export default function AdminPortalPage() {
                                 setMcqTests(next);
                                 localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
                                 try {
-                                  await fetch(`${API_URL}/api/admin/mcq-tests/${test.id}`, { method: "DELETE" });
+                                  await adminFetch(`/api/admin/mcq-tests/${test.id}`, { method: "DELETE" });
                                 } catch (e) {}
                                 showToast("Test deleted.");
                               }
@@ -2057,7 +2101,7 @@ export default function AdminPortalPage() {
                             setCoupons(next);
                             localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
                             try {
-                              await fetch(`${API_URL}/api/admin/coupons/${cp.id}`, { method: "DELETE" });
+                              await adminFetch(`/api/admin/coupons/${cp.id}`, { method: "DELETE" });
                             } catch (e) {}
                             showToast("Coupon deleted.");
                           }
@@ -2094,7 +2138,7 @@ export default function AdminPortalPage() {
                             next[idx].date = e.target.value;
                             setExamSettings(next);
                             try {
-                              await fetch(`${API_URL}/api/admin/exam-settings`, {
+                              await adminFetch(`/api/admin/exam-settings`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ examSettings: next }),
@@ -2160,7 +2204,7 @@ export default function AdminPortalPage() {
                       onClick={async () => {
                         showToast("Saving QOTD to MongoDB Atlas...");
                         try {
-                          await fetch(`${API_URL}/api/admin/qotd`, {
+                          await adminFetch(`/api/admin/qotd`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ qotd }),
@@ -2375,7 +2419,7 @@ export default function AdminPortalPage() {
                   setResourceModal({ open: false, mode: "add", data: {} });
                   showToast("Saving resource to MongoDB Atlas...");
                   try {
-                    await fetch(`${API_URL}/api/admin/resources${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/resources${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -2522,7 +2566,7 @@ export default function AdminPortalPage() {
                   setSubModal({ open: false, mode: "add", data: {} });
                   showToast(isAdd ? "Adding subscription..." : "Updating subscription...");
                   try {
-                    await fetch(`${API_URL}/api/admin/subscriptions${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/subscriptions${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -2696,7 +2740,7 @@ export default function AdminPortalPage() {
                   setProductModal({ open: false, mode: "add", data: {} });
                   showToast(isAdd ? "Adding course..." : "Updating course...");
                   try {
-                    await fetch(`${API_URL}/api/admin/products${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/products${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -2803,7 +2847,7 @@ export default function AdminPortalPage() {
                   localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                   setStudentModal({ open: false, mode: "add", data: {} });
                   try {
-                    await fetch(`${API_URL}/api/admin/students${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/students${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -2954,7 +2998,7 @@ export default function AdminPortalPage() {
                   localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
                   setCaseModal({ open: false, mode: "add", data: {} });
                   try {
-                    await fetch(`${API_URL}/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -3120,7 +3164,7 @@ export default function AdminPortalPage() {
                   setMcqModal({ open: false, mode: "add", data: {} });
                   showToast(isAdd ? "Adding Google Form test..." : "Updating test...");
                   try {
-                    await fetch(`${API_URL}/api/admin/mcq-tests${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/mcq-tests${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
@@ -3297,7 +3341,7 @@ export default function AdminPortalPage() {
                   localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
                   setCouponModal({ open: false, mode: "add", data: {} });
                   try {
-                    await fetch(`${API_URL}/api/admin/coupons${!isAdd ? "/" + payload.id : ""}`, {
+                    await adminFetch(`/api/admin/coupons${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
