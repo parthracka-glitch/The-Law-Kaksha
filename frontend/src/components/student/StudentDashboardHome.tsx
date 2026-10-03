@@ -176,7 +176,7 @@ export function StudentDashboardHome({
       {
         id: "ca-foundation-course",
         courseType: "ca",
-        title: "CA Foundation: Business Laws",
+        title: "Data Structures & Law Notes",
         category: "ICAI Paper 2 • 7 Chapters",
         enrolledDate: "Enrolled On 16th Jul 2026",
         progress: isCaUnlocked ? Math.min(100, Math.max(6, completedUnitsCount * 14)) : 0,
@@ -189,7 +189,7 @@ export function StudentDashboardHome({
       {
         id: "cseet-course",
         courseType: "cs",
-        title: "CSEET: Legal Aptitude & Mgmt",
+        title: "MERN Stack & Business Law",
         category: "ICSI Paper 2 • 8 Units",
         enrolledDate: "Enrolled On 16th Jul 2026",
         progress: isCsUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 12)) : 0,
@@ -202,7 +202,7 @@ export function StudentDashboardHome({
       {
         id: "cases-course",
         courseType: "shared",
-        title: "Solved Case Studies & Answers",
+        title: "Solved Cases & MCQ Drills",
         category: "Weekly Exam Drills",
         enrolledDate: "Enrolled On 16th Jul 2026",
         progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
@@ -308,29 +308,29 @@ export function StudentDashboardHome({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* LEFT CARD (WIDER): SOFT LILAC ALL-ACCESS PACK WITH STUDENT ILLUSTRATION */}
         <div className="lg:col-span-7 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FAF5FF] via-[#F4EBFC] to-[#EDE9FE] border border-[#E9DDF5] p-5 sm:p-6 shadow-xs flex flex-col justify-between group transition-all hover:shadow-md">
-          {/* DISCOUNT CORNER RIBBON */}
-          <div className="absolute top-0 right-0">
-            <div className="bg-[#4C1D95] text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl shadow-xs tracking-wider">
+          {/* DISCOUNT CORNER RIBBON WITH 3D EFFECT */}
+          <div className="absolute top-0 right-0 z-10">
+            <div className="bg-[#4C1D95] text-white text-[10px] font-extrabold px-3.5 py-1 rounded-bl-xl shadow-sm tracking-wider">
               {leftCard.discountBadge || "47% OFF"}
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-4">
             {/* Left Copy & Actions */}
-            <div className="space-y-3 flex-1 min-w-0">
+            <div className="space-y-2.5 flex-1 min-w-0">
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-[#1F2937] leading-tight">
-                  Accelerate your Career by <br />
+                <h2 className="text-lg sm:text-xl font-black text-[#1F2937] leading-snug">
+                  Accelerate your Career <br />
                   <span className="text-[#7E22CE]">
-                    {leftCard.title || "All access pack"}
+                    by All access pack
                   </span>
                 </h2>
               </div>
 
               {/* Price Row */}
               <div className="flex items-baseline gap-2 pt-0.5">
-                <span className="text-xs font-semibold text-[#4B5563]">Price :</span>
-                <span className="text-base font-extrabold text-[#7E22CE]">
+                <span className="text-xs font-bold text-[#4B5563]">Price :</span>
+                <span className="text-base font-black text-[#7E22CE]">
                   ₹{leftCard.price || 3999}
                 </span>
                 <span className="text-xs text-[#9CA3AF] line-through font-mono">
@@ -338,13 +338,13 @@ export function StudentDashboardHome({
                 </span>
               </div>
 
-              {/* Sub-benefit with subtle star */}
+              {/* Sub-benefit with subtle icon */}
               <div className="flex items-center gap-1.5 text-[11px] text-[#4B5563] font-medium">
                 <span className="w-3.5 h-3.5 rounded-sm bg-[#EDE9FE] text-[#7E22CE] flex items-center justify-center text-[10px] font-bold shrink-0">
                   ✓
                 </span>
                 <span className="truncate">
-                  {leftCard.saveText ? `Get Refund Validity to Lifetime* • ${leftCard.saveText}` : "Get Refund Validity to Lifetime*"}
+                  Get Refund Validity to Lifetime*
                 </span>
               </div>
 
@@ -360,7 +360,7 @@ export function StudentDashboardHome({
                       handleCardClick(leftCard);
                     }
                   }}
-                  className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF5FF] text-[#7E22CE] border border-[#E9DDF5] text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5 cursor-pointer active:scale-95 group-hover:border-[#D8B4FE]"
+                  className="px-5 py-2 rounded-full bg-white hover:bg-[#FAF5FF] text-[#7E22CE] border border-[#E9DDF5] text-xs font-black transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5 cursor-pointer active:scale-95 group-hover:border-[#D8B4FE]"
                 >
                   <span>{isAllAccessUnlocked ? "Browse Codex" : "Explore now"}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-[#7E22CE] group-hover:translate-x-0.5 transition-transform" />
@@ -371,7 +371,7 @@ export function StudentDashboardHome({
             {/* Right Graphic: Student with Laptop & Floating Subject Icons */}
             <div className="w-36 sm:w-44 h-36 shrink-0 relative flex items-center justify-center">
               {/* Floating Subject Icons Pill */}
-              <div className="absolute top-1 left-2 flex items-center gap-1 p-1 bg-white/90 rounded-full shadow-2xs border border-purple-100">
+              <div className="absolute top-0 left-2 flex items-center gap-1 p-1 bg-white/95 rounded-full shadow-xs border border-purple-100 z-10">
                 <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] flex items-center justify-center font-bold">⚛</span>
                 <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[10px] flex items-center justify-center font-bold">🐍</span>
                 <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] flex items-center justify-center font-bold">⚖️</span>
@@ -379,29 +379,20 @@ export function StudentDashboardHome({
 
               {/* Modern Vector Law Student Illustration */}
               <svg viewBox="0 0 160 140" className="w-full h-full object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Soft backdrop circle */}
                 <circle cx="80" cy="70" r="55" fill="#EDE9FE" />
-                <circle cx="120" cy="40" r="16" fill="#FDE68A" fillOpacity="0.4" />
-                {/* Desk */}
+                <circle cx="120" cy="40" r="16" fill="#FDE68A" fillOpacity="0.5" />
                 <rect x="20" y="112" width="120" height="6" rx="3" fill="#D8B4FE" />
-                {/* Character Torso & Clothes */}
                 <path d="M52 112 C52 88, 62 82, 80 82 C98 82, 108 88, 108 112 Z" fill="#FBBF24" />
-                {/* Neck */}
                 <rect x="74" y="68" width="12" height="16" rx="2" fill="#D97706" fillOpacity="0.3" />
-                {/* Head */}
                 <circle cx="80" cy="56" r="18" fill="#FCD34D" />
-                {/* Hair */}
                 <path d="M62 52 C62 38, 70 34, 80 34 C92 34, 98 40, 98 52 C98 55, 96 64, 96 64 C92 56, 88 56, 80 56 C72 56, 68 56, 64 64 Z" fill="#1F2937" />
                 <path d="M62 50 C58 56, 56 68, 62 76" stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
                 <path d="M98 50 C102 56, 104 68, 98 76" stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
-                {/* Glasses / Face details */}
-                <circle cx="75" cy="54" r="3" fill="#1F2937" />
-                <circle cx="85" cy="54" r="3" fill="#1F2937" />
+                <circle cx="75" cy="54" r="2.5" fill="#1F2937" />
+                <circle cx="85" cy="54" r="2.5" fill="#1F2937" />
                 <path d="M78 62 Q80 65 82 62" stroke="#1F2937" strokeWidth="1.5" strokeLinecap="round" />
-                {/* Laptop on desk */}
                 <rect x="58" y="94" width="44" height="20" rx="3" fill="#E5E7EB" stroke="#CBD5E1" strokeWidth="1.5" />
                 <polygon points="50,114 110,114 104,111 56,111" fill="#94A3B8" />
-                {/* Floating Law Kaksha Codex Book */}
                 <rect x="110" y="88" width="22" height="24" rx="2" fill="#7E22CE" />
                 <rect x="113" y="91" width="16" height="18" rx="1" fill="#FAF5FF" />
                 <line x1="116" y1="96" x2="126" y2="96" stroke="#7E22CE" strokeWidth="1.5" strokeLinecap="round" />
@@ -416,13 +407,13 @@ export function StudentDashboardHome({
           {/* Subtle background glow */}
           <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-purple-400/20 blur-2xl pointer-events-none" />
 
-          <div className="space-y-3 relative z-10">
+          <div className="space-y-2.5 relative z-10">
             {/* Title matching screenshot vibe */}
             <div>
-              <h2 className="text-lg sm:text-xl font-black leading-tight text-white">
+              <h2 className="text-lg sm:text-xl font-black leading-snug text-white">
                 Maximize your skills <br />
                 <span className="text-amber-200">
-                  on {selectedPromoStream === "ca" ? "CA Foundation Law" : "CSEET Business Law"}
+                  on any 3 courses
                 </span>
               </h2>
             </div>
@@ -430,7 +421,7 @@ export function StudentDashboardHome({
             {/* Price Row */}
             <div className="flex items-baseline gap-2 pt-0.5">
               <span className="text-xs font-semibold text-purple-200">Price :</span>
-              <span className="text-base font-extrabold text-white">
+              <span className="text-base font-black text-white">
                 ₹{rightCard.price || 799}
               </span>
               <span className="text-xs text-purple-300 line-through font-mono">
@@ -444,7 +435,7 @@ export function StudentDashboardHome({
                 ✓
               </span>
               <span className="truncate">
-                {rightCard.saveText ? `Increase Refund Validity by 1 Years* • ${rightCard.saveText}` : "Increase Refund Validity by 1 Years*"}
+                Increase Refund Validity by 1 Years*
               </span>
             </div>
           </div>
@@ -461,7 +452,7 @@ export function StudentDashboardHome({
                   handleCardClick(rightCard);
                 }
               }}
-              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95 backdrop-blur-xs"
+              className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-black transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95 backdrop-blur-xs"
             >
               <span>
                 {(selectedPromoStream === "ca" && isCaUnlocked) || (selectedPromoStream === "cs" && isCsUnlocked)

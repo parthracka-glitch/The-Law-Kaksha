@@ -1080,7 +1080,7 @@ export default function StudentDashboardPage() {
           {/* TAB 1: DASHBOARD HOME (3-COLUMN TUTEDUDE EDTECH SUITE AS REQUESTED)        */}
           {/* ========================================================================= */}
           {activeTab === "home" && (
-            <div className="flex flex-col xl:flex-row gap-6 items-start w-full">
+            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
               {/* CENTER COLUMN: PROMO BANNERS, ENROLLED COURSES CAROUSEL & RECOMMENDED */}
               <div className="flex-1 min-w-0 space-y-6 w-full">
                 <StudentDashboardHome
@@ -1146,7 +1146,7 @@ export default function StudentDashboardPage() {
               </div>
 
               {/* RIGHT COLUMN: STREAK CARDS, INTERACTIVE CALENDAR & LIVE LEADERBOARD */}
-              <div className="w-full xl:w-[320px] 2xl:w-[350px] shrink-0">
+              <div className="w-full lg:w-[310px] xl:w-[330px] 2xl:w-[350px] shrink-0 max-w-md mx-auto lg:mx-0">
                 <StudentRightSidebar
                   streak={streak}
                   longestStreak={Math.max(streak, 4)}
