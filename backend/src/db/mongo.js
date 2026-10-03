@@ -10,11 +10,15 @@ dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "";
 
-let isConnected = false;
+// Serverless-friendly global cache pattern for Vercel/Render
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 async function connectMongo() {
-  if (isConnected && mongoose.connection.readyState === 1) {
-    return mongoose.connection;
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
   }
 
   if (!MONGODB_URI) {
@@ -22,20 +26,32 @@ async function connectMongo() {
     return mongoose.connection;
   }
 
-  try {
-    console.log("[MongoDB Atlas] Connecting to cluster...");
-    await mongoose.connect(MONGODB_URI, {
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
       serverSelectionTimeoutMS: 8000,
+      maxPoolSize: 10,
+    };
+
+    console.log("[MongoDB Atlas] Connecting to cluster...");
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+      console.log("[MongoDB Atlas] Connected successfully to 'thelawkaksha' database.");
+      return mongooseInstance;
+    }).catch((err) => {
+      cached.promise = null;
+      console.error("[MongoDB Atlas] Connection error:", err.message);
+      console.warn("[MongoDB Atlas] Running with local fallback storage.");
+      return mongoose.connection;
     });
-    isConnected = true;
-    console.log("[MongoDB Atlas] Connected successfully to 'thelawkaksha' database.");
-  } catch (err) {
-    isConnected = false;
-    console.error("[MongoDB Atlas] Connection error:", err.message);
-    console.warn("[MongoDB Atlas] Running with local fallback storage.");
   }
 
-  return mongoose.connection;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+  }
+
+  return cached.conn || mongoose.connection;
 }
 
 mongoose.connection.on("disconnected", () => {

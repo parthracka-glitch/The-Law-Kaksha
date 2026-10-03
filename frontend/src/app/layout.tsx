@@ -108,7 +108,7 @@ const jsonLdData = {
       },
       "offers": {
         "@type": "Offer",
-        "price": "399",
+        "price": "99",
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock"
       }

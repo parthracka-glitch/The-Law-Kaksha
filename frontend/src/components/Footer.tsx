@@ -225,26 +225,26 @@ export function Footer() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
-            <button
-              onClick={() => setActivePolicyModal("privacy")}
+            <Link
+              href="/privacy"
               className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Privacy Policy
-            </button>
+            </Link>
             <span>&bull;</span>
-            <button
-              onClick={() => setActivePolicyModal("terms")}
+            <Link
+              href="/terms"
               className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Terms of Service
-            </button>
+            </Link>
             <span>&bull;</span>
-            <button
-              onClick={() => setActivePolicyModal("shipping")}
+            <Link
+              href="/refund"
               className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
-              Subscription Policy
-            </button>
+              Refund Policy
+            </Link>
             <span>&bull;</span>
             <button
               onClick={() => setActivePolicyModal("disclaimer")}

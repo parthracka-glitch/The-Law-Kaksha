@@ -50,6 +50,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
+  res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   next();
 });
 
@@ -60,14 +61,16 @@ app.use(
       if (!origin) return callback(null, true);
       const allowedPatterns = [
         /^http:\/\/localhost:\d+$/,
+        /^http:\/\/127\.0\.0\.1:\d+$/,
         /^https:\/\/.*\.vercel\.app$/,
-        /^https:\/\/the-law-kaksha.*$/,
+        /^https:\/\/.*the-law-kaksha.*$/,
+        /^https:\/\/.*thelawkaksha\.com$/,
       ];
       const isAllowed = allowedPatterns.some((pattern) => pattern.test(origin)) || origin === FRONTEND_URL;
       if (isAllowed) {
         return callback(null, true);
       }
-      return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
   })

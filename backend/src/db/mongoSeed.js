@@ -189,27 +189,33 @@ async function seedMongo() {
       console.log("[MongoDB Atlas Seeder] Coupons seeded successfully.");
     }
 
-    // 5. Administrator User
+    // 5. Administrator User (Strictly via Environment Variables or CLI)
     const userCount = await User.countDocuments();
     if (userCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding default administrator account...");
-      const adminPasswordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
+      const adminEmail = process.env.INITIAL_ADMIN_EMAIL || (process.env.NODE_ENV !== "production" ? "admin@thelawkaksha.com" : null);
+      const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || (process.env.NODE_ENV !== "production" ? "AdminSecurePassword2026!" : null);
 
-      await User.create([
-        {
-          id: "usr-admin-001",
-          student_id: "LK-ADM-000001",
-          name: "The Law Kaksha Admin",
-          email: "admin@thelawkaksha.com",
-          phone: "+91 99999 88888",
-          password_hash: adminPasswordHash,
-          role: "admin",
-          is_active: true,
-          drm_access: true,
-        },
-      ]);
+      if (adminEmail && adminPassword) {
+        console.log(`[MongoDB Atlas Seeder] Initializing administrator account for ${adminEmail}...`);
+        const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
-      console.log("[MongoDB Atlas Seeder] Administrator seeded successfully.");
+        await User.create([
+          {
+            id: "usr-admin-001",
+            student_id: "LK-ADM-000001",
+            name: "The Law Kaksha Admin",
+            email: adminEmail.toLowerCase().trim(),
+            phone: "+91 99999 88888",
+            password_hash: adminPasswordHash,
+            role: "admin",
+            is_active: true,
+            drm_access: true,
+          },
+        ]);
+        console.log("[MongoDB Atlas Seeder] Administrator seeded successfully.");
+      } else {
+        console.log("[MongoDB Atlas Seeder] No default admin seeded in production. Use 'npm run admin:create' CLI to provision production admin.");
+      }
     }
 
     // 6. Site Settings (Exam countdowns & QOTD)
