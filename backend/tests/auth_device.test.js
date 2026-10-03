@@ -1,7 +1,7 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert");
 
-const API_URL = process.env.API_URL || "http://localhost:5000";
+const API_URL = process.env.API_URL || "http://127.0.0.1:5000";
 
 describe("Authentication & Single-Device Enforcement API Tests", () => {
   const uniqueSuffix = Date.now().toString().slice(-6);

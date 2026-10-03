@@ -1,7 +1,7 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert");
 
-const API_URL = process.env.API_URL || "http://localhost:5000";
+const API_URL = process.env.API_URL || "http://127.0.0.1:5000";
 
 describe("Order Verification & DRM License Pass Tests", () => {
   const uniqueOrder = `LK-ORD-${Date.now().toString().slice(-6)}`;

@@ -14,6 +14,27 @@ import {
   RotateCcw,
 } from "lucide-react";
 
+// Polyfill ECMAScript Uint8Array.prototype.toHex and toBase64 for pdfjs-dist v6 support
+if (typeof Uint8Array !== "undefined") {
+  if (!(Uint8Array.prototype as any).toHex) {
+    (Uint8Array.prototype as any).toHex = function () {
+      return Array.from(this as any)
+        .map((b: any) => Number(b).toString(16).padStart(2, "0"))
+        .join("");
+    };
+  }
+  if (!(Uint8Array.prototype as any).toBase64) {
+    (Uint8Array.prototype as any).toBase64 = function () {
+      let binary = "";
+      const len = this.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(this[i]);
+      }
+      return typeof window !== "undefined" ? window.btoa(binary) : "";
+    };
+  }
+}
+
 interface Book3DViewerProps {
   pdfDoc: any;
   totalPages: number;
@@ -109,6 +130,11 @@ export function Book3DViewer({
   // In-memory cache of rendered page bitmap canvases to allow instantaneous 3D flips
   const pageCache = useRef<Map<number, HTMLCanvasElement>>(new Map());
 
+  // Invalidate cache when document changes
+  useEffect(() => {
+    pageCache.current.clear();
+  }, [pdfDoc]);
+
   // Determine current spread (Left page number, Right page number)
   // Page 1 is on the right, left is inside front cover
   // Pages 2-3: Left=2, Right=3
@@ -166,7 +192,8 @@ export function Book3DViewer({
   );
 
   // Copy offscreen canvas to displayed target canvas
-  const paintCanvas = (source: HTMLCanvasElement, target: HTMLCanvasElement) => {
+  const paintCanvas = (source: HTMLCanvasElement | null, target: HTMLCanvasElement | null) => {
+    if (!source || !target || source.width === 0 || source.height === 0) return;
     target.width = source.width;
     target.height = source.height;
     const ctx = target.getContext("2d", { alpha: false });
@@ -238,22 +265,29 @@ export function Book3DViewer({
       playProceduralPaperTurnSound();
     }
 
-    // Prepare leaf canvas:
-    // Front face = current Right page (being turned away)
-    // Back face = incoming next Left page (currentSpread.right + 1)
+    // 1. Paint front face of leaf with current right page being turned away
     if (flipFrontCanvasRef.current && rightCanvasRef.current) {
       paintCanvas(rightCanvasRef.current, flipFrontCanvasRef.current);
     }
 
+    // 2. Pre-render next left page for the back face of the flipping leaf
     const nextLeftSource = await renderPdfPageToCanvas(nextTargetPage);
     if (flipBackCanvasRef.current && nextLeftSource) {
       paintCanvas(nextLeftSource, flipBackCanvasRef.current);
     }
 
+    // 3. Pre-render next right page underneath on right canvas so when leaf turns, upcoming page is revealed!
+    if (nextTargetPage + 1 <= limit) {
+      const nextRightSource = await renderPdfPageToCanvas(nextTargetPage + 1);
+      if (rightCanvasRef.current && nextRightSource) {
+        paintCanvas(nextRightSource, rightCanvasRef.current);
+      }
+    }
+
     setFlipDirection("next");
     setIsFlipping(true);
 
-    // After animation finishes (600ms), advance state
+    // After animation finishes (580ms), advance state cleanly
     setTimeout(() => {
       onPageChange(Math.min(nextTargetPage, limit));
       setIsFlipping(false);
@@ -281,16 +315,23 @@ export function Book3DViewer({
       playProceduralPaperTurnSound();
     }
 
-    // Prepare leaf canvas for backwards flip:
-    // Front face = incoming Right page (currentSpread.left - 1)
-    // Back face = current Left page (being turned backward)
+    // 1. Prepare leaf: incoming right page on front face
     const incomingRight = await renderPdfPageToCanvas(currentSpread.left - 1);
     if (flipFrontCanvasRef.current && incomingRight) {
       paintCanvas(incomingRight, flipFrontCanvasRef.current);
     }
 
+    // 2. Current left page on back face of leaf
     if (flipBackCanvasRef.current && leftCanvasRef.current) {
       paintCanvas(leftCanvasRef.current, flipBackCanvasRef.current);
+    }
+
+    // 3. Pre-render incoming left page underneath on left canvas
+    if (prevTargetPage > 1) {
+      const incomingLeft = await renderPdfPageToCanvas(prevTargetPage);
+      if (leftCanvasRef.current && incomingLeft) {
+        paintCanvas(incomingLeft, leftCanvasRef.current);
+      }
     }
 
     setFlipDirection("prev");
@@ -707,6 +748,12 @@ export function Book3DViewer({
                     </div>
                   </div>
                 </div>
+              ) : totalPages === 0 ? (
+                /* LOADING PAGES SKELETON */
+                <div className="w-full h-full p-6 sm:p-10 flex flex-col justify-center items-center text-center bg-[#FAF6EE] relative space-y-3">
+                  <div className="w-8 h-8 rounded-full border-2 border-[#C35F3B] border-t-transparent animate-spin" />
+                  <span className="text-xs font-serif text-[#77716E]">Rendering Study Codex...</span>
+                </div>
               ) : (
                 /* BACK INSIDE COVER (End of Book) */
                 <div className="w-full h-full p-6 sm:p-10 flex flex-col justify-center items-center text-center bg-[#FAF6EE] relative space-y-3">
@@ -754,71 +801,72 @@ export function Book3DViewer({
             {/* ========================================================== */}
             {/* 8. 3D TURNING LEAF (Animated during Page Flip)             */}
             {/* ========================================================== */}
-            {isFlipping && (
+            <div
+              className={`absolute top-0 bottom-0 h-full pointer-events-none z-30 transition-opacity duration-150 ${
+                isFlipping ? "visible opacity-100" : "invisible opacity-0"
+              }`}
+              style={{
+                left: "50%",
+                width: `${leafWidth}px`,
+                transformOrigin: "left center",
+                transformStyle: "preserve-3d",
+                animation: isFlipping
+                  ? flipDirection === "next"
+                    ? "flipLeafForward 580ms cubic-bezier(0.25, 1, 0.5, 1) forwards"
+                    : "flipLeafBackward 580ms cubic-bezier(0.25, 1, 0.5, 1) forwards"
+                  : "none",
+              }}
+            >
+              {/* FRONT FACE OF FLIPPING LEAF */}
               <div
-                className="absolute top-0 bottom-0 h-full pointer-events-none z-30"
+                className="absolute inset-0 w-full h-full bg-[#FCFAF6] overflow-hidden flex items-center justify-center p-2"
                 style={{
-                  left: "50%",
-                  width: `${leafWidth}px`,
-                  transformOrigin: flipDirection === "next" ? "left center" : "left center",
-                  transformStyle: "preserve-3d",
-                  animation:
-                    flipDirection === "next"
-                      ? "flipLeafForward 580ms cubic-bezier(0.25, 1, 0.5, 1) forwards"
-                      : "flipLeafBackward 580ms cubic-bezier(0.25, 1, 0.5, 1) forwards",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  borderTopRightRadius: "6px",
+                  borderBottomRightRadius: "6px",
+                  boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
                 }}
               >
-                {/* FRONT FACE OF FLIPPING LEAF */}
+                <canvas
+                  ref={flipFrontCanvasRef}
+                  className="max-w-full max-h-full object-contain block"
+                />
+                {/* Dynamic Shading Gradient traveling across leaf during flip */}
                 <div
-                  className="absolute inset-0 w-full h-full bg-[#FCFAF6] overflow-hidden flex items-center justify-center p-2"
+                  className="absolute inset-0 pointer-events-none"
                   style={{
-                    backfaceVisibility: "hidden",
-                    WebkitBackfaceVisibility: "hidden",
-                    borderTopRightRadius: "6px",
-                    borderBottomRightRadius: "6px",
-                    boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
+                    background:
+                      "linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.15) 40%, rgba(0,0,0,0.2) 100%)",
                   }}
-                >
-                  <canvas
-                    ref={flipFrontCanvasRef}
-                    className="max-w-full max-h-full object-contain block"
-                  />
-                  {/* Dynamic Shading Gradient traveling across leaf during flip */}
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.15) 40%, rgba(0,0,0,0.2) 100%)",
-                    }}
-                  />
-                </div>
-
-                {/* BACK FACE OF FLIPPING LEAF (Rotated 180deg) */}
-                <div
-                  className="absolute inset-0 w-full h-full bg-[#FCFAF6] overflow-hidden flex items-center justify-center p-2"
-                  style={{
-                    transform: "rotateY(180deg)",
-                    backfaceVisibility: "hidden",
-                    WebkitBackfaceVisibility: "hidden",
-                    borderTopLeftRadius: "6px",
-                    borderBottomLeftRadius: "6px",
-                    boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
-                  }}
-                >
-                  <canvas
-                    ref={flipBackCanvasRef}
-                    className="max-w-full max-h-full object-contain block"
-                  />
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(to left, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.15) 40%, rgba(0,0,0,0.2) 100%)",
-                    }}
-                  />
-                </div>
+                />
               </div>
-            )}
+
+              {/* BACK FACE OF FLIPPING LEAF (Rotated 180deg) */}
+              <div
+                className="absolute inset-0 w-full h-full bg-[#FCFAF6] overflow-hidden flex items-center justify-center p-2"
+                style={{
+                  transform: "rotateY(180deg)",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  borderTopLeftRadius: "6px",
+                  borderBottomLeftRadius: "6px",
+                  boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
+                }}
+              >
+                <canvas
+                  ref={flipBackCanvasRef}
+                  className="max-w-full max-h-full object-contain block"
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(to left, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.15) 40%, rgba(0,0,0,0.2) 100%)",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

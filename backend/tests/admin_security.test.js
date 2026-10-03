@@ -2,7 +2,7 @@ const { test, describe } = require("node:test");
 const assert = require("node:assert");
 const jwt = require("jsonwebtoken");
 
-const API_URL = process.env.API_URL || "http://localhost:5000";
+const API_URL = process.env.API_URL || "http://127.0.0.1:5000";
 const JWT_SECRET = process.env.JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026";
 
 describe("Admin Access Control Security Tests (OWASP A01)", () => {

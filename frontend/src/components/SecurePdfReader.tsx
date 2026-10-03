@@ -45,6 +45,27 @@ interface PdfOutlineItem {
   page: number;
 }
 
+// Polyfill ECMAScript Uint8Array.prototype.toHex and toBase64 for pdfjs-dist v6 support across all browsers
+if (typeof Uint8Array !== "undefined") {
+  if (!(Uint8Array.prototype as any).toHex) {
+    (Uint8Array.prototype as any).toHex = function () {
+      return Array.from(this as any)
+        .map((b: any) => Number(b).toString(16).padStart(2, "0"))
+        .join("");
+    };
+  }
+  if (!(Uint8Array.prototype as any).toBase64) {
+    (Uint8Array.prototype as any).toBase64 = function () {
+      let binary = "";
+      const len = this.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(this[i]);
+      }
+      return typeof window !== "undefined" ? window.btoa(binary) : "";
+    };
+  }
+}
+
 function base64ToUint8Array(base64: string): Uint8Array {
   const binaryString = window.atob(base64);
   const len = binaryString.length;

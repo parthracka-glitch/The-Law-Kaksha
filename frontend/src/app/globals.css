@@ -463,3 +463,40 @@ p {
 
 .min-h-dvh { min-height: 100dvh; }
 .h-dvh { height: 100dvh; }
+
+/* =========================================================================
+   3D BOOK CODEX ANIMATIONS & HARDWARE ACCELERATED TRANSFORMS
+   ========================================================================= */
+@keyframes flipLeafForward {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+@keyframes flipLeafBackward {
+  0% {
+    transform: rotateY(-180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.book-perspective {
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

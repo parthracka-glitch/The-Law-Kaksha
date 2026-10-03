@@ -188,9 +188,9 @@ app.use((err, req, res, next) => {
 
 // Start Server
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`[The Law Kaksha] API Server running on port ${PORT}`);
-    console.log(`[The Law Kaksha] Health check: http://localhost:${PORT}/api/health`);
+    console.log(`[The Law Kaksha] Health check: http://127.0.0.1:${PORT}/api/health`);
   });
 }
 
