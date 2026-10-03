@@ -13,7 +13,7 @@ export default function ReaderClient() {
   const queryTitle = searchParams.get("title");
 
   // Compute canonical PDF url
-  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "/api/pdf/cseet-business-law-full.pdf");
+  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "/api/pdf/unit-1-general-nature-of-partnership.pdf");
 
   // Clean title
   const title =
@@ -25,35 +25,77 @@ export default function ReaderClient() {
           .replace(/\b\w/g, (c) => c.toUpperCase())
       : "The Law Kaksha Master Study Codex");
 
+  const isSampleFile =
+    Boolean(
+      file &&
+        (file.includes("unit-1") ||
+          file.includes("sample") ||
+          file.includes("unit-2") ||
+          file.includes("unit-3") ||
+          file.includes("framework"))
+    ) || searchParams.get("sample") === "true";
+
   // Session watermark data
   const [studentProfile, setStudentProfile] = useState({
     name: "Law Student",
     roll: "LK-SECURE-VIEW",
   });
+  const [isUnlocked, setIsUnlocked] = useState(isSampleFile);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const studentSession = localStorage.getItem("lawkaksha_student_session");
-        if (studentSession) {
-          const parsed = JSON.parse(studentSession);
-          setStudentProfile({
-            name: parsed.name || "Student",
-            roll: parsed.student_id || "LK-STU",
-          });
-          return;
-        }
         const adminSession = localStorage.getItem("lawkaksha_admin_session");
         if (adminSession) {
           const parsed = JSON.parse(adminSession);
-          setStudentProfile({
-            name: parsed.name || "Administrator",
-            roll: "LK-ADMIN-DRM",
-          });
+          if (parsed.role === "admin") {
+            setIsUnlocked(true);
+            setStudentProfile({
+              name: parsed.name || "Administrator",
+              roll: "LK-ADMIN-DRM",
+            });
+            return;
+          }
         }
-      } catch (e) {}
+
+        const studentSession = localStorage.getItem("lawkaksha_student_session");
+        const activeStudent = localStorage.getItem("lawkaksha_active_student");
+        const unlockedIds: string[] = [];
+        let pName = "Enrolled Student";
+        let pRoll = "LK-STUDENT";
+
+        if (studentSession) {
+          try {
+            const p = JSON.parse(studentSession);
+            pName = p.name || pName;
+            pRoll = p.student_id || pRoll;
+            if (Array.isArray(p.unlockedItemIds)) unlockedIds.push(...p.unlockedItemIds);
+            if (p.drm_access) unlockedIds.push("all-access");
+          } catch (e) {}
+        }
+
+        if (activeStudent) {
+          try {
+            const act = JSON.parse(activeStudent);
+            if (Array.isArray(act.unlockedItemIds)) unlockedIds.push(...act.unlockedItemIds);
+            if (act.drm_access) unlockedIds.push("all-access");
+          } catch (e) {}
+        }
+
+        setStudentProfile({ name: pName, roll: pRoll });
+
+        const hasAccess =
+          isSampleFile ||
+          unlockedIds.includes("all-access") ||
+          unlockedIds.some((id) => (file ? file.toLowerCase().includes(id.toLowerCase()) : false)) ||
+          unlockedIds.some((id) => id.includes("course-ca") || id.includes("foundation") || id.includes("cseet"));
+
+        setIsUnlocked(Boolean(hasAccess));
+      } catch (e) {
+        setIsUnlocked(isSampleFile);
+      }
     }
-  }, []);
+  }, [file, isSampleFile]);
 
   const handleClose = () => {
     if (typeof window !== "undefined") {
@@ -67,6 +109,10 @@ export default function ReaderClient() {
     }
   };
 
+  const handleBuy = () => {
+    router.push("/courses");
+  };
+
   return (
     <main className="w-full h-screen bg-[#111418] overflow-hidden select-none">
       <SecurePdfReader
@@ -74,7 +120,10 @@ export default function ReaderClient() {
         onClose={handleClose}
         pdfUrl={pdfUrl}
         title={title}
-        isPurchased={true}
+        isPurchased={isUnlocked}
+        previewPagesLimit={isUnlocked ? undefined : 5}
+        price={99}
+        onBuy={handleBuy}
         studentName={studentProfile.name}
         studentRoll={studentProfile.roll}
       />

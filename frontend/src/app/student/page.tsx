@@ -20,6 +20,7 @@ import { StreakCalendarModal } from "@/components/StreakCalendarModal";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
 import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
+import { CseetComingSoonShell } from "@/components/student/CseetComingSoonShell";
 
 interface ChapterUnit {
   unitNumber: number;
@@ -1050,7 +1051,7 @@ export default function StudentDashboardPage() {
         <div className={`p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
 
           {/* COURSE ACCESS STATUS BANNER */}
-          {!hasActiveCourseAccess && (
+          {!hasActiveCourseAccess && activeCourse === "ca" && (
             <div className="rounded-3xl bg-linear-to-r from-[#F4C5C0]/40 via-amber-50 to-[#AED7E9]/30 border border-[#F4C5C0] p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
               <div className="flex items-start gap-3.5">
                 <div className="w-10 h-10 rounded-2xl bg-[#F4C5C0] text-[#C35F3B] flex items-center justify-center shrink-0 shadow-xs">
@@ -1081,6 +1082,17 @@ export default function StudentDashboardPage() {
               </div>
             </div>
           )}
+
+          {/* CSEET POLISHED COMING SOON SHELL */}
+          {activeCourse === "cs" ? (
+            <CseetComingSoonShell
+              onOpenSampleReader={(url, title) =>
+                handleOpenPdf(url, title, "CSEET Sample Unit", true, false, undefined, undefined, undefined, "cs")
+              }
+              onPreOrder={() => handleBuyCourse("cs")}
+            />
+          ) : (
+            <>
 
           {/* ========================================================================= */}
           {/* TAB 1: DASHBOARD HOME (3-COLUMN TUTEDUDE EDTECH SUITE AS REQUESTED)        */}
@@ -1209,8 +1221,8 @@ export default function StudentDashboardPage() {
                     purchasedBooks.includes("all-access") ||
                     purchasedBooks.includes("course-ca-foundation-sub") ||
                     purchasedBooks.includes("course-cseet-sub") ||
-                    (activeCourse === "ca" && (purchasedBooks.includes("ca-foundation-business-laws") || purchasedBooks.includes("ca-foundation"))) ||
-                    (activeCourse === "cs" && (purchasedBooks.includes("cseet-business-law") || purchasedBooks.includes("cseet-management") || purchasedBooks.includes("cseet")));
+                    purchasedBooks.includes("ca-foundation-business-laws") ||
+                    purchasedBooks.includes("ca-foundation");
 
                   return (
                     <div
@@ -2166,6 +2178,8 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
             </div>
+          )}
+            </>
           )}
 
         </div>
