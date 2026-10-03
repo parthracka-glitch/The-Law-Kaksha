@@ -8,14 +8,17 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://thelawkaksha_db_user:SxRnT74b3BRQyiY5@cluster0.wt67jkf.mongodb.net/thelawkaksha?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 let isConnected = false;
 
 async function connectMongo() {
   if (isConnected && mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (!MONGODB_URI) {
+    console.warn("[MongoDB Atlas] MONGODB_URI not configured. Operating with local persistent database.");
     return mongoose.connection;
   }
 

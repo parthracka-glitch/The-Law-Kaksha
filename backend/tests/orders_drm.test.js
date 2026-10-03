@@ -4,7 +4,8 @@ const assert = require("node:assert");
 const API_URL = process.env.API_URL || "http://127.0.0.1:5000";
 
 describe("Order Verification & DRM License Pass Tests", () => {
-  const uniqueOrder = `LK-ORD-${Date.now().toString().slice(-6)}`;
+  let createdOrderId = "";
+  let createdRazorpayOrderId = "";
   const orderDeviceId = `DEV-ORDER-DEVICE-${Date.now().toString().slice(-4)}`;
 
   test("POST /api/orders/create calculates total and generates pending order", async () => {
@@ -34,6 +35,8 @@ describe("Order Verification & DRM License Pass Tests", () => {
     assert.strictEqual(data.success, true);
     assert.strictEqual(data.amount, 99);
     assert.ok(data.orderId);
+    createdOrderId = data.orderId;
+    createdRazorpayOrderId = data.razorpayOrderId;
   });
 
   test("POST /api/orders/verify creates student credentials and locks device", async () => {
@@ -41,8 +44,8 @@ describe("Order Verification & DRM License Pass Tests", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: uniqueOrder,
-        razorpayOrderId: `order_${Date.now()}`,
+        orderId: createdOrderId,
+        razorpayOrderId: createdRazorpayOrderId,
         razorpayPaymentId: `pay_${Date.now()}`,
         razorpaySignature: `sig_${Date.now()}`,
         deviceId: orderDeviceId,

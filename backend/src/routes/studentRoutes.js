@@ -14,18 +14,25 @@ const McqTest = require("../models/McqTest");
 const SiteSetting = require("../models/SiteSetting");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 /**
  * GET /api/student/dashboard
- * Query: ?email=... or ?studentId=...
- * Returns student profile, active courses, unlocked DRM books, weekly cases & MCQs
+ * Requires authenticated student session.
+ * Ownership: Returns authenticated student's profile & courses. Admins can view any student.
  */
-router.get("/dashboard", async (req, res) => {
+router.get("/dashboard", requireAuth, async (req, res) => {
   try {
-    const email = req.query.email ? String(req.query.email).toLowerCase().trim() : null;
-    const studentId = req.query.studentId ? String(req.query.studentId).trim() : null;
+    let email = req.user.email ? String(req.user.email).toLowerCase().trim() : null;
+    let studentId = req.user.student_id ? String(req.user.student_id).trim() : null;
+
+    // Admin override for support inspection
+    if (req.user.role === "admin" && (req.query.email || req.query.studentId)) {
+      if (req.query.email) email = String(req.query.email).toLowerCase().trim();
+      if (req.query.studentId) studentId = String(req.query.studentId).trim();
+    }
 
     let student = null;
     let subscriptions = [];
@@ -165,15 +172,13 @@ router.get("/dashboard", async (req, res) => {
 
 /**
  * POST /api/student/sync-progress
- * Body: { email, studentId, xpGained, completedUnits, lastRead, streakDays, bookmarks }
- * Synchronizes student XP, badges, completed chapters, and bookmarks in Atlas!
+ * Requires authentication. Updates progress strictly for the authenticated student.
  */
-router.post("/sync-progress", async (req, res) => {
+router.post("/sync-progress", requireAuth, async (req, res) => {
   try {
-    const { email, studentId, xpGained, xpTotal, completedUnits, lastRead, streakDays, bookmarks } = req.body;
-    if (!email && !studentId) {
-      return res.status(400).json({ success: false, message: "Email or studentId required." });
-    }
+    const { xpGained, xpTotal, completedUnits, lastRead, streakDays, bookmarks } = req.body;
+    const targetUserId = req.user.id;
+    const targetEmail = req.user.email ? String(req.user.email).toLowerCase().trim() : null;
 
     if (isConnected()) {
       const updateData = {};
@@ -187,8 +192,8 @@ router.post("/sync-progress", async (req, res) => {
       const updatedUser = await User.findOneAndUpdate(
         {
           $or: [
-            ...(email ? [{ email: String(email).toLowerCase().trim() }] : []),
-            ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+            ...(targetEmail ? [{ email: targetEmail }] : []),
+            ...(targetUserId ? [{ id: targetUserId }] : []),
           ],
         },
         updateData,
@@ -211,112 +216,6 @@ router.post("/sync-progress", async (req, res) => {
   } catch (err) {
     console.error("[Student API] Sync progress error:", err);
     res.status(500).json({ success: false, message: "Error updating student progress." });
-  }
-});
-
-/**
- * POST /api/student/sync-purchase
- * Body: { studentData: { name, email, phone, rollNumber }, items: [...], orderId }
- * Directly provisions subscription and unlocks DRM codex in MongoDB Atlas!
- */
-router.post("/sync-purchase", async (req, res) => {
-  try {
-    const { studentData, items, orderId, totalAmount, paymentMode } = req.body;
-    if (!studentData || !studentData.email) {
-      return res.status(400).json({ success: false, message: "Student data with email is required." });
-    }
-
-    const email = studentData.email.toLowerCase().trim();
-    const rollNumber = studentData.rollNumber || studentData.studentId || `LRK-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-    const purchasedItemIds = (items || []).map((i) => i.id);
-
-    // If master combo pass bought, include individual books too
-    if (purchasedItemIds.includes("prod-combo")) {
-      purchasedItemIds.push("prod-vol1", "prod-vol2");
-    }
-
-    const subId = orderId || `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const itemNames = (items || []).map((i) => i.title).join(" + ") || "Complete Study Access";
-
-    if (isConnected()) {
-      // 1. Create or Update Student User
-      const updatedUser = await User.findOneAndUpdate(
-        { email },
-        {
-          $set: {
-            name: studentData.name || "Enrolled Student",
-            phone: studentData.phone || "",
-            target_exam: studentData.exam || "CA Foundation Paper 2: Business Laws",
-            student_id: rollNumber,
-            role: "student",
-            is_active: true,
-            drm_access: true,
-          },
-          $addToSet: {
-            unlockedItemIds: { $each: purchasedItemIds },
-            enrolled_books: { $each: (items || []).map((i) => i.title) },
-          },
-        },
-        { upsert: true, new: true }
-      ).select("-password_hash");
-
-      // 2. Create Subscription record in Atlas
-      const newSub = await Subscription.findOneAndUpdate(
-        { id: subId },
-        {
-          id: subId,
-          studentName: studentData.name || "Enrolled Student",
-          studentRoll: rollNumber,
-          email,
-          phone: studentData.phone || "",
-          item: itemNames,
-          targetExam: studentData.exam || "CA Foundation Paper 2: Business Laws",
-          amount: `₹${totalAmount || 449}`,
-          date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-          paymentMode: paymentMode || "Instant UPI / QR Code",
-          accessStatus: "Active",
-          unlockedItemIds: purchasedItemIds,
-        },
-        { upsert: true, new: true }
-      );
-
-      return res.status(200).json({
-        success: true,
-        source: "mongodb_atlas",
-        student: updatedUser,
-        subscription: newSub,
-        unlockedItemIds: updatedUser.unlockedItemIds,
-      });
-    }
-
-    // Local fallback
-    const usersTable = Database.table("users");
-    const subsTable = Database.table("subscriptions");
-
-    const localSub = subsTable.insert({
-      id: subId,
-      studentName: studentData.name,
-      studentRoll: rollNumber,
-      email,
-      phone: studentData.phone,
-      item: itemNames,
-      targetExam: studentData.exam,
-      amount: `₹${totalAmount || 449}`,
-      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-      paymentMode: paymentMode || "Instant UPI / QR Code",
-      accessStatus: "Active",
-      unlockedItemIds: purchasedItemIds,
-    });
-
-    res.status(200).json({
-      success: true,
-      source: "local_cache",
-      subscription: localSub,
-      unlockedItemIds: purchasedItemIds,
-    });
-  } catch (err) {
-    console.error("[Student API] Sync purchase error:", err);
-    res.status(500).json({ success: false, message: "Error syncing student purchase." });
   }
 });
 

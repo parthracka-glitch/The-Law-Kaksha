@@ -583,9 +583,12 @@ export default function StudentDashboardPage() {
       localStorage.setItem("lawkaksha_xp", String(newXp));
       // Sync with MongoDB backend in background
       if (studentProfile.email || studentProfile.student_id) {
+        const token = localStorage.getItem("lawkaksha_token") || "";
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
         fetch(`${API_URL}/api/student/sync-progress`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             email: studentProfile.email,
             studentId: studentProfile.student_id,
@@ -809,7 +812,10 @@ export default function StudentDashboardPage() {
           email: studentProfile.email || "",
           studentId: studentProfile.student_id || "",
         });
-        const res = await fetch(`${API_URL}/api/student/dashboard?${query.toString()}`);
+        const token = localStorage.getItem("lawkaksha_token") || "";
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch(`${API_URL}/api/student/dashboard?${query.toString()}`, { headers });
         if (!res.ok) return;
         const data = await res.json();
         if (data.success) {

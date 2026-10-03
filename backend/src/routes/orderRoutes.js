@@ -7,13 +7,43 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Database = require("../db/database");
-const { JWT_SECRET } = require("../middleware/authMiddleware");
+const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+const CANONICAL_CATALOG_PRICES = {
+  "course-ca-foundation-sub": 99,
+  "ca-foundation-sub": 99,
+  "ca-foundation-business-laws": 99,
+  "ca-foundation": 99,
+  "prod-vol1": 99,
+  "book-vol-1": 99,
+  "course-cseet-sub": 99,
+  "cseet-sub": 99,
+  "cseet-business-law": 99,
+  "cseet-management": 99,
+  "cseet": 99,
+  "prod-vol2": 99,
+  "book-vol-2": 99,
+  "prod-combo": 180,
+  "all-access": 180,
+};
+
+function getCanonicalPrice(itemId) {
+  if (!itemId) return 99;
+  const cleanId = String(itemId).trim().toLowerCase();
+  if (CANONICAL_CATALOG_PRICES[cleanId]) {
+    return CANONICAL_CATALOG_PRICES[cleanId];
+  }
+  const productsTable = Database.table("products");
+  const p = productsTable.findById(cleanId);
+  if (p && typeof p.price === "number") return p.price;
+  return 99;
+}
+
 /**
  * 1. POST /api/orders/create
- * Creates a pending order and returns server-verified amount & order reference
+ * Creates a pending order with server-computed prices (never client-supplied)
  */
 router.post("/orders/create", (req, res) => {
   try {
@@ -31,10 +61,10 @@ router.post("/orders/create", (req, res) => {
     const phone = shippingDetails.phone || "+91 98765 43210";
     const exam = shippingDetails.exam || "CA Foundation Paper 2: Business Laws";
 
-    // 1. Calculate server verified subtotal
+    // 1. Calculate strictly server-verified subtotal
     let subtotal = 0;
     const validatedItems = items.map((it) => {
-      const price = Number(it.price) || 249;
+      const price = getCanonicalPrice(it.id);
       const quantity = Math.max(1, Number(it.quantity) || 1);
       subtotal += price * quantity;
       return {
@@ -105,36 +135,62 @@ router.post("/orders/create", (req, res) => {
 
 /**
  * 2. POST /api/orders/verify
- * Verifies the payment and unlocks the in-web digital codex in the student's vault
+ * Cryptographically verifies payment signature and fulfills digital enrollment
  */
 router.post("/orders/verify", (req, res) => {
   try {
     const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
+    if (!orderId && !razorpayOrderId) {
+      return res.status(400).json({ success: false, message: "Order ID or Gateway reference required." });
+    }
+
     const ordersTable = Database.table("orders");
-    let order = ordersTable.findOne((o) => o.id === orderId || o.gateway_order_id === razorpayOrderId);
+    let order = ordersTable.findOne((o) => (orderId && o.id === orderId) || (razorpayOrderId && o.gateway_order_id === razorpayOrderId));
 
     if (!order) {
-      // Create fallback completed order if created client-side in demo mode
-      order = ordersTable.insert({
-        id: orderId || `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-        gateway_order_id: razorpayOrderId || `order_${Date.now()}`,
-        customer_name: "Enrolled Candidate",
-        customer_email: "student@thelawkaksha.com",
-        customer_phone: "+91 98765 43210",
-        target_exam: "CA Foundation Paper 2: Business Laws",
-        items: [{ id: "book-vol-1", title: "Business Law Volume 1", price: 249, quantity: 1, format: "pdf" }],
-        subtotal: 249,
-        discount_amount: 0,
-        total_amount: 249,
-        status: "COMPLETED",
-      });
-    } else {
-      ordersTable.update(order.id, {
-        status: "COMPLETED",
-        gateway_payment_id: razorpayPaymentId || `pay_LK_${Date.now()}`,
+      return res.status(404).json({ success: false, message: "Pending order record not found. Please initiate checkout." });
+    }
+
+    // Cryptographic HMAC-SHA256 signature verification
+    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+    const isProduction = process.env.NODE_ENV === "production";
+    if (razorpaySecret && razorpayOrderId && razorpayPaymentId && razorpaySignature) {
+      const crypto = require("crypto");
+      const expectedSignature = crypto
+        .createHmac("sha256", razorpaySecret)
+        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+        .digest("hex");
+
+      if (expectedSignature !== razorpaySignature) {
+        return res.status(400).json({
+          success: false,
+          message: "Payment signature mismatch. Transaction verification failed.",
+        });
+      }
+    } else if (isProduction && !razorpaySignature) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment signature is required in production environment.",
       });
     }
+
+    // Idempotent fulfillment if order was already verified
+    if (order.status === "COMPLETED") {
+      const usersTable = Database.table("users");
+      const student = usersTable.findOne((u) => u.email && u.email.toLowerCase() === (order.customer_email || "").toLowerCase());
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified and enrollment active.",
+        data: { order, student },
+        order,
+      });
+    }
+
+    ordersTable.update(order.id, {
+      status: "COMPLETED",
+      gateway_payment_id: razorpayPaymentId || `pay_LK_${Date.now()}`,
+    });
 
     // Determine unlocked item IDs
     const unlockedItemIds = [];
@@ -310,14 +366,23 @@ router.post("/orders/verify", (req, res) => {
 
 /**
  * 3. GET /api/orders/:id
+ * Secure authenticated retrieval: only order owner or administrator can view
  */
-router.get("/orders/:id", (req, res) => {
+router.get("/orders/:id", requireAuth, (req, res) => {
   try {
     const ordersTable = Database.table("orders");
-    const order = ordersTable.findById(req.params.id);
+    const order = ordersTable.findById(req.params.id) || ordersTable.findOne((o) => o.gateway_order_id === req.params.id);
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found." });
     }
+
+    const isOwner = req.user.email && order.customer_email && req.user.email.toLowerCase() === order.customer_email.toLowerCase();
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: "Access denied. You cannot view another student's order." });
+    }
+
     return res.status(200).json({ success: true, order });
   } catch (err) {
     return res.status(500).json({ success: false, message: "Failed to retrieve order." });

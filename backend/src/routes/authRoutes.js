@@ -159,28 +159,6 @@ router.post("/login", async (req, res) => {
       );
     }
 
-    // Default admin creation if none exists yet
-    if (!user && (loginQuery === "admin@thelawkaksha.com" || loginQuery === "admin")) {
-      const passwordHash = await bcrypt.hash("AdminSecurePassword2026!", 10);
-      const adminPayload = {
-        id: "usr-admin-001",
-        student_id: "LK-ADM-000001",
-        name: "The Law Kaksha Admin",
-        email: "admin@thelawkaksha.com",
-        phone: "+91 99999 88888",
-        password_hash: passwordHash,
-        role: "admin",
-        is_active: true,
-        drm_access: true,
-      };
-      if (isConnected()) {
-        user = await User.create(adminPayload);
-      } else {
-        const usersTable = Database.table("users");
-        user = usersTable.insert(adminPayload);
-      }
-    }
-
     if (!user) {
       return res.status(401).json({
         success: false,

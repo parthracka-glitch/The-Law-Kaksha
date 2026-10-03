@@ -562,24 +562,22 @@ export default function AdminPortalPage() {
   // Load initial cache and sync with MongoDB Atlas
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDemoAdmin = urlParams.get("admin") === "true" || urlParams.get("demo") === "true";
-      const adminSession = localStorage.getItem("lawkaksha_admin_session");
-
-      if (!adminSession && !isDemoAdmin) {
-        setIsAuthorized(false);
-        setIsCheckingAuth(false);
-        router.push("/login");
-        return;
+      const adminSessionStr = localStorage.getItem("lawkaksha_admin_session");
+      let isValidAdmin = false;
+      if (adminSessionStr) {
+        try {
+          const parsed = JSON.parse(adminSessionStr);
+          if (parsed && parsed.role === "admin") {
+            isValidAdmin = true;
+          }
+        } catch (e) {}
       }
 
-      if (isDemoAdmin && !adminSession) {
-        try {
-          localStorage.setItem(
-            "lawkaksha_admin_session",
-            JSON.stringify({ role: "admin", name: "Administrator Parth", token: "admin_dev_token" })
-          );
-        } catch (e) {}
+      if (!isValidAdmin) {
+        setIsAuthorized(false);
+        setIsCheckingAuth(false);
+        router.push("/login?redirect=/admin");
+        return;
       }
 
       setIsAuthorized(true);
