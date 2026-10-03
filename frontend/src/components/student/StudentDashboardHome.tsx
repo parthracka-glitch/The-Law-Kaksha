@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
 
-
 interface EnrolledCourseItem {
   id: string;
   courseType: "ca" | "cs" | "shared";
@@ -96,8 +95,8 @@ const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "1",
     courseType: "ca",
-    title: "Contract Act Made Simple",
-    subtitle: "Simple rules with real-life examples",
+    title: "Contract Act, 1872 Masterclass",
+    subtitle: "Simple bare-act rules with landmark precedents",
     duration: "35h 48m",
     streamLabel: "CA Foundation",
     icon: Code2,
@@ -107,8 +106,8 @@ const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "2",
     courseType: "shared",
-    title: "Important Case Studies",
-    subtitle: "5-minute summaries for exam writing",
+    title: "System Design & Corporate Veil",
+    subtitle: "Salomon v. Salomon & ultra-vires doctrines",
     duration: "28h 31m",
     streamLabel: "CA & CS Shared",
     icon: Layers,
@@ -118,25 +117,14 @@ const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "3",
     courseType: "cs",
-    title: "CSEET Law & Business Practice",
-    subtitle: "Exam-pattern practice questions with solutions",
+    title: "CSEET Management & Corporate Ethics",
+    subtitle: "Henri Fayol, F.W. Taylor & PESTLE framework",
     duration: "29h 57m",
     streamLabel: "CSEET",
     icon: Cpu,
     iconBg: "bg-[#0284C7]",
     pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
   },
-];
-
-
-const WEEK_DAYS = [
-  { label: "M", name: "Mon" },
-  { label: "T", name: "Tue" },
-  { label: "W", name: "Wed" },
-  { label: "T", name: "Thu" },
-  { label: "F", name: "Fri" },
-  { label: "S", name: "Sat" },
-  { label: "S", name: "Sun" },
 ];
 
 export function StudentDashboardHome({
@@ -171,18 +159,29 @@ export function StudentDashboardHome({
   onBuyCourse,
 }: StudentDashboardHomeProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const quizSectionRef = useRef<HTMLDivElement>(null);
 
+  const [selectedPromoStream, setSelectedPromoStream] = useState<"ca" | "cs">(activeCourse);
+
+  useEffect(() => {
+    if (activeCourse) {
+      setSelectedPromoStream(activeCourse);
+    }
+  }, [activeCourse]);
+
+  // Dynamic enrolled courses reflecting actual purchase state
   const dynamicCourses: EnrolledCourseItem[] = useMemo(() => {
     return [
       {
         id: "ca-foundation-course",
         courseType: "ca",
-        title: "CA Foundation Law Notes",
-        category: "Full Course • 7 Chapters",
-        enrolledDate: isCaUnlocked ? "Active Enrollment" : "Not Enrolled",
-        progress: isCaUnlocked ? Math.min(100, Math.max(25, completedUnitsCount * 14)) : 0,
+        title: "CA Foundation: Business Laws",
+        category: "ICAI Paper 2 • 7 Chapters",
+        enrolledDate: "Enrolled On 16th Jul 2026",
+        progress: isCaUnlocked ? Math.min(100, Math.max(6, completedUnitsCount * 14)) : 0,
         pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-        iconBg: "from-[#9333EA] to-[#6B21A8]",
+        iconBg: "from-[#F59E0B] via-[#D97706] to-[#B45309]",
         iconType: "yellow",
         isUnlocked: Boolean(isCaUnlocked),
         price: 99,
@@ -190,12 +189,12 @@ export function StudentDashboardHome({
       {
         id: "cseet-course",
         courseType: "cs",
-        title: "CSEET Law & Business",
-        category: "Full Course • 8 Units",
-        enrolledDate: isCsUnlocked ? "Active Enrollment" : "Not Enrolled",
-        progress: isCsUnlocked ? Math.min(100, Math.max(15, completedUnitsCount * 12)) : 0,
+        title: "CSEET: Legal Aptitude & Mgmt",
+        category: "ICSI Paper 2 • 8 Units",
+        enrolledDate: "Enrolled On 16th Jul 2026",
+        progress: isCsUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 12)) : 0,
         pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
-        iconBg: "from-[#3B0764] to-[#1E1B4B]",
+        iconBg: "from-[#1E293B] to-[#0F172A]",
         iconType: "dark",
         isUnlocked: Boolean(isCsUnlocked),
         price: 99,
@@ -204,11 +203,11 @@ export function StudentDashboardHome({
         id: "cases-course",
         courseType: "shared",
         title: "Solved Case Studies & Answers",
-        category: "Important Exam Questions",
-        enrolledDate: (isCaUnlocked || isCsUnlocked) ? "Active Enrollment" : "Requires Course Pass",
+        category: "Weekly Exam Drills",
+        enrolledDate: "Enrolled On 16th Jul 2026",
         progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
         pdfUrl: "/notes/contract-act-unit-3.pdf",
-        iconBg: "from-[#0F172A] to-[#334155]",
+        iconBg: "from-[#3B0764] to-[#1E1B4B]",
         iconType: "blue",
         isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
         price: 99,
@@ -221,20 +220,6 @@ export function StudentDashboardHome({
   useEffect(() => {
     setCourses(dynamicCourses);
   }, [dynamicCourses]);
-
-  const [bonusClaimed, setBonusClaimed] = useState(false);
-  const [readSummaryDone, setReadSummaryDone] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [selectedPromoStream, setSelectedPromoStream] = useState<"ca" | "cs">(activeCourse);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const quizSectionRef = useRef<HTMLDivElement>(null);
-
-
-  useEffect(() => {
-    if (activeCourse) {
-      setSelectedPromoStream(activeCourse);
-    }
-  }, [activeCourse]);
 
   const [promoData, setPromoData] = useState<PromoBannersSetting>(() => {
     if (typeof window !== "undefined") {
@@ -275,94 +260,11 @@ export function StudentDashboardHome({
       }
     };
 
-    const handleStorage = (e: StorageEvent) => {
-      if (!e.key || e.key === "lawkaksha_admin_promo_banners") {
-        try {
-          const saved = localStorage.getItem("lawkaksha_admin_promo_banners");
-          if (saved) setPromoData(JSON.parse(saved));
-        } catch (err) {}
-      }
-    };
-
     window.addEventListener("lawkaksha_promo_updated", handlePromoUpdate);
-    window.addEventListener("storage", handleStorage);
-
     return () => {
       window.removeEventListener("lawkaksha_promo_updated", handlePromoUpdate);
-      window.removeEventListener("storage", handleStorage);
     };
   }, []);
-
-  const handleCardClick = (card: PromoPassCard) => {
-    if (card.actionType === "ca") {
-      onExploreCourse("ca");
-    } else if (card.actionType === "cs") {
-      onExploreCourse("cs");
-    } else if (card.actionType === "all-access") {
-      onExploreCourse("all-access");
-    } else if (card.actionType === "custom" && card.customUrl) {
-      window.open(card.customUrl, "_blank");
-    } else {
-      onExploreCourse(selectedPromoStream);
-    }
-  };
-
-
-  // Initialize bonusClaimed from localStorage based on today's date
-  useEffect(() => {
-    try {
-      const todayStr = new Date().toDateString();
-      const claimedDate = localStorage.getItem("lawkaksha_streak_claimed_date");
-      if (claimedDate === todayStr) {
-        setBonusClaimed(true);
-      }
-      const storedReadDone = localStorage.getItem("lawkaksha_quest_read_done");
-      if (storedReadDone === todayStr) {
-        setReadSummaryDone(true);
-      }
-    } catch (e) {}
-  }, []);
-
-  const handleClaimBonus = () => {
-    if (bonusClaimed) return;
-    setBonusClaimed(true);
-    setShowConfetti(true);
-    try {
-      const todayStr = new Date().toDateString();
-      localStorage.setItem("lawkaksha_streak_claimed_date", todayStr);
-    } catch (e) {}
-
-    if (awardXp) {
-      awardXp(20, "Daily Streak Bonus Claimed! 🔥 Keep the fire burning!");
-    }
-
-    setTimeout(() => {
-      setShowConfetti(false);
-    }, 3500);
-  };
-
-  const handleReadSummaryQuest = () => {
-    const todayStr = new Date().toDateString();
-    setReadSummaryDone(true);
-    try {
-      localStorage.setItem("lawkaksha_quest_read_done", todayStr);
-    } catch (e) {}
-    if (awardXp) {
-      awardXp(10, "Daily Summary Completed! 📖 (+10 Points)");
-    }
-    onOpenPdf(
-      "/notes/unit-1-general-nature-of-partnership.pdf",
-      "The Indian Partnership Act, 1932",
-      "5-Minute Quick Read Summary",
-      "ca"
-    );
-  };
-
-  const scrollToQuiz = () => {
-    if (quizSectionRef.current) {
-      quizSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -381,823 +283,208 @@ export function StudentDashboardHome({
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate day of week (0 = Monday, 6 = Sunday)
-  const todayDayIndex = (new Date().getDay() + 6) % 7;
+  const leftCard: PromoPassCard = promoData.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
+  const rightCard: PromoPassCard = (selectedPromoStream === "ca" ? promoData.caCard : promoData.csCard) || DEFAULT_PROMO_BANNERS.caCard;
 
-  // Calculate completed daily quests count
-  const quest1Done = bonusClaimed;
-  const quest2Done = readSummaryDone;
-  const quest3Done = qotdSubmitted;
-  const completedQuestsCount = (quest1Done ? 1 : 0) + (quest2Done ? 1 : 0) + (quest3Done ? 1 : 0);
-  const allQuestsDone = completedQuestsCount === 3;
-
-  const firstName = studentName?.split(" ")[0] || "Student";
+  const handleCardClick = (card: PromoPassCard) => {
+    if (card.actionType === "ca") {
+      onExploreCourse("ca");
+    } else if (card.actionType === "cs") {
+      onExploreCourse("cs");
+    } else if (card.actionType === "all-access") {
+      onExploreCourse("all-access");
+    } else if (card.actionType === "custom" && card.customUrl) {
+      window.open(card.customUrl, "_blank");
+    } else {
+      onExploreCourse(selectedPromoStream);
+    }
+  };
 
   return (
     <div className="space-y-6 text-[#221D1D] select-none font-sans relative">
       {/* ========================================================================= */}
-      {/* KEYFRAME ANIMATIONS & CELEBRATION STYLES                                   */}
+      {/* 1. TOP BANNER PROMO CARDS (EXACT 2-CARD LAYOUT AS IN SCREENSHOT)           */}
       {/* ========================================================================= */}
-      <style jsx>{`
-        @keyframes flamePulse {
-          0%, 100% {
-            transform: scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 16px rgba(249, 115, 22, 0.7));
-          }
-          50% {
-            transform: scale(1.08) rotate(2deg);
-            filter: drop-shadow(0 0 26px rgba(249, 115, 22, 0.95));
-          }
-        }
-        @keyframes emberFloat {
-          0% {
-            transform: translateY(0px) scale(0.8);
-            opacity: 0.8;
-          }
-          50% {
-            transform: translateY(-8px) scale(1.1);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(-16px) scale(0.6);
-            opacity: 0;
-          }
-        }
-        @keyframes shimmerSweep {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-        .animate-flame-pulse {
-          animation: flamePulse 2s ease-in-out infinite;
-        }
-        .animate-shimmer {
-          background-size: 200% 100%;
-          animation: shimmerSweep 3s infinite linear;
-        }
-      `}</style>
-
-      {/* CONFETTI BURST OVERLAY */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {Array.from({ length: 40 }).map((_, idx) => {
-            const colors = [
-              "#9333EA",
-              "#F59E0B",
-              "#EC4899",
-              "#10B981",
-              "#3B82F6",
-              "#EF4444",
-            ];
-            const color = colors[idx % colors.length];
-            const left = Math.random() * 100;
-            const animDuration = 1.5 + Math.random() * 1.5;
-            const size = 8 + Math.random() * 10;
-            return (
-              <span
-                key={idx}
-                className="absolute rounded-full animate-bounce"
-                style={{
-                  top: "-20px",
-                  left: `${left}%`,
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  backgroundColor: color,
-                  animation: `bounce ${animDuration}s cubic-bezier(0.25, 1, 0.5, 1) infinite, spin 2s linear infinite`,
-                  boxShadow: `0 0 8px ${color}`,
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 1. MAIN PANEL HERO: GAMIFIED STREAK, LEVEL & DAILY QUEST COMMAND CENTER   */}
-      {/* ========================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FAF5FF] via-[#F3E8FF] to-[#EDE9FE] border-2 border-[#D8B4FE] p-5 sm:p-7 shadow-sm transition-all">
-        {/* Decorative background glow blobs */}
-        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#C084FC]/25 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-[#FDBA74]/25 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row items-stretch justify-between gap-6">
-          {/* LEFT SIDE: ANIMATED FLAME, STREAK DAYS & WEEKLY TRACKER */}
-          <div className="flex-1 space-y-4">
-            {/* Top Badge & Welcome */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#7E22CE] text-white shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>STUDY STREAK ACTIVE</span>
-              </span>
-              <span className="text-xs font-bold text-[#6B21A8]">
-                Namaste, {firstName}! 🌟
-              </span>
-            </div>
-
-            {/* Streak Number + Animated Fire */}
-            <div className="flex items-center gap-4">
-              {/* Pulsing Animated Flame Icon */}
-              <div className="relative flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-[#EA580C] via-[#F97316] to-[#FBBF24] shadow-[0_0_30px_rgba(249,115,22,0.55)] text-white shrink-0 animate-flame-pulse cursor-pointer">
-                <Flame className="w-10 h-10 sm:w-12 sm:h-12 fill-amber-100 text-amber-50" />
-                {/* Floating flame embers */}
-                <span className="absolute -top-1 -right-1 text-sm font-bold animate-ping">
-                  ✨
-                </span>
-                <span className="absolute -bottom-1 -left-1 text-xs">🔥</span>
-              </div>
-
-              {/* Big Bold Streak Details */}
-              <div className="space-y-0.5">
-                <div className="flex items-baseline gap-2">
-                  <h1 className="text-3xl sm:text-4xl font-black text-[#1F2937] tracking-tight">
-                    {streak}
-                  </h1>
-                  <span className="text-lg sm:text-xl font-extrabold text-[#7E22CE]">
-                    Days Streak!
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm font-semibold text-[#4B5563] leading-snug">
-                  You are studying regularly! Keep studying today to hit{" "}
-                  <strong className="text-[#9333EA] font-extrabold">
-                    {streak + 1} Days
-                  </strong>
-                  .
-                </p>
-                <p className="text-[11px] text-[#6B7280] font-medium">
-                  Longest Streak Record:{" "}
-                  <strong className="text-[#1F2937]">
-                    {Math.max(streak, longestStreak)} Days
-                  </strong>
-                </p>
-              </div>
-            </div>
-
-            {/* WEEKLY STREAK TRACKER PILLS (Mon -> Sun) */}
-            <div className="pt-1">
-              <p className="text-[11px] font-bold text-[#6B21A8] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>This Week&apos;s Learning Tracker</span>
-              </p>
-
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 max-w-sm">
-                {WEEK_DAYS.map((d, idx) => {
-                  const isPast = idx < todayDayIndex;
-                  const isToday = idx === todayDayIndex;
-                  const isFuture = idx > todayDayIndex;
-
-                  let pillStyle =
-                    "bg-white/80 border-[#E9DDF5] text-[#6B7280] hover:bg-white";
-                  let badgeContent = <span className="text-xs">{d.label}</span>;
-
-                  if (isPast) {
-                    pillStyle =
-                      "bg-[#D1FAE5] border-[#10B981] text-[#065F46] font-bold shadow-2xs";
-                    badgeContent = (
-                      <Check className="w-3.5 h-3.5 text-[#059669] stroke-[3]" />
-                    );
-                  } else if (isToday) {
-                    pillStyle =
-                      "bg-gradient-to-b from-[#F97316] to-[#EA580C] border-[#EA580C] text-white font-extrabold shadow-md scale-105";
-                    badgeContent = (
-                      <Flame className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
-                    );
-                  }
-
-                  return (
-                    <div
-                      key={idx}
-                      className="flex flex-col items-center gap-1"
-                      title={`${d.name}: ${
-                        isToday ? "Today (Active)" : isPast ? "Studied ✓" : "Upcoming"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex items-center justify-center transition-all ${pillStyle}`}
-                      >
-                        {badgeContent}
-                      </div>
-                      <span
-                        className={`text-[10px] font-bold ${
-                          isToday ? "text-[#EA580C]" : "text-[#6B7280]"
-                        }`}
-                      >
-                        {d.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ACTION BUTTONS: CLAIM BONUS + OPEN CALENDAR */}
-            <div className="pt-2 flex items-center gap-2.5 flex-wrap">
-              {!bonusClaimed ? (
-                <button
-                  onClick={handleClaimBonus}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#9333EA] via-[#A855F7] to-[#7E22CE] hover:from-[#7E22CE] hover:to-[#6B21A8] text-white text-xs font-black transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
-                >
-                  <Gift className="w-4 h-4 text-amber-300 animate-bounce" />
-                  <span>Claim Daily Streak Bonus (+20 Points)</span>
-                </button>
-              ) : (
-                <div className="px-4 py-2 rounded-2xl bg-[#D1FAE5] border border-[#10B981] text-[#065F46] text-xs font-bold flex items-center gap-2 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                  <span>Daily Bonus Claimed (+20 Points)</span>
-                </div>
-              )}
-
-              {onOpenStreakLog && (
-                <button
-                  onClick={onOpenStreakLog}
-                  className="px-4 py-2 rounded-2xl bg-white hover:bg-[#F3E8FF] text-[#581C87] border border-[#D8B4FE] text-xs font-bold transition-all shadow-2xs hover:shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-[#9333EA]" />
-                  <span>View Streak Calendar</span>
-                </button>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* LEFT CARD (WIDER): SOFT LILAC ALL-ACCESS PACK WITH STUDENT ILLUSTRATION */}
+        <div className="lg:col-span-7 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FAF5FF] via-[#F4EBFC] to-[#EDE9FE] border border-[#E9DDF5] p-5 sm:p-6 shadow-xs flex flex-col justify-between group transition-all hover:shadow-md">
+          {/* DISCOUNT CORNER RIBBON */}
+          <div className="absolute top-0 right-0">
+            <div className="bg-[#4C1D95] text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl shadow-xs tracking-wider">
+              {leftCard.discountBadge || "47% OFF"}
             </div>
           </div>
 
-          {/* RIGHT SIDE: LEVEL & XP PROGRESSION + BADGES UNLOCKED */}
-          <div className="w-full lg:w-[320px] bg-white/90 backdrop-blur-xs rounded-2xl p-5 border border-[#E9DDF5] shadow-xs flex flex-col justify-between space-y-4">
-            <div className="space-y-3">
-              {/* Level & Points Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-[#F3E8FF] text-[#9333EA] flex items-center justify-center font-black shadow-2xs">
-                    <Trophy className="w-5 h-5 text-[#9333EA]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wide">
-                      Your Level &amp; Rank
-                    </h3>
-                    <h4 className="text-sm font-black text-[#1F2937]">
-                      Level {levelInfo.level}: {levelInfo.title}
-                    </h4>
-                  </div>
-                </div>
-
-                <div className="px-3 py-1 rounded-full bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] text-xs font-black flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-current text-amber-500" />
-                  <span>{lawXp} XP</span>
-                </div>
-              </div>
-
-              {/* XP Progress Bar */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#4B5563]">
-                  <span>Progress to Level {levelInfo.level + 1}</span>
-                  <span className="text-[#9333EA]">{levelInfo.progress}%</span>
-                </div>
-                <div className="w-full bg-[#E5E7EB] rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-[#9333EA] to-[#C084FC] h-full rounded-full transition-all duration-700 animate-shimmer"
-                    style={{ width: `${Math.min(100, Math.max(5, levelInfo.progress))}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-[#6B7280] font-medium">
-                  Earn{" "}
-                  <strong className="text-[#1F2937]">
-                    {Math.max(0, levelInfo.nextXp - lawXp)} more points
-                  </strong>{" "}
-                  to level up!
-                </p>
-              </div>
-
-              {/* Unlocked Badges Preview */}
-              <div className="pt-2 border-t border-[#F3F4F6] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-[#4B5563]">
-                    Milestone Badges
-                  </span>
-                  {onOpenBadgesModal && (
-                    <button
-                      onClick={onOpenBadgesModal}
-                      className="text-[11px] font-extrabold text-[#9333EA] hover:underline cursor-pointer"
-                    >
-                      View All 🏆
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div
-                    className={`p-2 rounded-xl border text-center transition-all ${
-                      streak >= 3
-                        ? "bg-[#FEF3C7] border-[#FDE68A] text-[#92400E]"
-                        : "bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF] opacity-60"
-                    }`}
-                    title="Novice Advocate: 3-Day Study Streak"
-                  >
-                    <div className="text-base">🥉</div>
-                    <p className="text-[9px] font-bold truncate mt-0.5">3-Day</p>
-                    <span className="text-[8px] font-semibold">
-                      {streak >= 3 ? "Unlocked" : "Locked"}
-                    </span>
-                  </div>
-
-                  <div
-                    className={`p-2 rounded-xl border text-center transition-all ${
-                      qotdSubmitted
-                        ? "bg-[#D1FAE5] border-[#A7F3D0] text-[#065F46]"
-                        : "bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF] opacity-60"
-                    }`}
-                    title="Quiz Star: Daily 1-Minute Quiz completed"
-                  >
-                    <div className="text-base">⚡</div>
-                    <p className="text-[9px] font-bold truncate mt-0.5">Quizzer</p>
-                    <span className="text-[8px] font-semibold">
-                      {qotdSubmitted ? "Unlocked" : "Locked"}
-                    </span>
-                  </div>
-
-                  <div
-                    className={`p-2 rounded-xl border text-center transition-all ${
-                      streak >= 7
-                        ? "bg-[#E0E7FF] border-[#C7D2FE] text-[#3730A3]"
-                        : "bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF] opacity-60"
-                    }`}
-                    title="Law Champion: 7-Day Study Streak"
-                  >
-                    <div className="text-base">🛡️</div>
-                    <p className="text-[9px] font-bold truncate mt-0.5">7-Day</p>
-                    <span className="text-[8px] font-semibold">
-                      {streak >= 7 ? "Unlocked" : `${Math.max(0, 7 - streak)}d left`}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick motivative tag */}
-            <div className="p-2.5 rounded-xl bg-[#F6EFFD] border border-[#E9DDF5] flex items-center gap-2 text-xs font-semibold text-[#581C87]">
-              <TrendingUp className="w-4 h-4 text-[#9333EA] shrink-0" />
-              <span>Leaderboard Rank: #48 (Top 15%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. TODAY'S EASY DAILY STUDY GOALS (GAMIFIED QUESTS FOR 10TH PASSOUT)       */}
-      {/* ========================================================================= */}
-      <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F3F4F6] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#EDE9FE] text-[#7E22CE] flex items-center justify-center font-bold">
-              <Target className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-[#1F2937]">
-                Today&apos;s Easy Study Goals
-              </h3>
-              <p className="text-xs text-[#6B7280]">
-                Complete all 3 easy tasks daily to build habits &amp; earn extra XP!
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-black ${
-                allQuestsDone
-                  ? "bg-[#D1FAE5] text-[#065F46] border border-[#10B981]"
-                  : "bg-[#F3E8FF] text-[#7E22CE] border border-[#D8B4FE]"
-              }`}
-            >
-              {completedQuestsCount} of 3 Goals Done
-            </span>
-          </div>
-        </div>
-
-        {/* 3 Interactive Daily Tasks */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          {/* Task 1: Daily Login Streak */}
-          <div
-            className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
-              quest1Done
-                ? "bg-[#F0FDF4] border-[#86EFAC]"
-                : "bg-[#FAFAFA] border-[#E5E7EB] hover:border-[#9333EA]"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🔥</span>
-                <div>
-                  <h4 className="text-xs font-bold text-[#1F2937]">
-                    1. Check-In Today
-                  </h4>
-                  <p className="text-[11px] text-[#6B7280]">
-                    Log in and claim streak
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-extrabold text-[#7E22CE] bg-[#F3E8FF] px-2 py-0.5 rounded-full">
-                +20 XP
-              </span>
-            </div>
-
-            <div>
-              {quest1Done ? (
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#059669]">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Done for Today</span>
-                </div>
-              ) : (
-                <button
-                  onClick={handleClaimBonus}
-                  className="px-3 py-1.5 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  Claim Bonus
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Task 2: Read 1 Summary Note */}
-          <div
-            className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
-              quest2Done
-                ? "bg-[#F0FDF4] border-[#86EFAC]"
-                : "bg-[#FAFAFA] border-[#E5E7EB] hover:border-[#9333EA]"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📖</span>
-                <div>
-                  <h4 className="text-xs font-bold text-[#1F2937]">
-                    2. Read 1 Summary
-                  </h4>
-                  <p className="text-[11px] text-[#6B7280]">
-                    5-min notes reading
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-extrabold text-[#7E22CE] bg-[#F3E8FF] px-2 py-0.5 rounded-full">
-                +10 XP
-              </span>
-            </div>
-
-            <div>
-              {quest2Done ? (
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#059669]">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Read Complete</span>
-                </div>
-              ) : (
-                <button
-                  onClick={handleReadSummaryQuest}
-                  className="px-3 py-1.5 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Read Now</span>
-                  <Play className="w-3 h-3 fill-current" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Task 3: Complete 1 Daily Quiz */}
-          <div
-            className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
-              quest3Done
-                ? "bg-[#F0FDF4] border-[#86EFAC]"
-                : "bg-[#FAFAFA] border-[#E5E7EB] hover:border-[#9333EA]"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚡</span>
-                <div>
-                  <h4 className="text-xs font-bold text-[#1F2937]">
-                    3. Daily Quiz Question
-                  </h4>
-                  <p className="text-[11px] text-[#6B7280]">
-                    Answer 1 simple question
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-extrabold text-[#7E22CE] bg-[#F3E8FF] px-2 py-0.5 rounded-full">
-                +15 XP
-              </span>
-            </div>
-
-            <div>
-              {quest3Done ? (
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#059669]">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Quiz Answered</span>
-                </div>
-              ) : (
-                <button
-                  onClick={scrollToQuiz}
-                  className="px-3 py-1.5 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Solve Question</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {allQuestsDone && (
-          <div className="p-3 bg-gradient-to-r from-[#FEF3C7] to-[#FDE68A] rounded-2xl border border-[#F59E0B] text-xs font-bold text-[#92400E] flex items-center justify-between animate-bounce duration-1000">
-            <span className="flex items-center gap-2">
-              <span>🎉</span>
-              <span>
-                Superb job, {firstName}! All 3 daily goals completed today!
-              </span>
-            </span>
-            <span className="bg-[#B45309] text-white px-2.5 py-0.5 rounded-full text-[10px] font-black">
-              +45 Total XP Won!
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. CODEX PASSES (MINIMAL & WELL-DEFINED ARCHITECTURE)                      */}
-      {/* ========================================================================= */}
-      {promoData.enabled !== false && (() => {
-        const leftCard: PromoPassCard = (selectedPromoStream === "ca" ? promoData.caCard : promoData.csCard) || DEFAULT_PROMO_BANNERS.caCard;
-        const rightCard: PromoPassCard = promoData.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
-
-        return (
-          <div className="space-y-3">
-            {/* Minimal & Well-Defined Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          <div className="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-4">
+            {/* Left Copy & Actions */}
+            <div className="space-y-3 flex-1 min-w-0">
               <div>
-                <h3 className="text-base font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#9333EA]" />
-                  <span>{promoData.sectionTitle || "Law Kaksha Codex Passes"}</span>
-                </h3>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  Select your syllabus stream or get the all-access bundle pass
-                </p>
+                <h2 className="text-lg sm:text-xl font-black text-[#1F2937] leading-tight">
+                  Accelerate your Career by <br />
+                  <span className="text-[#7E22CE]">
+                    {leftCard.title || "All access pack"}
+                  </span>
+                </h2>
               </div>
 
-              {/* Sleek Segmented Control */}
-              <div className="inline-flex p-1 rounded-2xl bg-[#F3F4F6] border border-[#E5E7EB] text-xs font-bold self-start sm:self-auto shadow-2xs">
+              {/* Price Row */}
+              <div className="flex items-baseline gap-2 pt-0.5">
+                <span className="text-xs font-semibold text-[#4B5563]">Price :</span>
+                <span className="text-base font-extrabold text-[#7E22CE]">
+                  ₹{leftCard.price || 3999}
+                </span>
+                <span className="text-xs text-[#9CA3AF] line-through font-mono">
+                  ₹{leftCard.originalPrice || 45435}
+                </span>
+              </div>
+
+              {/* Sub-benefit with subtle star */}
+              <div className="flex items-center gap-1.5 text-[11px] text-[#4B5563] font-medium">
+                <span className="w-3.5 h-3.5 rounded-sm bg-[#EDE9FE] text-[#7E22CE] flex items-center justify-center text-[10px] font-bold shrink-0">
+                  ✓
+                </span>
+                <span className="truncate">
+                  {leftCard.saveText ? `Get Refund Validity to Lifetime* • ${leftCard.saveText}` : "Get Refund Validity to Lifetime*"}
+                </span>
+              </div>
+
+              {/* Explore Now Button (White Pill with Purple Text matching screenshot) */}
+              <div className="pt-2">
                 <button
-                  onClick={() => setSelectedPromoStream("ca")}
-                  className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    selectedPromoStream === "ca"
-                      ? "bg-white text-[#1F2937] shadow-xs"
-                      : "text-[#6B7280] hover:text-[#1F2937]"
-                  }`}
+                  onClick={() => {
+                    if (isAllAccessUnlocked) {
+                      onExploreCourse(activeCourse);
+                    } else if (onBuyCourse) {
+                      onBuyCourse("all-access");
+                    } else {
+                      handleCardClick(leftCard);
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF5FF] text-[#7E22CE] border border-[#E9DDF5] text-xs font-bold transition-all shadow-xs hover:shadow-sm inline-flex items-center gap-1.5 cursor-pointer active:scale-95 group-hover:border-[#D8B4FE]"
                 >
-                  CA Foundation
-                </button>
-                <button
-                  onClick={() => setSelectedPromoStream("cs")}
-                  className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    selectedPromoStream === "cs"
-                      ? "bg-white text-[#1F2937] shadow-xs"
-                      : "text-[#6B7280] hover:text-[#1F2937]"
-                  }`}
-                >
-                  CSEET
+                  <span>{isAllAccessUnlocked ? "Browse Codex" : "Explore now"}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#7E22CE] group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Card 1: Individual Stream Pass (CA Foundation or CSEET) */}
-              {leftCard.enabled !== false && (() => {
-                const isStreamUnlocked = selectedPromoStream === "ca" ? isCaUnlocked : isCsUnlocked;
+            {/* Right Graphic: Student with Laptop & Floating Subject Icons */}
+            <div className="w-36 sm:w-44 h-36 shrink-0 relative flex items-center justify-center">
+              {/* Floating Subject Icons Pill */}
+              <div className="absolute top-1 left-2 flex items-center gap-1 p-1 bg-white/90 rounded-full shadow-2xs border border-purple-100">
+                <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] flex items-center justify-center font-bold">⚛</span>
+                <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[10px] flex items-center justify-center font-bold">🐍</span>
+                <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] flex items-center justify-center font-bold">⚖️</span>
+              </div>
 
-                return (
-                  <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-xs hover:border-[#D8B4FE] hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
-                    <div className="space-y-3">
-                      {/* Top Meta: Stream Category & Status/Price */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#7E22CE]">
-                          <BookOpen className="w-3.5 h-3.5 text-[#9333EA]" />
-                          <span>
-                            {leftCard.streamBadge ||
-                              (selectedPromoStream === "ca"
-                                ? "CA Foundation • Paper 2"
-                                : "CSEET • Business Law")}
-                          </span>
-                        </div>
-
-                        {isStreamUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>Active Pass</span>
-                          </span>
-                        ) : (
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-sm font-black text-[#1F2937]">
-                              ₹{leftCard.price}
-                            </span>
-                            {leftCard.originalPrice && leftCard.originalPrice > leftCard.price && (
-                              <span className="text-xs text-[#9CA3AF] line-through font-mono">
-                                ₹{leftCard.originalPrice}
-                              </span>
-                            )}
-                            {leftCard.saveText && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                {leftCard.saveText}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Title & One-Line Description */}
-                      <div className="space-y-1">
-                        <h4 className="text-base sm:text-lg font-bold text-[#1F2937] leading-snug">
-                          {leftCard.title}
-                          {leftCard.subtitle && (
-                            <span className="text-[#6B7280] font-medium block sm:inline sm:ml-1 text-sm">
-                              • {leftCard.subtitle}
-                            </span>
-                          )}
-                        </h4>
-                        <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2">
-                          {leftCard.description ||
-                            "All statutory chapters in simple English, weekly solved case studies & 1.5-day LDR flowcharts."}
-                        </p>
-                      </div>
-
-                      {/* Minimal Features List */}
-                      {leftCard.features && leftCard.features.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] text-[#4B5563]">
-                          {leftCard.features.map((feat, idx) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center gap-1 bg-[#F9FAFB] px-2.5 py-1 rounded-lg border border-[#E5E7EB] font-medium"
-                            >
-                              <Check className="w-3 h-3 text-[#9333EA]" />
-                              <span>{feat}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bottom CTA Row */}
-                    <div className="pt-3 border-t border-[#F3F4F6] flex items-center justify-between gap-3">
-                      <span className="text-[11px] text-[#9CA3AF] font-medium">
-                        {isStreamUnlocked ? "In-Web Reader Ready" : "Full statutory access"}
-                      </span>
-
-                      {isStreamUnlocked ? (
-                        <button
-                          onClick={() => onExploreCourse(selectedPromoStream)}
-                          className="px-4 py-2 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
-                        >
-                          <span>Open Notes</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            if (onBuyCourse) {
-                              onBuyCourse(selectedPromoStream);
-                            } else {
-                              handleCardClick(leftCard);
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
-                        >
-                          <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                          <span>Unlock Pass • ₹{leftCard.price}</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Card 2: All-Access Dual Codex Pass (CA + CSEET Combo) */}
-              {rightCard.enabled !== false && (() => {
-                const isComboUnlocked = isCaUnlocked && isCsUnlocked;
-
-                return (
-                  <div className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#D8B4FE]/80 p-5 sm:p-6 shadow-xs hover:border-[#9333EA] hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
-                    {/* Subtle Top Gradient Accent Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#9333EA] via-[#A855F7] to-[#C084FC]" />
-
-                    <div className="space-y-3">
-                      {/* Top Meta: Value Badge & Status/Price */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#7E22CE]">
-                          <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
-                          <span>{rightCard.streamBadge || "Dual Pass • Best Value"}</span>
-                        </div>
-
-                        {isComboUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>All-Access Active</span>
-                          </span>
-                        ) : (
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-sm font-black text-[#1F2937]">
-                              ₹{rightCard.price}
-                            </span>
-                            {rightCard.originalPrice && rightCard.originalPrice > rightCard.price && (
-                              <span className="text-xs text-[#9CA3AF] line-through font-mono">
-                                ₹{rightCard.originalPrice}
-                              </span>
-                            )}
-                            {rightCard.saveText && (
-                              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                {rightCard.saveText}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Title & One-Line Description */}
-                      <div className="space-y-1">
-                        <h4 className="text-base sm:text-lg font-bold text-[#1F2937] leading-snug">
-                          {rightCard.title}
-                          {rightCard.subtitle && (
-                            <span className="text-[#6B7280] font-medium block sm:inline sm:ml-1 text-sm">
-                              • {rightCard.subtitle}
-                            </span>
-                          )}
-                        </h4>
-                        <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2">
-                          {rightCard.description ||
-                            "Unlimited access to both CA Foundation & CSEET notes, weekly solved cases and timed practice drills."}
-                        </p>
-                      </div>
-
-                      {/* Minimal Features List */}
-                      {rightCard.features && rightCard.features.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] text-[#4B5563]">
-                          {rightCard.features.map((feat, idx) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center gap-1 bg-[#FAF5FF] px-2.5 py-1 rounded-lg border border-[#EDE9FE] font-medium text-[#6B21A8]"
-                            >
-                              <Check className="w-3 h-3 text-[#9333EA]" />
-                              <span>{feat}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bottom CTA Row */}
-                    <div className="pt-3 border-t border-[#F3F4F6] flex items-center justify-between gap-3">
-                      <span className="text-[11px] text-[#9CA3AF] font-medium">
-                        {isComboUnlocked ? "Both CA & CS Unlocked" : "Includes both CA & CSEET"}
-                      </span>
-
-                      {isComboUnlocked ? (
-                        <button
-                          onClick={() => onExploreCourse(activeCourse)}
-                          className="px-4 py-2 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
-                        >
-                          <span>Browse All Notes</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            if (onBuyCourse) {
-                              onBuyCourse("all-access");
-                            } else {
-                              handleCardClick(rightCard);
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#7E22CE] to-[#9333EA] hover:from-[#6B21A8] hover:to-[#7E22CE] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-                          <span>{rightCard.buttonText || `Unlock All-Access • ₹${rightCard.price}`}</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
+              {/* Modern Vector Law Student Illustration */}
+              <svg viewBox="0 0 160 140" className="w-full h-full object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Soft backdrop circle */}
+                <circle cx="80" cy="70" r="55" fill="#EDE9FE" />
+                <circle cx="120" cy="40" r="16" fill="#FDE68A" fillOpacity="0.4" />
+                {/* Desk */}
+                <rect x="20" y="112" width="120" height="6" rx="3" fill="#D8B4FE" />
+                {/* Character Torso & Clothes */}
+                <path d="M52 112 C52 88, 62 82, 80 82 C98 82, 108 88, 108 112 Z" fill="#FBBF24" />
+                {/* Neck */}
+                <rect x="74" y="68" width="12" height="16" rx="2" fill="#D97706" fillOpacity="0.3" />
+                {/* Head */}
+                <circle cx="80" cy="56" r="18" fill="#FCD34D" />
+                {/* Hair */}
+                <path d="M62 52 C62 38, 70 34, 80 34 C92 34, 98 40, 98 52 C98 55, 96 64, 96 64 C92 56, 88 56, 80 56 C72 56, 68 56, 64 64 Z" fill="#1F2937" />
+                <path d="M62 50 C58 56, 56 68, 62 76" stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
+                <path d="M98 50 C102 56, 104 68, 98 76" stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
+                {/* Glasses / Face details */}
+                <circle cx="75" cy="54" r="3" fill="#1F2937" />
+                <circle cx="85" cy="54" r="3" fill="#1F2937" />
+                <path d="M78 62 Q80 65 82 62" stroke="#1F2937" strokeWidth="1.5" strokeLinecap="round" />
+                {/* Laptop on desk */}
+                <rect x="58" y="94" width="44" height="20" rx="3" fill="#E5E7EB" stroke="#CBD5E1" strokeWidth="1.5" />
+                <polygon points="50,114 110,114 104,111 56,111" fill="#94A3B8" />
+                {/* Floating Law Kaksha Codex Book */}
+                <rect x="110" y="88" width="22" height="24" rx="2" fill="#7E22CE" />
+                <rect x="113" y="91" width="16" height="18" rx="1" fill="#FAF5FF" />
+                <line x1="116" y1="96" x2="126" y2="96" stroke="#7E22CE" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="116" y1="100" x2="124" y2="100" stroke="#7E22CE" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </div>
-
           </div>
-        );
-      })()}
+        </div>
+
+        {/* RIGHT CARD: RICH ROYAL PURPLE SKILLS / COURSES PACK */}
+        <div className="lg:col-span-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#7E22CE] via-[#6B21A8] to-[#4C1D95] border border-[#7E22CE] p-5 sm:p-6 text-white shadow-xs flex flex-col justify-between group transition-all hover:shadow-md">
+          {/* Subtle background glow */}
+          <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-purple-400/20 blur-2xl pointer-events-none" />
+
+          <div className="space-y-3 relative z-10">
+            {/* Title matching screenshot vibe */}
+            <div>
+              <h2 className="text-lg sm:text-xl font-black leading-tight text-white">
+                Maximize your skills <br />
+                <span className="text-amber-200">
+                  on {selectedPromoStream === "ca" ? "CA Foundation Law" : "CSEET Business Law"}
+                </span>
+              </h2>
+            </div>
+
+            {/* Price Row */}
+            <div className="flex items-baseline gap-2 pt-0.5">
+              <span className="text-xs font-semibold text-purple-200">Price :</span>
+              <span className="text-base font-extrabold text-white">
+                ₹{rightCard.price || 799}
+              </span>
+              <span className="text-xs text-purple-300 line-through font-mono">
+                ₹{rightCard.originalPrice || 2100}
+              </span>
+            </div>
+
+            {/* Subtitle / Feature */}
+            <div className="flex items-center gap-1.5 text-[11px] text-purple-100 font-medium">
+              <span className="w-3.5 h-3.5 rounded-sm bg-white/20 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                ✓
+              </span>
+              <span className="truncate">
+                {rightCard.saveText ? `Increase Refund Validity by 1 Years* • ${rightCard.saveText}` : "Increase Refund Validity by 1 Years*"}
+              </span>
+            </div>
+          </div>
+
+          {/* Explore now CTA Button matching screenshot */}
+          <div className="pt-4 relative z-10">
+            <button
+              onClick={() => {
+                if ((selectedPromoStream === "ca" && isCaUnlocked) || (selectedPromoStream === "cs" && isCsUnlocked)) {
+                  onExploreCourse(selectedPromoStream);
+                } else if (onBuyCourse) {
+                  onBuyCourse(selectedPromoStream);
+                } else {
+                  handleCardClick(rightCard);
+                }
+              }}
+              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95 backdrop-blur-xs"
+            >
+              <span>
+                {(selectedPromoStream === "ca" && isCaUnlocked) || (selectedPromoStream === "cs" && isCsUnlocked)
+                  ? "Open Syllabus"
+                  : "Explore now"}
+              </span>
+              <ChevronRight className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* ========================================================================= */}
-      {/* 4. ENROLLED COURSES SECTION (EXACT SCREENSHOT LAYOUT & BUTTONS)           */}
+      {/* 2. ENROLLED COURSES (EXACT HEADER, SEARCH, ARROWS & CAROUSEL CARDS)        */}
       {/* ========================================================================= */}
       <div className="space-y-3.5">
         {/* Header with Search and Navigation Arrows */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-lg font-bold text-[#221D1D] tracking-tight">
+          <h3 className="text-xl font-black text-[#1F2937] tracking-tight">
             Enrolled Courses
           </h3>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* Search courses input */}
             <div className="relative">
               <input
@@ -1205,22 +492,22 @@ export function StudentDashboardHome({
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-3 pr-3 py-1.5 text-xs rounded-lg bg-white border border-[#E7E4E7] focus:outline-none focus:border-[#9333EA] w-48 sm:w-56 transition-all text-[#221D1D]"
+                className="pl-3.5 pr-3 py-1.5 text-xs rounded-xl bg-white border border-[#E7E4E7] focus:outline-none focus:border-[#7E22CE] w-48 sm:w-60 transition-all text-[#221D1D] shadow-2xs"
               />
             </div>
 
-            {/* Prev & Next Arrow Buttons */}
-            <div className="flex items-center gap-1">
+            {/* Circular Carousel Prev & Next Buttons */}
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => scrollCarousel("left")}
-                className="w-7 h-7 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] text-[#221D1D] flex items-center justify-center transition-colors cursor-pointer text-xs"
+                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Previous"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => scrollCarousel("right")}
-                className="w-7 h-7 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] text-[#221D1D] flex items-center justify-center transition-colors cursor-pointer text-xs"
+                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Next"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -1229,7 +516,7 @@ export function StudentDashboardHome({
           </div>
         </div>
 
-        {/* Carousel Courses Row */}
+        {/* Horizontal Carousel Row */}
         <div
           ref={carouselRef}
           className="flex items-stretch gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar touch-pan-x"
@@ -1238,60 +525,39 @@ export function StudentDashboardHome({
           {filteredCourses.map((c) => (
             <div
               key={c.id}
-              onClick={() => {
-                if (!c.isUnlocked) {
-                  if (onBuyCourse) {
-                    onBuyCourse(c.courseType === "shared" ? "all-access" : c.courseType);
-                  } else {
-                    onExploreCourse(c.courseType === "shared" ? "all-access" : c.courseType);
-                  }
-                }
-              }}
-              className={`w-[275px] sm:w-[305px] shrink-0 bg-white rounded-3xl border p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between ${
-                c.isUnlocked ? "border-[#E7E4E7]" : "border-amber-200/70 hover:border-amber-300 cursor-pointer"
-              }`}
+              className="w-[280px] sm:w-[315px] shrink-0 bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div className="space-y-3">
-                {/* Course Header: Icon + Title + Status Pill + Star */}
+                {/* Course Header: Icon + Title + Star */}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {/* App Icon matching theme */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* App Icon matching screenshot aesthetics */}
                     <div
-                      className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center text-white shrink-0 shadow-2xs`}
+                      className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center text-white shrink-0 shadow-xs`}
                     >
-                      <BookOpen className="w-6 h-6" />
+                      {c.iconType === "yellow" ? (
+                        <span className="text-xl">⚖️</span>
+                      ) : c.iconType === "dark" ? (
+                        <span className="text-xl">📜</span>
+                      ) : (
+                        <span className="text-xl">💼</span>
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        {c.isUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>Enrolled</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
-                            <Lock className="w-3 h-3 text-amber-700" />
-                            <span>Locked • ₹{c.price || 99}</span>
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-sm font-bold text-[#221D1D] truncate leading-tight">
+                      <h4 className="text-sm font-bold text-[#1F2937] truncate leading-snug">
                         {c.title}
                       </h4>
-                      <div className="flex items-center gap-1 text-[11px] text-[#77716E] mt-0.5">
-                        <Clock className="w-3 h-3" />
+                      <div className="flex items-center gap-1 text-[11px] text-[#6B7280] mt-0.5">
+                        <Clock className="w-3 h-3 text-[#9CA3AF]" />
                         <span>Self Paced</span>
                       </div>
                     </div>
                   </div>
 
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(c.id);
-                    }}
-                    className="text-[#9CA3AF] hover:text-[#F59E0B] p-1 cursor-pointer shrink-0"
+                    onClick={() => toggleFavorite(c.id)}
+                    className="text-[#9CA3AF] hover:text-[#F59E0B] p-1 cursor-pointer shrink-0 transition-colors"
                     aria-label="Favorite"
                   >
                     <Star
@@ -1302,25 +568,14 @@ export function StudentDashboardHome({
                   </button>
                 </div>
 
-                {/* Enrollment / Access Status */}
-                {c.isUnlocked ? (
-                  <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5">
-                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] flex items-center justify-center font-bold">
-                      ✓
-                    </span>
-                    <span>Full Syllabus Pass Active</span>
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-amber-800 font-medium flex items-center gap-1.5">
-                    <span className="w-3.5 h-3.5 rounded-full bg-amber-100 text-amber-800 text-[9px] flex items-center justify-center font-bold">
-                      🔒
-                    </span>
-                    <span>Course Pass Required to Study</span>
-                  </p>
-                )}
+                {/* Enrollment Date */}
+                <p className="text-[11px] text-[#6B7280] font-medium flex items-center gap-1.5 pt-0.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                  <span>{c.enrolledDate}</span>
+                </p>
 
                 {/* Course Progress with Info Icon and % */}
-                <div className="space-y-1 pt-1">
+                <div className="space-y-1.5 pt-1">
                   <div className="w-full bg-[#E5E7EB] rounded-full h-1.5 overflow-hidden">
                     <div
                       className={`${c.isUnlocked ? "bg-[#10B981]" : "bg-gray-300"} h-full rounded-full transition-all duration-500`}
@@ -1328,33 +583,23 @@ export function StudentDashboardHome({
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-[#77716E]">
+                  <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
                     <span className="flex items-center gap-1">
-                      {c.isUnlocked ? (
-                        <>
-                          <span className="w-3.5 h-3.5 rounded-full bg-[#9333EA] text-white text-[9px] flex items-center justify-center font-bold">
-                            i
-                          </span>
-                          <span>Course Progress</span>
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-3 h-3 text-[#9CA3AF]" />
-                          <span>Enrollment Required</span>
-                        </>
-                      )}
+                      <span className="w-3.5 h-3.5 rounded-full bg-[#7E22CE] text-white text-[9px] flex items-center justify-center font-bold">
+                        i
+                      </span>
+                      <span>Course Progress</span>
                     </span>
-                    <span className="font-bold text-[#221D1D]">{c.progress}%</span>
+                    <span className="font-bold text-[#1F2937]">{c.progress}%</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Button: Resume if purchased vs Unlock Pass if locked */}
+              {/* Full-Width Action Button: Vibrant Purple Resume ▶ */}
               <div className="pt-4">
                 {c.isUnlocked ? (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       onOpenPdf(
                         c.pdfUrl,
                         c.title,
@@ -1362,25 +607,24 @@ export function StudentDashboardHome({
                         c.courseType === "shared" ? activeCourse : c.courseType
                       );
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full py-2.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
-                    <span>Resume Reading</span>
+                    <span>Resume</span>
                     <Play className="w-3.5 h-3.5 fill-current text-white" />
                   </button>
                 ) : (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       if (onBuyCourse) {
                         onBuyCourse(c.courseType === "shared" ? "all-access" : c.courseType);
                       } else {
                         onExploreCourse(c.courseType === "shared" ? "all-access" : c.courseType);
                       }
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98 hover:scale-[1.01]"
+                    className="w-full py-2.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                    <span>Unlock Course • ₹{c.price || 99}</span>
+                    <span>Unlock Pass • ₹{c.price || 99}</span>
                   </button>
                 )}
               </div>
@@ -1390,14 +634,14 @@ export function StudentDashboardHome({
       </div>
 
       {/* ========================================================================= */}
-      {/* 5. RECOMMENDED FOR YOU (PURCHASE-GATED WITH CLEAN MINIMAL DESIGN)         */}
+      {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 CARDS AS IN SCREENSHOT)         */}
       {/* ========================================================================= */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-[#221D1D] tracking-tight">
+          <h3 className="text-xl font-black text-[#1F2937] tracking-tight">
             Recommended for You
           </h3>
-          <span className="text-xs text-[#77716E]">Official Study Material</span>
+          <span className="text-xs text-[#6B7280]">Curated Study Material</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1434,62 +678,44 @@ export function StudentDashboardHome({
                     }
                   }
                 }}
-                className={`relative bg-white rounded-3xl border p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group ${
-                  isItemUnlocked ? "border-[#E7E4E7]" : "border-amber-200/70 hover:border-amber-300"
-                }`}
+                className="relative bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
               >
-                {/* Large Faint Number in Top-Right Corner */}
-                <span className="absolute top-3 right-5 text-3xl font-extrabold text-[#E5E7EB] select-none pointer-events-none group-hover:text-[#D1D5DB] transition-colors">
+                {/* Large Faint Watermark Number in Top-Right Corner */}
+                <span className="absolute top-2 right-4 text-5xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
                   {item.num}
                 </span>
 
-                <div className="space-y-3 pr-8">
-                  <div className="flex items-center gap-2">
-                    {/* Dark Square Icon */}
-                    <div
-                      className={`w-10 h-10 rounded-2xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                    </div>
-
-                    <div>
-                      {isItemUnlocked ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Ready to Study</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80">
-                          <Lock className="w-3 h-3 text-amber-700" />
-                          <span>Pass Required • ₹99</span>
-                        </span>
-                      )}
-                    </div>
+                <div className="space-y-3 relative z-10 pr-6">
+                  {/* Dark App Icon Square */}
+                  <div
+                    className={`w-11 h-11 rounded-2xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
+                  >
+                    <IconComponent className="w-5 h-5" />
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-bold text-[#221D1D] group-hover:text-[#9333EA] transition-colors leading-snug">
+                    <h4 className="text-sm font-bold text-[#1F2937] group-hover:text-[#7E22CE] transition-colors leading-snug">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
+                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-2">
                       {item.subtitle}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#77716E]">
+                <div className="pt-3 mt-3 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
                   <span className="flex items-center gap-1 text-[11px]">
                     <Clock className="w-3 h-3 text-[#9CA3AF]" />
                     <span>Duration: {item.duration}</span>
                   </span>
                   {isItemUnlocked ? (
-                    <span className="text-[#9333EA] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                      <span>Open Notes</span>
-                      <ArrowRight className="w-3 h-3" />
+                    <span className="text-[#7E22CE] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                      <span>Open</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   ) : (
-                    <span className="text-amber-800 font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-amber-700" />
+                    <span className="text-[#B45309] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-[#B45309]" />
                       <span>Unlock Pass</span>
                     </span>
                   )}
@@ -1501,11 +727,11 @@ export function StudentDashboardHome({
       </div>
 
       {/* ========================================================================= */}
-      {/* 6. DAILY 1-MINUTE PRACTICE QUIZ (SUPER SIMPLE FOR 10TH PASSOUT)           */}
+      {/* 4. DAILY PRACTICE & STUDY DRILL (CLEAN & MINIMAL GAMIFICATION)             */}
       {/* ========================================================================= */}
       <div
         ref={quizSectionRef}
-        className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-3.5 scroll-mt-20"
+        className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-3.5"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1514,10 +740,10 @@ export function StudentDashboardHome({
               <span>Daily 1-Minute Quiz (+15 Points)</span>
             </span>
           </div>
-          <span className="text-xs font-bold text-[#9333EA]">Simple Law Question</span>
+          <span className="text-xs font-bold text-[#7E22CE]">ICAI / ICSI Pattern</span>
         </div>
 
-        <p className="text-sm font-semibold text-[#221D1D] leading-relaxed">
+        <p className="text-sm font-semibold text-[#1F2937] leading-relaxed">
           {qotdData?.question ||
             "Under Section 16(1) of Sale of Goods Act, when is a product expected to work properly for the buyer?"}
         </p>
@@ -1536,7 +762,7 @@ export function StudentDashboardHome({
                 btnStyle = "bg-[#FEE2E2] border-[#EF4444] text-[#991B1B]";
               else btnStyle = "bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF]";
             } else if (isChosen) {
-              btnStyle = "bg-[#F3E8FF] border-[#9333EA] text-[#581C87] font-bold";
+              btnStyle = "bg-[#FAF5FF] border-[#7E22CE] text-[#581C87] font-bold";
             }
 
             return (
@@ -1561,9 +787,9 @@ export function StudentDashboardHome({
         </div>
 
         {qotdSubmitted && (
-          <div className="p-3 bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] text-xs text-[#374151] leading-relaxed">
-            <p className="font-bold text-[#111827]">Explanation in Simple Words:</p>
-            <p className="mt-0.5">{qotdData?.explanation}</p>
+          <div className="p-3 bg-[#FAF5FF] rounded-xl border border-[#E9DDF5] text-xs text-[#374151] leading-relaxed">
+            <p className="font-bold text-[#1F2937]">Explanation in Simple Words:</p>
+            <p className="mt-0.5 text-[#4B5563]">{qotdData?.explanation}</p>
           </div>
         )}
       </div>
