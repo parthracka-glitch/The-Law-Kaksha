@@ -37,9 +37,23 @@ export async function GET(
       return NextResponse.json({ error: "PDF not found" }, { status: 404 });
     }
 
+    // SECURITY DRM: Prevent direct browser file download / Save As.
+    // If accessed as a browser navigation (new tab, address bar, or standard link click),
+    // redirect directly to the in-portal DRM Protected Reader where downloading is disabled.
+    const dest = request.headers.get("sec-fetch-dest");
+    const mode = request.headers.get("sec-fetch-mode");
+    const accept = request.headers.get("accept") || "";
+
+    if (dest === "document" || mode === "navigate" || accept.includes("text/html")) {
+      return NextResponse.redirect(
+        new URL(`/reader?file=${encodeURIComponent(safeFilename)}`, request.url),
+        307
+      );
+    }
+
     const fileBuffer = await fs.promises.readFile(filePath);
 
-    // If base64 format requested, return robust JSON with raw base64 string
+    // If base64 format requested, return robust JSON with raw base64 string for Canvas PDF.js renderer
     if (format === "base64" || request.headers.get("accept")?.includes("application/json")) {
       return NextResponse.json({
         filename: safeFilename,
@@ -48,15 +62,19 @@ export async function GET(
       });
     }
 
-    // Default binary streaming response
+    // Default binary streaming response (protected for in-app PDF.js fetch)
     return new NextResponse(fileBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Length": fileBuffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=86400, immutable",
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
         "Accept-Ranges": "none",
-        "Content-Disposition": `inline; filename="${safeFilename}"`,
+        "Content-Disposition": `inline; filename="lk-protected-${safeFilename}"`,
       },
     });
   } catch (error: any) {

@@ -10,13 +10,16 @@ import {
   Lock, BookMarked, Calendar, Edit3, User, Menu, X,
   Trophy, Award, Zap, ChevronRight, Search, CheckSquare,
   Square, BarChart3, HelpCircle, ShieldCheck, Share2, PlayCircle, Star, ExternalLink,
-  ShoppingBag
+  ShoppingBag, CreditCard
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { StudentProfileModal, StudentProfileData } from "@/components/StudentProfileModal";
 import { StreakCalendarModal } from "@/components/StreakCalendarModal";
+import { StudentSidebar } from "@/components/student/StudentSidebar";
+import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
+import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
 
 interface ChapterUnit {
   unitNumber: number;
@@ -392,15 +395,18 @@ const DAILY_QOTD_DATA = {
   xpReward: 15,
 };
 
-type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr";
+type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr" | "certificates" | "refer" | "purchases";
 
 const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
   { id: "home", label: "Dashboard", icon: LayoutDashboard },
   { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-  { id: "mastery", label: "Syllabus Mastery", icon: CheckSquare, badge: "Progress" },
+  { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
   { id: "cases", label: "Case Studies", icon: Flame },
-  { id: "mcqtest", label: "MCQ Test", icon: Sparkles },
-  { id: "ldr", label: "Last Day Revision", icon: Bookmark },
+  { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
+  { id: "ldr", label: "Build Resume", icon: FileText },
+  { id: "certificates", label: "Certificates", icon: Award },
+  { id: "refer", label: "Refer and Earn", icon: Share2 },
+  { id: "purchases", label: "Purchase History", icon: CreditCard },
 ];
 
 export default function StudentDashboardPage() {
@@ -528,8 +534,20 @@ export default function StudentDashboardPage() {
   const hasActiveCourseAccess = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
   const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management";
 
-  const handleBuyCourse = (courseType: "ca" | "cs") => {
-    if (courseType === "ca") {
+  const handleBuyCourse = (courseType: "ca" | "cs" | "all-access") => {
+    if (courseType === "all-access") {
+      addToCart({
+        id: "prod-combo",
+        title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
+        format: "pdf",
+        price: 180,
+        originalPrice: 499,
+        category: "Full Course Subscription",
+        badge: "Dual Pass • 15 Chapters",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else if (courseType === "ca") {
       addToCart({
         id: "course-ca-foundation-sub",
         title: "CA Foundation Business Laws Master Pass",
@@ -539,6 +557,8 @@ export default function StudentDashboardPage() {
         category: "Full Course Subscription",
         badge: "Paper 2 • 7 Chapters",
       });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
     } else {
       addToCart({
         id: "course-cseet-sub",
@@ -549,6 +569,8 @@ export default function StudentDashboardPage() {
         category: "Full Course Subscription",
         badge: "ICSI • 8 Units",
       });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
     }
   };
 
@@ -613,12 +635,23 @@ export default function StudentDashboardPage() {
     isSamplePreview?: boolean,
     previewPagesLimit?: number,
     price?: number,
-    onBuy?: () => void
+    onBuy?: () => void,
+    courseType?: "ca" | "cs" | "shared"
   ) => {
     // Gate: require active course purchase (unless sample / admin bypass)
-    const isUnlocked = hasActiveCourseAccess || bypassLock;
+    const stream = courseType && courseType !== "shared" ? courseType : activeCourse;
+    const isUnlocked =
+      isAdminUser ||
+      bypassLock ||
+      (courseType === "shared"
+        ? (isCaUnlocked || isCsUnlocked)
+        : (stream === "ca" ? isCaUnlocked : isCsUnlocked));
+
     if (!isUnlocked && !isSamplePreview) {
-      setLockedPrompt({ open: true, courseName: activeCourseName });
+      setLockedPrompt({
+        open: true,
+        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management",
+      });
       return;
     }
     const newLastRead = {
@@ -639,7 +672,7 @@ export default function StudentDashboardPage() {
       previewPagesLimit: isUnlocked ? undefined : (previewPagesLimit || 5),
       isPurchased: isUnlocked,
       price: price || 99,
-      onBuy,
+      onBuy: onBuy || (() => handleBuyCourse(stream === "ca" ? "ca" : "cs")),
     });
     awardXp(10, `Reading Session: ${title}`);
   };
@@ -939,141 +972,17 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* MOBILE SIDEBAR BACKDROP */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-[#E7E4E7] flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        {/* TOP: LOGO + STUDENT PROFILE TRIGGER */}
-        <div className="px-4 pt-5 pb-4 border-b border-[#E7E4E7]">
-          <div className="flex items-center justify-between gap-2">
-            <Link href="/" className="flex items-center shrink-0">
-              <div className="relative h-8 w-28">
-                <Image src="/assets/logo-transparent.png" alt="The Law Kaksha" fill className="object-contain object-left" priority />
-              </div>
-            </Link>
-            <button
-              onClick={() => setProfileModalOpen(true)}
-              title="Click to view & edit your student profile"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] border border-[#E7E4E7] text-left transition-all cursor-pointer group min-w-0"
-            >
-              <div className="w-5 h-5 rounded-full bg-[#AED7E9] text-[#221D1D] text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs">
-                {initials}
-              </div>
-              <span className="text-xs font-bold text-[#221D1D] truncate max-w-[75px]">
-                {studentName.split(" ")[0]}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* NAVIGATION LINKS */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-150 cursor-pointer text-left min-h-[44px] ${
-                  isActive ? "bg-[#AED7E9]/30 text-[#221D1D] font-bold shadow-xs border border-[#AED7E9]" : "text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
-                }`}
-              >
-                <Icon className={`shrink-0 ${isActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 18, height: 18 }} />
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5]">
-                    {item.badge}
-                  </span>
-                )}
-                {isActive && !item.badge && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#4B8097]" />}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* SIDEBAR BOTTOM: GAMIFIED XP & STREAK CARDS */}
-        <div className="p-3.5 border-t border-[#E7E4E7] space-y-2.5">
-          {/* LEVEL & XP PROGRESS PILL */}
-          <div
-            onClick={() => setBadgesModalOpen(true)}
-            className="p-2.5 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] hover:border-[#AED7E9] transition-all cursor-pointer group"
-            title="Click to view all Milestone Badges & Rank Perks"
-          >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5 text-[#F7892A]" />
-                <span className="text-xs font-bold text-[#221D1D] leading-none">Lv. {levelInfo.level} {levelInfo.title}</span>
-              </div>
-              <span className="text-[10px] font-bold text-[#4B8097]">{lawXp} XP</span>
-            </div>
-            <div className="w-full bg-[#E7E4E7] rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-[#AED7E9] h-full rounded-full transition-all duration-500"
-                style={{ width: `${levelInfo.progress}%` }}
-              />
-            </div>
-            <p className="text-[9.5px] text-[#77716E] mt-1 flex items-center justify-between">
-              <span>{levelInfo.progress}% to Next Rank</span>
-              <span className="font-semibold text-[#4B8097] underline">View Badges</span>
-            </p>
-          </div>
-
-          {/* STREAK CARD WITH CALENDAR TRIGGER */}
-          <button
-            type="button"
-            onClick={() => setStreakModalOpen(true)}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] hover:border-[#AED7E9] transition-all duration-150 cursor-pointer text-left group shadow-xs"
-            title="Click to open Streak Calendar"
-          >
-            <div className="w-7 h-7 rounded-xl bg-[#F7892A] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-              <Flame className="w-4 h-4 text-white animate-pulse" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-[#221D1D] leading-tight">{streak} Day Streak</p>
-                <Calendar className="w-3 h-3 text-[#77716E] group-hover:text-[#221D1D] transition-colors" />
-              </div>
-              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">Keep habit burning! · Open Log</p>
-            </div>
-          </button>
-
-          {/* ACTIVE STUDENT PROFILE TRIGGER */}
-          <div
-            onClick={() => setProfileModalOpen(true)}
-            className="flex items-center gap-2.5 p-2 rounded-2xl hover:bg-[#F7F7F5] border border-transparent hover:border-[#E7E4E7] transition-all duration-150 cursor-pointer group"
-          >
-            <div className="w-7 h-7 rounded-full bg-[#AED7E9]/30 text-[#4B8097] text-xs font-bold flex items-center justify-center shrink-0 shadow-xs border border-[#AED7E9]">
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#221D1D] truncate group-hover:text-[#4B8097] transition-colors">
-                {studentName}
-              </p>
-              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">Enrolled Student</p>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLogout();
-              }}
-              title="Log Out"
-              className="p-1.5 rounded-lg text-[#77716E] hover:text-[#C35F3B] hover:bg-[#F4C5C0]/30 transition-colors cursor-pointer shrink-0"
-              aria-label="Log Out"
-            >
-              <LogOut style={{ width: 14, height: 14 }} />
-            </button>
-          </div>
-        </div>
-      </aside>
+      {/* TUTEDUDE STYLE PREMIUM STUDENT SIDEBAR */}
+      <StudentSidebar
+        activeTab={activeTab}
+        onSelectTab={(tabId) => setActiveTab(tabId as TabType)}
+        studentName={studentName}
+        initials={initials}
+        onOpenProfile={() => setProfileModalOpen(true)}
+        onLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+        onCloseSidebar={() => setSidebarOpen(false)}
+      />
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
@@ -1132,7 +1041,7 @@ export default function StudentDashboardPage() {
           </div>
         </header>
 
-        <div className="p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 max-w-6xl">
+        <div className={`p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
 
           {/* COURSE ACCESS STATUS BANNER */}
           {!hasActiveCourseAccess && (
@@ -1168,420 +1077,85 @@ export default function StudentDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 1: DASHBOARD HOME (COMMAND CENTER & QUICK RESUME)                      */}
+          {/* TAB 1: DASHBOARD HOME (3-COLUMN TUTEDUDE EDTECH SUITE AS REQUESTED)        */}
           {/* ========================================================================= */}
           {activeTab === "home" && (
-            <div className="space-y-6">
+            <div className="flex flex-col xl:flex-row gap-6 items-start w-full">
+              {/* CENTER COLUMN: PROMO BANNERS, ENROLLED COURSES CAROUSEL & RECOMMENDED */}
+              <div className="flex-1 min-w-0 space-y-6 w-full">
+                <StudentDashboardHome
+                  studentName={studentName}
+                  streak={streak}
+                  longestStreak={Math.max(streak, 4)}
+                  lawXp={lawXp}
+                  levelInfo={levelInfo}
+                  awardXp={awardXp}
+                  onOpenStreakLog={() => setStreakModalOpen(true)}
+                  onOpenBadgesModal={() => setBadgesModalOpen(true)}
+                  onOpenPdf={(url, title, subtitle, courseType) => {
+                    const stream = courseType || activeCourse;
+                    const isUnlocked =
+                      isAdminUser ||
+                      (stream === "ca"
+                        ? isCaUnlocked
+                        : stream === "cs"
+                        ? isCsUnlocked
+                        : isCaUnlocked || isCsUnlocked);
 
-              {/* WELCOME HERO & STATS BANNER */}
-              <div className="rounded-3xl bg-[#AED7E9] p-6 sm:p-7 text-[#221D1D] shadow-sm relative overflow-hidden border border-[#AED7E9]">
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="space-y-1.5 max-w-lg">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 text-[#221D1D] border border-white text-xs font-semibold backdrop-blur-xs">
-                      <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
-                      <span>{activeCourse === "ca" ? "ICAI Paper 2 Portal" : "ICSI CSEET Portal"}</span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[#221D1D]">
-                      Namaste, {studentName}!
-                    </h2>
-                    <p className="text-[#4D433F] text-xs sm:text-sm leading-relaxed">
-                      {activeCourse === "ca"
-                        ? "Master all 7 ICAI Business Law acts with high-yield case precedents & timed MCQ drills."
-                        : "Comprehensive 8 Units of Business Law & General Management with exam-ready flowcharts."}
-                    </p>
-                  </div>
-
-                  {/* Top Stats Trio */}
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3 shrink-0">
-                    <div
-                      onClick={() => setStreakModalOpen(true)}
-                      className="bg-white/80 hover:bg-white backdrop-blur-xs rounded-2xl p-3 sm:p-3.5 text-center cursor-pointer transition-all border border-white/60 shadow-xs"
-                    >
-                      <Flame className="w-5 h-5 text-[#F7892A] mx-auto mb-1 animate-pulse" />
-                      <p className="text-lg sm:text-xl font-bold text-[#221D1D]">{streak}</p>
-                      <p className="text-[9px] sm:text-[10px] text-[#77716E] uppercase tracking-wide font-medium">Day Streak</p>
-                    </div>
-
-                    <div
-                      onClick={() => setBadgesModalOpen(true)}
-                      className="bg-white/80 hover:bg-white backdrop-blur-xs rounded-2xl p-3 sm:p-3.5 text-center cursor-pointer transition-all border border-white/60 shadow-xs"
-                    >
-                      <Trophy className="w-5 h-5 text-[#221D1D] mx-auto mb-1" />
-                      <p className="text-lg sm:text-xl font-bold text-[#221D1D]">{lawXp}</p>
-                      <p className="text-[9px] sm:text-[10px] text-[#77716E] uppercase tracking-wide font-medium">LawXP</p>
-                    </div>
-
-                    <div
-                      onClick={() => setActiveTab("mastery")}
-                      className="bg-white/80 hover:bg-white backdrop-blur-xs rounded-2xl p-3 sm:p-3.5 text-center cursor-pointer transition-all border border-white/60 shadow-xs"
-                    >
-                      <Award className="w-5 h-5 text-[#221D1D] mx-auto mb-1" />
-                      <p className="text-lg sm:text-xl font-bold text-[#221D1D]">{masteryPercent}%</p>
-                      <p className="text-[9px] sm:text-[10px] text-[#77716E] uppercase tracking-wide font-medium">Mastery</p>
-                    </div>
-                  </div>
-                </div>
+                    if (isUnlocked) {
+                      handleOpenPdf(url, title, subtitle || "", true, false, undefined, undefined, undefined, stream);
+                    } else {
+                      setLockedPrompt({
+                        open: true,
+                        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management",
+                      });
+                    }
+                  }}
+                  activeCourse={activeCourse}
+                  onExploreCourse={(courseId) => {
+                    if (courseId === "all-access") {
+                      handleBuyCourse("all-access");
+                    } else if (courseId.includes("ca")) {
+                      setActiveCourse("ca");
+                      setActiveTab("chapters");
+                    } else {
+                      setActiveCourse("cs");
+                      setActiveTab("chapters");
+                    }
+                  }}
+                  qotdData={DAILY_QOTD_DATA}
+                  qotdSelected={qotdSelected}
+                  qotdSubmitted={qotdSubmitted}
+                  onSelectQotdOption={(idx) => {
+                    setQotdSelected(idx);
+                    setQotdSubmitted(true);
+                    if (idx === DAILY_QOTD_DATA.correctIndex) {
+                      awardXp(DAILY_QOTD_DATA.xpReward, "QOTD Answered Correctly! 🎉");
+                    } else {
+                      awardXp(5, "QOTD Attempted (+5 XP)");
+                    }
+                  }}
+                  onSubmitQotd={() => {}}
+                  completedUnitsCount={completedCount}
+                  totalUnitsCount={totalUnitsCount}
+                  isCaUnlocked={isCaUnlocked}
+                  isCsUnlocked={isCsUnlocked}
+                  isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
+                  onBuyCourse={(courseType) => handleBuyCourse(courseType)}
+                />
               </div>
 
-              {/* 🚀 QUICK RESUME HERO CARD ("CONTINUE WHERE YOU LEFT OFF") */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-xs relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5 hover:border-[#AED7E9] transition-all">
-                <div className="space-y-2 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
-                      <PlayCircle className="w-3 h-3 text-[#221D1D]" /> Quick Resume
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#221D1D] bg-[#F7892A]/15 px-2 py-0.5 rounded-full border border-[#F7892A]/40">
-                      <Flame className="w-3 h-3 text-[#F7892A]" />
-                      <span>👥 142 students studying this Act today</span>
-                    </span>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-serif font-bold text-[#221D1D] truncate">
-                    {lastRead.title}
-                  </h3>
-                  <p className="text-xs text-[#4D433F] truncate">
-                    {lastRead.subtitle}
-                  </p>
-                  {/* Progress Line */}
-                  <div className="w-full max-w-md bg-[#F7F7F5] rounded-full h-2 overflow-hidden mt-2 border border-[#E7E4E7]">
-                    <div className="bg-[#AED7E9] h-full rounded-full" style={{ width: `${lastRead.progress}%` }} />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  {hasActiveCourseAccess ? (
-                    <button
-                      onClick={() => handleOpenPdf(lastRead.pdfUrl, lastRead.title, lastRead.subtitle)}
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs transition-all cursor-pointer group"
-                    >
-                      <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      <span>Resume Study (DRM Reader)</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-xs transition-all cursor-pointer group"
-                    >
-                      <Lock className="w-4 h-4 text-[#AED7E9]" />
-                      <span>Unlock {activeCourse === "ca" ? "CA Foundation" : "CSEET"} (₹99)</span>
-                    </button>
-                  )}
-                </div>
+              {/* RIGHT COLUMN: STREAK CARDS, INTERACTIVE CALENDAR & LIVE LEADERBOARD */}
+              <div className="w-full xl:w-[320px] 2xl:w-[350px] shrink-0">
+                <StudentRightSidebar
+                  streak={streak}
+                  longestStreak={Math.max(streak, 4)}
+                  studentName={studentName}
+                  studyHours={Math.max(10, Math.round(lawXp / 25))}
+                  userRank={57479}
+                  onOpenStreakLog={() => setStreakModalOpen(true)}
+                />
               </div>
-
-              {/* 🎯 DAILY QUESTION OF THE DAY (QOTD) & SOCIAL PROOF GRID */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* 2 Cols: Interactive QOTD Micro-Drill */}
-                <div className="lg:col-span-2 bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-[#F7892A]/15 text-[#221D1D] border border-[#F7892A]/40 flex items-center gap-1">
-                        <Zap className="w-3.5 h-3.5 text-[#F7892A] fill-[#F7892A]" /> Daily Micro-Drill (+{DAILY_QOTD_DATA.xpReward} XP)
-                      </span>
-                      <span className="text-xs text-[#77716E] font-mono">{DAILY_QOTD_DATA.section}</span>
-                    </div>
-                    <span className="text-xs font-bold text-[#4B8097]">{DAILY_QOTD_DATA.subject}</span>
-                  </div>
-
-                  <p className="text-sm font-semibold text-[#221D1D] leading-relaxed">
-                    {DAILY_QOTD_DATA.question}
-                  </p>
-
-                  <div className="space-y-2 pt-1">
-                    {DAILY_QOTD_DATA.options.map((opt, idx) => {
-                      const isChosen = qotdSelected === idx;
-                      const isCorrect = idx === DAILY_QOTD_DATA.correctIndex;
-                      let btnStyle = "bg-[#F7F7F5] border-[#E7E4E7] text-[#4D433F] hover:bg-white";
-
-                      if (qotdSubmitted) {
-                        if (isCorrect) btnStyle = "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D] font-semibold";
-                        else if (isChosen) btnStyle = "bg-[#F4C5C0]/40 border-[#F4C5C0] text-[#C35F3B]";
-                        else btnStyle = "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E] opacity-60";
-                      } else if (isChosen) {
-                        btnStyle = "bg-[#BFAFE5]/40 border-[#BFAFE5] text-[#221D1D] font-semibold";
-                      }
-
-                      return (
-                        <button
-                          key={idx}
-                          disabled={qotdSubmitted}
-                          onClick={() => {
-                            setQotdSelected(idx);
-                            setQotdSubmitted(true);
-                            if (idx === DAILY_QOTD_DATA.correctIndex) {
-                              awardXp(DAILY_QOTD_DATA.xpReward, "QOTD Answered Correctly! 🎉");
-                            } else {
-                              awardXp(5, "QOTD Attempted (+5 XP)");
-                            }
-                          }}
-                          className={`w-full text-left p-3 rounded-2xl border text-xs transition-all cursor-pointer flex items-center justify-between ${btnStyle}`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className="w-5 h-5 rounded-full bg-white border border-[#E7E4E7] text-[10px] font-bold flex items-center justify-center shrink-0">
-                              {String.fromCharCode(65 + idx)}
-                            </span>
-                            <span>{opt}</span>
-                          </div>
-                          {qotdSubmitted && isCorrect && <CheckCircle2 className="w-4 h-4 text-[#4B8097] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {qotdSubmitted && (
-                    <div className="p-3.5 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-xs text-[#221D1D] leading-relaxed space-y-1">
-                      <p className="font-bold flex items-center gap-1 text-[#221D1D]">
-                        <BookMarked className="w-3.5 h-3.5 text-[#4B8097]" /> ICAI / ICSI Statutory Reference:
-                      </p>
-                      <p className="text-[#4D433F]">{DAILY_QOTD_DATA.explanation}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* 1 Col: Live Peer Activity & Social Proof */}
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#4B8097] animate-ping" />
-                      <h3 className="text-sm font-serif font-bold text-[#221D1D]">Live Peer Activity</h3>
-                    </div>
-                    <p className="text-xs text-[#77716E]">
-                      Real-time peer study indicators across enrolled students.
-                    </p>
-
-                    <div className="space-y-2.5 pt-2">
-                      <div className="p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#F4C5C0]/40 text-[#C35F3B] flex items-center justify-center shrink-0 font-bold text-xs">
-                          🔥
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#221D1D]">186 Students</p>
-                          <p className="text-[10.5px] text-[#77716E] truncate">Contract Act (Sec 73 Damages)</p>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center shrink-0 font-bold text-xs">
-                          ⚡
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#221D1D]">89 MCQ Drills</p>
-                          <p className="text-[10.5px] text-[#77716E] truncate">Completed in last 24 hours</p>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center shrink-0 font-bold text-xs">
-                          ⭐
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#221D1D]">96% Accuracy</p>
-                          <p className="text-[10.5px] text-[#77716E] truncate">Partnership Act True Test (Sec 6)</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setActiveTab("mcqtest")}
-                    className="w-full py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>Take Today&apos;s MCQ Drill</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* 4 FEATURE QUICK LAUNCH TILES */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {([
-                  { tab: "chapters" as TabType, icon: BookOpen, iconBg: "bg-[#C4E1EC]/60", iconColor: "text-[#221D1D]", title: "Chapter Notes", desc: `${chaptersList.length} master acts & codices` },
-                  { tab: "mastery" as TabType, icon: CheckSquare, iconBg: "bg-[#BFAFE5]/40", iconColor: "text-[#221D1D]", title: "Syllabus Mastery", desc: `${completedCount} of ${totalUnitsCount} units completed` },
-                  { tab: "cases" as TabType, icon: Flame, iconBg: "bg-[#F4C5C0]/40", iconColor: "text-[#C35F3B]", title: "Weekly Case Studies", desc: "3 high-yield precedent drills" },
-                  { tab: "ldr" as TabType, icon: Bookmark, iconBg: "bg-[#AED7E9]/40", iconColor: "text-[#221D1D]", title: "Last Day Revision", desc: "Flowcharts & visual matrix" },
-                ] as const).map((card) => {
-                  const Icon = card.icon;
-                  return (
-                    <button
-                      key={card.tab}
-                      onClick={() => setActiveTab(card.tab)}
-                      className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer group flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className={`w-10 h-10 rounded-2xl ${card.iconBg} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
-                          <Icon className={`w-5 h-5 ${card.iconColor}`} />
-                        </div>
-                        <h3 className="text-sm font-serif font-bold text-[#221D1D] group-hover:text-[#4B8097] transition-colors">{card.title}</h3>
-                        <p className="text-xs text-[#77716E] mt-0.5">{card.desc}</p>
-                      </div>
-                      <div className="mt-4 pt-2 border-t border-[#E7E4E7] flex items-center justify-between text-xs font-semibold text-[#4B8097] group-hover:translate-x-0.5 transition-transform">
-                        <span>Open Hub</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* SUBSCRIPTION STATUS & ACTIVE ENROLLMENT CARD */}
-              <div className={`rounded-3xl border p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs ${
-                hasActiveCourseAccess ? "bg-white border-[#AED7E9]" : "bg-linear-to-r from-amber-50 to-[#AED7E9]/20 border-[#AED7E9]"
-              }`}>
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                    hasActiveCourseAccess ? "bg-[#AED7E9]/30 text-[#4B8097]" : "bg-[#F4C5C0]/40 text-[#C35F3B]"
-                  }`}>
-                    {hasActiveCourseAccess ? (
-                      <CheckCircle2 className="w-5 h-5" />
-                    ) : (
-                      <Lock className="w-5 h-5" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#221D1D]">
-                      {hasActiveCourseAccess
-                        ? `${activeCourseName} — Active Enrollment`
-                        : `${activeCourseName} — Preview Mode`}
-                    </p>
-                    <p className="text-xs text-[#77716E] mt-0.5">
-                      {hasActiveCourseAccess
-                        ? "DRM Watermarked In-Web Reader enabled for all codified chapter notes & examination mocks."
-                        : "Unlock this course to read all units, view model answers, and take weekly timed mock tests."}
-                    </p>
-                  </div>
-                </div>
-                {hasActiveCourseAccess ? (
-                  <button
-                    onClick={() => setActiveTab("chapters")}
-                    className="px-4 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-colors cursor-pointer shrink-0"
-                  >
-                    Open Chapter Notes
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleBuyCourse(activeCourse)}
-                    className="px-4 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5 text-[#AED7E9]" />
-                    <span>Buy Course • ₹99</span>
-                  </button>
-                )}
-              </div>
-
-              {/* COURSE STORE: BROWSE & BUY OTHER COURSES */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E7E4E7]">
-                  <div>
-                    <h3 className="text-base font-serif font-bold text-[#221D1D] flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4 text-[#4B8097]" />
-                      <span>Academic Portals &amp; Course Store</span>
-                    </h3>
-                    <p className="text-xs text-[#77716E] mt-0.5">
-                      Add and unlock courses directly from your dashboard. After payment, materials unlock instantly.
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-bold text-[#4B8097] self-start sm:self-auto bg-[#AED7E9]/30 px-2.5 py-1 rounded-full border border-[#AED7E9]">
-                    {isCaUnlocked && isCsUnlocked
-                      ? "✓ All Streams Unlocked"
-                      : isCaUnlocked
-                      ? "CA Active • CSEET Available"
-                      : isCsUnlocked
-                      ? "CSEET Active • CA Available"
-                      : "Preview Mode"}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* CA Foundation Stream Card */}
-                  <div className="p-4 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] flex flex-col justify-between space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097]">ICAI Paper 2</span>
-                        <h4 className="text-sm font-serif font-bold text-[#221D1D] mt-0.5">CA Foundation Business Laws</h4>
-                        <p className="text-xs text-[#4D433F] mt-1 leading-relaxed">
-                          All 7 statutory acts, case studies, weekly tests &amp; 1.5-day LDR flowcharts.
-                        </p>
-                      </div>
-                      {isCaUnlocked ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9] flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Enrolled
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1 shrink-0">
-                          <Lock className="w-3 h-3" /> Locked
-                        </span>
-                      )}
-                    </div>
-                    <div className="pt-2 border-t border-[#E7E4E7] flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-[#221D1D]">₹99 / month</span>
-                      {isCaUnlocked ? (
-                        <button
-                          onClick={() => {
-                            setActiveCourse("ca");
-                            setActiveTab("chapters");
-                          }}
-                          className="px-4 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Study CA Notes
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleBuyCourse("ca")}
-                          className="px-4 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5 text-[#AED7E9]" />
-                          <span>Buy Course (₹99)</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* CSEET Stream Card */}
-                  <div className="p-4 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] flex flex-col justify-between space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097]">ICSI Paper 2</span>
-                        <h4 className="text-sm font-serif font-bold text-[#221D1D] mt-0.5">CSEET Business Law &amp; Management</h4>
-                        <p className="text-xs text-[#4D433F] mt-1 leading-relaxed">
-                          All 8 units, management principles, weekly 30-MCQ timed drills &amp; revision deck.
-                        </p>
-                      </div>
-                      {isCsUnlocked ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9] flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Enrolled
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1 shrink-0">
-                          <Lock className="w-3 h-3" /> Locked
-                        </span>
-                      )}
-                    </div>
-                    <div className="pt-2 border-t border-[#E7E4E7] flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-[#221D1D]">₹99 / month</span>
-                      {isCsUnlocked ? (
-                        <button
-                          onClick={() => {
-                            setActiveCourse("cs");
-                            setActiveTab("chapters");
-                          }}
-                          className="px-4 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Study CSEET Notes
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleBuyCourse("cs")}
-                          className="px-4 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5 text-[#AED7E9]" />
-                          <span>Buy Course (₹99)</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
           )}
 
@@ -2365,6 +1939,229 @@ export default function StudentDashboardPage() {
             </div>
           )}
 
+          {/* ========================================================================= */}
+          {/* TAB: CERTIFICATES (OFFICIAL CREDENTIALS & ACHIEVEMENTS)                   */}
+          {/* ========================================================================= */}
+          {activeTab === "certificates" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+                <div>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
+                    <Award className="w-5 h-5 text-[#4B8097]" />
+                    <span>Academic Certificates &amp; Verifiable Credentials</span>
+                  </h2>
+                  <p className="text-xs text-[#77716E] mt-0.5">
+                    Official completion credentials issued by The Law Kaksha for mastery of Indian Statutory Laws.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Certificate 1: CA Foundation Business Laws */}
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
+                        Verified Credential
+                      </span>
+                      <span className="text-xs font-mono text-[#77716E]">TLK-CA-2026-8942</span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
+                        CA Foundation Paper 2: Business Laws Master
+                      </h3>
+                      <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
+                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful completion of the codified curriculum including Contract Act 1872, Sale of Goods 1930, and Partnership 1932.
+                      </p>
+                    </div>
+                    <div className="p-3 bg-[#F7F7F5] rounded-2xl border border-[#E7E4E7] text-[11px] text-[#221D1D] flex items-center justify-between font-medium">
+                      <span>Curriculum Score: 94%</span>
+                      <span className="text-[#77716E]">Issued: 2nd October 2026</span>
+                    </div>
+                  </div>
+                  <div className="pt-5 mt-5 border-t border-[#E7E4E7] flex items-center gap-3">
+                    <button
+                      onClick={() => alert("Certificate verified cryptographically on The Law Kaksha student ledger.")}
+                      className="flex-1 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs text-center"
+                    >
+                      Verify Credential
+                    </button>
+                    <button
+                      onClick={() => alert("Generating official watermarked PDF certificate...")}
+                      className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Download PDF
+                    </button>
+                  </div>
+                </div>
+
+                {/* Certificate 2: CSEET Stream */}
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]">
+                        In Progress (85%)
+                      </span>
+                      <span className="text-xs font-mono text-[#77716E]">TLK-CS-PENDING</span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
+                        CSEET Legal Aptitude &amp; General Management
+                      </h3>
+                      <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
+                        Covers all 8 Units including Company Law 2013, Negotiable Instruments 1881, and Henri Fayol&apos;s Principles. Complete remaining mock drills to unlock.
+                      </p>
+                    </div>
+                    <div className="w-full bg-[#F7F7F5] rounded-full h-2 overflow-hidden border border-[#E7E4E7]">
+                      <div className="bg-[#221D1D] h-full rounded-full" style={{ width: "85%" }} />
+                    </div>
+                  </div>
+                  <div className="pt-5 mt-5 border-t border-[#E7E4E7]">
+                    <button
+                      onClick={() => { setActiveCourse("cs"); setActiveTab("chapters"); }}
+                      className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs text-center"
+                    >
+                      Complete Remaining Units (15% Left)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: REFER AND EARN (REWARD CODES & SCHOLARSHIPS)                         */}
+          {/* ========================================================================= */}
+          {activeTab === "refer" && (
+            <div className="space-y-6">
+              <div className="rounded-3xl bg-gradient-to-br from-[#AED7E9]/25 via-white to-[#AED7E9]/15 p-6 sm:p-8 border border-[#AED7E9] text-[#221D1D] shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-lg">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#221D1D] text-[#AED7E9] shadow-xs">
+                    Peer Scholarship Program
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D]">
+                    Invite Peers. Earn 1 Month Free All-Access Pass!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed">
+                    When your study group joins with your unique code, they receive a 20% scholarship discount on any Master Codex Pass, and you receive ₹100 learning credits or a 1-month free extension!
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#AED7E9] space-y-3 shrink-0 sm:w-72">
+                  <p className="text-[11px] font-bold text-[#77716E] uppercase tracking-wider">Your Referral Code</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-3 py-2 bg-[#F7F7F5] border border-[#E7E4E7] rounded-xl font-mono text-sm font-bold text-[#221D1D] text-center select-all">
+                      LAWKAKSHA-{initials}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`LAWKAKSHA-${initials}`);
+                        alert("Referral code copied to clipboard!");
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Step Process */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
+                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center font-bold text-sm mb-3">
+                    1
+                  </div>
+                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Share your link or code</h4>
+                  <p className="text-xs text-[#77716E] mt-1">Send your invite code to classmates preparing for CA Foundation or CSEET.</p>
+                </div>
+
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
+                  <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5] flex items-center justify-center font-bold text-sm mb-3">
+                    2
+                  </div>
+                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Peer Gets 20% Off</h4>
+                  <p className="text-xs text-[#77716E] mt-1">They immediately get 20% off when subscribing to any curriculum codex.</p>
+                </div>
+
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
+                  <div className="w-10 h-10 rounded-2xl bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center justify-center font-bold text-sm mb-3">
+                    3
+                  </div>
+                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Unlock Free Learning Month</h4>
+                  <p className="text-xs text-[#77716E] mt-1">You automatically earn 1 free month access and ₹100 wallet credits.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: PURCHASE HISTORY (TAX INVOICES & CODEX PASSES)                        */}
+          {/* ========================================================================= */}
+          {activeTab === "purchases" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+                <div>
+                  <h2 className="text-xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-[#4B8097]" />
+                    <span>Purchase History &amp; Official Invoices</span>
+                  </h2>
+                  <p className="text-xs text-[#77716E] mt-0.5">
+                    Download GST tax receipts and review active curriculum subscriptions.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-2xs overflow-hidden">
+                <div className="divide-y divide-[#E7E4E7]">
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F7F7F5] transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
+                          Active Pass
+                        </span>
+                        <span className="text-xs font-mono text-[#77716E]">INV-TLK-2026-1049</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#221D1D]">CA Foundation Business Laws Master Codex Pass</h4>
+                      <p className="text-xs text-[#77716E]">Subscribed on 16th Jul 2026 • Lifetime In-Web DRM Reader Access</p>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-sm font-bold text-[#221D1D]">₹99.00</span>
+                      <button
+                        onClick={() => alert("Downloading Tax Invoice PDF #INV-TLK-2026-1049...")}
+                        className="px-3.5 py-1.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        Download Invoice
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F7F7F5] transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5]">
+                          Completed
+                        </span>
+                        <span className="text-xs font-mono text-[#77716E]">INV-TLK-2026-0812</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#221D1D]">All-Access Dual Codex Pass (CA Foundation + CSEET)</h4>
+                      <p className="text-xs text-[#77716E]">Subscribed on 15th Aug 2026 • Razorpay Transaction ID: pay_982Fhs9201</p>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-sm font-bold text-[#221D1D]">₹180.00</span>
+                      <button
+                        onClick={() => alert("Downloading Tax Invoice PDF #INV-TLK-2026-0812...")}
+                        className="px-3.5 py-1.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        Download Invoice
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
@@ -2373,7 +2170,7 @@ export default function StudentDashboardPage() {
         aria-label="Student Mobile Navigation"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E7E4E7] px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] safe-bottom"
       >
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -2387,11 +2184,11 @@ export default function StudentDashboardPage() {
                 isActive ? "text-[#221D1D] font-bold" : "text-[#77716E] hover:text-[#221D1D]"
               }`}
             >
-              <div className={`p-1 rounded-xl transition-colors ${isActive ? "bg-[#BFAFE5]/40 text-[#221D1D]" : ""}`}>
+              <div className={`p-1 rounded-xl transition-colors ${isActive ? "bg-[#AED7E9]/40 text-[#221D1D]" : ""}`}>
                 <Icon className="w-5 h-5" />
               </div>
               <span className="text-[10px] tracking-tight leading-none mt-0.5 truncate max-w-[62px]">
-                {item.id === "home" ? "Home" : item.id === "chapters" ? "Notes" : item.id === "mastery" ? "Mastery" : item.id === "cases" ? "Cases" : item.id === "mcqtest" ? "Tests" : "LDR"}
+                {item.id === "home" ? "Home" : item.id === "chapters" ? "Notes" : item.id === "mastery" ? "Mastery" : item.id === "cases" ? "Cases" : item.id === "mcqtest" ? "Tests" : item.label}
               </span>
             </button>
           );
@@ -2663,15 +2460,7 @@ export default function StudentDashboardPage() {
               <button
                 onClick={() => {
                   setLockedPrompt(null);
-                  addToCart({
-                    id: "prod-combo",
-                    title: "All-Access Pass (CA Foundation + CSEET)",
-                    format: "pdf",
-                    price: 180,
-                    originalPrice: 499,
-                    category: "Combo All-Access Pass",
-                    badge: "Complete Double Codex",
-                  });
+                  handleBuyCourse("all-access");
                 }}
                 className="w-full py-2.5 rounded-full bg-[#BFAFE5]/40 hover:bg-[#BFAFE5]/70 text-[#221D1D] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-[#BFAFE5]"
               >

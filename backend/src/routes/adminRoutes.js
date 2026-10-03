@@ -917,6 +917,104 @@ router.get("/announcement", async (req, res) => {
         target: "all",
       },
     });
+// -----------------------------------------------------------------------------
+// 13. PROMO BANNERS / CODEX PASSES SETTINGS (STUDENT DASHBOARD)
+// -----------------------------------------------------------------------------
+const DEFAULT_PROMO_BANNERS = {
+  sectionTitle: "LAW KAKSHA CODEX PASSES",
+  enabled: true,
+  caCard: {
+    id: "card_ca",
+    streamBadge: "Paper 2 • 7 Chapters",
+    discountBadge: "67% OFF",
+    title: "CA Foundation Business Laws",
+    subtitle: "Complete Codex Notes",
+    price: 99,
+    originalPrice: 299,
+    saveText: "Save ₹200",
+    description: "All 7 Chapters in simple English, 3 weekly solved cases & 1.5-day LDR flowcharts",
+    features: ["📖 7 Chapters", "⚖️ Solved Cases", "⚡ LDR Notes"],
+    buttonText: "Explore CA Notes",
+    actionType: "ca",
+    customUrl: "",
+    theme: "lavender",
+    enabled: true,
+  },
+  csCard: {
+    id: "card_cs",
+    streamBadge: "ICSI • 8 Exam Units",
+    discountBadge: "67% OFF",
+    title: "CSEET Business Law & Management",
+    subtitle: "Master Question Bank",
+    price: 99,
+    originalPrice: 299,
+    saveText: "Save ₹200",
+    description: "All 8 ICSI Units, 30-MCQ weekly timed mock tests & quick revision concept notes",
+    features: ["🎯 8 Units", "⏱️ Timed MCQs", "💡 Concept Bank"],
+    buttonText: "Explore CSEET Notes",
+    actionType: "cs",
+    customUrl: "",
+    theme: "lavender",
+    enabled: true,
+  },
+  comboCard: {
+    id: "card_combo",
+    streamBadge: "Best Value • All-Access Dual Pass",
+    discountBadge: "64% OFF",
+    title: "All-Access Dual Codex Pass",
+    subtitle: "CA Foundation + CSEET Combo",
+    price: 180,
+    originalPrice: 499,
+    saveText: "Save ₹319",
+    description: "Get unlimited access to both CA Foundation & CSEET notes, all weekly solved cases & practice mock drills",
+    features: ["🎓 Both Courses", "🏆 Full Question Bank", "⏱️ Timed Mock Tests"],
+    buttonText: "Unlock All-Access",
+    actionType: "all-access",
+    customUrl: "",
+    theme: "purple",
+    enabled: true,
+  },
+};
+
+router.get("/admin/promo-banners", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "promo_banners" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, promoBanners: setting.value });
+      }
+    }
+    res.status(200).json({ success: true, promoBanners: DEFAULT_PROMO_BANNERS });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching promo banners." });
+  }
+});
+
+router.post("/admin/promo-banners", async (req, res) => {
+  try {
+    const promoBanners = req.body.promoBanners || req.body;
+    if (isConnected()) {
+      await SiteSetting.findOneAndUpdate({ key: "promo_banners" }, { value: promoBanners }, { upsert: true });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", promoBanners });
+    }
+    res.status(200).json({ success: true, promoBanners });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error saving promo banners." });
+  }
+});
+
+// Public endpoint for student dashboard
+router.get("/promo-banners", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "promo_banners" });
+      if (setting && setting.value) {
+        return res.status(200).json({ success: true, promoBanners: setting.value });
+      }
+    }
+    res.status(200).json({ success: true, promoBanners: DEFAULT_PROMO_BANNERS });
+  } catch (err) {
+    res.status(200).json({ success: true, promoBanners: DEFAULT_PROMO_BANNERS });
   }
 });
 
