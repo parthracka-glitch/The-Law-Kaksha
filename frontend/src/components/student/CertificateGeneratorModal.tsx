@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   X,
   Award,
@@ -31,14 +31,19 @@ export function CertificateGeneratorModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-  if (!isOpen) return null;
+  const [certificateId] = useState(
+    () => `LK-CERT-2026-CA-${Math.floor(1000 + Math.random() * 9000)}`
+  );
+  const [issueDate] = useState(
+    () =>
+      new Date().toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+  );
 
-  const certificateId = `LK-CERT-2026-CA-${Math.floor(1000 + Math.random() * 9000)}`;
-  const issueDate = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  if (!isOpen) return null;
 
   const handleDownload = () => {
     setIsDownloading(true);

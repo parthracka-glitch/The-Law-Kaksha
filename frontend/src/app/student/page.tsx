@@ -706,7 +706,7 @@ export default function StudentDashboardPage() {
         setSelectedChapterId("ca-ch4");
       }
 
-      let initialUnlocked: string[] = [];
+      const initialUnlocked: string[] = [];
       if (studentSession) {
         try {
           const p = JSON.parse(studentSession);
