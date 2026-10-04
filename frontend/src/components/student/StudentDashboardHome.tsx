@@ -14,9 +14,9 @@ import {
   Sparkles,
   ArrowRight,
   BookOpen,
-  Code2,
-  Cpu,
-  Layers,
+  Scale,
+  Landmark,
+  FileText,
   CheckCircle2,
   Zap,
   Flame,
@@ -300,7 +300,8 @@ interface EnrolledCourseItem {
   progress: number;
   pdfUrl: string;
   iconBg: string;
-  iconType: "yellow" | "dark" | "blue";
+  iconType: "yellow" | "dark" | "blue" | "emerald";
+  iconEmoji: string;
   isFavorite?: boolean;
   isUnlocked: boolean;
   price?: number;
@@ -432,37 +433,38 @@ const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "1",
     courseType: "ca",
-    title: "Sale of Goods Act, 1930 (Unit 1 & 2)",
-    subtitle: "Formation of contract of sale, conditions & warranties with landmark precedents",
-    duration: "22 Pages • Free Sample",
-    streamLabel: "CA Foundation",
-    icon: Sparkles,
-    iconBg: "bg-[#16A34A]",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isFree: true,
+    title: "Indian Contract Act, 1872 Masterclass",
+    subtitle: "Essentials of contract, consideration, free consent & damages under Sec 73",
+    duration: "3 Units • 98 Pages",
+    streamLabel: "ICAI CA Foundation",
+    icon: Scale,
+    iconBg: "bg-[#7E22CE]",
+    pdfUrl: "/notes/contract-act-unit-1.pdf",
+    isFree: false,
   },
   {
     num: "2",
     courseType: "shared",
-    title: "Partnership Act, 1932 (Unit 1 & 2)",
-    subtitle: "Cox v. Hickman, mutual agency & relations of partners",
-    duration: "52 Pages • Free Sample",
-    streamLabel: "CA Foundation",
-    icon: Layers,
-    iconBg: "bg-[#1E293B]",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    isFree: true,
+    title: "Companies Act & Corporate Veil Codex",
+    subtitle: "Salomon v. Salomon doctrine, lifting the veil, MOA, AOA & doctrine of ultra vires",
+    duration: "2 Units • 60 Pages",
+    streamLabel: "ICAI & ICSI",
+    icon: Landmark,
+    iconBg: "bg-[#0F172A]",
+    pdfUrl: "/notes/companies-act-unit-1.pdf",
+    isFree: false,
   },
   {
     num: "3",
     courseType: "cs",
-    title: "CSEET Management & Corporate Ethics",
-    subtitle: "Henri Fayol, F.W. Taylor & PESTLE framework",
-    duration: "29h 57m",
-    streamLabel: "CSEET",
-    icon: Cpu,
+    title: "CSEET Management & Corporate Governance",
+    subtitle: "Henri Fayol's 14 principles, Taylor's scientific management & CSR ethics framework",
+    duration: "8 Units • 120 Pages",
+    streamLabel: "ICSI CSEET",
+    icon: GraduationCap,
     iconBg: "bg-[#0284C7]",
     pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
+    isFree: false,
   },
 ];
 
@@ -511,41 +513,58 @@ export function StudentDashboardHome({
       {
         id: "ca-foundation-course",
         courseType: "ca",
-        title: "Data Structures & Law Notes",
+        title: "CA Foundation Business Laws Codex",
         category: "ICAI Paper 2 • 7 Chapters",
-        enrolledDate: "Enrolled On 16th Jul 2026",
+        enrolledDate: "Active 2026 Batch • ICAI",
         progress: isCaUnlocked ? Math.min(100, Math.max(6, completedUnitsCount * 14)) : 0,
         pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
         iconBg: "from-[#F59E0B] via-[#D97706] to-[#B45309]",
         iconType: "yellow",
+        iconEmoji: "⚖️",
         isUnlocked: Boolean(isCaUnlocked),
         price: 99,
       },
       {
         id: "cseet-course",
         courseType: "cs",
-        title: "MERN Stack & Business Law",
+        title: "CSEET Legal Aptitude & Management",
         category: "ICSI Paper 2 • 8 Units",
-        enrolledDate: "Enrolled On 16th Jul 2026",
+        enrolledDate: "Active 2026 Batch • ICSI",
         progress: isCsUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 12)) : 0,
         pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
         iconBg: "from-[#1E293B] to-[#0F172A]",
         iconType: "dark",
+        iconEmoji: "📜",
         isUnlocked: Boolean(isCsUnlocked),
         price: 99,
       },
       {
         id: "cases-course",
         courseType: "shared",
-        title: "Solved Cases & MCQ Drills",
-        category: "Weekly Exam Drills",
-        enrolledDate: "Enrolled On 16th Jul 2026",
+        title: "Landmark Case Laws & Solved Precedents",
+        category: "Weekly ICAI / ICSI Problem Vault",
+        enrolledDate: "Active 2026 Batch",
         progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
         pdfUrl: "/notes/contract-act-unit-3.pdf",
         iconBg: "from-[#3B0764] to-[#1E1B4B]",
         iconType: "blue",
+        iconEmoji: "🏛️",
         isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
         price: 99,
+      },
+      {
+        id: "mcq-simulator-course",
+        courseType: "shared",
+        title: "Timed MCQ Mock Test Simulators",
+        category: "ICAI & ICSI Pattern Test Series",
+        enrolledDate: "Active 2026 Batch",
+        progress: (isCaUnlocked || isCsUnlocked) ? 35 : 0,
+        pdfUrl: "/notes/ca-foundation-framework-notes.pdf",
+        iconBg: "from-[#047857] to-[#064E3B]",
+        iconType: "emerald",
+        iconEmoji: "🎯",
+        isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
+        price: 49,
       },
     ];
   }, [isCaUnlocked, isCsUnlocked, completedUnitsCount]);
@@ -996,13 +1015,7 @@ export function StudentDashboardHome({
                     <div
                       className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center text-white shrink-0 shadow-xs`}
                     >
-                      {c.iconType === "yellow" ? (
-                        <span className="text-xl">⚖️</span>
-                      ) : c.iconType === "dark" ? (
-                        <span className="text-xl">📜</span>
-                      ) : (
-                        <span className="text-xl">💼</span>
-                      )}
+                      <span className="text-xl">{c.iconEmoji}</span>
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -1010,8 +1023,8 @@ export function StudentDashboardHome({
                         {c.title}
                       </h4>
                       <div className="flex items-center gap-1 text-[11px] text-[#6B7280] mt-0.5">
-                        <Clock className="w-3 h-3 text-[#9CA3AF]" />
-                        <span>Self Paced</span>
+                        <BookOpen className="w-3 h-3 text-[#7E22CE]" />
+                        <span className="font-semibold text-[#4B5563] truncate">{c.category}</span>
                       </div>
                     </div>
                   </div>
@@ -1239,9 +1252,9 @@ export function StudentDashboardHome({
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
-                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                    <Clock className="w-3 h-3 text-[#9CA3AF]" />
-                    <span>Duration: {item.duration}</span>
+                  <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#4B5563]">
+                    <BookOpen className="w-3.5 h-3.5 text-[#7E22CE]" />
+                    <span>{item.duration}</span>
                   </span>
                   {isItemUnlocked || item.isFree ? (
                     <span className="text-[#7E22CE] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
