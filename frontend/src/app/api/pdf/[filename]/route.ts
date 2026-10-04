@@ -61,29 +61,53 @@ export async function GET(
       );
     }
 
-    const fileBuffer = await fs.promises.readFile(filePath);
+    const stat = await fs.promises.stat(filePath);
+    const fileSize = stat.size;
 
-    // If base64 format requested, return robust JSON with raw base64 string for Canvas PDF.js renderer
-    if (format === "base64" || request.headers.get("accept")?.includes("application/json")) {
-      return NextResponse.json({
-        filename: safeFilename,
-        size: fileBuffer.byteLength,
-        base64: fileBuffer.toString("base64"),
-      });
+    const rangeHeader = request.headers.get("range");
+
+    if (rangeHeader) {
+      // Support HTTP Range requests so PDF.js can load pages on-demand
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (match) {
+        const start = parseInt(match[1], 10);
+        const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        const fileStream = fs.createReadStream(filePath, { start, end });
+        const chunks: Buffer[] = [];
+        for await (const chunk of fileStream) {
+          chunks.push(chunk as Buffer);
+        }
+        const buffer = Buffer.concat(chunks);
+
+        return new NextResponse(buffer, {
+          status: 206,
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+            "Content-Length": chunkSize.toString(),
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "private, max-age=3600",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "SAMEORIGIN",
+            "Content-Disposition": `inline; filename="lk-protected-${safeFilename}"`,
+          },
+        });
+      }
     }
 
-    // Default binary streaming response (protected for in-app PDF.js fetch)
+    // Full file response with range support enabled
+    const fileBuffer = await fs.promises.readFile(filePath);
     return new NextResponse(fileBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Length": fileBuffer.byteLength.toString(),
-        "Cache-Control": "private, no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
+        "Content-Length": fileSize.toString(),
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "private, max-age=3600",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "SAMEORIGIN",
-        "Accept-Ranges": "none",
         "Content-Disposition": `inline; filename="lk-protected-${safeFilename}"`,
       },
     });

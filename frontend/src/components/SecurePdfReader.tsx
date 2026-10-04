@@ -179,7 +179,7 @@ export function SecurePdfReader({
     return pdfUrl.split("?")[0].split("/").pop() || "study-codex.pdf";
   }, [pdfUrl]);
 
-  // Main PDF Loader using Base64 with binary fallback + Real Outline Extraction
+  // Main PDF Loader — direct binary streaming with HTTP range support + outline extraction
   const loadPdf = useCallback(async (url: string) => {
     setLoading(true);
     setError(null);
@@ -197,36 +197,25 @@ export function SecurePdfReader({
         pdfjsLib.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`;
       }
 
-      // 1. Fetch JSON base64 payload
-      const base64Url = `/api/pdf/${filename}?format=base64`;
-      const response = await fetch(base64Url, { cache: "no-store" });
-
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
-
-      const jsonPayload = await response.json();
-      if (!jsonPayload.base64 || jsonPayload.base64.length === 0) {
-        throw new Error("Received empty base64 payload from PDF service");
-      }
-
-      const bytes = base64ToUint8Array(jsonPayload.base64);
+      // Use HTTP range loading — PDF.js fetches only the pages it renders, not the whole file
+      const pdfEndpoint = `/api/pdf/${filename}`;
 
       const loadingTask = pdfjsLib.getDocument({
-        data: bytes,
+        url: pdfEndpoint,
         cMapUrl: "/cmaps/",
         cMapPacked: true,
         standardFontDataUrl: "/standard_fonts/",
-        disableRange: true,
-        disableStream: true,
-        disableAutoFetch: true,
+        // Range requests enabled: PDF.js will lazily fetch only needed byte ranges
+        disableRange: false,
+        disableStream: false,
+        disableAutoFetch: false,
       });
 
       const doc = await loadingTask.promise;
       setPdfDoc(doc);
       setTotalPages(doc.numPages);
 
-      // Extract real embedded outline from the actual PDF file
+      // Extract real embedded outline
       try {
         const rawOutline = await doc.getOutline();
         if (rawOutline && Array.isArray(rawOutline) && rawOutline.length > 0) {
@@ -253,64 +242,8 @@ export function SecurePdfReader({
         setPdfOutline([]);
       }
     } catch (err: any) {
-      console.error("PDF Base64 load failed, attempting binary fallback:", err);
-
-      try {
-        const pdfjsLib = await import("pdfjs-dist");
-        if (typeof window !== "undefined") {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`;
-        }
-
-        let binResponse = await fetch(`/api/pdf/${filename}`, { cache: "no-store" });
-        if (!binResponse.ok) {
-          binResponse = await fetch(url.startsWith("/") ? url : `/notes/${url}`, { cache: "no-store" });
-        }
-        if (!binResponse.ok && !url.includes("/notes/")) {
-          binResponse = await fetch(`/notes/${filename}`, { cache: "no-store" });
-        }
-        if (!binResponse.ok) {
-          throw new Error(`Failed to fetch PDF binary: HTTP ${binResponse.status}`);
-        }
-        const arrayBuf = await binResponse.arrayBuffer();
-
-        const fallbackTask = pdfjsLib.getDocument({
-          data: new Uint8Array(arrayBuf),
-          cMapUrl: "/cmaps/",
-          cMapPacked: true,
-          standardFontDataUrl: "/standard_fonts/",
-          disableRange: true,
-          disableStream: true,
-        });
-
-        const doc = await fallbackTask.promise;
-        setPdfDoc(doc);
-        setTotalPages(doc.numPages);
-
-        try {
-          const rawOutline = await doc.getOutline();
-          if (rawOutline && Array.isArray(rawOutline) && rawOutline.length > 0) {
-            const resolved: PdfOutlineItem[] = [];
-            for (const item of rawOutline) {
-              let pNum = 1;
-              if (typeof item.dest === "string") {
-                const dest = await doc.getDestination(item.dest);
-                if (dest && dest[0]) {
-                  pNum = (await doc.getPageIndex(dest[0])) + 1;
-                }
-              } else if (Array.isArray(item.dest) && item.dest[0]) {
-                pNum = (await doc.getPageIndex(item.dest[0])) + 1;
-              }
-              if (pNum >= 1 && pNum <= doc.numPages) {
-                resolved.push({ title: item.title || `Section (Page ${pNum})`, page: pNum });
-              }
-            }
-            setPdfOutline(resolved);
-          }
-        } catch (e) {}
-      } catch (retryErr: any) {
-        console.error("PDF all load attempts failed:", retryErr);
-        setError("Unable to load the study book. Please click Retry below.");
-      }
+      console.error("PDF load failed:", err);
+      setError("Unable to load the study book. Please click Retry below.");
     } finally {
       setLoading(false);
     }
