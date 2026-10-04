@@ -26,7 +26,8 @@ export function GoogleSignInButton({
   const buttonRef = useRef<HTMLDivElement>(null);
 
   const googleClientId =
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com";
 
   const handleGoogleCallback = async (response: any) => {
     if (!response || !response.credential) {
@@ -98,7 +99,7 @@ export function GoogleSignInButton({
     let interval: NodeJS.Timeout;
 
     const initializeGoogle = () => {
-      if (typeof window === "undefined") return;
+      if (typeof window === "undefined" || !googleClientId) return;
       const google = (window as any).google;
 
       if (google?.accounts?.id) {
@@ -144,6 +145,10 @@ export function GoogleSignInButton({
   }, [googleClientId, text]);
 
   const handleCustomClick = () => {
+    if (!googleClientId) {
+      setErrorMsg("Google Client ID is not configured.");
+      return;
+    }
     const google = typeof window !== "undefined" ? (window as any).google : null;
     if (google?.accounts?.id) {
       try {

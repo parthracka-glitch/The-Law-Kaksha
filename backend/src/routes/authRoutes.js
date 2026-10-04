@@ -535,7 +535,9 @@ router.post("/google", async (req, res) => {
     }
 
     const { OAuth2Client } = require("google-auth-library");
-    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    const googleClientId =
+      process.env.GOOGLE_CLIENT_ID ||
+      "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com";
     if (!googleClientId) {
       return res.status(500).json({
         success: false,
