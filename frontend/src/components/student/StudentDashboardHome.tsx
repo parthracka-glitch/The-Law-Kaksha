@@ -503,7 +503,7 @@ export function StudentDashboardHome({
 
   const [isHovered, setIsHovered] = useState(false);
 
-  // Live Auto-Scroll timer (smooth auto-advance every 3.5s, paused on hover)
+  // Live Auto-Scroll timer (fast 2.0s auto-advance, paused on hover/touch)
   useEffect(() => {
     if (isHovered) return;
 
@@ -511,43 +511,77 @@ export function StudentDashboardHome({
       if (promoCarouselRef.current) {
         const container = promoCarouselRef.current;
         const maxScroll = container.scrollWidth - container.clientWidth;
-        const cardWidth = container.clientWidth >= 640 ? 460 : 320;
+        // Dynamically compute exact card width + gap for pixel-perfect slide alignment
+        const firstCard = container.querySelector<HTMLElement>(":scope > div");
+        const cardStep = firstCard
+          ? firstCard.offsetWidth + 16
+          : container.clientWidth >= 640
+          ? 480
+          : 300;
 
-        let nextScroll = container.scrollLeft + cardWidth;
-        if (nextScroll >= maxScroll - 20) {
+        const nextScroll = container.scrollLeft + cardStep;
+        if (nextScroll >= maxScroll - 15) {
           container.scrollTo({ left: 0, behavior: "smooth" });
           setPromoSlideIndex(0);
         } else {
           container.scrollTo({ left: nextScroll, behavior: "smooth" });
-          const newIdx = Math.round(nextScroll / cardWidth);
+          const newIdx = Math.round(nextScroll / cardStep);
           setPromoSlideIndex(Math.min(newIdx, sortedShowcaseResources.length - 1));
         }
       }
-    }, 3500);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [isHovered, sortedShowcaseResources.length]);
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
-      const offset = direction === "left" ? -320 : 320;
+      const container = carouselRef.current;
+      const firstCard = container.querySelector<HTMLElement>(":scope > div");
+      const offset = (firstCard ? firstCard.offsetWidth + 16 : 300) * (direction === "left" ? -1 : 1);
       carouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
     }
   };
 
   const scrollPromoCarousel = (direction: "left" | "right") => {
     if (promoCarouselRef.current) {
-      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 320;
-      const offset = direction === "left" ? -cardWidth : cardWidth;
+      const container = promoCarouselRef.current;
+      const firstCard = container.querySelector<HTMLElement>(":scope > div");
+      const cardStep = firstCard
+        ? firstCard.offsetWidth + 16
+        : container.clientWidth >= 640
+        ? 480
+        : 300;
+      const offset = direction === "left" ? -cardStep : cardStep;
       promoCarouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    }
+  };
+
+  const scrollToPromoSlide = (idx: number) => {
+    if (promoCarouselRef.current) {
+      const container = promoCarouselRef.current;
+      const firstCard = container.querySelector<HTMLElement>(":scope > div");
+      const cardStep = firstCard
+        ? firstCard.offsetWidth + 16
+        : container.clientWidth >= 640
+        ? 480
+        : 300;
+      container.scrollTo({ left: idx * cardStep, behavior: "smooth" });
+      setPromoSlideIndex(idx);
     }
   };
 
   const handlePromoScroll = () => {
     if (promoCarouselRef.current) {
-      const scrollLeft = promoCarouselRef.current.scrollLeft;
-      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 320;
-      const index = Math.round(scrollLeft / cardWidth);
+      const container = promoCarouselRef.current;
+      const scrollLeft = container.scrollLeft;
+      const firstCard = container.querySelector<HTMLElement>(":scope > div");
+      const cardStep = firstCard
+        ? firstCard.offsetWidth + 16
+        : container.clientWidth >= 640
+        ? 480
+        : 300;
+      const index = Math.round(scrollLeft / cardStep);
       setPromoSlideIndex(Math.max(0, Math.min(index, sortedShowcaseResources.length - 1)));
     }
   };
@@ -587,32 +621,35 @@ export function StudentDashboardHome({
   );
 
   return (
-    <div className="space-y-6 text-[#221D1D] select-none font-sans relative">
+    <div className="space-y-5 sm:space-y-6 text-[#221D1D] select-none font-sans relative">
       {/* ========================================================================= */}
-      {/* 1. LIVE AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING SHOWCASE CAROUSEL  */}
+      {/* 1. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}
       {/* ========================================================================= */}
       <section
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="space-y-3.5 bg-gradient-to-b from-[#FAF5FF]/80 via-white to-white rounded-3xl border border-[#EDE9FE] p-4 sm:p-5 shadow-xs relative group/showcase"
+        onTouchStart={() => setIsHovered(true)}
+        onTouchEnd={() => setIsHovered(false)}
+        className="space-y-3 bg-gradient-to-b from-[#FAF5FF]/80 via-white to-white rounded-2xl sm:rounded-3xl border border-[#EDE9FE] p-3 sm:p-5 shadow-xs relative group/showcase"
       >
         {/* Header Row: Live Pulse Indicator, Title & Navigation Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+          <div className="space-y-0.5 sm:space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-ping" />
-                <span>Live Study Material &amp; Codex Showcase</span>
+                <span className="hidden xs:inline">Live Study Material &amp; Codex Showcase</span>
+                <span className="xs:hidden">Live Codex Showcase</span>
               </span>
-              <span className="text-[11px] font-semibold text-[#6B7280]">
-                {isHovered ? "Paused on hover" : "Auto-scrolling"}
+              <span className="text-[10px] sm:text-[11px] font-semibold text-[#6B7280]">
+                {isHovered ? "Paused" : "Auto-scrolling"}
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
+            <h2 className="text-base sm:text-xl font-black text-[#1F2937] tracking-tight">
               Curriculum Codices &amp; Master Passes
             </h2>
-            <p className="text-xs text-[#6B7280] max-w-2xl leading-relaxed">
-              Explore specialized statutory codices, case study question banks &amp; timed mock test passes. Instant DRM reader access on all devices.
+            <p className="text-[11px] sm:text-xs text-[#6B7280] max-w-2xl leading-relaxed hidden xs:block">
+              Explore statutory codices, case study question banks &amp; timed mock test passes. Instant DRM reader access.
             </p>
           </div>
 
@@ -628,17 +665,17 @@ export function StudentDashboardHome({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => scrollPromoCarousel("left")}
-                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Previous Item"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={() => scrollPromoCarousel("right")}
-                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Next Item"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
@@ -648,7 +685,7 @@ export function StudentDashboardHome({
         <div
           ref={promoCarouselRef}
           onScroll={handlePromoScroll}
-          className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {sortedShowcaseResources.map((resource) => {
@@ -663,70 +700,73 @@ export function StudentDashboardHome({
             return (
               <div
                 key={resource.id}
-                className={`w-[300px] sm:w-[460px] lg:w-[490px] shrink-0 snap-start flex flex-col sm:flex-row gap-4 justify-between rounded-3xl bg-gradient-to-br ${resource.bannerGradient} border ${resource.borderTheme} p-4 sm:p-5 text-white shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
+                className={`w-[86vw] xs:w-[350px] sm:w-[460px] lg:w-[490px] max-w-[500px] shrink-0 snap-start flex flex-row items-stretch gap-2.5 xs:gap-3 sm:gap-4 justify-between rounded-2xl sm:rounded-3xl bg-gradient-to-br ${resource.bannerGradient} border ${resource.borderTheme} p-3 sm:p-4 text-white shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
               >
                 {/* Decorative Subtle Background Radial Glow */}
                 <div className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
 
-                {/* Left/Top Column: 3D Book Cover Image Mockup */}
-                <div className="relative w-full sm:w-40 sm:self-stretch shrink-0 flex flex-col items-center justify-between rounded-2xl bg-black/20 border border-white/10 p-3 overflow-hidden shadow-inner group-hover:border-white/20 transition-all">
+                {/* Left Column: 3D Book Cover Image Mockup */}
+                <div className="relative w-24 xs:w-28 sm:w-36 md:w-40 self-stretch shrink-0 flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-black/25 border border-white/10 p-2 sm:p-3 overflow-hidden shadow-inner group-hover:border-white/20 transition-all">
                   {/* Top discount / status tag */}
                   <div className="w-full flex items-center justify-between gap-1 z-10">
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-300/30">
+                    <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-300/30">
                       {resource.discount}
                     </span>
                     {isOwned && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500 text-white shadow-2xs">
+                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500 text-white shadow-2xs">
                         Owned
                       </span>
                     )}
                   </div>
 
                   {/* 3D Book Cover Image */}
-                  <div className="relative w-28 sm:w-32 h-36 sm:h-40 my-2 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1">
+                  <div className="relative w-16 xs:w-20 sm:w-28 md:w-32 h-24 xs:h-28 sm:h-36 md:h-40 my-1 sm:my-2 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105">
                     <Image
                       src={resource.coverImage}
                       alt={resource.title}
                       fill
                       className="object-contain"
-                      sizes="(max-width: 640px) 120px, 140px"
+                      sizes="(max-width: 640px) 110px, 140px"
                     />
                   </div>
 
                   {/* Format tag */}
-                  <span className="text-[9px] font-bold text-white/70 uppercase tracking-wider z-10 text-center">
-                    Digital 3D Codex
+                  <span className="text-[8px] sm:text-[9px] font-bold text-white/70 uppercase tracking-wider z-10 text-center">
+                    Digital Codex
                   </span>
                 </div>
 
-                {/* Right/Bottom Column: Resource Details, Pricing & Action CTA */}
-                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3 relative z-10">
-                  <div className="space-y-2">
+                {/* Right Column: Resource Details, Pricing & Action CTA */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-1.5 sm:space-y-3 relative z-10">
+                  <div className="space-y-1 sm:space-y-1.5">
                     {/* Badge & Exam Category */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-xs text-white border border-white/20">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-xs text-white border border-white/20 truncate max-w-full">
                         {resource.badge}
                       </span>
-                      <span className="text-[10px] font-semibold text-white/70">
+                      <span className="text-[9px] sm:text-[10px] font-semibold text-white/70 truncate hidden xs:inline">
                         {resource.examBody}
                       </span>
                     </div>
 
                     {/* Title & Subtitle */}
                     <div>
-                      <h3 className="text-sm sm:text-base font-black leading-snug text-white tracking-tight line-clamp-2">
+                      <h3 className="text-xs xs:text-sm sm:text-base font-black leading-snug text-white tracking-tight line-clamp-2">
                         {resource.title}
                       </h3>
-                      <p className="text-[11px] text-white/80 line-clamp-2 mt-0.5 leading-relaxed">
+                      <p className="text-[10px] sm:text-[11px] text-white/80 line-clamp-1 sm:line-clamp-2 mt-0.5 leading-relaxed hidden xs:block">
                         {resource.subtitle}
                       </p>
                     </div>
 
-                    {/* Highlights bullet list */}
-                    <div className="space-y-1 pt-1">
-                      {resource.highlights.map((h, i) => (
-                        <div key={i} className="flex items-start gap-1.5 text-[11px] text-white/90 font-medium leading-tight">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0 mt-0.5" />
+                    {/* Highlights bullet list (top 2 on mobile, 3 on larger) */}
+                    <div className="space-y-0.5 sm:space-y-1 pt-0.5">
+                      {resource.highlights.slice(0, 3).map((h, i) => (
+                        <div
+                          key={i}
+                          className={`flex items-start gap-1 sm:gap-1.5 text-[9px] xs:text-[10px] sm:text-[11px] text-white/90 font-medium leading-tight ${i >= 2 ? "hidden sm:flex" : ""}`}
+                        >
+                          <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-300 shrink-0 mt-0.5" />
                           <span className="line-clamp-1">{h}</span>
                         </div>
                       ))}
@@ -734,26 +774,26 @@ export function StudentDashboardHome({
                   </div>
 
                   {/* Bottom: Price row & CTA */}
-                  <div className="space-y-2 pt-2 border-t border-white/15">
+                  <div className="space-y-1.5 sm:space-y-2 pt-1 sm:pt-2 border-t border-white/15">
                     <div className="flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl sm:text-2xl font-black text-white">
+                      <div className="flex items-baseline gap-1 sm:gap-1.5">
+                        <span className="text-base sm:text-2xl font-black text-white">
                           ₹{resource.price}
                         </span>
-                        <span className="text-xs text-white/60 line-through font-mono">
+                        <span className="text-[10px] sm:text-xs text-white/60 line-through font-mono">
                           ₹{resource.originalPrice}
                         </span>
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 font-sans shadow-2xs">
+                        <span className="text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 font-sans shadow-2xs">
                           {resource.savings}
                         </span>
                       </div>
-                      <span className="text-[10px] font-medium text-white/70">
+                      <span className="text-[9px] sm:text-[10px] font-medium text-white/70 hidden sm:inline">
                         {resource.validityTag}
                       </span>
                     </div>
 
                     {/* Primary Button */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1 sm:space-y-1.5">
                       {isOwned ? (
                         <button
                           onClick={() => {
@@ -763,26 +803,26 @@ export function StudentDashboardHome({
                               onExploreCourse("cs");
                             }
                           }}
-                          className="w-full py-2 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 border border-white/30"
+                          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 border border-white/30"
                         >
-                          <BookOpen className="w-3.5 h-3.5" />
-                          <span>Study Codex In Reader ▶</span>
+                          <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="truncate">Study In Reader ▶</span>
                         </button>
                       ) : (
                         <button
                           onClick={() => handleBuyItem(resource)}
-                          className={`w-full py-2 sm:py-2.5 px-3 rounded-xl ${resource.buttonGradient} font-black text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
+                          className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl ${resource.buttonGradient} font-black text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
                         >
-                          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                          <span>Unlock Pass • ₹{resource.price}</span>
-                          <ArrowRight className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
+                          <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <span className="truncate">Unlock Pass • ₹{resource.price}</span>
+                          <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
                         </button>
                       )}
 
-                      <div className="flex items-center justify-between text-[10px] text-white/70 px-0.5">
+                      <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-white/70 px-0.5">
                         <span className="flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                          <span>Instant DRM Access</span>
+                          <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-300" />
+                          <span>Instant DRM</span>
                         </span>
                         <button
                           onClick={() => onExploreCourse(resource.courseType === "all-access" ? "all-access" : resource.courseType)}
@@ -799,22 +839,21 @@ export function StudentDashboardHome({
           })}
         </div>
 
-        {/* Dots Navigation Indicators */}
-        <div className="flex items-center justify-center gap-1.5 pt-1">
+        {/* Dots Navigation Indicators with touch-friendly tap targets */}
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1 pt-0.5">
           {sortedShowcaseResources.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => {
-                if (promoCarouselRef.current) {
-                  const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 330;
-                  promoCarouselRef.current.scrollTo({ left: idx * cardWidth, behavior: "smooth" });
-                }
-              }}
-              className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
-                promoSlideIndex === idx ? "w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
-              }`}
+              onClick={() => scrollToPromoSlide(idx)}
+              className="p-1.5 sm:p-1 cursor-pointer flex items-center justify-center"
               aria-label={`Slide ${idx + 1}`}
-            />
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-200 block ${
+                  promoSlideIndex === idx ? "w-5 sm:w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </section>
@@ -822,40 +861,40 @@ export function StudentDashboardHome({
       {/* ========================================================================= */}
       {/* 2. ENROLLED COURSES (EXACT HEADER, SEARCH, ARROWS & CAROUSEL CARDS)        */}
       {/* ========================================================================= */}
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {/* Header with Search and Navigation Arrows */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-xl font-black text-[#1F2937] tracking-tight">
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 sm:gap-3">
+          <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
             Enrolled Courses
           </h3>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 justify-between xs:justify-end">
             {/* Search courses input */}
-            <div className="relative">
+            <div className="relative flex-1 xs:flex-initial">
               <input
                 type="text"
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-3.5 pr-3 py-1.5 text-xs rounded-xl bg-white border border-[#E7E4E7] focus:outline-none focus:border-[#7E22CE] w-48 sm:w-60 transition-all text-[#221D1D] shadow-2xs"
+                className="w-full xs:w-44 sm:w-56 pl-3.5 pr-3 py-1.5 text-xs rounded-xl bg-white border border-[#E7E4E7] focus:outline-none focus:border-[#7E22CE] transition-all text-[#221D1D] shadow-2xs"
               />
             </div>
 
             {/* Circular Carousel Prev & Next Buttons */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => scrollCarousel("left")}
-                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Previous"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={() => scrollCarousel("right")}
-                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                 aria-label="Next"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
@@ -864,13 +903,13 @@ export function StudentDashboardHome({
         {/* Horizontal Carousel Row */}
         <div
           ref={carouselRef}
-          className="flex items-stretch gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar touch-pan-x"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar touch-pan-x"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {filteredCourses.map((c) => (
             <div
               key={c.id}
-              className="w-[280px] sm:w-[315px] shrink-0 bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              className="w-[76vw] xs:w-[280px] sm:w-[315px] shrink-0 bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div className="space-y-3">
                 {/* Course Header: Icon + Title + Star */}
@@ -981,15 +1020,15 @@ export function StudentDashboardHome({
       {/* ========================================================================= */}
       {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 CARDS AS IN SCREENSHOT)         */}
       {/* ========================================================================= */}
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-black text-[#1F2937] tracking-tight">
+          <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
             Recommended for You
           </h3>
-          <span className="text-xs text-[#6B7280]">Curated Study Material</span>
+          <span className="text-[11px] sm:text-xs text-[#6B7280]">Curated Study Material</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
           {RECOMMENDED_COURSES.map((item) => {
             const IconComponent = item.icon;
             const isItemUnlocked =
@@ -1023,33 +1062,33 @@ export function StudentDashboardHome({
                     }
                   }
                 }}
-                className="relative bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
+                className="relative bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
               >
                 {/* Large Faint Watermark Number in Top-Right Corner */}
-                <span className="absolute top-2 right-4 text-5xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
+                <span className="absolute top-2 right-4 text-4xl sm:text-5xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
                   {item.num}
                 </span>
 
                 <div className="space-y-3 relative z-10 pr-6">
                   {/* Dark App Icon Square */}
                   <div
-                    className={`w-11 h-11 rounded-2xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
                   >
-                    <IconComponent className="w-5 h-5" />
+                    <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-bold text-[#1F2937] group-hover:text-[#7E22CE] transition-colors leading-snug">
+                    <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] group-hover:text-[#7E22CE] transition-colors leading-snug">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-2">
+                    <p className="text-[11px] sm:text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-2">
                       {item.subtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
-                  <span className="flex items-center gap-1 text-[11px]">
+                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
                     <Clock className="w-3 h-3 text-[#9CA3AF]" />
                     <span>Duration: {item.duration}</span>
                   </span>
@@ -1076,16 +1115,16 @@ export function StudentDashboardHome({
       {/* ========================================================================= */}
       <div
         ref={quizSectionRef}
-        className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-3.5"
+        className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-6 shadow-2xs space-y-3 sm:space-y-3.5"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#D97706] flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 fill-[#D97706]" />
-              <span>Daily 1-Minute Quiz (+15 Points)</span>
+            <span className="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#FEF3C7] text-[#D97706] flex items-center gap-1">
+              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[#D97706]" />
+              <span>Daily 1-Min Quiz (+15 Pts)</span>
             </span>
           </div>
-          <span className="text-xs font-bold text-[#7E22CE]">ICAI / ICSI Pattern</span>
+          <span className="text-[10px] sm:text-xs font-bold text-[#7E22CE]">ICAI / ICSI Pattern</span>
         </div>
 
         <p className="text-sm font-semibold text-[#1F2937] leading-relaxed">
