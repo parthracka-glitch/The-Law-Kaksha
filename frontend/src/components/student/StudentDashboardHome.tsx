@@ -324,7 +324,7 @@ interface StudentDashboardHomeProps {
   awardXp?: (amount: number, reason: string) => void;
   onOpenStreakLog?: () => void;
   onOpenBadgesModal?: () => void;
-  onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs") => void;
+  onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs", isFreeSample?: boolean) => void;
   onExploreCourse: (courseId: string) => void;
   activeCourse?: "ca" | "cs";
   qotdData: any;
@@ -341,6 +341,80 @@ interface StudentDashboardHomeProps {
   purchasedBooks?: string[];
 }
 
+export interface FreeResourceItem {
+  id: string;
+  actName: string;
+  unitNumber: number;
+  title: string;
+  subtitle: string;
+  badge: string;
+  pages: string;
+  pdfUrl: string;
+  courseType: "ca" | "cs";
+  gradient: string;
+  borderTheme: string;
+  accentBadge: string;
+}
+
+export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
+  {
+    id: "free-soga-1",
+    actName: "The Sale of Goods Act, 1930",
+    unitNumber: 1,
+    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
+    subtitle: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods & Formalities",
+    badge: "🎁 FREE STUDY RESOURCE",
+    pages: "12 Pages",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    courseType: "ca",
+    gradient: "from-[#F0FDF4] via-white to-white",
+    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
+    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
+  },
+  {
+    id: "free-soga-2",
+    actName: "The Sale of Goods Act, 1930",
+    unitNumber: 2,
+    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
+    subtitle: "Stipulations, Implied Conditions of Fitness & Landmark Case Priest v. Last",
+    badge: "🎁 FREE STUDY RESOURCE",
+    pages: "10 Pages",
+    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    courseType: "ca",
+    gradient: "from-[#F0FDFA] via-white to-white",
+    borderTheme: "border-[#99F6E4] hover:border-[#0D9488]",
+    accentBadge: "bg-[#CCFBF1] text-[#0F766E] border-[#5EEAD4]",
+  },
+  {
+    id: "free-partner-1",
+    actName: "The Indian Partnership Act, 1932",
+    unitNumber: 1,
+    title: "Unit 1: General Nature of Partnership",
+    subtitle: "Definition, Mutual Agency, True Test of Partnership (Cox v. Hickman)",
+    badge: "🎁 FREE STUDY RESOURCE",
+    pages: "24 Pages",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    courseType: "ca",
+    gradient: "from-[#FFFBEB] via-white to-white",
+    borderTheme: "border-[#FDE68A] hover:border-[#D97706]",
+    accentBadge: "bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]",
+  },
+  {
+    id: "free-partner-2",
+    actName: "The Indian Partnership Act, 1932",
+    unitNumber: 2,
+    title: "Unit 2: Relations of Partners",
+    subtitle: "Rights, Duties, Implied Authority, Holding Out & Minor as Beneficiary",
+    badge: "🎁 FREE STUDY RESOURCE",
+    pages: "28 Pages",
+    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
+    courseType: "ca",
+    gradient: "from-[#FAF5FF] via-white to-white",
+    borderTheme: "border-[#E9D5FF] hover:border-[#7E22CE]",
+    accentBadge: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
+  },
+];
+
 interface RecommendedCourseItem {
   num: string;
   courseType: "ca" | "cs" | "shared";
@@ -351,30 +425,33 @@ interface RecommendedCourseItem {
   icon: any;
   iconBg: string;
   pdfUrl: string;
+  isFree?: boolean;
 }
 
 const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "1",
     courseType: "ca",
-    title: "Contract Act, 1872 Masterclass",
-    subtitle: "Simple bare-act rules with landmark precedents",
-    duration: "35h 48m",
+    title: "Sale of Goods Act, 1930 (Unit 1 & 2)",
+    subtitle: "Formation of contract of sale, conditions & warranties with landmark precedents",
+    duration: "22 Pages • Free Sample",
     streamLabel: "CA Foundation",
-    icon: Code2,
-    iconBg: "bg-[#0F172A]",
-    pdfUrl: "/notes/contract-act-unit-1.pdf",
+    icon: Sparkles,
+    iconBg: "bg-[#16A34A]",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    isFree: true,
   },
   {
     num: "2",
     courseType: "shared",
-    title: "System Design & Corporate Veil",
-    subtitle: "Salomon v. Salomon & ultra-vires doctrines",
-    duration: "28h 31m",
-    streamLabel: "CA & CS Shared",
+    title: "Partnership Act, 1932 (Unit 1 & 2)",
+    subtitle: "Cox v. Hickman, mutual agency & relations of partners",
+    duration: "52 Pages • Free Sample",
+    streamLabel: "CA Foundation",
     icon: Layers,
     iconBg: "bg-[#1E293B]",
     pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    isFree: true,
   },
   {
     num: "3",
@@ -1018,7 +1095,79 @@ export function StudentDashboardHome({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 CARDS AS IN SCREENSHOT)         */}
+      {/* 3. FREE STUDY RESOURCES & SAMPLE NOTES (100% UNLOCKED & DRM COMPLIANT)       */}
+      {/* ========================================================================= */}
+      <section className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <Gift className="w-3 h-3 text-emerald-700" />
+                <span>Free Study Resources</span>
+              </span>
+              <span className="text-[11px] font-semibold text-[#6B7280]">
+                100% Free • Direct In-Web DRM Reader
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
+              Free Chapter Notes &amp; Statutory Samples
+            </h3>
+          </div>
+          <span className="text-xs text-[#6B7280] hidden sm:block">
+            Open &amp; read complete statutory sample notes instantly
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+          {FREE_STUDY_RESOURCES.map((res) => (
+            <div
+              key={res.id}
+              className={`rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
+            >
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shadow-2xs ${res.accentBadge}`}>
+                    {res.badge}
+                  </span>
+                  <span className="text-[10px] font-semibold text-[#6B7280] bg-white/80 px-2 py-0.5 rounded-md border border-gray-200">
+                    {res.pages}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                    {res.actName}
+                  </span>
+                  <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5">
+                    {res.title}
+                  </h4>
+                  <p className="text-[11px] text-[#4B5563] mt-1 line-clamp-2 leading-relaxed">
+                    {res.subtitle}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-600" />
+                  <span>Free Full PDF</span>
+                </span>
+
+                <button
+                  onClick={() => onOpenPdf(res.pdfUrl, res.actName, res.title, res.courseType, true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Read Note</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 CARDS AS IN SCREENSHOT)         */}
       {/* ========================================================================= */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -1042,12 +1191,13 @@ export function StudentDashboardHome({
               <div
                 key={item.num}
                 onClick={() => {
-                  if (isItemUnlocked) {
+                  if (isItemUnlocked || item.isFree) {
                     onOpenPdf(
                       item.pdfUrl,
                       item.title,
                       item.subtitle,
-                      item.courseType === "shared" ? activeCourse : item.courseType
+                      item.courseType === "shared" ? activeCourse : item.courseType,
+                      item.isFree
                     );
                   } else {
                     if (onBuyCourse) {
@@ -1057,7 +1207,8 @@ export function StudentDashboardHome({
                         item.pdfUrl,
                         item.title,
                         item.subtitle,
-                        item.courseType === "shared" ? activeCourse : item.courseType
+                        item.courseType === "shared" ? activeCourse : item.courseType,
+                        false
                       );
                     }
                   }
@@ -1092,9 +1243,9 @@ export function StudentDashboardHome({
                     <Clock className="w-3 h-3 text-[#9CA3AF]" />
                     <span>Duration: {item.duration}</span>
                   </span>
-                  {isItemUnlocked ? (
+                  {isItemUnlocked || item.isFree ? (
                     <span className="text-[#7E22CE] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                      <span>Open</span>
+                      <span>{item.isFree ? "Free Read" : "Open"}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   ) : (

@@ -21,6 +21,14 @@ export async function GET(
       path.join(process.cwd(), "uploads", safeFilename),
     ];
 
+    // Aliases for SOGA units if accessed via original name
+    if (safeFilename.toLowerCase().includes("soga") && (safeFilename.includes("1") || safeFilename.toLowerCase().includes("unit 1") || safeFilename.toLowerCase().includes("unit_1"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"));
+    }
+    if (safeFilename.toLowerCase().includes("soga") && (safeFilename.includes("2") || safeFilename.toLowerCase().includes("unit 2") || safeFilename.toLowerCase().includes("unit_2"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"));
+    }
+
     let filePath = possiblePaths.find((p) => fs.existsSync(p));
 
     // Fallback to default canonical PDF if specific name not found on disk

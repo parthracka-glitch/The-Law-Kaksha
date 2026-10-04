@@ -96,9 +96,9 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 12,
     peerReaders: 142,
     units: [
-      { unitNumber: 1, title: "Formation of Contract of Sale & Subject Matter", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods.", pages: "22 Pages" },
-      { unitNumber: 2, title: "Conditions, Warranties & Caveat Emptor (Sec 11-17)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Implied conditions of fitness & Priest v. Last.", pages: "26 Pages" },
-      { unitNumber: 3, title: "Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-3.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
+      { unitNumber: 1, title: "Unit 1: Formation of Contract of Sale & Subject Matter", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities.", pages: "12 Pages (Free Sample PDF)", isSample: true },
+      { unitNumber: 2, title: "Unit 2: Conditions and Warranties (Sec 11-17)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Implied conditions of fitness, Caveat Emptor & Landmark Case Priest v. Last.", pages: "10 Pages (Free Sample PDF)", isSample: true },
+      { unitNumber: 3, title: "Unit 3: Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-3.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
     ]
   },
   {
@@ -1115,10 +1115,20 @@ export default function StudentDashboardPage() {
                   awardXp={awardXp}
                   onOpenStreakLog={() => setStreakModalOpen(true)}
                   onOpenBadgesModal={() => setBadgesModalOpen(true)}
-                  onOpenPdf={(url, title, subtitle, courseType) => {
+                  onOpenPdf={(url, title, subtitle, courseType, isFreeSample) => {
+                    const isSample = Boolean(
+                      isFreeSample ||
+                      url.includes("sale-of-goods-unit-1") ||
+                      url.includes("sale-of-goods-unit-2") ||
+                      url.includes("unit-1-general-nature-of-partnership") ||
+                      url.includes("unit-2-relations-of-partners") ||
+                      url.includes("unit-3-registration-and-dissolution") ||
+                      url.includes("management-principles-sample-notes")
+                    );
                     const stream = courseType || activeCourse;
                     const isUnlocked =
                       isAdminUser ||
+                      isSample ||
                       (stream === "ca"
                         ? isCaUnlocked
                         : stream === "cs"
@@ -1126,7 +1136,7 @@ export default function StudentDashboardPage() {
                         : isCaUnlocked || isCsUnlocked);
 
                     if (isUnlocked) {
-                      handleOpenPdf(url, title, subtitle || "", true, false, undefined, undefined, undefined, stream);
+                      handleOpenPdf(url, title, subtitle || "", true, isSample, undefined, undefined, undefined, stream);
                     } else {
                       setLockedPrompt({
                         open: true,

@@ -46,4 +46,5 @@ Thumbs.db
 *.tmp
 backend/data/*.tmp
 backend/uploads/
-
+# Root-level PDF assets
+/*.pdf
