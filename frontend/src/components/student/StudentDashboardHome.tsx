@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Search,
   ChevronLeft,
@@ -34,7 +35,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
-export interface UnsubscribedCourseItem {
+export interface ShowcaseResourceItem {
   id: string;
   courseType: "ca" | "cs" | "all-access" | "volume";
   title: string;
@@ -42,6 +43,7 @@ export interface UnsubscribedCourseItem {
   category: string;
   examBody: string;
   subtitle: string;
+  coverImage: string;
   price: number;
   originalPrice: number;
   discount: string;
@@ -51,8 +53,6 @@ export interface UnsubscribedCourseItem {
   borderTheme: string;
   accentColor: string;
   buttonGradient: string;
-  iconBg: string;
-  icon: string;
   validityTag: string;
   cartPayload?: {
     id: string;
@@ -64,7 +64,7 @@ export interface UnsubscribedCourseItem {
   };
 }
 
-export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
+export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
   {
     id: "prod-combo",
     courseType: "all-access",
@@ -73,6 +73,7 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
     category: "Full Curriculum Dual Pass",
     examBody: "ICAI & ICSI Dual Coverage",
     subtitle: "Complete access to BOTH CA Foundation & CSEET statutory codices, case study vaults & mock simulators.",
+    coverImage: "/covers/combo-codex.webp",
     price: 180,
     originalPrice: 499,
     discount: "64% OFF",
@@ -81,14 +82,11 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       "All 15 Chapters & Units across CA Foundation + CSEET",
       "Dual In-Web 3D DRM Reader with instant soft-copy activation",
       "Ranker Fellowship Guarantee: 100% fee reimbursement eligibility",
-      "Weekly Monster Monday cases + 30-question live MCQ simulator",
     ],
     bannerGradient: "from-[#2E1065] via-[#4C1D95] to-[#581C87]",
-    borderTheme: "border-[#7E22CE]/40 hover:border-[#A855F7]",
+    borderTheme: "border-[#7E22CE]/40 hover:border-[#C084FC]",
     accentColor: "text-amber-300",
     buttonGradient: "bg-gradient-to-r from-[#9333EA] to-[#7E22CE] hover:from-[#A855F7] hover:to-[#9333EA] text-white shadow-purple-950/40",
-    iconBg: "bg-white/10 text-white",
-    icon: "👑",
     validityTag: "Dual Pass • Instant Access",
     cartPayload: {
       id: "prod-combo",
@@ -107,6 +105,7 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
     category: "Paper 2 • Complete 7 Acts",
     examBody: "ICAI 2026 Curriculum",
     subtitle: "Comprehensive preparation covering Contract Act, Sale of Goods, Partnership, LLP, Companies & NI Act.",
+    coverImage: "/covers/vol1-codex.webp",
     price: 99,
     originalPrice: 299,
     discount: "67% OFF",
@@ -115,14 +114,11 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       "All 7 Legislative Chapters simplified with section flowcharts",
       "3 High-Yield Weekly Case Studies: Monster Monday & Final Boss",
       "ICAI Answer Drafting Framework & Step-by-Step Scoring Templates",
-      "Instant In-Web DRM 3D Reader on mobile, tablet & laptop",
     ],
     bannerGradient: "from-[#451A03] via-[#78350F] to-[#92400E]",
     borderTheme: "border-[#F59E0B]/40 hover:border-[#FBBF24]",
     accentColor: "text-amber-300",
     buttonGradient: "bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#F59E0B] hover:to-[#D97706] text-white shadow-amber-950/40",
-    iconBg: "bg-white/10 text-white",
-    icon: "⚖️",
     validityTag: "Paper 2 Pass • Instant Activation",
     cartPayload: {
       id: "course-ca-foundation-sub",
@@ -141,6 +137,7 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
     category: "ICSI Paper 2 • Complete Syllabus",
     examBody: "ICSI Executive Entrance",
     subtitle: "Full Legal Aptitude, Henri Fayol/Taylor Management Theories & Timed Live Mock Drills.",
+    coverImage: "/covers/vol2-codex.webp",
     price: 99,
     originalPrice: 299,
     discount: "67% OFF",
@@ -149,14 +146,11 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       "All 8 units: Constitution of India, Torts, Company Law & Contracts",
       "Henri Fayol 14 Principles, Scientific Management & Business Ethics",
       "Weekly timed mock test with instant score report & leaderboard",
-      "Last Day Revision (LDR) Mindmaps & Concept Memory Flowcharts",
     ],
     bannerGradient: "from-[#082F49] via-[#075985] to-[#0284C7]",
     borderTheme: "border-[#38BDF8]/40 hover:border-[#7DD3FC]",
     accentColor: "text-sky-300",
     buttonGradient: "bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:from-[#38BDF8] hover:to-[#0284C7] text-white shadow-sky-950/40",
-    iconBg: "bg-white/10 text-white",
-    icon: "📜",
     validityTag: "CSEET Pass • Instant Activation",
     cartPayload: {
       id: "course-cseet-sub",
@@ -170,11 +164,12 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
   {
     id: "prod-vol1",
     courseType: "volume",
-    title: "Volume 1: Statutory Law Codex & Case Bank",
+    title: "Volume 1: Statutory Bare Act Codex & Case Bank",
     badge: "📚 BARE ACT CODEX",
     category: "Bare Act & Precedent Repository",
     examBody: "ICAI & ICSI",
     subtitle: "Complete statutory codex with landmark Supreme Court & High Court precedent rulings and trap-avoidance notes.",
+    coverImage: "/covers/vol1-codex.webp",
     price: 99,
     originalPrice: 249,
     discount: "60% OFF",
@@ -183,14 +178,11 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       "180+ pages of simplified bare-act wordings & visual section flowcharts",
       "Landmark rulings: Balfour v. Balfour, Carlill, Salomon, Chinnaya",
       "Section-by-section exam answer templates for maximum score",
-      "In-browser 3D reader with offline bookmarking support",
     ],
     bannerGradient: "from-[#7C2D12] via-[#9A3412] to-[#C2410C]",
     borderTheme: "border-[#FB923C]/40 hover:border-[#FDBA74]",
     accentColor: "text-orange-200",
     buttonGradient: "bg-gradient-to-r from-[#EA580C] to-[#C2410C] hover:from-[#F97316] hover:to-[#EA580C] text-white shadow-orange-950/40",
-    iconBg: "bg-white/10 text-white",
-    icon: "📖",
     validityTag: "180+ Pages • Digital Codex",
     cartPayload: {
       id: "prod-vol1",
@@ -204,11 +196,12 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
   {
     id: "prod-vol2",
     courseType: "volume",
-    title: "Volume 2: Management & Corporate Environment",
+    title: "Volume 2: Management Theories & Corporate Environment",
     badge: "💼 MANAGEMENT MASTER",
     category: "Management, CSR & Corporate Ethics",
     examBody: "ICSI CSEET",
     subtitle: "In-depth study codex for Henri Fayol, F.W. Taylor, PESTLE analysis, Corporate Social Responsibility & Ethics.",
+    coverImage: "/covers/vol2-codex.webp",
     price: 99,
     originalPrice: 249,
     discount: "60% OFF",
@@ -217,14 +210,11 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       "Complete 14 Principles of Fayol & Taylor Scientific Management",
       "Business environment models, Corporate Governance & CSR",
       "Chapter-wise conceptual MCQs with detailed explanations for options",
-      "High-scoring mnemonic summaries for rapid last-day revision",
     ],
     bannerGradient: "from-[#14532D] via-[#166534] to-[#15803D]",
     borderTheme: "border-[#4ADE80]/40 hover:border-[#86EFAC]",
     accentColor: "text-emerald-200",
     buttonGradient: "bg-gradient-to-r from-[#16A34A] to-[#15803D] hover:from-[#22C55E] hover:to-[#16A34A] text-white shadow-emerald-950/40",
-    iconBg: "bg-white/10 text-white",
-    icon: "🌐",
     validityTag: "120+ Pages • Digital Codex",
     cartPayload: {
       id: "prod-vol2",
@@ -233,6 +223,70 @@ export const ALL_COURSES_CATALOG: UnsubscribedCourseItem[] = [
       originalPrice: 249,
       category: "Digital Codex",
       badge: "Management • 120+ Pages",
+    },
+  },
+  {
+    id: "prod-cases-vault",
+    courseType: "volume",
+    title: "High-Yield Practical Case Studies Bank (250+ Scenarios)",
+    badge: "🎯 EXAM SCENARIOS & ANSWER RUBRICS",
+    category: "Exam Scoring Bank",
+    examBody: "ICAI Exam Standard",
+    subtitle: "250+ application-based practical cases with step-by-step model answers and ICAI marking rubrics.",
+    coverImage: "/assets/ca-cs-hero-books-v2.png",
+    price: 79,
+    originalPrice: 199,
+    discount: "60% OFF",
+    savings: "Save ₹120",
+    highlights: [
+      "Monster Monday, Midweek Madness & Final Boss Friday problems",
+      "Section 73 damages & Section 16 implied conditions trap cases",
+      "Model answer drafting rubrics that examiners award full marks for",
+    ],
+    bannerGradient: "from-[#881337] via-[#9F1239] to-[#BE123C]",
+    borderTheme: "border-[#FB7185]/40 hover:border-[#FDA4AF]",
+    accentColor: "text-rose-200",
+    buttonGradient: "bg-gradient-to-r from-[#E11D48] to-[#BE123C] hover:from-[#F43F5E] hover:to-[#E11D48] text-white shadow-rose-950/40",
+    validityTag: "250+ Cases • Exam Scoring Vault",
+    cartPayload: {
+      id: "prod-cases-vault",
+      title: "High-Yield Practical Case Studies Bank (250+ Scenarios)",
+      price: 79,
+      originalPrice: 199,
+      category: "Question Bank",
+      badge: "250+ Cases • Solved",
+    },
+  },
+  {
+    id: "prod-mcq-simulator",
+    courseType: "cs",
+    title: "CSEET 30-Question Live MCQ Timed Mock Simulator",
+    badge: "⏱️ LIVE MOCK SIMULATOR",
+    category: "Timed Practice Series",
+    examBody: "ICSI CSEET Pattern",
+    subtitle: "Full-length timed MCQ mock drills with instant negative marking calculation and platform rankings.",
+    coverImage: "/images/foundation_testseries_card.webp",
+    price: 49,
+    originalPrice: 149,
+    discount: "67% OFF",
+    savings: "Save ₹100",
+    highlights: [
+      "Real-time countdown timer simulating actual ICSI exam software",
+      "Instant percentile score, question-by-question rationale analysis",
+      "Leaderboard ranking against thousands of peers across India",
+    ],
+    bannerGradient: "from-[#1E1B4B] via-[#312E81] to-[#4338CA]",
+    borderTheme: "border-[#818CF8]/40 hover:border-[#A5B4FC]",
+    accentColor: "text-indigo-200",
+    buttonGradient: "bg-gradient-to-r from-[#6366F1] to-[#4F46E5] hover:from-[#818CF8] hover:to-[#6366F1] text-white shadow-indigo-950/40",
+    validityTag: "Live Simulator • Mock Tests",
+    cartPayload: {
+      id: "prod-mcq-simulator",
+      title: "CSEET 30-Question Live MCQ Timed Mock Simulator",
+      price: 49,
+      originalPrice: 149,
+      category: "Mock Test Series",
+      badge: "ICSI Pattern • Timed",
     },
   },
 ];
@@ -425,40 +479,54 @@ export function StudentDashboardHome({
     setCourses(dynamicCourses);
   }, [dynamicCourses]);
 
-  // Compute Unsubscribed Courses for high-conversion marketing carousel
-  const unsubscribedCourses = useMemo(() => {
-    return ALL_COURSES_CATALOG.filter((item) => {
-      // 1. All-access pass
-      if (item.courseType === "all-access") {
-        return !(isCaUnlocked && isCsUnlocked);
-      }
-      // 2. CA Foundation
-      if (item.courseType === "ca") {
-        return !isCaUnlocked;
-      }
-      // 3. CSEET
-      if (item.courseType === "cs") {
-        return !isCsUnlocked;
-      }
-      // 4. Volume 1 product
-      if (item.id === "prod-vol1") {
-        if (isAllAccessUnlocked || isCaUnlocked) return false;
-        const owns = (purchasedBooks || []).some(
-          (b) => b.toLowerCase().includes("vol1") || b.toLowerCase().includes("vol-1")
-        );
-        return !owns;
-      }
-      // 5. Volume 2 product
-      if (item.id === "prod-vol2") {
-        if (isAllAccessUnlocked || isCsUnlocked) return false;
-        const owns = (purchasedBooks || []).some(
-          (b) => b.toLowerCase().includes("vol2") || b.toLowerCase().includes("vol-2")
-        );
-        return !owns;
-      }
-      return true;
+  // Sort resources so unowned products are prominently at the front of the marketing showcase
+  const sortedShowcaseResources = useMemo(() => {
+    return [...SHOWCASE_RESOURCES].sort((a, b) => {
+      const aOwned = Boolean(
+        (a.courseType === "ca" && isCaUnlocked) ||
+        (a.courseType === "cs" && isCsUnlocked) ||
+        (a.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
+        (a.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
+        (a.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
+      );
+      const bOwned = Boolean(
+        (b.courseType === "ca" && isCaUnlocked) ||
+        (b.courseType === "cs" && isCsUnlocked) ||
+        (b.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
+        (b.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
+        (b.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
+      );
+      if (aOwned === bOwned) return 0;
+      return aOwned ? 1 : -1;
     });
   }, [isCaUnlocked, isCsUnlocked, isAllAccessUnlocked, purchasedBooks]);
+
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Live Auto-Scroll timer (smooth auto-advance every 3.5s, paused on hover)
+  useEffect(() => {
+    if (isHovered) return;
+
+    const interval = setInterval(() => {
+      if (promoCarouselRef.current) {
+        const container = promoCarouselRef.current;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        const cardWidth = container.clientWidth >= 640 ? 460 : 320;
+
+        let nextScroll = container.scrollLeft + cardWidth;
+        if (nextScroll >= maxScroll - 20) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+          setPromoSlideIndex(0);
+        } else {
+          container.scrollTo({ left: nextScroll, behavior: "smooth" });
+          const newIdx = Math.round(nextScroll / cardWidth);
+          setPromoSlideIndex(Math.min(newIdx, sortedShowcaseResources.length - 1));
+        }
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isHovered, sortedShowcaseResources.length]);
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -469,8 +537,8 @@ export function StudentDashboardHome({
 
   const scrollPromoCarousel = (direction: "left" | "right") => {
     if (promoCarouselRef.current) {
-      const scrollAmount = promoCarouselRef.current.clientWidth >= 640 ? 410 : 330;
-      const offset = direction === "left" ? -scrollAmount : scrollAmount;
+      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 320;
+      const offset = direction === "left" ? -cardWidth : cardWidth;
       promoCarouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
     }
   };
@@ -478,13 +546,13 @@ export function StudentDashboardHome({
   const handlePromoScroll = () => {
     if (promoCarouselRef.current) {
       const scrollLeft = promoCarouselRef.current.scrollLeft;
-      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 410 : 330;
+      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 320;
       const index = Math.round(scrollLeft / cardWidth);
-      setPromoSlideIndex(Math.max(0, Math.min(index, unsubscribedCourses.length - 1)));
+      setPromoSlideIndex(Math.max(0, Math.min(index, sortedShowcaseResources.length - 1)));
     }
   };
 
-  const handleBuyItem = (course: UnsubscribedCourseItem) => {
+  const handleBuyItem = (course: ShowcaseResourceItem) => {
     if (course.courseType === "all-access" && onBuyCourse) {
       onBuyCourse("all-access");
     } else if (course.courseType === "ca" && onBuyCourse) {
@@ -521,210 +589,235 @@ export function StudentDashboardHome({
   return (
     <div className="space-y-6 text-[#221D1D] select-none font-sans relative">
       {/* ========================================================================= */}
-      {/* 1. MARKETING CAROUSEL: COURSES NOT SUBSCRIBED YET                        */}
-      {/* Dynamic marketing showcase of unowned master passes & high-yield codices  */}
+      {/* 1. LIVE AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING SHOWCASE CAROUSEL  */}
       {/* ========================================================================= */}
-      {unsubscribedCourses.length > 0 ? (
-        <section className="space-y-3.5 bg-gradient-to-b from-[#FAF5FF]/70 via-white to-white rounded-3xl border border-[#EDE9FE] p-4 sm:p-5 shadow-xs">
-          {/* Header Row: Marketing Badge, Title & Navigation Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
-                  <Sparkles className="w-3 h-3 text-[#9333EA] animate-pulse" />
-                  <span>Curriculum Upgrades • Flash Launch Pricing</span>
-                </span>
-                <span className="text-[11px] font-bold text-[#6B7280]">
-                  {unsubscribedCourses.length} {unsubscribedCourses.length === 1 ? "pass" : "passes"} available
-                </span>
-              </div>
-              <h2 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
-                Courses You Haven&apos;t Unlocked Yet
-              </h2>
-              <p className="text-xs text-[#6B7280] max-w-2xl leading-relaxed">
-                Unlock statutory question banks, landmark precedent codices &amp; live MCQ drills at special student launch rates. Instant DRM access on all your devices.
-              </p>
+      <section
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="space-y-3.5 bg-gradient-to-b from-[#FAF5FF]/80 via-white to-white rounded-3xl border border-[#EDE9FE] p-4 sm:p-5 shadow-xs relative group/showcase"
+      >
+        {/* Header Row: Live Pulse Indicator, Title & Navigation Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-ping" />
+                <span>Live Study Material &amp; Codex Showcase</span>
+              </span>
+              <span className="text-[11px] font-semibold text-[#6B7280]">
+                {isHovered ? "Paused on hover" : "Auto-scrolling"}
+              </span>
             </div>
-
-            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-              <Link
-                href="/courses"
-                className="hidden md:inline-flex items-center gap-1 text-xs font-bold text-[#7E22CE] hover:text-[#581C87] px-3 py-1.5 rounded-full hover:bg-[#F3E8FF]/60 transition-colors"
-              >
-                <span>Browse All</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-              {/* Carousel Prev/Next Buttons */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => scrollPromoCarousel("left")}
-                  className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                  aria-label="Previous Course"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => scrollPromoCarousel("right")}
-                  className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                  aria-label="Next Course"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Smooth Horizontal Carousel */}
-          <div
-            ref={promoCarouselRef}
-            onScroll={handlePromoScroll}
-            className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto pb-2 pt-1 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {unsubscribedCourses.map((course) => (
-              <div
-                key={course.id}
-                className={`w-[310px] sm:w-[370px] lg:w-[410px] shrink-0 snap-start flex flex-col justify-between rounded-3xl bg-gradient-to-br ${course.bannerGradient} border ${course.borderTheme} p-5 sm:p-6 text-white shadow-xs hover:shadow-lg transition-all duration-300 relative overflow-hidden group`}
-              >
-                {/* Decorative Radial Glow */}
-                <div className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-
-                <div className="space-y-3.5 relative z-10">
-                  {/* Top Bar: Badges & Discount */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-white border border-white/25">
-                        {course.badge}
-                      </span>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
-                        {course.discount}
-                      </span>
-                    </div>
-                    <div className={`w-8 h-8 rounded-xl ${course.iconBg} backdrop-blur-xs flex items-center justify-center text-base shrink-0 shadow-2xs`}>
-                      {course.icon}
-                    </div>
-                  </div>
-
-                  {/* Title & Exam Scope */}
-                  <div>
-                    <span className="text-[11px] font-semibold text-white/70 block mb-0.5">
-                      {course.category} • {course.examBody}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-black leading-snug text-white tracking-tight">
-                      {course.title}
-                    </h3>
-                    <p className="text-xs text-white/80 line-clamp-2 mt-1 leading-relaxed">
-                      {course.subtitle}
-                    </p>
-                  </div>
-
-                  {/* High-Yield Highlights Checklist */}
-                  <div className="space-y-1.5 pt-1">
-                    {course.highlights.map((h, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-white/90 font-medium leading-tight">
-                        <span className="w-3.5 h-3.5 rounded-full bg-white/20 text-emerald-300 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
-                          ✓
-                        </span>
-                        <span className="line-clamp-1">{h}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Price & Savings Row */}
-                  <div className="flex items-baseline justify-between pt-2.5 border-t border-white/15">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-white/70">Launch:</span>
-                      <span className="text-2xl sm:text-3xl font-black text-white">
-                        ₹{course.price}
-                      </span>
-                      <span className="text-xs text-white/60 line-through font-mono">
-                        ₹{course.originalPrice}
-                      </span>
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-400 text-amber-950 font-sans shadow-2xs">
-                        {course.savings}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-medium text-white/75 truncate max-w-[120px]">
-                      {course.validityTag}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Primary CTA Button */}
-                <div className="pt-4 space-y-2 relative z-10">
-                  <button
-                    onClick={() => handleBuyItem(course)}
-                    className={`w-full py-2.5 sm:py-3 px-4 rounded-xl ${course.buttonGradient} font-black text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
-                  >
-                    <ShoppingBag className="w-4 h-4 shrink-0" />
-                    <span>Unlock Pass • ₹{course.price}</span>
-                    <ArrowRight className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
-                  </button>
-
-                  <div className="flex items-center justify-between text-[10px] text-white/70 px-1">
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                      <span>Razorpay Verified</span>
-                    </span>
-                    <button
-                      onClick={() => onExploreCourse(course.courseType === "all-access" ? "all-access" : course.courseType)}
-                      className="hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
-                    >
-                      Preview Syllabus &rarr;
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Dots Indicator */}
-          {unsubscribedCourses.length > 1 && (
-            <div className="flex items-center justify-center gap-1.5 pt-1">
-              {unsubscribedCourses.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    if (promoCarouselRef.current) {
-                      const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 410 : 330;
-                      promoCarouselRef.current.scrollTo({ left: idx * cardWidth, behavior: "smooth" });
-                    }
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
-                    promoSlideIndex === idx ? "w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
-                  }`}
-                  aria-label={`Slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      ) : (
-        /* Fully Subscribed VIP Scholar Status Card */
-        <div className="rounded-3xl bg-gradient-to-br from-[#FAF5FF] via-[#F3E8FF] to-[#EDE9FE] border border-[#DDD6FE] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1.5 text-center sm:text-left">
-            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#7E22CE] text-white shadow-2xs">
-              <Crown className="w-3 h-3 text-amber-300" />
-              <span>Ranker Scholar Fellowship Active</span>
-            </span>
-            <h2 className="text-lg sm:text-xl font-black text-[#1F2937]">
-              All Curriculum Master Passes Unlocked! 🏆
+            <h2 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
+              Curriculum Codices &amp; Master Passes
             </h2>
-            <p className="text-xs text-[#4B5563] max-w-xl">
-              You have complete, unrestricted access to both CA Foundation &amp; CSEET statutory codices, live question banks, and mentor answer rubrics.
+            <p className="text-xs text-[#6B7280] max-w-2xl leading-relaxed">
+              Explore specialized statutory codices, case study question banks &amp; timed mock test passes. Instant DRM reader access on all devices.
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => onExploreCourse(activeCourse)}
-              className="px-5 py-2.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-black transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer active:scale-95"
+
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <Link
+              href="/courses"
+              className="hidden md:inline-flex items-center gap-1 text-xs font-bold text-[#7E22CE] hover:text-[#581C87] px-3 py-1.5 rounded-full hover:bg-[#F3E8FF]/60 transition-colors"
             >
-              <BookOpen className="w-4 h-4" />
-              <span>Continue Studying</span>
-            </button>
+              <span>Browse Catalog</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+            {/* Carousel Prev/Next Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => scrollPromoCarousel("left")}
+                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                aria-label="Previous Item"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollPromoCarousel("right")}
+                className="w-8 h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                aria-label="Next Item"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Smooth Horizontal Carousel Track */}
+        <div
+          ref={promoCarouselRef}
+          onScroll={handlePromoScroll}
+          className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {sortedShowcaseResources.map((resource) => {
+            const isOwned = Boolean(
+              (resource.courseType === "ca" && isCaUnlocked) ||
+              (resource.courseType === "cs" && isCsUnlocked) ||
+              (resource.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
+              (resource.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
+              (resource.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
+            );
+
+            return (
+              <div
+                key={resource.id}
+                className={`w-[300px] sm:w-[460px] lg:w-[490px] shrink-0 snap-start flex flex-col sm:flex-row gap-4 justify-between rounded-3xl bg-gradient-to-br ${resource.bannerGradient} border ${resource.borderTheme} p-4 sm:p-5 text-white shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
+              >
+                {/* Decorative Subtle Background Radial Glow */}
+                <div className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+
+                {/* Left/Top Column: 3D Book Cover Image Mockup */}
+                <div className="relative w-full sm:w-40 sm:self-stretch shrink-0 flex flex-col items-center justify-between rounded-2xl bg-black/20 border border-white/10 p-3 overflow-hidden shadow-inner group-hover:border-white/20 transition-all">
+                  {/* Top discount / status tag */}
+                  <div className="w-full flex items-center justify-between gap-1 z-10">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-300/30">
+                      {resource.discount}
+                    </span>
+                    {isOwned && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500 text-white shadow-2xs">
+                        Owned
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 3D Book Cover Image */}
+                  <div className="relative w-28 sm:w-32 h-36 sm:h-40 my-2 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1">
+                    <Image
+                      src={resource.coverImage}
+                      alt={resource.title}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 640px) 120px, 140px"
+                    />
+                  </div>
+
+                  {/* Format tag */}
+                  <span className="text-[9px] font-bold text-white/70 uppercase tracking-wider z-10 text-center">
+                    Digital 3D Codex
+                  </span>
+                </div>
+
+                {/* Right/Bottom Column: Resource Details, Pricing & Action CTA */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3 relative z-10">
+                  <div className="space-y-2">
+                    {/* Badge & Exam Category */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-xs text-white border border-white/20">
+                        {resource.badge}
+                      </span>
+                      <span className="text-[10px] font-semibold text-white/70">
+                        {resource.examBody}
+                      </span>
+                    </div>
+
+                    {/* Title & Subtitle */}
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black leading-snug text-white tracking-tight line-clamp-2">
+                        {resource.title}
+                      </h3>
+                      <p className="text-[11px] text-white/80 line-clamp-2 mt-0.5 leading-relaxed">
+                        {resource.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Highlights bullet list */}
+                    <div className="space-y-1 pt-1">
+                      {resource.highlights.map((h, i) => (
+                        <div key={i} className="flex items-start gap-1.5 text-[11px] text-white/90 font-medium leading-tight">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0 mt-0.5" />
+                          <span className="line-clamp-1">{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom: Price row & CTA */}
+                  <div className="space-y-2 pt-2 border-t border-white/15">
+                    <div className="flex items-baseline justify-between">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-xl sm:text-2xl font-black text-white">
+                          ₹{resource.price}
+                        </span>
+                        <span className="text-xs text-white/60 line-through font-mono">
+                          ₹{resource.originalPrice}
+                        </span>
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 font-sans shadow-2xs">
+                          {resource.savings}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-medium text-white/70">
+                        {resource.validityTag}
+                      </span>
+                    </div>
+
+                    {/* Primary Button */}
+                    <div className="space-y-1.5">
+                      {isOwned ? (
+                        <button
+                          onClick={() => {
+                            if (resource.courseType === "all-access" || resource.courseType === "ca") {
+                              onExploreCourse("ca");
+                            } else {
+                              onExploreCourse("cs");
+                            }
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 border border-white/30"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>Study Codex In Reader ▶</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleBuyItem(resource)}
+                          className={`w-full py-2 sm:py-2.5 px-3 rounded-xl ${resource.buttonGradient} font-black text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                          <span>Unlock Pass • ₹{resource.price}</span>
+                          <ArrowRight className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
+                        </button>
+                      )}
+
+                      <div className="flex items-center justify-between text-[10px] text-white/70 px-0.5">
+                        <span className="flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-emerald-300" />
+                          <span>Instant DRM Access</span>
+                        </span>
+                        <button
+                          onClick={() => onExploreCourse(resource.courseType === "all-access" ? "all-access" : resource.courseType)}
+                          className="hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
+                        >
+                          Syllabus &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Dots Navigation Indicators */}
+        <div className="flex items-center justify-center gap-1.5 pt-1">
+          {sortedShowcaseResources.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                if (promoCarouselRef.current) {
+                  const cardWidth = promoCarouselRef.current.clientWidth >= 640 ? 460 : 330;
+                  promoCarouselRef.current.scrollTo({ left: idx * cardWidth, behavior: "smooth" });
+                }
+              }}
+              className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                promoSlideIndex === idx ? "w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
+              }`}
+              aria-label={`Slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </section>
 
       {/* ========================================================================= */}
       {/* 2. ENROLLED COURSES (EXACT HEADER, SEARCH, ARROWS & CAROUSEL CARDS)        */}
