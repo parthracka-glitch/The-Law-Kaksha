@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -43,6 +42,9 @@ interface Product {
   previewPagesLimit?: number;
   samplePagesRange?: string;
   pdfUrl?: string;
+  paymentType?: "monthly" | "one-time";
+  accentColor?: string;
+  iconEmoji?: string;
 }
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -60,11 +62,13 @@ const FALLBACK_PRODUCTS: Product[] = [
     category: "CA Foundation Paper 2",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    paymentType: "monthly",
+    accentColor: "from-[#AED7E9] to-[#7BB8CE]",
+    iconEmoji: "⚖️",
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
-      "Downloadable DRM-protected study PDFs",
+      "DRM-protected study PDFs in secure 3D reader",
       "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
     ],
   },
@@ -82,12 +86,64 @@ const FALLBACK_PRODUCTS: Product[] = [
     category: "CSEET Paper 2",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    paymentType: "monthly",
+    accentColor: "from-[#BFAFE5] to-[#A08DC9]",
+    iconEmoji: "📋",
     highlights: [
       "Comprehensive notes for all 8 Business Law and Management units",
       "Chapter-wise practice MCQs with explanations for each option",
       "Weekly timed mock tests with instant score reports",
       "Last Day Revision (LDR) summaries and concept flowcharts",
+    ],
+  },
+  {
+    id: "ca-qbank-vol1",
+    slug: "ca-foundation-question-bank-volume-1",
+    type: "question-bank",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Question Bank — Volume 1",
+    subtitle: "Indian Contract Act, Sale of Goods Act & Indian Partnership Act",
+    description: "Exhaustive chapter-wise MCQ + descriptive question bank for CA Foundation Paper 2 (Volume 1). Covers Chapters 2, 3 & 4 with solved examples, past year questions, and exam-pattern practice sets.",
+    price: 299,
+    original_price: 599,
+    badge: "₹299 • One-Time",
+    category: "CA Foundation Paper 2",
+    examBody: "ICAI",
+    pages_or_duration: "Chapters 2, 3 & 4",
+    paymentType: "one-time",
+    accentColor: "from-[#F4C5C0] to-[#E8A09A]",
+    iconEmoji: "📚",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    highlights: [
+      "Chapter 2 — Indian Contract Act, 1872: 200+ MCQs & 40 descriptive problems",
+      "Chapter 3 — Sale of Goods Act, 1930: 150+ MCQs including Caveat Emptor sets",
+      "Chapter 4 — Indian Partnership Act, 1932: 180+ MCQs with case-based questions",
+      "Lifetime access • No subscription required",
+    ],
+  },
+  {
+    id: "ca-qbank-vol2",
+    slug: "ca-foundation-question-bank-volume-2",
+    type: "question-bank",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Question Bank — Volume 2",
+    subtitle: "LLP Act, Companies Act & Negotiable Instruments Act",
+    description: "Exhaustive chapter-wise MCQ + descriptive question bank for CA Foundation Paper 2 (Volume 2). Covers Chapters 5, 6 & 7 with solved examples, past year questions, and exam-pattern practice sets.",
+    price: 299,
+    original_price: 599,
+    badge: "₹299 • One-Time",
+    category: "CA Foundation Paper 2",
+    examBody: "ICAI",
+    pages_or_duration: "Chapters 5, 6 & 7",
+    paymentType: "one-time",
+    accentColor: "from-[#B8DDCA] to-[#7EBB9E]",
+    iconEmoji: "📖",
+    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    highlights: [
+      "Chapter 5 — LLP Act, 2008: 120+ MCQs covering formation & designated partners",
+      "Chapter 6 — Companies Act, 2013: 220+ MCQs including Corporate Veil & MOA/AOA",
+      "Chapter 7 — Negotiable Instruments Act: 160+ MCQs with Section 138 focus",
+      "Lifetime access • No subscription required",
     ],
   },
 ];
@@ -290,20 +346,27 @@ function CoursesCatalogContent() {
                       </span>
                     </div>
 
-                    {/* Course Graphic & Icon */}
-                    <Link href={`/product/${product.id}`} className="block">
-                      <div className="w-full bg-[#F7F7F5] rounded-2xl border border-[#E7E4E7] p-6 flex items-center justify-center group-hover:bg-[#F7F7F5]/80 transition-colors">
-                        <div className="relative rounded-xl overflow-hidden shadow-xs max-w-[180px] sm:max-w-[200px]">
-                          <Image
-                            src={product.cover_image || "/assets/ca-cs-hero-books-v2.png"}
-                            alt={product.title}
-                            width={220}
-                            height={280}
-                            className="h-44 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
+                    {/* Visual Icon Card — replaces cover image */}
+                    <div className={`w-full rounded-2xl bg-gradient-to-br ${product.accentColor || "from-[#AED7E9] to-[#7BB8CE]"} p-5 flex items-center justify-between gap-4 border border-white/30`}>
+                      <div className="space-y-1.5">
+                        <div className="text-3xl">{product.iconEmoji || "📘"}</div>
+                        <p className="text-xs font-bold text-[#221D1D]/80 uppercase tracking-wider">{product.category}</p>
+                        <p className="text-sm font-semibold text-[#221D1D] leading-snug max-w-[200px]">{product.subtitle}</p>
                       </div>
-                    </Link>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className="px-2.5 py-1 rounded-full bg-white/50 border border-white/40 text-[10px] font-bold text-[#221D1D] uppercase tracking-wider">
+                          {product.examBody}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-full bg-[#221D1D]/10 border border-[#221D1D]/15 text-[10px] font-bold text-[#221D1D]">
+                          {product.pages_or_duration}
+                        </span>
+                        {product.paymentType === "one-time" && (
+                          <span className="px-2.5 py-1 rounded-full bg-white/70 border border-white/50 text-[10px] font-bold text-[#221D1D]">
+                            Lifetime Access
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Course Title & Overview */}
                     <div>
@@ -348,7 +411,9 @@ function CoursesCatalogContent() {
                         <span className="text-3xl font-extrabold text-[#221D1D] tracking-tight font-serif">
                           ₹{product.price}
                         </span>
-                        <span className="text-xs font-bold text-[#77716E] ml-1">/month</span>
+                        <span className="text-xs font-bold text-[#77716E] ml-1">
+                          {product.paymentType === "one-time" ? "one-time" : "/month"}
+                        </span>
                         {product.original_price > product.price && (
                           <span className="ml-2 text-xs text-[#77716E] line-through">
                             ₹{product.original_price}
@@ -356,7 +421,7 @@ function CoursesCatalogContent() {
                         )}
                       </div>
                       <span className="text-[11px] font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
-                        Monthly Access • Cancel Anytime
+                        {product.paymentType === "one-time" ? "Lifetime Access • One-Time" : "Monthly Access • Cancel Anytime"}
                       </span>
                     </div>
 
@@ -383,7 +448,11 @@ function CoursesCatalogContent() {
                       className="w-full py-3.5 px-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
                       <ShoppingBag className="w-4 h-4 text-[#221D1D]" />
-                      <span>Enroll Now (₹{product.price}/mo)</span>
+                      <span>
+                        {product.paymentType === "one-time"
+                          ? `Buy Now (₹${product.price} One-Time)`
+                          : `Enroll Now (₹${product.price}/mo)`}
+                      </span>
                     </button>
                   </div>
                 </div>
