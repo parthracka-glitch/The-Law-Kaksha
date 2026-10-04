@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText, LogIn, LogOut, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export function Navbar() {
@@ -15,13 +15,16 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeStudent, setActiveStudent] = useState<{
     name: string;
+    email?: string;
     avatarInitials: string;
     role?: string;
   } | null>(null);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { totalItemCount, setIsCartOpen } = useCart();
 
   useEffect(() => {
@@ -33,6 +36,9 @@ export function Navbar() {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setCoursesDropdownOpen(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -46,6 +52,7 @@ export function Navbar() {
             if (parsed && (parsed.name || parsed.role === "admin")) {
               setActiveStudent({
                 name: parsed.name || "Administrator",
+                email: parsed.email || "admin@thelawkaksha.com",
                 avatarInitials: "AD",
                 role: "admin",
               });
@@ -58,9 +65,20 @@ export function Navbar() {
           try {
             const parsed = JSON.parse(saved);
             if (parsed && parsed.name) {
+              const initials =
+                parsed.avatarInitials ||
+                (parsed.name
+                  ? parsed.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : "LK");
               setActiveStudent({
                 name: parsed.name,
-                avatarInitials: parsed.avatarInitials || parsed.name.slice(0, 2).toUpperCase(),
+                email: parsed.email || "",
+                avatarInitials: initials,
                 role: "student",
               });
               return;
@@ -73,18 +91,35 @@ export function Navbar() {
 
     checkSession();
     window.addEventListener("storage", checkSession);
+    window.addEventListener("lawkaksha_student_updated", checkSession);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("storage", checkSession);
+      window.removeEventListener("lawkaksha_student_updated", checkSession);
     };
   }, []);
 
-  // Close mobile menu on route change
+  // Close mobile menu and dropdowns on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setCoursesDropdownOpen(false);
+    setProfileDropdownOpen(false);
   }, [pathname]);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("lawkaksha_admin_session");
+      localStorage.removeItem("lawkaksha_student_session");
+      localStorage.removeItem("lawkaksha_active_student");
+      localStorage.removeItem("lawkaksha_token");
+      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("lawkaksha_student_updated"));
+    }
+    setActiveStudent(null);
+    setProfileDropdownOpen(false);
+    router.push("/");
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,28 +336,116 @@ export function Navbar() {
               )}
             </button>
 
-            {/* Top Corner "Student Dashboard" CTA Button */}
+            {/* AUTH BUTTONS: LOG IN (when logged out) VS PROFILE & DASHBOARD (when logged in) */}
             {activeStudent ? (
-              <Link
-                href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap"
-                title={`${activeStudent.name} (${activeStudent.role === "admin" ? "Admin" : "Student"})`}
-              >
-                <div className="w-5 h-5 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                  {activeStudent.avatarInitials}
+              <div className="flex items-center gap-2">
+                {/* Quick Shortcut to Student Dashboard / Admin Panel */}
+                <Link
+                  href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-full bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE] text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap active:scale-95"
+                  title={activeStudent.role === "admin" ? "Open Admin Panel" : "Open Student Dashboard"}
+                >
+                  <GraduationCap className="w-4 h-4 text-[#7E22CE]" />
+                  <span>{activeStudent.role === "admin" ? "Admin Panel" : "Dashboard"}</span>
+                </Link>
+
+                {/* Dedicated Profile Dropdown Button */}
+                <div className="relative" ref={profileDropdownRef}>
+                  <button
+                    onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap border border-[#A08DC9]/40 active:scale-95"
+                    aria-expanded={profileDropdownOpen}
+                    aria-haspopup="true"
+                    title={`View profile for ${activeStudent.name}`}
+                  >
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-[10px] shrink-0 shadow-2xs">
+                      {activeStudent.avatarInitials}
+                    </div>
+                    <span className="max-w-[90px] truncate hidden xs:inline sm:inline">
+                      {activeStudent.name.split(" ")[0]}
+                    </span>
+                    <span className="hidden sm:inline text-[11px] font-semibold text-[#4D433F]">• Profile</span>
+                    <span className="xs:hidden sm:hidden">Profile</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-[#221D1D] transition-transform duration-200 ${
+                        profileDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Rich Profile Dropdown Menu */}
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 mt-2.5 w-72 rounded-2xl bg-white border border-[#E7E4E7] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-[#F3F4F6]">
+                      {/* User Card Header */}
+                      <div className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#BFAFE5] to-[#7E22CE] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                            {activeStudent.avatarInitials}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-[#1F2937] truncate">{activeStudent.name}</p>
+                            <p className="text-xs text-[#6B7280] truncate">
+                              {activeStudent.email || (activeStudent.role === "admin" ? "Administrator" : "Verified Student")}
+                            </p>
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
+                              {activeStudent.role === "admin" ? "⚡ Administrator" : "🎓 Law Student"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Navigation Links */}
+                      <div className="p-1.5 space-y-0.5">
+                        <Link
+                          href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F3E8FF] hover:text-[#7E22CE] transition-colors"
+                        >
+                          <GraduationCap className="w-4 h-4 text-[#7E22CE]" />
+                          <span>{activeStudent.role === "admin" ? "Admin Control Center" : "Student Dashboard"}</span>
+                        </Link>
+
+                        <Link
+                          href="/student"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F7F7F5] transition-colors"
+                        >
+                          <User className="w-4 h-4 text-[#4B8097]" />
+                          <span>My Profile &amp; Stats</span>
+                        </Link>
+
+                        <Link
+                          href="/courses"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F7F7F5] transition-colors"
+                        >
+                          <BookOpen className="w-4 h-4 text-[#F7892A]" />
+                          <span>Browse Notes &amp; Codices</span>
+                        </Link>
+                      </div>
+
+                      {/* Sign Out Action */}
+                      <div className="p-1.5">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4 text-rose-500" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="hidden xs:inline sm:inline">Student Dashboard</span>
-                <span className="xs:hidden sm:hidden">Dashboard</span>
-              </Link>
+              </div>
             ) : (
               <Link
-                href="/login?redirect=/student"
-                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap"
-                title="Access Student Portal & Study Notes"
+                href="/login"
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-95"
+                title="Log In to Student Account"
               >
-                <GraduationCap className="w-4 h-4 text-[#221D1D]" />
-                <span className="hidden xs:inline sm:inline">Student Dashboard</span>
-                <span className="xs:hidden sm:hidden">Dashboard</span>
+                <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#221D1D]" />
+                <span>Log In</span>
               </Link>
             )}
 
@@ -470,23 +593,50 @@ export function Navbar() {
                 </Link>
               </div>
 
-              {/* Drawer Footer CTA */}
-              <div className="px-4 py-4 border-t border-[#E7E4E7] safe-bottom">
+              {/* Drawer Footer Auth CTA */}
+              <div className="px-4 py-4 border-t border-[#E7E4E7] safe-bottom space-y-2.5">
                 {activeStudent ? (
-                  <Link
-                    href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[48px]"
-                  >
-                    <GraduationCap className="w-4 h-4 text-[#221D1D]" />
-                    <span>{activeStudent.role === "admin" ? "Admin Panel" : "🎓 Student Dashboard"}</span>
-                  </Link>
+                  <>
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
+                      <div className="w-10 h-10 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                        {activeStudent.avatarInitials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-[#1F2937] truncate">{activeStudent.name}</p>
+                        <p className="text-xs text-[#6B7280] truncate">
+                          {activeStudent.role === "admin" ? "Administrator" : "Student Account"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[44px]"
+                    >
+                      <GraduationCap className="w-4 h-4 text-[#221D1D]" />
+                      <span>{activeStudent.role === "admin" ? "Admin Control Panel" : "🎓 Student Dashboard"}</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-rose-600 text-xs font-bold hover:bg-rose-50 transition border border-rose-200 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
                 ) : (
                   <Link
-                    href="/login?redirect=/student"
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[48px]"
                   >
-                    <GraduationCap className="w-4 h-4 text-[#221D1D]" />
-                    <span>🎓 Student Dashboard (Log In)</span>
+                    <LogIn className="w-4 h-4 text-[#221D1D]" />
+                    <span>Log In to Account</span>
                   </Link>
                 )}
               </div>

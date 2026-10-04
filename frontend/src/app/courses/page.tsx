@@ -113,7 +113,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     paymentType: "one-time",
     accentColor: "from-[#F4C5C0] to-[#E8A09A]",
     iconEmoji: "📚",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
     highlights: [
       "Chapter 2 — Indian Contract Act, 1872: 200+ MCQs & 40 descriptive problems",
       "Chapter 3 — Sale of Goods Act, 1930: 150+ MCQs including Caveat Emptor sets",

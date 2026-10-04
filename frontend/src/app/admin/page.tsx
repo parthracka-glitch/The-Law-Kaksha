@@ -78,7 +78,7 @@ export interface ResourceItem {
   course: "ca-foundation" | "cseet" | string;
   actName: string;
   chapterNumber: number;
-  type: "notes" | "flowchart" | "practice" | "pyq" | "case_study" | "ldr";
+  type: "notes" | "flowchart" | "practice" | "pyq" | "case_study" | "ldr" | "infographic";
   title: string;
   description: string;
   pdfUrl: string;
@@ -308,6 +308,81 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     status: "Published",
     order: 3,
     pages: "32 Pages (Sample PDF)",
+  },
+  {
+    id: "res-ca-partnership-ldr",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "ldr",
+    title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
+    description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
+    pdfUrl: "/notes/partnership-ldr-charts.pdf",
+    samplePdfUrl: "/notes/partnership-ldr-charts.pdf",
+    isSample: true,
+    status: "Published",
+    order: 4,
+    pages: "18 Pages (LDR Revision Charts)",
+  },
+  {
+    id: "res-ca-partnership-infographics",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "infographic",
+    title: "Partnership Act — Visual Infographics & Concept Mind Maps",
+    description: "High-retention infographics breaking down Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
+    pdfUrl: "/notes/partnership-infographics.pdf",
+    samplePdfUrl: "/notes/partnership-infographics.pdf",
+    isSample: true,
+    status: "Published",
+    order: 5,
+    pages: "12 Infographic Sheets",
+  },
+  {
+    id: "res-ca-partnership-practice",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "practice",
+    title: "Indian Partnership Act — Practice Questions & Case Problems",
+    description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
+    pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
+    samplePdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
+    isSample: true,
+    status: "Published",
+    order: 6,
+    pages: "25 Pages (Practice Problems)",
+  },
+  {
+    id: "res-ca-qbank-part1",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "practice",
+    title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
+    description: "Turn understanding into exam-ready practice: Chapter-wise questions, application scenarios, case-based questions & model test papers for CA Foundation.",
+    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
+    samplePdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
+    isSample: true,
+    status: "Published",
+    order: 7,
+    pages: "65+ Pages (Question Bank)",
+  },
+  {
+    id: "res-ca-paper-analysis-sep2026",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "pyq",
+    title: "September 2026 Paper Analysis & Detailed Model Answers",
+    description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
+    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
+    samplePdfUrl: "/notes/september-2026-paper-analysis.pdf",
+    isSample: true,
+    status: "Published",
+    order: 8,
+    pages: "16 Pages (Exam Paper Analysis)",
   },
   {
     id: "res-ca-7",
@@ -2064,6 +2139,7 @@ export default function AdminPortalPage() {
                         <option value="all">All Types</option>
                         <option value="notes">Chapter Notes</option>
                         <option value="flowchart">Flowchart</option>
+                        <option value="infographic">Visual Infographics</option>
                         <option value="practice">Practice Questions</option>
                         <option value="pyq">PYQ Drill</option>
                         <option value="ldr">Last Day Revision (LDR)</option>
@@ -2888,6 +2964,7 @@ export default function AdminPortalPage() {
                   >
                     <option value="notes">Chapter Notes</option>
                     <option value="flowchart">Flowchart</option>
+                    <option value="infographic">Visual Infographics</option>
                     <option value="practice">Practice Questions</option>
                     <option value="pyq">PYQ Drill</option>
                     <option value="ldr">Last Day Revision (LDR)</option>
@@ -2943,6 +3020,47 @@ export default function AdminPortalPage() {
                     <UploadCloud className="w-3.5 h-3.5" />
                     <span>{isUploadingFile ? "Uploading..." : "Upload PDF"}</span>
                   </button>
+                </div>
+
+                {/* Quick PDF presets */}
+                <div className="mt-2 pt-1 border-t border-[#F3F4F6] space-y-1">
+                  <p className="text-[10px] font-semibold text-[#77716E]">Quick Select Standard PDF:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      { label: "Partnership LDR Charts", url: "/notes/partnership-ldr-charts.pdf", type: "ldr", title: "Partnership Act — Last Day Revision (LDR) Flowcharts", pages: "18 Pages (LDR Revision Charts)" },
+                      { label: "Partnership Infographics", url: "/notes/partnership-infographics.pdf", type: "infographic", title: "Partnership Act — Visual Infographics & Concept Mind Maps", pages: "12 Infographic Sheets" },
+                      { label: "Partnership Practice Questions", url: "/notes/indian-partnership-act-practice-questions.pdf", type: "practice", title: "Indian Partnership Act — Practice Questions & Case Problems", pages: "25 Pages" },
+                      { label: "Smart Revision Question Bank (Part 1)", url: "/notes/smart-revision-question-bank-part-1.pdf", type: "practice", title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions", pages: "65+ Pages" },
+                      { label: "September 2026 Paper Analysis", url: "/notes/september-2026-paper-analysis.pdf", type: "pyq", title: "September 2026 Paper Analysis & Detailed Model Answers", pages: "16 Pages" },
+                      { label: "Partnership Unit 1 Notes", url: "/notes/unit-1-general-nature-of-partnership.pdf", type: "notes", title: "Unit 1: General Nature of Partnership", pages: "24 Pages" },
+                      { label: "Partnership Unit 2 Notes", url: "/notes/unit-2-relations-of-partners.pdf", type: "notes", title: "Unit 2: Relations of Partners", pages: "28 Pages" },
+                      { label: "Partnership Unit 3 Notes", url: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", type: "notes", title: "Unit 3: Registration and Dissolution of Firm", pages: "32 Pages" },
+                    ].map((preset, pIdx) => (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        onClick={() => {
+                          setResourceModal((prev) => ({
+                            ...prev,
+                            data: {
+                              ...prev.data,
+                              pdfUrl: preset.url,
+                              samplePdfUrl: preset.url,
+                              isSample: true,
+                              type: (preset.type as any) || prev.data.type,
+                              title: prev.data.title || preset.title,
+                              pages: preset.pages || prev.data.pages,
+                              actName: "The Indian Partnership Act, 1932",
+                              chapterNumber: 4,
+                            },
+                          }));
+                        }}
+                        className="px-2 py-0.5 rounded-lg text-[10px] bg-[#F7F7F5] hover:bg-[#C4E1EC]/60 border border-[#E7E4E7] text-[#221D1D] transition-colors cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

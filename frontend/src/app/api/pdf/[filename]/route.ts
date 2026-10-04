@@ -11,21 +11,54 @@ export async function GET(
     const url = new URL(request.url);
     const format = url.searchParams.get("format");
     
-    // Sanitize filename to prevent directory traversal
-    const safeFilename = path.basename(filename);
+    // Sanitize filename to prevent directory traversal and decode URL components
+    const decodedFilename = decodeURIComponent(filename);
+    const safeFilename = path.basename(decodedFilename);
     const possiblePaths = [
       path.join(process.cwd(), "public", "notes", safeFilename),
       path.join(process.cwd(), "..", "backend", "uploads", safeFilename),
       path.join(process.cwd(), "public", safeFilename),
       path.join(process.cwd(), "public", "uploads", safeFilename),
       path.join(process.cwd(), "uploads", safeFilename),
+      path.join(process.cwd(), "public", "notes", path.basename(filename)),
+      path.join(process.cwd(), "..", "backend", "uploads", path.basename(filename)),
     ];
 
-    // Aliases for SOGA units if accessed via original name
-    if (safeFilename.toLowerCase().includes("soga") && (safeFilename.includes("1") || safeFilename.toLowerCase().includes("unit 1") || safeFilename.toLowerCase().includes("unit_1"))) {
+    // Aliases for Indian Partnership Act & SOGA units if accessed via canonical or original names
+    const lowerName = safeFilename.toLowerCase();
+    if (lowerName.includes("infographic") || lowerName.includes("infogarphic")) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-infographics.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Partnership Infogarphics.pdf"));
+    }
+    if (lowerName.includes("ldr") && lowerName.includes("chart")) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-ldr-charts.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Partnership LDR Charts.pdf"));
+    }
+    if (lowerName.includes("paper analysis") || lowerName.includes("september 2026") || lowerName.includes("september-2026")) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "september-2026-paper-analysis.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "September 2026 Paper Analysis.pdf"));
+    }
+    if (lowerName.includes("smart revision") || (lowerName.includes("question bank") && lowerName.includes("part 1"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "smart-revision-question-bank-part-1.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Smart Revision Question Bank Part 1.pdf"));
+    }
+    if (lowerName.includes("partnership") && (lowerName.includes("practice") || lowerName.includes("question"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "indian-partnership-act-practice-questions.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Indian Partnership Act_Practice Questions.pdf"));
+    }
+    if (lowerName.includes("partnership") && (lowerName.includes("unit 1") || lowerName.includes("unit_1") || lowerName.includes("general nature"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"));
+    }
+    if (lowerName.includes("partnership") && (lowerName.includes("unit 2") || lowerName.includes("unit_2") || lowerName.includes("relations of partners"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-2-relations-of-partners.pdf"));
+    }
+    if (lowerName.includes("partnership") && (lowerName.includes("unit 3") || lowerName.includes("unit_3") || lowerName.includes("dissolution"))) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-3-registration-and-dissolution-of-firm.pdf"));
+    }
+    if (lowerName.includes("soga") && (lowerName.includes("1") || lowerName.includes("unit 1") || lowerName.includes("unit_1"))) {
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"));
     }
-    if (safeFilename.toLowerCase().includes("soga") && (safeFilename.includes("2") || safeFilename.toLowerCase().includes("unit 2") || safeFilename.toLowerCase().includes("unit_2"))) {
+    if (lowerName.includes("soga") && (lowerName.includes("2") || lowerName.includes("unit 2") || lowerName.includes("unit_2"))) {
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"));
     }
 
@@ -34,9 +67,9 @@ export async function GET(
     // Fallback to default canonical PDF if specific name not found on disk
     if (!filePath) {
       const fallbackPaths = [
+        path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
         path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"),
         path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"),
-        path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
         path.join(process.cwd(), "public", "notes", "cseet-management-full.pdf"),
         path.join(process.cwd(), "public", "notes", "cseet-business-law-full.pdf"),
       ];

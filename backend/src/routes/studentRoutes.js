@@ -8,6 +8,7 @@ const express = require("express");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const Product = require("../models/Product");
+const Resource = require("../models/Resource");
 const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
 const McqTest = require("../models/McqTest");
@@ -40,6 +41,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
     let cases = [];
     let mcqs = [];
     let mcqTests = [];
+    let resources = [];
     let examSettings = [];
     let qotd = null;
 
@@ -64,11 +66,12 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       }
 
       // 3. Find live platform resources uploaded by Admin
-      [products, cases, mcqs, mcqTests] = await Promise.all([
+      [products, cases, mcqs, mcqTests, resources] = await Promise.all([
         Product.find({ status: "Active" }).lean(),
         WeeklyCase.find().sort({ createdAt: 1 }).lean(),
         McqQuestion.find().sort({ createdAt: 1 }).lean(),
         McqTest.find({ status: "Active" }).sort({ createdAt: -1 }).lean(),
+        Resource.find({ status: "Published" }).sort({ chapterNumber: 1, order: 1 }).lean(),
       ]);
 
       const examSettingDoc = await SiteSetting.findOne({ key: "exam_countdown" }).lean();
@@ -92,6 +95,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       cases = Database.table("weekly_cases").find();
       mcqs = Database.table("mcqs").find();
       mcqTests = Database.table("mcq_tests").find();
+      resources = Database.table("resources").find();
     }
 
     // Determine unlocked item IDs
@@ -148,6 +152,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       unlockedItemIds: finalUnlockedIds,
       subscriptions,
       availableProducts: products,
+      resources,
       cases,
       mcqs,
       mcqTests,

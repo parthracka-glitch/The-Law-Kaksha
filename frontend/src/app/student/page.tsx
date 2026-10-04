@@ -45,6 +45,18 @@ export interface GoogleFormTestItem {
   peerAttempts?: number;
 }
 
+export interface SupplementaryResource {
+  id: string;
+  type: "notes" | "flowchart" | "infographic" | "practice" | "pyq" | "ldr";
+  title: string;
+  description: string;
+  pdfUrl: string;
+  pages: string;
+  badge: string;
+  badgeColor: string;
+  isSample?: boolean;
+}
+
 interface ChapterItem {
   id: string;
   name: string;
@@ -52,6 +64,7 @@ interface ChapterItem {
   weightage: string;
   description: string;
   units?: ChapterUnit[];
+  supplementaryResources?: SupplementaryResource[];
   mcqCount: number;
   caseCount: number;
   peerReaders?: number;
@@ -114,6 +127,63 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
       { unitNumber: 1, title: "Unit 1: General Nature of Partnership", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman).", pages: "24 Pages (Full Sample PDF)", isSample: true },
       { unitNumber: 2, title: "Unit 2: Relations of Partners", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.", pages: "28 Pages (Full Sample PDF)", isSample: true },
       { unitNumber: 3, title: "Unit 3: Registration and Dissolution of Firm", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Effect of Non-Registration, Modes of Dissolution, Settlement of Accounts.", pages: "32 Pages (Full Sample PDF)", isSample: true }
+    ],
+    supplementaryResources: [
+      {
+        id: "res-ca-partnership-ldr",
+        type: "ldr",
+        title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
+        description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
+        pdfUrl: "/notes/partnership-ldr-charts.pdf",
+        pages: "18 Pages (LDR Revision Charts)",
+        badge: "LDR Flowcharts",
+        badgeColor: "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]",
+        isSample: true,
+      },
+      {
+        id: "res-ca-partnership-infographics",
+        type: "infographic",
+        title: "Partnership Act — Visual Infographics & Concept Mind Maps",
+        description: "High-retention visual posters on Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
+        pdfUrl: "/notes/partnership-infographics.pdf",
+        pages: "12 Infographic Sheets",
+        badge: "Visual Infographics",
+        badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]",
+        isSample: true,
+      },
+      {
+        id: "res-ca-partnership-practice",
+        type: "practice",
+        title: "Indian Partnership Act — Practice Questions & Case Problems",
+        description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
+        pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
+        pages: "25 Pages",
+        badge: "Practice Questions",
+        badgeColor: "bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/40",
+        isSample: true,
+      },
+      {
+        id: "res-ca-qbank-part1",
+        type: "practice",
+        title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
+        description: "Exhaustive application scenarios, case-based questions & model test papers for CA Foundation.",
+        pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
+        pages: "65+ Pages",
+        badge: "Smart Question Bank",
+        badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]",
+        isSample: true,
+      },
+      {
+        id: "res-ca-paper-analysis-sep2026",
+        type: "pyq",
+        title: "September 2026 Paper Analysis & Detailed Model Answers",
+        description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
+        pdfUrl: "/notes/september-2026-paper-analysis.pdf",
+        pages: "16 Pages",
+        badge: "Past Paper Analysis",
+        badgeColor: "bg-[#B8DDCA]/40 text-[#221D1D] border-[#B8DDCA]",
+        isSample: true,
+      },
     ]
   },
   {
@@ -480,6 +550,7 @@ export default function StudentDashboardPage() {
   // Live Atlas & Catalog data
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>([]);
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [liveResources, setLiveResources] = useState<any[]>([]);
   const [liveCases, setLiveCases] = useState<any[]>(WEEKLY_CASES);
   const [liveMcqTests, setLiveMcqTests] = useState<GoogleFormTestItem[]>(DEFAULT_GOOGLE_TESTS);
   const [activeFormModal, setActiveFormModal] = useState<{
@@ -794,12 +865,27 @@ export default function StudentDashboardPage() {
             setAvailableProducts(JSON.parse(storedProducts));
           } catch (e) {}
         }
+        const storedResources = localStorage.getItem("lawkaksha_admin_resources");
+        if (storedResources) {
+          try {
+            setLiveResources(JSON.parse(storedResources));
+          } catch (e) {}
+        }
       } catch (e) {
         setStreak(1);
       }
 
+      const handleResourcesUpdated = () => {
+        try {
+          const stored = localStorage.getItem("lawkaksha_admin_resources");
+          if (stored) setLiveResources(JSON.parse(stored));
+        } catch (e) {}
+      };
+      window.addEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
+
       return () => {
         window.removeEventListener("lawkaksha_student_updated", handleStudentUpdated);
+        window.removeEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
         window.removeEventListener("storage", handleStudentUpdated);
       };
     }
@@ -827,6 +913,9 @@ export default function StudentDashboardPage() {
           if (Array.isArray(data.availableProducts) && data.availableProducts.length > 0) {
             setAvailableProducts(data.availableProducts);
           }
+          if (Array.isArray(data.resources) && data.resources.length > 0) {
+            setLiveResources(data.resources);
+          }
           if (Array.isArray(data.cases) && data.cases.length > 0) {
             setLiveCases(data.cases);
           }
@@ -844,6 +933,17 @@ export default function StudentDashboardPage() {
           }
         }
       } catch (err) {}
+
+      // Fallback fetch resources endpoint
+      try {
+        const resR = await fetch(`${API_URL}/api/resources`);
+        if (resR.ok) {
+          const rData = await resR.json();
+          if (rData.success && Array.isArray(rData.resources) && rData.resources.length > 0) {
+            setLiveResources(rData.resources);
+          }
+        }
+      } catch (e) {}
     }
     syncAtlasData();
   }, [studentProfile.email, studentProfile.student_id, API_URL]);
@@ -1467,6 +1567,74 @@ export default function StudentDashboardPage() {
                           })}
                         </div>
                       )}
+
+                      {/* Full Act Curriculum Package: LDR Charts, Infographics, Practice Questions & Question Bank */}
+                      {ch.supplementaryResources && ch.supplementaryResources.length > 0 && (
+                        <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-[#FAF5FF] to-[#F5F3FF] border border-[#DDD6FE] space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#7E22CE] flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-[#7E22CE]" />
+                              Complete Act Package: LDR, Infographics &amp; Practice Questions
+                            </span>
+                            <span className="text-[10px] text-[#6B7280] font-medium">Included in Codex</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {ch.supplementaryResources.map((res: any, rIdx: number) => {
+                              const isResourceSample = res.isSample || isCaUnlocked || isAdminUser;
+                              return (
+                                <div
+                                  key={res.id || rIdx}
+                                  className="p-2.5 rounded-xl border border-[#E9D5FF] bg-white hover:border-[#7E22CE] hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span
+                                        className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                          res.type === "flowchart" || res.type === "ldr"
+                                            ? "bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]"
+                                            : res.type === "infographic"
+                                            ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                            : res.type === "practice" || res.type === "qbank"
+                                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                            : "bg-blue-50 text-blue-800 border border-blue-200"
+                                        }`}
+                                      >
+                                        {res.type === "ldr"
+                                          ? "LDR Flowchart"
+                                          : res.type === "infographic"
+                                          ? "Infographics"
+                                          : res.type === "qbank"
+                                          ? "Question Bank"
+                                          : res.type === "practice"
+                                          ? "Practice"
+                                          : "Resource"}
+                                      </span>
+                                      {res.isSample && (
+                                        <span className="text-[8px] font-bold text-amber-700 bg-amber-50 px-1 rounded border border-amber-200">
+                                          Free
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs font-bold text-[#1F2937] truncate mt-1">
+                                      {res.title}
+                                    </p>
+                                    <p className="text-[10px] text-[#6B7280] truncate">
+                                      {res.description || res.pages || "Comprehensive Material"}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleOpenPdf(res.pdfUrl, ch.name, res.title, isResourceSample)}
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                                  >
+                                    <BookOpen className="w-3 h-3" />
+                                    <span>Read</span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1883,10 +2051,70 @@ export default function StudentDashboardPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {[
-                  { title: "Indian Partnership Act Summary Deck", desc: "One-page flowchart covering Section 4, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, and Section 69 Non-Registration disabilities.", url: "/notes/unit-1-general-nature-of-partnership.pdf", label: "Open Flowchart", badge: "Partnership Act", badgeColor: "bg-[#C4E1EC]/60 text-[#221D1D] border-[#AED7E9]" },
-                  { title: "Sale of Goods Act - Section 16 Matrix", desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.", url: "/notes/sale-of-goods-unit-2.pdf", label: "Open Matrix", badge: "Sale of Goods", badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40" },
-                  { title: "Companies Act - Corporate Veil Doctrine", desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).", url: "/notes/sale-of-goods-unit-2.pdf", label: "Open Notes", badge: "Companies Act", badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]" },
-                  { title: "Contract Act - Essential Checklist", desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.", url: "/notes/sale-of-goods-unit-1.pdf", label: "Open Checklist", badge: "Contract Act", badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]" },
+                  {
+                    title: "Indian Partnership Act - LDR Flowcharts",
+                    desc: "High-speed visual recall flowcharts covering Section 4, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights, and Section 69 Non-Registration disabilities.",
+                    url: "/notes/partnership-ldr-charts.pdf",
+                    label: "Open LDR Charts",
+                    badge: "Partnership Act",
+                    badgeColor: "bg-[#FAF5FF] text-[#7E22CE] border-[#DDD6FE]"
+                  },
+                  {
+                    title: "Indian Partnership Act - Visual Infographics",
+                    desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures.",
+                    url: "/notes/partnership-infographics.pdf",
+                    label: "Open Infographics",
+                    badge: "Infographics",
+                    badgeColor: "bg-amber-50 text-amber-800 border-amber-200"
+                  },
+                  {
+                    title: "Indian Partnership Act - Chapter-wise Practice Questions",
+                    desc: "Unit 1, 2 & 3 descriptive practice questions with ICAI model step-marking framework and key statutory provisions.",
+                    url: "/notes/indian-partnership-act-practice-questions.pdf",
+                    label: "Open Practice Questions",
+                    badge: "Practice Qs",
+                    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  },
+                  {
+                    title: "Smart Revision Question Bank (Part 1)",
+                    desc: "High-yield case study problem sets and revision questions covering CA Foundation Paper 2 Business Laws.",
+                    url: "/notes/smart-revision-question-bank-part-1.pdf",
+                    label: "Open Question Bank",
+                    badge: "Question Bank",
+                    badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
+                  },
+                  {
+                    title: "September 2026 Paper Analysis & Suggested Answers",
+                    desc: "In-depth trend analysis, question-by-question breakdown, and suggested model answers for CA Foundation Business Laws.",
+                    url: "/notes/september-2026-paper-analysis.pdf",
+                    label: "Open Paper Analysis",
+                    badge: "PYQ Analysis",
+                    badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
+                  },
+                  {
+                    title: "Sale of Goods Act - Section 16 Matrix",
+                    desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.",
+                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    label: "Open Matrix",
+                    badge: "Sale of Goods",
+                    badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
+                  },
+                  {
+                    title: "Companies Act - Corporate Veil Doctrine",
+                    desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).",
+                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    label: "Open Notes",
+                    badge: "Companies Act",
+                    badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
+                  },
+                  {
+                    title: "Contract Act - Essential Checklist",
+                    desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.",
+                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    label: "Open Checklist",
+                    badge: "Contract Act",
+                    badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
+                  },
                 ].map((item, idx) => (
                   <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
                     <div>

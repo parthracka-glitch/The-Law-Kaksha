@@ -8,7 +8,7 @@ const ResourceSchema = new mongoose.Schema(
     chapterNumber: { type: Number, default: 1 },
     type: {
       type: String,
-      enum: ["notes", "flowchart", "practice", "pyq", "case_study", "ldr"],
+      enum: ["notes", "flowchart", "practice", "pyq", "case_study", "ldr", "infographic"],
       default: "notes",
       index: true,
     },
