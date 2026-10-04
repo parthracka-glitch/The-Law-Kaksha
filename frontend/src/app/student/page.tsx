@@ -422,6 +422,7 @@ export default function StudentDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>("home");
   const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch4");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedActFilter, setSelectedActFilter] = useState<string>("all");
 
   // Modals
   const [sampleModalOpen, setSampleModalOpen] = useState<boolean>(false);
@@ -919,15 +920,19 @@ export default function StudentDashboardPage() {
 
   const chaptersList = activeCourse === "ca" ? CA_FOUNDATION_CHAPTERS : CSEET_UNITS;
   const filteredChapters = useMemo(() => {
-    if (!searchQuery.trim()) return chaptersList;
+    let list = chaptersList;
+    if (selectedActFilter !== "all") {
+      list = list.filter((c) => c.id === selectedActFilter);
+    }
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return chaptersList.filter((c) =>
+    return list.filter((c) =>
       c.name.toLowerCase().includes(q) ||
       c.code.toLowerCase().includes(q) ||
       c.description.toLowerCase().includes(q) ||
       c.units?.some((u) => u.title.toLowerCase().includes(q) || u.summary.toLowerCase().includes(q))
     );
-  }, [chaptersList, searchQuery]);
+  }, [chaptersList, searchQuery, selectedActFilter]);
 
   // Overall Mastery %
   const totalUnitsCount = useMemo(() => {
@@ -1018,7 +1023,7 @@ export default function StudentDashboardPage() {
           <div className="inline-flex p-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] shadow-xs shrink-0">
             <button
               type="button"
-              onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); }}
+              onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); setSelectedActFilter("all"); }}
               className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeCourse === "ca" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
               }`}
@@ -1033,7 +1038,7 @@ export default function StudentDashboardPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); }}
+              onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); setSelectedActFilter("all"); }}
               className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeCourse === "cs" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
               }`}
@@ -1179,33 +1184,35 @@ export default function StudentDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 2: CHAPTER NOTES & STUDY BOOKS (SEARCH & PEER ENGAGEMENT)             */}
+          {/* TAB 2: CHAPTER NOTES & STUDY BOOKS (SIMPLIFIED & MINIMAL)                 */}
           {/* ========================================================================= */}
           {activeTab === "chapters" && (
-            <div className="space-y-6">
-              {/* HEADER & SEARCH BAR */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+            <div className="space-y-5 text-[#221D1D] select-none font-sans">
+              {/* 1. TOP HEADER & SEARCH BAR */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
                 <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Chapter Notes &amp; Study Books</h2>
-                  <p className="text-xs text-[#4D433F] mt-0.5">
-                    Read complete statutory codices with precedent notes inside the secure in-web DRM reader.
+                  <h2 className="text-xl sm:text-2xl font-black text-[#1F2937] tracking-tight">
+                    Chapter Notes
+                  </h2>
+                  <p className="text-xs text-[#6B7280] mt-0.5">
+                    Statutory codices, precedent case laws &amp; chapter-wise unit notes.
                   </p>
                 </div>
 
-                {/* Instant Act Search */}
-                <div className="relative w-full sm:w-72">
-                  <Search className="w-4 h-4 text-[#77716E] absolute left-3 top-1/2 -translate-y-1/2" />
+                {/* Instant Act & Topic Search */}
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search Acts, Sections, Topics..."
-                    className="w-full pl-9 pr-3 py-2 rounded-full bg-white border border-[#E7E4E7] text-xs text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] shadow-xs"
+                    placeholder="Search acts, sections, topics..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-[#E7E4E7] text-xs text-[#1F2937] focus:outline-none focus:border-[#7E22CE] shadow-2xs transition-all"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#77716E] hover:text-[#221D1D]"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] p-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1213,8 +1220,8 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
 
-              {/* 2 MAIN CURRICULUM BOOKS */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 2. COMPACT MASTER CODEX READER BANNER (MINIMAL & HIGH-IMPACT) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {(activeCourse === "ca" ? CA_FOUNDATION_BOOKS : CSEET_BOOKS).map((book) => {
                   const isBookUnlocked =
                     isAdminUser ||
@@ -1228,108 +1235,246 @@ export default function StudentDashboardPage() {
                   return (
                     <div
                       key={book.id}
-                      className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between"
+                      className="bg-white rounded-2xl border border-[#EDE9FE] bg-gradient-to-r from-[#FAF5FF]/70 via-white to-white p-3.5 sm:p-4 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-3 group"
                     >
-                      <div className="h-2 w-full bg-[#AED7E9]" />
-                      <div className="p-6 flex-1 flex flex-col">
-                        <div className="flex items-start gap-4">
-                          <div className="relative w-20 h-28 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-[#E7E4E7] bg-[#F7F7F5]">
-                            <Image src={book.coverImage} alt={book.title} fill className="object-cover" />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
-                                {book.badge}
-                              </span>
-                              {isBookUnlocked ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9] flex items-center gap-1">
-                                  <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Enrolled
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0] flex items-center gap-1">
-                                  <Lock className="w-3 h-3" /> Locked
-                                </span>
-                              )}
-                              <span className="text-[10px] font-medium text-[#77716E]">
-                                {book.totalPages}
-                              </span>
-                            </div>
-                            <h3 className="text-base font-serif font-bold text-[#221D1D] leading-snug">
-                              {book.title}
-                            </h3>
-                            <p className="text-xs text-[#4B8097] font-semibold mt-0.5">
-                              {book.subtitle}
-                            </p>
-                            <p className="text-[11px] text-[#4D433F] font-semibold mt-1 flex items-center gap-1">
-                              <Flame className="w-3 h-3 text-[#F7892A]" />
-                              <span>{book.peerCount}+ students actively reading</span>
-                            </p>
-                          </div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Book Thumbnail */}
+                        <div className="relative w-12 h-16 sm:w-14 sm:h-20 shrink-0 rounded-xl overflow-hidden shadow-xs border border-[#DDD6FE] bg-white group-hover:scale-105 transition-transform duration-300">
+                          <Image
+                            src={book.coverImage}
+                            alt={book.title}
+                            fill
+                            className="object-contain p-1"
+                            sizes="60px"
+                          />
                         </div>
 
-                        <p className="text-xs text-[#4D433F] leading-relaxed mt-4 flex-1">
-                          {book.description}
-                        </p>
+                        {/* Text info */}
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
+                              {book.badge}
+                            </span>
+                            {isBookUnlocked ? (
+                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Unlocked</span>
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                <Lock className="w-3 h-3 text-amber-600" />
+                                <span>Pass Required</span>
+                              </span>
+                            )}
+                            <span className="text-[10px] text-[#9CA3AF] font-medium hidden xs:inline">
+                              {book.totalPages}
+                            </span>
+                          </div>
 
-                        <div className="mt-4 pt-3 border-t border-[#E7E4E7]">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-[#77716E] mb-2">
-                            Included in this Master Volume
+                          <h3 className="text-xs sm:text-sm font-black text-[#1F2937] leading-snug truncate">
+                            {book.title}
+                          </h3>
+                          <p className="text-[11px] text-[#6B7280] truncate">
+                            {book.subtitle}
                           </p>
-                          <div className="space-y-1">
-                            {book.unitsList.map((unit, uIdx) => (
-                              <div key={uIdx} className="flex items-center gap-2 text-xs text-[#4D433F]">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097] shrink-0" />
-                                <span className="truncate">{unit}</span>
-                              </div>
-                            ))}
-                          </div>
                         </div>
+                      </div>
 
-                        <div className="pt-5 mt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-1.5 text-[11px] text-[#77716E]">
-                            <Lock className="w-3.5 h-3.5 text-[#77716E] shrink-0" />
-                            <span>{isBookUnlocked ? "In-Web Reader Ready" : "DRM Encrypted"}</span>
-                          </div>
-                          {isBookUnlocked ? (
-                            <button
-                              onClick={() => handleOpenPdf(book.pdfUrl, book.title, book.subtitle)}
-                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs cursor-pointer"
-                            >
-                              <BookOpen className="w-4 h-4" />
-                              Read Now
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                handleBuyCourse(activeCourse);
-                              }}
-                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-                            >
-                              <Lock className="w-4 h-4 text-[#AED7E9]" /> Unlock Course (₹99)
-                            </button>
-                          )}
-                        </div>
+                      {/* Primary Open / Unlock CTA Button */}
+                      <div className="shrink-0">
+                        {isBookUnlocked ? (
+                          <button
+                            onClick={() => handleOpenPdf(book.pdfUrl, book.title, book.subtitle)}
+                            className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Open Codex</span>
+                            <span className="sm:hidden">Read</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleBuyCourse(activeCourse)}
+                            className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                            <span>Unlock • ₹99</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* DYNAMIC DIGITAL CODICES (ADMIN UPLOADED & CATALOG) */}
+              {/* 3. QUICK ACT FILTER PILLS (EASY ONE-TAP NAVIGATION) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
+                <button
+                  onClick={() => setSelectedActFilter("all")}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                    selectedActFilter === "all"
+                      ? "bg-[#7E22CE] text-white shadow-2xs"
+                      : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
+                  }`}
+                >
+                  All Chapters ({chaptersList.length})
+                </button>
+                {chaptersList.map((ch) => (
+                  <button
+                    key={ch.id}
+                    onClick={() => setSelectedActFilter(selectedActFilter === ch.id ? "all" : ch.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                      selectedActFilter === ch.id
+                        ? "bg-[#7E22CE] text-white font-bold shadow-2xs"
+                        : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
+                    }`}
+                  >
+                    <span>{ch.code}:</span>
+                    <span className="max-w-[140px] truncate">{ch.name.replace("The ", "").replace(", 1872", "").replace(", 1930", "").replace(", 1932", "").replace(", 2008", "").replace(", 2013", "").replace(", 1881", "")}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 4. STREAMLINED CHAPTER DIRECTORY CARDS */}
+              <div className="space-y-3.5">
+                {filteredChapters.map((ch) => {
+                  const completedInChapter = (ch.units || []).filter((u) =>
+                    completedUnits.includes(`${ch.id}-u${u.unitNumber}`)
+                  ).length;
+                  const totalInChapter = ch.units?.length || 1;
+
+                  return (
+                    <div
+                      key={ch.id}
+                      className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:border-[#DDD6FE] transition-all space-y-3"
+                    >
+                      {/* Chapter Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F3F4F6] pb-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE] shrink-0">
+                            {ch.code}
+                          </span>
+                          <h3 className="text-sm sm:text-base font-bold text-[#1F2937] leading-snug truncate">
+                            {ch.name}
+                          </h3>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                            {ch.weightage}
+                          </span>
+                          <span className="text-[11px] text-[#6B7280] font-medium">
+                            {completedInChapter}/{totalInChapter} Units Done
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Brief Description */}
+                      <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 sm:line-clamp-1">
+                        {ch.description}
+                      </p>
+
+                      {/* Units List */}
+                      {ch.units && ch.units.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          {ch.units.map((unit) => {
+                            const unitId = `${ch.id}-u${unit.unitNumber}`;
+                            const isCompleted = completedUnits.includes(unitId);
+                            const isBookmarked = bookmarkedUnits.includes(unitId);
+                            const isAccessible = hasActiveCourseAccess || unit.isSample;
+
+                            return (
+                              <div
+                                key={unit.unitNumber}
+                                className="p-3 rounded-xl bg-[#FAF5FF]/30 hover:bg-[#F3E8FF]/40 border border-[#EDE9FE] flex items-center justify-between gap-3 transition-colors group/unit"
+                              >
+                                {/* Left: Completion checkbox + Title + pages */}
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleUnitCompleted(unitId, unit.title)}
+                                    title={isCompleted ? "Mark Incomplete" : "Mark as Completed"}
+                                    className="cursor-pointer text-[#9CA3AF] hover:text-[#7E22CE] transition-colors shrink-0"
+                                  >
+                                    {isCompleted ? (
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+                                    ) : (
+                                      <Square className="w-4 h-4 text-[#D1D5DB]" />
+                                    )}
+                                  </button>
+
+                                  <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                    <span className="text-xs font-semibold text-[#1F2937] truncate">
+                                      {unit.title}
+                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[10px] text-[#6B7280] truncate">
+                                        • {unit.pages}
+                                      </span>
+                                      {unit.isSample && (
+                                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                                          Free Sample
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right: Bookmark + Read Action */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <button
+                                    onClick={() => toggleBookmark(unitId)}
+                                    title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
+                                    className={`p-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                                      isBookmarked
+                                        ? "text-amber-500 bg-amber-50"
+                                        : "text-[#9CA3AF] hover:text-[#1F2937]"
+                                    }`}
+                                  >
+                                    <Bookmark className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  {isAccessible ? (
+                                    <button
+                                      onClick={() => handleOpenPdf(unit.pdfUrl, ch.name, unit.title, unit.isSample)}
+                                      className="px-3.5 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                    >
+                                      <BookOpen className="w-3 h-3" />
+                                      <span>Read Note</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                                      className="px-3.5 py-1.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                    >
+                                      <Lock className="w-3 h-3 text-[#AED7E9]" />
+                                      <span>Unlock</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 5. ADDITIONAL CODICES / SUPPLEMENTARY MATERIALS (MINIMAL & NEAT) */}
               {availableProducts.length > 0 && (
-                <div className="space-y-4 pt-4">
+                <div className="space-y-3 pt-4 border-t border-[#E7E4E7]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#4B8097]" />
-                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
-                        Digital Codices &amp; Supplementary Materials ({availableProducts.length})
+                      <Sparkles className="w-4 h-4 text-[#7E22CE]" />
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F2937]">
+                        Additional Codices &amp; Materials ({availableProducts.length})
                       </h3>
                     </div>
-                    <span className="text-xs text-[#77716E]">Encrypted In-Web DRM Reader</span>
+                    <span className="text-[11px] text-[#6B7280]">In-Web DRM Encrypted</span>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                     {availableProducts.map((prod: any) => {
                       const isProdUnlocked =
                         isAdminUser ||
@@ -1346,137 +1491,58 @@ export default function StudentDashboardPage() {
                       return (
                         <div
                           key={prod.id || prod._id}
-                          className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between"
+                          className="bg-white rounded-2xl border border-[#E7E4E7] p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-2.5"
                         >
-                          <div className="h-2 w-full bg-[#BFAFE5]" />
-                          <div className="p-6 flex-1 flex flex-col">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
-                                    {prod.category || "Study Material"}
-                                  </span>
-                                  {isProdUnlocked ? (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9] flex items-center gap-1">
-                                      <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Enrolled • Full Access
-                                    </span>
-                                  ) : (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/30 flex items-center gap-1">
-                                      <Lock className="w-3 h-3" /> Preview ({previewLimit} Pages)
-                                    </span>
-                                  )}
-                                  {prod.pages && (
-                                    <span className="text-[10px] font-medium text-[#77716E]">
-                                      {prod.pages}
-                                    </span>
-                                  )}
-                                </div>
-                                <h4 className="text-base font-serif font-bold text-[#221D1D] leading-snug">
-                                  {prod.title}
-                                </h4>
-                                {prod.subtitle && (
-                                  <p className="text-xs text-[#4B8097] font-semibold mt-0.5">
-                                    {prod.subtitle}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="text-sm font-bold text-[#221D1D] bg-[#F7F7F5] px-2.5 py-1 rounded-xl border border-[#E7E4E7] shrink-0">
+                          <div>
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
+                                {prod.category || "Codex"}
+                              </span>
+                              <span className="text-xs font-bold text-[#1F2937]">
                                 ₹{prod.price || 99}
                               </span>
                             </div>
+                            <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] leading-snug line-clamp-1">
+                              {prod.title}
+                            </h4>
+                            <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5">
+                              {prod.subtitle || prod.pages || "Comprehensive student study notes"}
+                            </p>
+                          </div>
 
-                            {prod.description && (
-                              <p className="text-xs text-[#4D433F] leading-relaxed mt-3 flex-1">
-                                {prod.description}
-                              </p>
+                          <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-[#9CA3AF]">
+                              {prod.pages || `${previewLimit} pgs`}
+                            </span>
+                            {isProdUnlocked ? (
+                              <button
+                                onClick={() => handleOpenPdf(pdfPath, prod.title, prod.subtitle || "Full Edition", true)}
+                                className="px-3 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <BookOpen className="w-3 h-3" />
+                                <span>Read</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  addToCart({
+                                    id: prod.id,
+                                    title: prod.title,
+                                    price: prod.price || 99,
+                                    originalPrice: prod.originalPrice || 299,
+                                    format: "pdf",
+                                    category: prod.category || "Digital Codex",
+                                    badge: prod.badge || `₹${prod.price || 99}`,
+                                  });
+                                  setIsCartOpen(true);
+                                  setCheckoutStep("details");
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-[#221D1D] hover:bg-[#383130] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <ShoppingBag className="w-3 h-3 text-[#AED7E9]" />
+                                <span>Unlock (₹{prod.price || 99})</span>
+                              </button>
                             )}
-
-                            {Array.isArray(prod.units) && prod.units.length > 0 && (
-                              <div className="mt-3 pt-2.5 border-t border-[#E7E4E7]">
-                                <div className="space-y-1">
-                                  {prod.units.slice(0, 3).map((u: string, uIdx: number) => (
-                                    <div key={uIdx} className="flex items-center gap-2 text-xs text-[#4D433F]">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097] shrink-0" />
-                                      <span className="truncate">{u}</span>
-                                    </div>
-                                  ))}
-                                  {prod.units.length > 3 && (
-                                    <span className="text-[10px] text-[#77716E] pl-5 block">
-                                      +{prod.units.length - 3} more units included
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="pt-4 mt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3">
-                              <span className="text-[10px] font-mono text-[#77716E] truncate max-w-[120px]">
-                                {pdfPath.split("/").pop()}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {isProdUnlocked ? (
-                                  <button
-                                    onClick={() => handleOpenPdf(pdfPath, prod.title, prod.subtitle || "Full Edition", true)}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs cursor-pointer"
-                                  >
-                                    <BookOpen className="w-3.5 h-3.5" />
-                                    <span>Read Full Codex</span>
-                                  </button>
-                                ) : (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        handleOpenPdf(
-                                          pdfPath,
-                                          prod.title,
-                                          prod.subtitle || "Free Preview",
-                                          false,
-                                          true,
-                                          previewLimit,
-                                          prod.price || 99,
-                                          () => {
-                                            addToCart({
-                                              id: prod.id,
-                                              title: prod.title,
-                                              price: prod.price || 99,
-                                              originalPrice: prod.originalPrice || 299,
-                                              format: "pdf",
-                                              category: prod.category || "Digital Codex",
-                                              badge: prod.badge || `₹${prod.price || 99}`,
-                                            });
-                                            setIsCartOpen(true);
-                                            setCheckoutStep("details");
-                                          }
-                                        )
-                                      }
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#AED7E9] text-[#221D1D] hover:bg-[#C4E1EC]/40 text-xs font-semibold transition-all cursor-pointer"
-                                    >
-                                      <Eye className="w-3.5 h-3.5 text-[#4B8097]" />
-                                      <span>Sample ({previewLimit} pgs)</span>
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        addToCart({
-                                          id: prod.id,
-                                          title: prod.title,
-                                          price: prod.price || 99,
-                                          originalPrice: prod.originalPrice || 299,
-                                          format: "pdf",
-                                          category: prod.category || "Digital Codex",
-                                          badge: prod.badge || `₹${prod.price || 99}`,
-                                        });
-                                        setIsCartOpen(true);
-                                        setCheckoutStep("details");
-                                      }}
-                                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-                                    >
-                                      <ShoppingBag className="w-3.5 h-3.5 text-[#AED7E9]" />
-                                      <span>Buy (₹{prod.price || 99})</span>
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
                           </div>
                         </div>
                       );
@@ -1484,116 +1550,6 @@ export default function StudentDashboardPage() {
                   </div>
                 </div>
               )}
-
-              {/* CHAPTER-BY-CHAPTER UNITS LIST */}
-              <div className="space-y-4 pt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-serif font-bold text-[#221D1D]">
-                    Act-by-Act Comprehensive Unit Notes ({filteredChapters.length})
-                  </h3>
-                  <span className="text-xs text-[#77716E]">Click unit to launch in DRM Reader</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredChapters.map((ch) => {
-                    const isSelected = selectedChapterId === ch.id;
-                    return (
-                      <div
-                        key={ch.id}
-                        className={`bg-white rounded-3xl border p-5 transition-all shadow-xs space-y-3 ${
-                          isSelected ? "border-[#AED7E9] ring-2 ring-[#AED7E9]/40" : "border-[#E7E4E7] hover:border-[#AED7E9]"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097]">{ch.code}</span>
-                            <h4 className="text-sm font-serif font-bold text-[#221D1D] leading-snug mt-0.5">{ch.name}</h4>
-                          </div>
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F7F7F5] text-[#221D1D] border border-[#E7E4E7] shrink-0">
-                            {ch.weightage}
-                          </span>
-                        </div>
-
-                        <p className="text-xs text-[#4D433F] leading-relaxed line-clamp-2">
-                          {ch.description}
-                        </p>
-
-                        <div className="flex items-center gap-2 text-[10.5px] font-semibold text-[#4D433F]">
-                          <Flame className="w-3 h-3 text-[#F7892A]" />
-                          <span>{ch.peerReaders || 120}+ peers currently reading this act</span>
-                        </div>
-
-                        {/* Units inside this chapter */}
-                        {ch.units && ch.units.length > 0 && (
-                          <div className="space-y-2 pt-2 border-t border-[#E7E4E7]">
-                            {ch.units.map((unit) => {
-                              const unitId = `${ch.id}-u${unit.unitNumber}`;
-                              const isCompleted = completedUnits.includes(unitId);
-                              const isBookmarked = bookmarkedUnits.includes(unitId);
-                              const isAccessible = hasActiveCourseAccess || unit.isSample;
-
-                              return (
-                                <div
-                                  key={unit.unitNumber}
-                                  className="p-2.5 rounded-2xl bg-[#F7F7F5] hover:bg-[#E7E4E7]/40 border border-[#E7E4E7] flex items-center justify-between gap-2 transition-colors"
-                                >
-                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleUnitCompleted(unitId, unit.title)}
-                                      title={isCompleted ? "Mark Incomplete" : "Mark as Completed"}
-                                      className="text-[#77716E] hover:text-[#4B8097] cursor-pointer"
-                                    >
-                                      {isCompleted ? (
-                                        <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
-                                      ) : (
-                                        <Square className="w-4 h-4 text-[#D8D4D8]" />
-                                      )}
-                                    </button>
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-semibold text-[#221D1D] truncate">{unit.title}</p>
-                                      <p className="text-[10px] text-[#77716E] truncate">{unit.pages} • {unit.summary}</p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <button
-                                      onClick={() => toggleBookmark(unitId)}
-                                      title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
-                                      className={`p-1.5 rounded-lg text-xs cursor-pointer ${
-                                        isBookmarked ? "text-[#F7892A] bg-[#F7892A]/15" : "text-[#77716E] hover:text-[#221D1D]"
-                                      }`}
-                                    >
-                                      <Bookmark className="w-3.5 h-3.5" />
-                                    </button>
-                                    {isAccessible ? (
-                                      <button
-                                        onClick={() => handleOpenPdf(unit.pdfUrl, ch.name, unit.title, unit.isSample)}
-                                        className="px-3 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center gap-1"
-                                      >
-                                        {unit.isSample && !hasActiveCourseAccess && <Sparkles className="w-3 h-3 text-[#4B8097]" />}
-                                        <span>{unit.isSample && !hasActiveCourseAccess ? "Sample Note" : "Read Note"}</span>
-                                      </button>
-                                    ) : (
-                                      <button
-                                        onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                                        className="px-3 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-[11px] font-bold transition-all cursor-pointer shadow-xs flex items-center gap-1"
-                                      >
-                                        <Lock className="w-3 h-3 text-[#AED7E9]" />
-                                        <span>Unlock</span>
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           )}
 
