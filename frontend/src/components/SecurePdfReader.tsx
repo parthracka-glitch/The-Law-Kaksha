@@ -94,7 +94,7 @@ export function SecurePdfReader({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [pdfOutline, setPdfOutline] = useState<PdfOutlineItem[]>([]);
-  const [scale, setScale] = useState(1.1);
+  const [scale, setScale] = useState(1.0);
   const [rotation, setRotation] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -318,6 +318,10 @@ export function SecurePdfReader({
 
   // Fit to Width calculation - strictly preserves aspect ratio
   const handleFitWidth = useCallback(async () => {
+    if (viewerMode === "3d") {
+      setScale(1.0);
+      return;
+    }
     if (!containerRef.current || !pdfDoc) return;
     try {
       const page = await pdfDoc.getPage(currentPage);
@@ -329,7 +333,7 @@ export function SecurePdfReader({
         setScale(targetScale);
       }
     } catch (e) {}
-  }, [currentPage, pdfDoc, rotation]);
+  }, [viewerMode, currentPage, pdfDoc, rotation]);
 
   // Fit to Page calculation - strictly preserves aspect ratio
   const handleFitPage = useCallback(async () => {
@@ -540,9 +544,9 @@ export function SecurePdfReader({
         e.preventDefault();
         setCurrentPage((p) => Math.max(p - 1, 1));
       } else if (e.key === "+" || e.key === "=") {
-        setScale((s) => Math.min(s + 0.15, 3.5));
+        setScale((s) => Math.min(Number((s + 0.15).toFixed(2)), 3.0));
       } else if (e.key === "-" || e.key === "_") {
-        setScale((s) => Math.max(s - 0.15, 0.3));
+        setScale((s) => Math.max(Number((s - 0.15).toFixed(2)), 0.6));
       } else if (e.key === "w" || e.key === "W") {
         handleFitWidth();
       } else if (e.key === "p" || e.key === "P") {
@@ -697,7 +701,10 @@ export function SecurePdfReader({
         {/* 3D CODEX vs FLAT STUDIO MODE SWITCHER */}
         <div className="flex items-center bg-black/10 dark:bg-white/10 p-0.5 rounded-full border border-current/15 shrink-0 mx-2 shadow-xs">
           <button
-            onClick={() => setViewerMode("3d")}
+            onClick={() => {
+              setViewerMode("3d");
+              setScale(1.0);
+            }}
             className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               viewerMode === "3d"
                 ? "bg-[#BFAFE5] text-[#221D1D] shadow-xs font-bold"
@@ -709,7 +716,10 @@ export function SecurePdfReader({
             <span className="text-[11px] font-bold">3D Book</span>
           </button>
           <button
-            onClick={() => setViewerMode("flat")}
+            onClick={() => {
+              setViewerMode("flat");
+              handleFitWidth();
+            }}
             className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               viewerMode === "flat"
                 ? "bg-[#AED7E9] text-[#221D1D] shadow-xs font-bold"
@@ -1028,9 +1038,9 @@ export function SecurePdfReader({
           className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-auto"
           style={{ background: themeStyles.canvasBg }}
           onContextMenu={blockContext}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={viewerMode === "flat" ? handleTouchStart : undefined}
+          onTouchMove={viewerMode === "flat" ? handleTouchMove : undefined}
+          onTouchEnd={viewerMode === "flat" ? handleTouchEnd : undefined}
         >
           {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS (Desktop only) */}
           {totalPages > 0 && (
@@ -1087,7 +1097,7 @@ export function SecurePdfReader({
           {/* LOADED PDF PAGE: 3D CODEX OR FLAT CANVAS */}
           {!loading && !error && (
             viewerMode === "3d" ? (
-              <div className="w-full flex-1 flex items-center justify-center min-h-[500px] sm:min-h-[620px] pb-20">
+              <div className="w-full flex-1 flex items-center justify-center min-h-[540px] sm:min-h-[660px] h-full pb-20">
                 <Book3DViewer
                   pdfDoc={pdfDoc}
                   totalPages={totalPages}
@@ -1101,6 +1111,8 @@ export function SecurePdfReader({
                   bookTitle={title}
                   theme={theme}
                   price={price}
+                  scale={scale}
+                  onScaleChange={(s) => setScale(s)}
                 />
               </div>
             ) : (
@@ -1211,8 +1223,9 @@ export function SecurePdfReader({
 
           {/* ZOOM MINUS */}
           <button
-            onClick={() => setScale((s) => Math.max(s - 0.2, 0.4))}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            onClick={() => setScale((s) => Math.max(Number((s - 0.2).toFixed(2)), 0.6))}
+            disabled={scale <= 0.65}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
             title="Zoom Out (-)"
           >
             <ZoomOut className="w-3.5 h-3.5" />
@@ -1248,8 +1261,9 @@ export function SecurePdfReader({
 
           {/* ZOOM PLUS */}
           <button
-            onClick={() => setScale((s) => Math.min(s + 0.2, 3.0))}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            onClick={() => setScale((s) => Math.min(Number((s + 0.2).toFixed(2)), 3.0))}
+            disabled={scale >= 2.95}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
             title="Zoom In (+)"
           >
             <ZoomIn className="w-3.5 h-3.5" />

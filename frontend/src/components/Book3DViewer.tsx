@@ -12,6 +12,9 @@ import {
   Maximize2,
   Sparkles,
   RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  Hand,
 } from "lucide-react";
 
 // Polyfill ECMAScript Uint8Array.prototype.toHex and toBase64 for pdfjs-dist v6 support
@@ -48,6 +51,8 @@ interface Book3DViewerProps {
   bookTitle: string;
   theme: "dark" | "sepia" | "light" | "oled";
   price?: number;
+  scale?: number;
+  onScaleChange?: (newScale: number | ((prev: number) => number)) => void;
 }
 
 // Procedural realistic paper turn sound via Web Audio API (Zero external assets required)
@@ -111,15 +116,62 @@ export function Book3DViewer({
   bookTitle,
   theme,
   price,
+  scale,
+  onScaleChange,
 }: Book3DViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isBookClosed, setIsBookClosed] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<"next" | "prev" | null>(null);
-  const [zoomScale, setZoomScale] = useState(1);
+
+  // Zoom and Drag-to-Pan States
+  const [internalZoom, setInternalZoom] = useState(1);
+  const effectiveZoom = scale !== undefined ? scale : internalZoom;
+
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number }>({
+    x: 0,
+    y: 0,
+    panX: 0,
+    panY: 0,
+  });
+  const hasDraggedRef = useRef(false);
+  const initialPinchDistRef = useRef<number | null>(null);
+  const initialPinchScaleRef = useRef<number>(1);
+  const lastTapRef = useRef<number>(0);
+
   const [bookTilt, setBookTilt] = useState<{ x: number; y: number }>({ x: 5, y: 0 });
   const [pageAspect, setPageAspect] = useState<number>(1.414); // Default A4 aspect ratio
+
+  // Smooth zoom modifier
+  const setZoom = useCallback(
+    (action: number | ((prev: number) => number)) => {
+      const nextVal = typeof action === "function" ? action(effectiveZoom) : action;
+      const clamped = Math.min(Math.max(Number(nextVal.toFixed(2)), 0.6), 3.0);
+      if (onScaleChange) {
+        onScaleChange(clamped);
+      } else {
+        setInternalZoom(clamped);
+      }
+    },
+    [effectiveZoom, onScaleChange]
+  );
+
+  // 1-Click Reset Zoom & Recenter
+  const handleResetZoom = useCallback(() => {
+    setZoom(1.0);
+    setPan({ x: 0, y: 0 });
+  }, [setZoom]);
+
+  // Automatically reset pan to center when zoomed out to normal (<= 1.05)
+  useEffect(() => {
+    if (effectiveZoom <= 1.05) {
+      setPan({ x: 0, y: 0 });
+    }
+  }, [effectiveZoom]);
 
   // Canvases for 2-page spread
   const leftCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -165,7 +217,8 @@ export function Book3DViewer({
 
       try {
         const page = await pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 2 }); // High DPI 2x render
+        // High DPI 2.4x render ensures crystal clear text and diagrams even at maximum zoom
+        const viewport = page.getViewport({ scale: 2.4 });
         const canvas = targetCanvas || document.createElement("canvas");
         const ctx = canvas.getContext("2d", { alpha: false });
         if (!ctx) return null;
@@ -350,7 +403,7 @@ export function Book3DViewer({
     onPageChange,
   ]);
 
-  // Responsive Book Sizing based on container width
+  // Responsive Base Book Sizing based on container width
   const [bookDimensions, setBookDimensions] = useState<{ width: number; height: number }>({
     width: 840,
     height: 590,
@@ -378,19 +431,19 @@ export function Book3DViewer({
       }
 
       setBookDimensions({
-        width: Math.max(Math.round(bWidth * zoomScale), 320),
-        height: Math.max(Math.round(bHeight * zoomScale), 240),
+        width: Math.max(Math.round(bWidth), 320),
+        height: Math.max(Math.round(bHeight), 240),
       });
     };
 
     updateSize();
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
-  }, [pageAspect, zoomScale]);
+  }, [pageAspect]);
 
-  // Mouse 3D parallax tilt effect on desktop
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current || window.innerWidth < 768) return;
+  // Mouse 3D parallax tilt effect on desktop (only when at normal scale so text is flat and readable when zoomed)
+  const handleMouseMoveTilt = (e: React.MouseEvent) => {
+    if (!containerRef.current || window.innerWidth < 768 || effectiveZoom > 1.05) return;
     const rect = containerRef.current.getBoundingClientRect();
     const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
     const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
@@ -398,6 +451,123 @@ export function Book3DViewer({
       x: 6 - yRatio * 8, // subtle pitch
       y: xRatio * 10,   // subtle yaw
     });
+  };
+
+  // Drag-to-Pan Handlers
+  const handleDragStart = (clientX: number, clientY: number) => {
+    if (effectiveZoom <= 1.05) return;
+    setIsDragging(true);
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    dragStartRef.current = {
+      x: clientX,
+      y: clientY,
+      panX: pan.x,
+      panY: pan.y,
+    };
+  };
+
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!isDraggingRef.current || effectiveZoom <= 1.05) return;
+    const dx = clientX - dragStartRef.current.x;
+    const dy = clientY - dragStartRef.current.y;
+
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      hasDraggedRef.current = true;
+    }
+
+    const containerW = containerRef.current?.clientWidth || window.innerWidth;
+    const containerH = containerRef.current?.clientHeight || window.innerHeight;
+    const scaledW = bookDimensions.width * effectiveZoom;
+    const scaledH = bookDimensions.height * effectiveZoom;
+
+    // Allow user to comfortably pan across both pages and margins
+    const maxPanX = Math.max((scaledW - containerW) / 2 + 120, 60);
+    const maxPanY = Math.max((scaledH - containerH) / 2 + 120, 60);
+
+    const targetX = dragStartRef.current.panX + dx;
+    const targetY = dragStartRef.current.panY + dy;
+
+    setPan({
+      x: Math.min(Math.max(targetX, -maxPanX), maxPanX),
+      y: Math.min(Math.max(targetY, -maxPanY), maxPanY),
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 60);
+  };
+
+  // Ctrl+Wheel or Trackpad Pinch to Zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      setZoom((prev) => Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.6), 3.0));
+    }
+  };
+
+  // Double click to zoom in/reset
+  const handleDoubleClick = () => {
+    if (effectiveZoom > 1.1) {
+      handleResetZoom();
+    } else {
+      setZoom(1.75);
+    }
+  };
+
+  // Touch Handlers for Pinch Zoom & Pan
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      if (effectiveZoom > 1.05) {
+        handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialPinchDistRef.current = dist;
+      initialPinchScaleRef.current = effectiveZoom;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isDraggingRef.current) {
+      handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+    } else if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / initialPinchDistRef.current;
+      const nextZoom = Math.min(Math.max(Number((initialPinchScaleRef.current * factor).toFixed(2)), 0.6), 3.0);
+      setZoom(nextZoom);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) {
+      if (isDraggingRef.current) handleDragEnd();
+      initialPinchDistRef.current = null;
+
+      // Double-tap detection
+      const now = Date.now();
+      if (now - lastTapRef.current < 280) {
+        if (effectiveZoom > 1.1) {
+          handleResetZoom();
+        } else {
+          setZoom(1.75);
+        }
+        lastTapRef.current = 0;
+        return;
+      }
+      lastTapRef.current = now;
+    }
   };
 
   const leafWidth = Math.round(bookDimensions.width / 2);
@@ -409,18 +579,51 @@ export function Book3DViewer({
   const leftStackPx = Math.min(Math.max(Math.round((leftStackPages / (totalPages || 1)) * 14), 2), 16);
   const rightStackPx = Math.min(Math.max(Math.round((rightStackPages / (totalPages || 1)) * 14), 2), 16);
 
+  // Flatten tilt when zoomed in so text is perfectly perpendicular and easy to read
+  const effectiveTilt = effectiveZoom > 1.05 ? { x: 0, y: 0 } : bookTilt;
+
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden select-none py-4 px-2"
+      onMouseDown={(e) => {
+        if (e.button === 0 && effectiveZoom > 1.05) {
+          handleDragStart(e.clientX, e.clientY);
+        }
+      }}
+      onMouseMove={(e) => {
+        if (isDraggingRef.current) {
+          handleDragMove(e.clientX, e.clientY);
+        } else {
+          handleMouseMoveTilt(e);
+        }
+      }}
+      onMouseUp={handleDragEnd}
+      onMouseLeave={() => {
+        if (isDraggingRef.current) handleDragEnd();
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
+      onDoubleClick={handleDoubleClick}
+      className={`relative w-full h-full min-h-[520px] flex flex-col items-center justify-center overflow-hidden select-none py-4 px-2 ${
+        effectiveZoom > 1.05 ? (isDragging ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+      }`}
       style={{
         perspective: "2000px",
         perspectiveOrigin: "50% 50%",
       }}
     >
+      {/* FLOATING HELPER HINT WHEN ZOOMED IN */}
+      {effectiveZoom > 1.05 && (
+        <div className="absolute top-3 left-4 z-40 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] text-white/90 flex items-center gap-1.5 pointer-events-none shadow-md transition-all">
+          <Hand className="w-3.5 h-3.5 text-[#AED7E9]" />
+          <span className="font-medium">Drag to pan • Double-tap to reset</span>
+        </div>
+      )}
+
       {/* 3D BOOK STAGE CONTROLS (Top Right of viewer stage) */}
-      <div className="absolute top-3 right-4 z-40 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg text-white">
+      <div className="absolute top-3 right-4 z-40 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 shadow-xl text-white">
         <button
           onClick={() => setSoundEnabled((v) => !v)}
           className={`p-1.5 rounded-full transition-all cursor-pointer ${
@@ -439,28 +642,66 @@ export function Book3DViewer({
           title={isBookClosed ? "Open 3D Book" : "View Closed Hardcover"}
         >
           <BookOpen className="w-3.5 h-3.5 text-[#BFAFE5]" />
-          <span>{isBookClosed ? "Open Book" : "Cover View"}</span>
+          <span className="hidden sm:inline">{isBookClosed ? "Open Book" : "Cover View"}</span>
         </button>
 
         <div className="w-px h-3.5 bg-white/20" />
 
+        {/* ZOOM CONTROLS */}
         <button
-          onClick={() => setZoomScale((s) => (s >= 1.25 ? 1 : Number((s + 0.15).toFixed(2))))}
-          className="p-1.5 rounded-full hover:bg-white/15 text-slate-200 hover:text-white cursor-pointer transition-all"
-          title={`Zoom Scale: ${Math.round(zoomScale * 100)}%`}
+          onClick={() => setZoom((s) => Math.max(Number((s - 0.2).toFixed(2)), 0.6))}
+          disabled={effectiveZoom <= 0.65}
+          className="p-1.5 rounded-full hover:bg-white/15 text-slate-200 hover:text-white cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Zoom Out (-)"
         >
-          <Maximize2 className="w-3.5 h-3.5" />
+          <ZoomOut className="w-3.5 h-3.5" />
         </button>
+
+        <button
+          onClick={handleResetZoom}
+          className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold transition-all cursor-pointer ${
+            effectiveZoom > 1.05
+              ? "bg-[#AED7E9] text-[#221D1D] hover:bg-[#90C5DC] shadow-xs"
+              : "text-slate-300 hover:bg-white/15"
+          }`}
+          title="Current Zoom • Click to reset to 100%"
+        >
+          {Math.round(effectiveZoom * 100)}%
+        </button>
+
+        <button
+          onClick={() => setZoom((s) => Math.min(Number((s + 0.2).toFixed(2)), 3.0))}
+          disabled={effectiveZoom >= 2.95}
+          className="p-1.5 rounded-full hover:bg-white/15 text-slate-200 hover:text-white cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Zoom In (+)"
+        >
+          <ZoomIn className="w-3.5 h-3.5" />
+        </button>
+
+        {effectiveZoom > 1.05 && (
+          <>
+            <div className="w-px h-3.5 bg-white/20" />
+            <button
+              onClick={handleResetZoom}
+              className="p-1.5 rounded-full hover:bg-white/15 text-[#AED7E9] cursor-pointer transition-all"
+              title="Reset Zoom & Center (100%)"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* 3D PHYSICAL BOOK CONTAINER */}
       <div
-        className="relative transition-transform duration-500 ease-out"
+        className="relative"
         style={{
           width: `${bookDimensions.width}px`,
           height: `${bookDimensions.height}px`,
           transformStyle: "preserve-3d",
-          transform: `rotateX(${bookTilt.x}deg) rotateY(${bookTilt.y}deg)`,
+          transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${effectiveZoom}) rotateX(${effectiveTilt.x}deg) rotateY(${effectiveTilt.y}deg)`,
+          transformOrigin: "50% 50%",
+          transition: isDragging ? "none" : "transform 240ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {/* ============================================================== */}
@@ -666,8 +907,12 @@ export function Book3DViewer({
               {/* LEFT PAGE INTERACTIVE TURN CLICK AREA */}
               {currentSpread.left > 0 && (
                 <button
-                  onClick={triggerFlipPrev}
-                  className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 hover:bg-black/[0.03] transition-colors cursor-pointer flex items-center justify-start pl-2 group"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (hasDraggedRef.current) return;
+                    triggerFlipPrev();
+                  }}
+                  className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 hover:bg-black/[0.03] transition-colors cursor-pointer flex items-center justify-start pl-2 group z-20"
                   title="Previous Page (←)"
                 >
                   <ChevronLeft className="w-6 h-6 text-[#221D1D]/30 group-hover:text-[#221D1D] transition-colors" />
@@ -774,8 +1019,12 @@ export function Book3DViewer({
 
               {/* RIGHT PAGE INTERACTIVE TURN CLICK AREA */}
               <button
-                onClick={triggerFlipNext}
-                className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 hover:bg-black/[0.03] transition-colors cursor-pointer flex items-center justify-end pr-2 group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (hasDraggedRef.current) return;
+                  triggerFlipNext();
+                }}
+                className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 hover:bg-black/[0.03] transition-colors cursor-pointer flex items-center justify-end pr-2 group z-20"
                 title="Next Page (→)"
               >
                 <ChevronRight className="w-6 h-6 text-[#221D1D]/30 group-hover:text-[#221D1D] transition-colors" />
@@ -783,7 +1032,11 @@ export function Book3DViewer({
 
               {/* TACTILE BOTTOM-RIGHT CORNER CURL HOVER EFFECT */}
               <div
-                onClick={triggerFlipNext}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (hasDraggedRef.current) return;
+                  triggerFlipNext();
+                }}
                 className="absolute bottom-0 right-0 w-12 h-12 cursor-pointer group z-20"
                 title="Click corner to flip page"
               >
