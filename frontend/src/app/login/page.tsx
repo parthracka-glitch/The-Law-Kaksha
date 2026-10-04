@@ -86,23 +86,21 @@ function LoginContent() {
             role: "admin",
             token: res.token || `admin_token_${Date.now()}`,
           };
+          localStorage.removeItem("lawkaksha_student_session");
+          localStorage.removeItem("lawkaksha_active_student");
           localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
           if (res.token) localStorage.setItem("lawkaksha_token", res.token);
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
-          router.push("/admin");
+          window.location.href = redirectPath || "/admin";
         } else {
+          localStorage.removeItem("lawkaksha_admin_session");
           localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
           localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
           if (res.token) localStorage.setItem("lawkaksha_token", res.token);
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
-          
-          if (redirectPath) {
-            router.push(redirectPath);
-          } else {
-            router.push("/student");
-          }
+          window.location.href = redirectPath || "/student";
         }
       } else {
         setErrorMsg(res?.message || "Invalid Email/Student ID or Password.");
@@ -355,7 +353,12 @@ function LoginContent() {
               <div className="border-t border-[#E7E4E7] w-full" />
             </div>
 
-            <GoogleSignInButton text="signin_with" />
+            <GoogleSignInButton
+              text="signin_with"
+              onSuccess={() => {
+                window.location.href = redirectPath || "/student";
+              }}
+            />
 
             <div className="text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4">
               New student?{" "}

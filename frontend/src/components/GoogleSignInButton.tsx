@@ -72,18 +72,23 @@ export function GoogleSignInButton({
           role: "admin",
           token: res.token,
         };
+        localStorage.removeItem("lawkaksha_student_session");
+        localStorage.removeItem("lawkaksha_active_student");
         localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
         if (res.token) localStorage.setItem("lawkaksha_token", res.token);
         window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("lawkaksha_student_updated"));
         if (onSuccess) onSuccess(res);
-        else router.push("/admin");
+        else window.location.href = "/student";
       } else {
+        localStorage.removeItem("lawkaksha_admin_session");
         localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
         localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
         if (res.token) localStorage.setItem("lawkaksha_token", res.token);
         window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("lawkaksha_student_updated"));
         if (onSuccess) onSuccess(res);
-        else router.push("/student");
+        else window.location.href = "/student";
       }
     } catch (err: any) {
       console.error("[Google Auth Error]", err);
@@ -109,6 +114,7 @@ export function GoogleSignInButton({
             callback: handleGoogleCallback,
             auto_select: false,
             cancel_on_tap_outside: true,
+            ux_mode: "popup",
           });
 
           if (buttonRef.current) {

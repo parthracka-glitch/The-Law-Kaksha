@@ -209,6 +209,9 @@ function RegisterForm() {
       <GoogleSignInButton
         text="signup_with"
         selectedCourse={formData.targetCourse}
+        onSuccess={() => {
+          window.location.href = "/student";
+        }}
       />
 
       <div className="mt-5 text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4">

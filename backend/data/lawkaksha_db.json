@@ -1,6 +1,31 @@
 {
   "users": [
     {
+      "id": "usr-g-1791151776849-418",
+      "student_id": "LRK-2026-008492",
+      "name": "Parth Racka",
+      "email": "parthracka@gmail.com",
+      "boundGmail": "parthracka@gmail.com",
+      "googleId": "115881175788986904383",
+      "picture": "https://lh3.googleusercontent.com/a/ACg8ocKJWDBVm2o29hNXgGaAhUv9sm2wW-pJiVUGhSjmn0asX247hWrE=s96-c",
+      "phone": "",
+      "password_hash": "",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "activeDeviceId": "DEV-ef9d9dec-cd77-42ba-bb1b-c1f6520cd572-muqmi7h3",
+      "activeDeviceName": "Microsoft Edge on Windows PC",
+      "lastActiveAt": "2026-10-04T22:09:36.849Z",
+      "created_at": "2026-10-04T22:09:36.849Z",
+      "updated_at": "2026-10-04T22:09:36.849Z"
+    },
+    {
       "id": "usr-1791112785039-663",
       "student_id": "LRK-2026-003304",
       "name": "Victim Aspirant",
