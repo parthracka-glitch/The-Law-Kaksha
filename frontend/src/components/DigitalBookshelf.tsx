@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Users, Sparkles, Eye, Lock, ChevronRight } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { useCart } from "@/context/CartContext";
 
@@ -10,92 +10,117 @@ interface BookSpine {
   id: string;
   actName: string;
   shortTitle: string;
-  year?: string;
+  year: string;
   exam: "ICAI" | "ICSI" | "ICAI & ICSI";
   chapters: string;
-  spineColor: string;
+  topics: string[];
+  spineGradient: string;
   textColor: string;
-  borderColor: string;
-  heightClass: string;
+  accentColor: string;
+  heightPx: number;
   isFeatured?: boolean;
-  pdfUrl?: string;
+  isSample?: boolean;
+  pdfUrl: string;
   previewPagesLimit?: number;
-  price?: number;
-  badge?: string;
+  price: number;
 }
 
 const STATUTORY_BOOKS: BookSpine[] = [
   {
+    id: "ca-regulatory",
+    actName: "Indian Regulatory Framework",
+    shortTitle: "Regulatory",
+    year: "Ch.1",
+    exam: "ICAI",
+    chapters: "Sources of Law & Court Hierarchy",
+    topics: ["Sources of Indian Law", "Hierarchy of Courts", "Regulatory Bodies (SEBI, RBI, MCA)"],
+    spineGradient: "from-[#7BB8CE] to-[#4B8097]",
+    textColor: "text-white",
+    accentColor: "#AED7E9",
+    heightPx: 180,
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    previewPagesLimit: 5,
+    price: 99,
+  },
+  {
     id: "ca-contract",
-    actName: "The Indian Contract Act",
-    shortTitle: "Indian Contract Act",
+    actName: "Indian Contract Act",
+    shortTitle: "Contract Act",
     year: "1872",
     exam: "ICAI",
-    chapters: "Units 1 to 9 • Essentials & Special Contracts",
-    spineColor: "bg-[#AED7E9]",
-    textColor: "text-[#221D1D]",
-    borderColor: "border-[#98C5D8]",
-    heightClass: "h-28 sm:h-36",
+    chapters: "Offer, Acceptance & Special Contracts",
+    topics: ["Essentials of Valid Contract", "Free Consent & Consideration", "Special Contracts (Agency, Bailment)"],
+    spineGradient: "from-[#221D1D] to-[#3D3533]",
+    textColor: "text-white",
+    accentColor: "#BFAFE5",
+    heightPx: 210,
+    isFeatured: true,
     pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     previewPagesLimit: 5,
     price: 99,
   },
   {
     id: "ca-soga",
-    actName: "The Sale of Goods Act",
-    shortTitle: "Sale of Goods Act",
+    actName: "Sale of Goods Act",
+    shortTitle: "Sale of Goods",
     year: "1930",
     exam: "ICAI",
-    chapters: "Formation of Sale, Conditions, Warranties & Caveat Emptor",
-    spineColor: "bg-[#221D1D]",
-    textColor: "text-white",
-    borderColor: "border-[#4D433F]",
-    heightClass: "h-26 sm:h-32",
+    chapters: "Conditions, Warranties & Caveat Emptor",
+    topics: ["Formation of Contract of Sale", "Implied Conditions & Warranties", "Transfer of Property & Unpaid Seller"],
+    spineGradient: "from-[#AED7E9] to-[#7BB8CE]",
+    textColor: "text-[#221D1D]",
+    accentColor: "#4B8097",
+    heightPx: 190,
+    isSample: true,
     pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     previewPagesLimit: 5,
     price: 99,
   },
   {
     id: "ca-partnership",
-    actName: "The Indian Partnership Act",
-    shortTitle: "Partnership Act",
+    actName: "Indian Partnership Act",
+    shortTitle: "Partnership",
     year: "1932",
     exam: "ICAI",
-    chapters: "Units 1, 2 & 3 • Mutual Agency & Dissolution",
-    spineColor: "bg-[#C4E1EC]",
+    chapters: "Mutual Agency, Relations & Dissolution",
+    topics: ["General Nature of Partnership", "Relations of Partners", "Registration & Dissolution of Firm"],
+    spineGradient: "from-[#BFAFE5] to-[#9B7FD4]",
     textColor: "text-[#221D1D]",
-    borderColor: "border-[#AED7E9]",
-    heightClass: "h-28 sm:h-36",
+    accentColor: "#8B5CF6",
+    heightPx: 200,
+    isSample: true,
     pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
     previewPagesLimit: 5,
     price: 99,
   },
   {
     id: "ca-llp",
-    actName: "Limited Liability Partnership Act",
+    actName: "LLP Act",
     shortTitle: "LLP Act",
     year: "2008",
     exam: "ICAI & ICSI",
-    chapters: "LLP Incorporation & Governance",
-    spineColor: "bg-[#98C5D8]",
+    chapters: "LLP Formation & Governance",
+    topics: ["LLP vs Traditional Partnership", "Incorporation & Designated Partners", "Conversion & Annual Filings"],
+    spineGradient: "from-[#C4E1EC] to-[#98C5D8]",
     textColor: "text-[#221D1D]",
-    borderColor: "border-[#6799AE]",
-    heightClass: "h-26 sm:h-34",
+    accentColor: "#4B8097",
+    heightPx: 170,
     pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
     previewPagesLimit: 5,
     price: 99,
   },
   {
     id: "ca-companies",
-    actName: "The Companies Act",
+    actName: "Companies Act",
     shortTitle: "Companies Act",
     year: "2013",
     exam: "ICAI & ICSI",
-    chapters: "Essential Features, MoA, AoA & Sec 8",
-    spineColor: "bg-[#BFAFE5]",
-    textColor: "text-[#221D1D]",
-    borderColor: "border-[#A08DC9]",
-    heightClass: "h-32 sm:h-40",
+    chapters: "Corporate Veil, MOA, AOA & Sec 8",
+    topics: ["Salomon v. Salomon — Corporate Veil", "Memorandum & Articles of Association", "Doctrine of Ultra Vires"],
+    spineGradient: "from-[#DDA994] to-[#C35F3B]",
+    textColor: "text-white",
+    accentColor: "#F4C5C0",
+    heightPx: 220,
     isFeatured: true,
     pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
     previewPagesLimit: 5,
@@ -104,44 +129,31 @@ const STATUTORY_BOOKS: BookSpine[] = [
   {
     id: "ca-ni",
     actName: "Negotiable Instruments Act",
-    shortTitle: "Negotiable Instruments",
+    shortTitle: "NI Act",
     year: "1881",
     exam: "ICAI & ICSI",
-    chapters: "Promissory Notes, Cheques & Sec 138",
-    spineColor: "bg-[#AED7E9]",
-    textColor: "text-[#221D1D]",
-    borderColor: "border-[#C4E1EC]",
-    heightClass: "h-28 sm:h-36",
+    chapters: "Cheques, Bills of Exchange & Sec 138",
+    topics: ["Promissory Notes & Bills of Exchange", "Crossing of Cheques & Holder in Due Course", "Section 138 — Dishonour Liability"],
+    spineGradient: "from-[#4D433F] to-[#221D1D]",
+    textColor: "text-white",
+    accentColor: "#AED7E9",
+    heightPx: 185,
     pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
     previewPagesLimit: 5,
     price: 99,
   },
   {
-    id: "ca-regulatory",
-    actName: "Indian Regulatory Framework",
-    shortTitle: "Regulatory Framework",
-    year: "ICAI",
-    exam: "ICAI",
-    chapters: "Sources of Law, Court Systems & Tribunals",
-    spineColor: "bg-[#DDA994]",
-    textColor: "text-[#221D1D]",
-    borderColor: "border-[#C35F3B]",
-    heightClass: "h-26 sm:h-32",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    previewPagesLimit: 5,
-    price: 99,
-  },
-  {
     id: "cs-management",
-    actName: "General Principles of Management",
-    shortTitle: "Principles of Management",
+    actName: "Principles of Management",
+    shortTitle: "Management",
     year: "ICSI",
     exam: "ICSI",
-    chapters: "Fayol & Taylor Theories, Planning & Ethics",
-    spineColor: "bg-[#4D433F]",
-    textColor: "text-white",
-    borderColor: "border-[#221D1D]",
-    heightClass: "h-28 sm:h-36",
+    chapters: "Fayol, Taylor & Business Ethics",
+    topics: ["Fayol's 14 Principles of Management", "F.W. Taylor — Scientific Management", "Business Environment & Corporate Ethics"],
+    spineGradient: "from-[#B8DDCA] to-[#5FA882]",
+    textColor: "text-[#221D1D]",
+    accentColor: "#2D7A5A",
+    heightPx: 195,
     pdfUrl: "/notes/cseet-management-full.pdf",
     previewPagesLimit: 5,
     price: 99,
@@ -150,190 +162,226 @@ const STATUTORY_BOOKS: BookSpine[] = [
 
 export function DigitalBookshelf() {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
-  const [booksList, setBooksList] = useState<BookSpine[]>(STATUTORY_BOOKS);
-
-  // Secure DRM Reader state
+  const [hoveredBook, setHoveredBook] = useState<string | null>(null);
   const [readerState, setReaderState] = useState<{
-    open: boolean;
-    title: string;
-    pdfUrl: string;
-    previewLimit: number;
-    price: number;
-    bookId: string;
-    badge?: string;
-  }>({
-    open: false,
-    title: "",
-    pdfUrl: "",
-    previewLimit: 5,
-    price: 99,
-    bookId: "",
-  });
+    open: boolean; title: string; pdfUrl: string;
+    previewLimit: number; price: number; bookId: string;
+  }>({ open: false, title: "", pdfUrl: "", previewLimit: 5, price: 99, bookId: "" });
 
-  // Load any dynamic products added from admin
-  useEffect(() => {
-    async function loadDynamicCodices() {
-      try {
-        let dynamicList: any[] = [];
-        const res = await fetch("/api/catalog");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.products)) {
-            dynamicList = json.products;
-          }
-        }
-        if (dynamicList.length === 0 && typeof window !== "undefined") {
-          const localAdmin = localStorage.getItem("lawkaksha_admin_products");
-          if (localAdmin) {
-            dynamicList = JSON.parse(localAdmin);
-          }
-        }
-
-        if (dynamicList.length > 0) {
-          // Merge dynamic products with unique IDs
-          const customSpines: BookSpine[] = dynamicList
-            .filter((p: any) => p.status === "Active" || !p.status)
-            .map((p: any, idx: number) => {
-              const spinePalettes = [
-                { spineColor: "bg-[#BFAFE5]", textColor: "text-[#221D1D]", borderColor: "border-[#A08DC9]" },
-                { spineColor: "bg-[#AED7E9]", textColor: "text-[#221D1D]", borderColor: "border-[#98C5D8]" },
-                { spineColor: "bg-[#C4E1EC]", textColor: "text-[#221D1D]", borderColor: "border-[#AED7E9]" },
-                { spineColor: "bg-[#DDA994]", textColor: "text-[#221D1D]", borderColor: "border-[#C35F3B]" },
-                { spineColor: "bg-[#221D1D]", textColor: "text-white", borderColor: "border-[#4D433F]" },
-              ];
-              const palette = spinePalettes[idx % spinePalettes.length];
-              return {
-                id: p.id || `custom-book-${idx}`,
-                actName: p.title,
-                shortTitle: p.title.length > 22 ? p.title.slice(0, 20) + "..." : p.title,
-                year: p.category?.includes("CS") ? "ICSI" : "ICAI",
-                exam: p.category?.includes("CS") ? "ICSI" : ("ICAI" as const),
-                chapters: p.subtitle || p.description || "Digital Codex",
-                spineColor: palette.spineColor,
-                textColor: palette.textColor,
-                borderColor: palette.borderColor,
-                heightClass: idx % 2 === 0 ? "h-32 sm:h-40" : "h-28 sm:h-36",
-                pdfUrl: p.pdfUrl || `/api/pdf/${p.slug || p.id}.pdf`,
-                previewPagesLimit: Number(p.previewPagesLimit) || 5,
-                price: Number(p.price) || 99,
-                badge: p.badge || `₹${p.price || 99}`,
-              };
-            });
-
-          // Deduplicate based on id or actName
-          const existingIds = new Set(STATUTORY_BOOKS.map((b) => b.id));
-          const additions = customSpines.filter((c) => !existingIds.has(c.id));
-          if (additions.length > 0) {
-            setBooksList([...STATUTORY_BOOKS, ...additions]);
-          }
-        }
-      } catch (e) {
-        // Fallback to default statutory list
-      }
-    }
-    loadDynamicCodices();
-  }, []);
-
-  const handleOpenBookSample = (book: BookSpine) => {
+  const handleOpenBook = (book: BookSpine) => {
     setReaderState({
       open: true,
       title: book.actName,
-      pdfUrl: book.pdfUrl || "/notes/sale-of-goods-unit-1.pdf",
+      pdfUrl: book.pdfUrl,
       previewLimit: book.previewPagesLimit || 5,
-      price: book.price || 99,
+      price: book.price,
       bookId: book.id,
-      badge: book.badge,
     });
   };
 
   return (
-    <section id="bookshelf" className="py-8 sm:py-10 bg-white text-[#221D1D] overflow-hidden">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        {/* Compact Digital Bookshelf Card */}
-        <div className="w-full bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl px-5 py-6 sm:px-8 sm:py-7 shadow-xs flex flex-col items-center relative overflow-hidden">
-          
-          {/* Header */}
-          <div className="text-center max-w-xl mx-auto space-y-1.5 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] text-[11px] font-semibold mb-1">
-              <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
-              <span>Statutory Notes Shelf</span>
-            </div>
-            
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#221D1D] tracking-tight font-serif">
-              The digital bookshelf for CA &amp; CS students
-            </h2>
-            <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed font-sans max-w-md mx-auto">
-              Browse encrypted statutory chapter notes, unit breakdowns, and weekly case problems.
-            </p>
+    <section id="bookshelf" className="py-12 sm:py-16 overflow-hidden" style={{ background: "linear-gradient(180deg, #FAFAF9 0%, #F3F0ED 100%)" }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-            {/* Action Button */}
-            <div className="pt-2 flex items-center justify-center">
-              <Link
-                href="/courses"
-                className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-              >
-                <span>Explore All Notes</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BFAFE5]/30 border border-[#BFAFE5] text-[#221D1D] text-[11px] font-bold tracking-wider uppercase">
+            <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
+            <span>Your Study Arsenal</span>
           </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#221D1D] tracking-tight font-serif leading-tight">
+            Every Act. Every Chapter.<br className="hidden sm:block" />
+            <span className="text-[#4B8097]"> All in One Place.</span>
+          </h2>
+          <p className="text-sm text-[#4D433F] leading-relaxed">
+            The complete statutory library for CA Foundation & CSEET — chapter-wise notes, case studies, and question banks. Tap any book to read a free sample.
+          </p>
+        </div>
 
-          {/* Virtual Bookshelf with Interactive Book Spines */}
-          <div className="w-full pt-6 pb-0 flex flex-col items-center justify-end relative z-10">
-            {/* Mobile swipe hint */}
-            <span className="text-[11px] text-[#77716E] font-medium sm:hidden block pb-2 tracking-tight">
-              Swipe across &amp; tap any volume to read
-            </span>
+        {/* Stats Strip */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mb-10">
+          {[
+            { label: "Active Students", value: "1,200+", icon: Users },
+            { label: "Acts Covered", value: "8 Acts", icon: BookOpen },
+            { label: "Free Samples", value: "3 Units Free", icon: Eye },
+            { label: "DRM Protected", value: "Exam-Safe", icon: Lock },
+          ].map((stat) => (
+            <div key={stat.label} className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-[#AED7E9]/30 border border-[#AED7E9] flex items-center justify-center">
+                <stat.icon className="w-3.5 h-3.5 text-[#4B8097]" />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-[#221D1D]">{stat.value}</div>
+                <div className="text-[10px] text-[#77716E] font-medium">{stat.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-            {/* Row of Books */}
-            <div className="flex items-end justify-start sm:justify-center gap-2.5 sm:gap-3 px-2 max-w-full overflow-x-auto pb-1 scroll-container-x">
-              {booksList.map((book) => {
+        {/* The Bookshelf */}
+        <div className="relative">
+          {/* Shelf Background */}
+          <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden" style={{ background: "linear-gradient(180deg, #1C1817 0%, #2A2221 60%, #1A1614 100%)" }}>
+
+            {/* Ambient Glow */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(174,215,233,0.08)_0%,_transparent_60%)] pointer-events-none" />
+
+            {/* Top label */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-white/30">The Law कक्षा — Statutory Library</span>
+              <span className="text-[10px] font-mono text-white/25">CA Foundation + CSEET · 2026</span>
+            </div>
+
+            {/* Books Row */}
+            <div className="flex items-end justify-start sm:justify-center gap-1.5 sm:gap-2 px-4 sm:px-8 pt-4 overflow-x-auto pb-0 scroll-container-x">
+              {STATUTORY_BOOKS.map((book) => {
+                const isHovered = hoveredBook === book.id;
                 return (
                   <div
                     key={book.id}
-                    onClick={() => handleOpenBookSample(book)}
-                    className="relative cursor-pointer transition-all duration-300 transform select-none hover:-translate-y-2 hover:scale-105 z-10 hover:z-20 shrink-0"
-                    title={`${book.actName} (${book.chapters})`}
+                    className="relative shrink-0 cursor-pointer group"
+                    onMouseEnter={() => setHoveredBook(book.id)}
+                    onMouseLeave={() => setHoveredBook(null)}
+                    onClick={() => handleOpenBook(book)}
                   >
-                    {/* Book Spine Container */}
+                    {/* Hover Tooltip Card */}
+                    {isHovered && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-52 bg-white rounded-2xl shadow-2xl border border-[#E7E4E7] p-4 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[#77716E]">{book.exam}</p>
+                            <h3 className="text-sm font-bold text-[#221D1D] leading-tight mt-0.5">{book.actName} {book.year !== "ICAI" && book.year !== "ICSI" ? `(${book.year})` : ""}</h3>
+                          </div>
+                          {book.isSample && (
+                            <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#AED7E9]/40 border border-[#AED7E9] text-[9px] font-bold text-[#221D1D]">FREE</span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-[#4D433F] font-medium mb-2">{book.chapters}</p>
+                        <div className="space-y-1 border-t border-[#E7E4E7] pt-2">
+                          {book.topics.map((t, i) => (
+                            <div key={i} className="flex items-start gap-1.5 text-[10px] text-[#4D433F]">
+                              <ChevronRight className="w-3 h-3 text-[#4B8097] shrink-0 mt-px" />
+                              <span>{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-2 border-t border-[#E7E4E7] flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[#4B8097]">Tap to read sample →</span>
+                          {book.isFeatured && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#BFAFE5]/40 border border-[#BFAFE5] text-[#221D1D] font-bold">HIGH YIELD</span>}
+                        </div>
+                        {/* Arrow pointing down */}
+                        <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-[#E7E4E7] rotate-45" />
+                      </div>
+                    )}
+
+                    {/* Book Spine */}
                     <div
-                      className={`w-11 sm:w-9 md:w-11 ${book.heightClass} ${book.spineColor} ${book.textColor} border ${book.borderColor} rounded-t-md shadow-sm flex flex-col justify-between py-2.5 px-1 relative overflow-hidden group transition-shadow duration-300`}
+                      className="relative rounded-t-lg overflow-hidden transition-all duration-300"
+                      style={{
+                        width: "48px",
+                        height: `${book.heightPx}px`,
+                        transform: isHovered ? "translateY(-12px) scale(1.06)" : "translateY(0) scale(1)",
+                        boxShadow: isHovered
+                          ? `0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15), 0 0 20px ${book.accentColor}40`
+                          : "0 4px 12px rgba(0,0,0,0.4)",
+                      }}
                     >
-                      {/* Top Spine Accent */}
-                      <div className="w-full space-y-0.5 opacity-70">
-                        <div className="h-[1.5px] w-full bg-current opacity-60 rounded-full" />
-                        <div className="h-[1px] w-full bg-current opacity-30 rounded-full" />
+                      {/* Gradient fill */}
+                      <div className={`absolute inset-0 bg-gradient-to-b ${book.spineGradient}`} />
+
+                      {/* Spine top highlight */}
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/30" />
+                      <div className="absolute top-1 left-1 right-1 h-px bg-white/20" />
+
+                      {/* Vertical title text */}
+                      <div className={`absolute inset-0 flex flex-col items-center justify-center ${book.textColor}`}>
+                        <div
+                          className="text-[9px] font-bold tracking-wider leading-none whitespace-nowrap"
+                          style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)", letterSpacing: "0.08em" }}
+                        >
+                          {book.shortTitle}
+                        </div>
+                        <div
+                          className="text-[8px] font-mono mt-1 opacity-60 whitespace-nowrap"
+                          style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)" }}
+                        >
+                          {book.year}
+                        </div>
                       </div>
 
-                      {/* Middle Spine Ridge */}
-                      <div className="flex-1 flex flex-col items-center justify-center space-y-2 opacity-40">
-                        <div className="w-1.5 h-1.5 rounded-full border border-current opacity-50" />
-                        <div className="w-0.5 h-5 bg-current opacity-30 rounded-full" />
-                      </div>
-
-                      {/* Bottom Spine Accent */}
-                      <div className="w-full space-y-0.5 opacity-70">
-                        <div className="h-[1px] w-full bg-current opacity-30 rounded-full" />
-                        <div className="h-[1.5px] w-full bg-current opacity-60 rounded-full" />
-                      </div>
-
-                      {/* Featured Highlight Glow */}
+                      {/* Featured ribbon */}
                       {book.isFeatured && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/20 pointer-events-none" />
+                        <div className="absolute top-2 left-0 right-0 flex justify-center">
+                          <div className="w-1 h-1 rounded-full bg-white/60" />
+                        </div>
                       )}
+
+                      {/* Sample badge dot */}
+                      {book.isSample && (
+                        <div className="absolute top-2 right-1 w-1.5 h-1.5 rounded-full bg-[#AED7E9] shadow-sm" />
+                      )}
+
+                      {/* Bottom page edge effect */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20" />
+                    </div>
+
+                    {/* Exam tag below spine */}
+                    <div className={`text-center mt-1.5 text-[8px] font-bold tracking-wide transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0"}`}
+                      style={{ color: book.accentColor }}>
+                      {book.exam}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Modern Shelf Base */}
-            <div className="w-full max-w-3xl h-3.5 bg-[#E7E4E7] rounded-full border-t border-[#D8D4D8] shadow-xs mt-[-2px] relative z-0" />
+            {/* Physical Shelf Board */}
+            <div className="mx-4 sm:mx-8 mt-1 h-4 rounded-b-lg" style={{ background: "linear-gradient(180deg, #5C4A3E 0%, #3D2E27 100%)", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }} />
+            <div className="mx-2 sm:mx-6 h-1.5 rounded-b-xl" style={{ background: "#2A1F1A", boxShadow: "0 6px 16px rgba(0,0,0,0.7)" }} />
+
+            {/* Bottom CTA inside shelf */}
+            <div className="px-5 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <p className="text-white/50 text-xs font-medium">Includes free sample chapters for Indian Partnership Act</p>
+                <p className="text-white/25 text-[10px] mt-0.5">All notes are DRM-protected · For in-app reading only</p>
+              </div>
+              <div className="flex gap-2">
+                <Link
+                  href="/courses"
+                  className="px-5 py-2.5 rounded-full bg-[#AED7E9] hover:bg-[#98C5D8] text-[#221D1D] text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <span>Explore All Notes</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href="/student"
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <span>Student Dashboard</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Bottom Feature Chips */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+          {[
+            "✅ Free Sample — Partnership Act (3 Units)",
+            "📖 Chapter-wise breakdowns",
+            "⚖️ ICAI & ICSI Covered",
+            "🔒 DRM-Protected Reader",
+            "📱 Mobile Friendly",
+          ].map((chip) => (
+            <span key={chip} className="px-3 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[11px] font-medium text-[#4D433F] shadow-xs">
+              {chip}
+            </span>
+          ))}
+        </div>
+
       </div>
 
-      {/* Real DRM Protected Canvas PDF Reader with Preview Limit Enforcement */}
+      {/* DRM Reader */}
       <SecurePdfReader
         isOpen={readerState.open}
         onClose={() => setReaderState((prev) => ({ ...prev, open: false }))}
@@ -350,7 +398,7 @@ export function DigitalBookshelf() {
             originalPrice: 299,
             format: "pdf",
             category: "Digital Codex",
-            badge: readerState.badge || `₹${readerState.price}`,
+            badge: `₹${readerState.price}`,
           });
           setReaderState((prev) => ({ ...prev, open: false }));
           setIsCartOpen(true);
@@ -360,5 +408,3 @@ export function DigitalBookshelf() {
     </section>
   );
 }
-
-
