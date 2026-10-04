@@ -32,6 +32,35 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/students",
+        destination: "/student",
+        permanent: true,
+      },
+      {
+        source: "/students/:path*",
+        destination: "/student/:path*",
+        permanent: true,
+      },
+      {
+        source: "/dashboard",
+        destination: "/student",
+        permanent: false,
+      },
+      {
+        source: "/portal",
+        destination: "/student",
+        permanent: false,
+      },
+      {
+        source: "/student-portal",
+        destination: "/student",
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
     return [

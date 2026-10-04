@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Home, ArrowLeft } from "lucide-react";
+import { BookOpen, Home, ArrowLeft, GraduationCap } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -42,17 +42,24 @@ export default function NotFound() {
             </p>
           </div>
 
-          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center flex-wrap">
             <Link
               href="/"
-              className="px-5 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-sm transition flex items-center justify-center gap-2"
+              className="px-4 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-sm transition flex items-center justify-center gap-2"
             >
               <Home className="w-4 h-4" />
               <span>Return Home</span>
             </Link>
             <Link
+              href="/student"
+              className="px-4 py-2.5 rounded-full bg-white border border-[#BFAFE5] hover:bg-[#F3E8FF] text-[#7E22CE] text-xs font-semibold transition flex items-center justify-center gap-2 shadow-xs"
+            >
+              <GraduationCap className="w-4 h-4 text-[#7E22CE]" />
+              <span>Student Portal</span>
+            </Link>
+            <Link
               href="/courses"
-              className="px-5 py-3 rounded-full border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold transition flex items-center justify-center gap-2"
+              className="px-4 py-2.5 rounded-full border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold transition flex items-center justify-center gap-2"
             >
               <BookOpen className="w-4 h-4 text-[#77716E]" />
               <span>Browse Courses</span>
