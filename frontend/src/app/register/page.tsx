@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 function RegisterForm() {
   const router = useRouter();
@@ -195,6 +196,20 @@ function RegisterForm() {
           </button>
         </div>
       </form>
+
+      {/* Google OAuth Quick Sign-Up */}
+      <div className="relative my-4 flex items-center justify-center">
+        <div className="border-t border-[#E7E4E7] w-full" />
+        <span className="bg-white px-3 text-[11px] font-semibold text-[#77716E] uppercase tracking-wider shrink-0">
+          Or Register With
+        </span>
+        <div className="border-t border-[#E7E4E7] w-full" />
+      </div>
+
+      <GoogleSignInButton
+        text="signup_with"
+        selectedCourse={formData.targetCourse}
+      />
 
       <div className="mt-5 text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4">
         Already registered?{" "}

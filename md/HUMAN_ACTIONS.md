@@ -65,6 +65,36 @@ Do NOT commit admin credentials to git. Choose one of two methods:
 
 ---
 
+### Priority 3.5: Google OAuth Production Configuration (Google Cloud Console) (Estimated Time: 5 mins)
+
+Google Sign-In is fully integrated into both frontend and backend using Google Identity Services (GIS). Ensure your credentials and authorized origins are configured:
+
+1. **Google Cloud Console Settings:**
+   - Go to [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
+   - Click on your OAuth 2.0 Web Client ID.
+   - Under **Authorized JavaScript origins**, add:
+     - `http://localhost:3000` (Local testing)
+     - `http://localhost:5000`
+     - `https://thelawkaksha.com` (Production frontend)
+     - `https://www.thelawkaksha.com`
+     - `https://api.thelawkaksha.com`
+     - Your Vercel preview domain (e.g. `https://thelawkaksha.vercel.app` or similar)
+   - Under **Authorized redirect URIs**, add:
+     - `http://localhost:3000`
+     - `https://thelawkaksha.com`
+     - `https://www.thelawkaksha.com`
+   - Click **Save**.
+
+2. **Production Environment Variables:**
+   - **Render (Backend):**
+     - `GOOGLE_CLIENT_ID`: `<YOUR_GOOGLE_CLIENT_ID>`
+     - `GOOGLE_CLIENT_SECRET`: `<YOUR_GOOGLE_CLIENT_SECRET>`
+   - **Vercel (Frontend):**
+     - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`: `<YOUR_GOOGLE_CLIENT_ID>`
+
+
+---
+
 ### Priority 4: Custom Domain & DNS Records (Estimated Time: 15 mins)
 
 1. **Frontend (Vercel):**

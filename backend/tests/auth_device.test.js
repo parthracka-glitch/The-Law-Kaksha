@@ -187,5 +187,27 @@ describe("Authentication & Single-Device Enforcement API Tests", () => {
     assert.strictEqual(loginData.success, true);
     assert.ok(loginData.token);
   });
+
+  test("POST /api/auth/google validates input and rejects missing/invalid credentials", async () => {
+    // 1. Missing credential
+    const missingRes = await fetch(`${API_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    assert.strictEqual(missingRes.status, 400);
+    const missingData = await missingRes.json();
+    assert.strictEqual(missingData.success, false);
+
+    // 2. Invalid/tampered credential
+    const invalidRes = await fetch(`${API_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: "invalid_tampered_jwt_token_12345" }),
+    });
+    assert.strictEqual(invalidRes.status, 401);
+    const invalidData = await invalidRes.json();
+    assert.strictEqual(invalidData.success, false);
+  });
 });
 

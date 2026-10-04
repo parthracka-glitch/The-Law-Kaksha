@@ -61,6 +61,14 @@ Every check was executed under the strict rule: **Evidence over assertion**. All
 - Sliding-window IP rate limiter protects `/api/auth/*` (60 requests/minute).
 - Single device concurrency lock blocks simultaneous multi-device logins.
 
+### Google OAuth 2.0 & Identity Services
+- Built on official Google Identity Services (GIS) protocol (`accounts.google.com/gsi/client`).
+- Server-side token verification using `google-auth-library` (`googleClient.verifyIdToken`).
+- Secrets isolated: `GOOGLE_CLIENT_SECRET` is strictly backend-only, never bundled into frontend or client code.
+- Automatic account provisioning with academic roll number generation (`LRK-2026-00XXXX`) or linking to existing account.
+- Seamless single-device hardware lock enforcement for Google-authenticated sessions.
+
+
 ### Authorization & IDOR
 - `GET /api/student/dashboard` checks `req.user.id` and `req.user.email`. Students can only view their own dashboard.
 - `POST /api/student/sync-progress` updates progress strictly for the authenticated student (`req.user.id`).

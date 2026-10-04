@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 function LoginContent() {
   const router = useRouter();
@@ -342,6 +343,17 @@ function LoginContent() {
                 </button>
               </div>
             </form>
+
+            {/* Google OAuth Quick Sign-In */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="border-t border-[#E7E4E7] w-full" />
+              <span className="bg-white px-3 text-[11px] font-semibold text-[#77716E] uppercase tracking-wider shrink-0">
+                Or Continue With
+              </span>
+              <div className="border-t border-[#E7E4E7] w-full" />
+            </div>
+
+            <GoogleSignInButton text="signin_with" />
 
             <div className="text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4">
               New student?{" "}

@@ -523,4 +523,205 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+// 8. POST /api/auth/google (Google Identity Services OAuth)
+router.post("/google", async (req, res) => {
+  try {
+    const { credential, deviceId, deviceName, forceSwitchDevice, selectedCourse } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: "Google ID credential is required.",
+      });
+    }
+
+    const { OAuth2Client } = require("google-auth-library");
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    if (!googleClientId) {
+      return res.status(500).json({
+        success: false,
+        message: "Google OAuth is not configured on the server. Please verify GOOGLE_CLIENT_ID.",
+      });
+    }
+    const googleClient = new OAuth2Client(googleClientId);
+
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: googleClientId,
+      });
+      payload = ticket.getPayload();
+    } catch (verifyErr) {
+      console.error("[Google Auth] Token verification error:", verifyErr.message);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired Google credential. Please try signing in again.",
+      });
+    }
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Google account did not return a verified email address.",
+      });
+    }
+
+    const cleanEmail = payload.email.toLowerCase().trim();
+    const googleName = (payload.name || payload.given_name || "Enrolled Student").trim();
+    const googlePicture = payload.picture || "";
+    const googleSub = payload.sub || "";
+    const course = selectedCourse || "CA Foundation Paper 2: Business Laws";
+
+    let user = null;
+
+    // Search in MongoDB Atlas first
+    if (isConnected()) {
+      user = await User.findOne({
+        $or: [
+          { email: cleanEmail },
+          { boundGmail: cleanEmail },
+          { googleId: googleSub },
+        ],
+      });
+    }
+
+    // Fallback to local database
+    if (!user) {
+      const usersTable = Database.table("users");
+      user = usersTable.findOne(
+        (u) =>
+          (u.email && u.email.toLowerCase() === cleanEmail) ||
+          (u.boundGmail && u.boundGmail.toLowerCase() === cleanEmail) ||
+          (u.googleId && u.googleId === googleSub)
+      );
+    }
+
+    const incomingDeviceId = deviceId ? String(deviceId).trim() : "";
+    const incomingDeviceName = deviceName ? String(deviceName).trim() : "Current Web Browser";
+
+    if (!user) {
+      // Create new student registered via Google
+      const studentId = generateStudentId(course);
+      const userId = `usr-g-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      const userPayload = {
+        id: userId,
+        student_id: studentId,
+        name: googleName,
+        email: cleanEmail,
+        boundGmail: cleanEmail,
+        googleId: googleSub,
+        picture: googlePicture,
+        phone: "",
+        password_hash: "",
+        role: "student",
+        selectedCourse: course,
+        target_exam: course,
+        is_active: true,
+        drm_access: true,
+        enrolled_books: [course],
+        unlockedItemIds: [],
+        activeDeviceId: incomingDeviceId,
+        activeDeviceName: incomingDeviceName,
+        lastActiveAt: new Date().toISOString(),
+      };
+
+      if (isConnected()) {
+        user = await User.create(userPayload);
+      } else {
+        const usersTable = Database.table("users");
+        user = usersTable.insert(userPayload);
+      }
+    } else {
+      // Existing user: check account status
+      if (user.is_active === false || user.is_active === 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Your account is deactivated. Please contact support.",
+        });
+      }
+
+      // Single device policy enforcement
+      if (user.role === "student" && incomingDeviceId) {
+        const activeDevId = user.activeDeviceId || "";
+        const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
+        const isRecent = Date.now() - lastActive < 4 * 60 * 60 * 1000;
+
+        if (activeDevId && activeDevId !== incomingDeviceId && isRecent && !forceSwitchDevice) {
+          return res.status(409).json({
+            success: false,
+            conflict: true,
+            code: "DEVICE_CONFLICT",
+            activeDeviceName: user.activeDeviceName || "Another Device",
+            message: `This account is currently active on another device (${user.activeDeviceName || "Authorized Hardware"}). Simultaneous logins are strictly prohibited to prevent account sharing.`,
+          });
+        }
+      }
+
+      // Update boundGmail, googleId, picture, active device, and heartbeat
+      const updateFields = {
+        boundGmail: cleanEmail,
+        googleId: googleSub,
+        picture: googlePicture || user.picture || "",
+        activeDeviceId: incomingDeviceId || user.activeDeviceId,
+        activeDeviceName: incomingDeviceName || user.activeDeviceName,
+        lastActiveAt: new Date().toISOString(),
+      };
+
+      if (isConnected() && user.save) {
+        Object.assign(user, updateFields);
+        await user.save();
+      } else {
+        const usersTable = Database.table("users");
+        usersTable.update(user.id, updateFields);
+        Object.assign(user, updateFields);
+      }
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        student_id: user.student_id,
+        deviceId: incomingDeviceId,
+      },
+      JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
+    let activeSub = null;
+    if (isConnected()) {
+      activeSub = await Subscription.findOne({
+        $or: [{ userId: user.id }, { email: user.email }, { studentRoll: user.student_id }],
+        accessStatus: "Active",
+      }).lean();
+    } else {
+      const subscriptionsTable = Database.table("subscriptions");
+      activeSub = subscriptionsTable.findOne(
+        (s) => (s.userId === user.id || s.email === user.email) && s.accessStatus === "Active"
+      );
+    }
+
+    const rawUser = user.toObject ? user.toObject() : user;
+    const { password_hash, ...safeUser } = rawUser;
+
+    return res.status(200).json({
+      success: true,
+      message: "Google Sign-In successful. Welcome to The Law Kaksha!",
+      token,
+      data: {
+        student: safeUser,
+        user: safeUser,
+        role: user.role,
+        subscription: activeSub || null,
+        activeDeviceId: incomingDeviceId,
+      },
+    });
+  } catch (err) {
+    console.error("[Auth] Google Sign-In error:", err);
+    return res.status(500).json({ success: false, message: "Google authentication failed. Please try again." });
+  }
+});
+
 module.exports = router;

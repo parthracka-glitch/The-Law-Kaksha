@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "The Law Kaksha - Monorepo with Next.js Frontend (Vercel) and Express Backend (Render)",
   "scripts": {
+    "start": "npm start --prefix backend",
+    "build": "npm install --prefix backend",
+    "postinstall": "npm install --prefix backend",
     "dev": "npm run dev:frontend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",

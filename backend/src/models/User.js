@@ -34,6 +34,8 @@ const UserSchema = new mongoose.Schema(
     lastActiveAt: { type: Date, default: Date.now },
     tempPassword: { type: String, default: "" },
     boundGmail: { type: String, default: "" },
+    googleId: { type: String, default: "" },
+    picture: { type: String, default: "" },
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpires: { type: Date },
   },
