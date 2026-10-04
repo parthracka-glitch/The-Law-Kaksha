@@ -143,7 +143,7 @@ export function Book3DViewer({
   const initialPinchScaleRef = useRef<number>(1);
   const lastTapRef = useRef<number>(0);
 
-  const [bookTilt, setBookTilt] = useState<{ x: number; y: number }>({ x: 5, y: 0 });
+  // Book tilt removed — book stays still and firm on page
   const [pageAspect, setPageAspect] = useState<number>(1.414); // Default A4 aspect ratio
 
   // Smooth zoom modifier
@@ -441,17 +441,7 @@ export function Book3DViewer({
     return () => window.removeEventListener("resize", updateSize);
   }, [pageAspect]);
 
-  // Mouse 3D parallax tilt effect on desktop (only when at normal scale so text is flat and readable when zoomed)
-  const handleMouseMoveTilt = (e: React.MouseEvent) => {
-    if (!containerRef.current || window.innerWidth < 768 || effectiveZoom > 1.05) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
-    const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
-    setBookTilt({
-      x: 6 - yRatio * 8, // subtle pitch
-      y: xRatio * 10,   // subtle yaw
-    });
-  };
+  // Mouse parallax tilt removed — book stays still and firm
 
   // Drag-to-Pan Handlers
   const handleDragStart = (clientX: number, clientY: number) => {
@@ -579,8 +569,7 @@ export function Book3DViewer({
   const leftStackPx = Math.min(Math.max(Math.round((leftStackPages / (totalPages || 1)) * 14), 2), 16);
   const rightStackPx = Math.min(Math.max(Math.round((rightStackPages / (totalPages || 1)) * 14), 2), 16);
 
-  // Flatten tilt when zoomed in so text is perfectly perpendicular and easy to read
-  const effectiveTilt = effectiveZoom > 1.05 ? { x: 0, y: 0 } : bookTilt;
+  // No tilt — book is always flat and firm
 
   return (
     <div
@@ -593,8 +582,6 @@ export function Book3DViewer({
       onMouseMove={(e) => {
         if (isDraggingRef.current) {
           handleDragMove(e.clientX, e.clientY);
-        } else {
-          handleMouseMoveTilt(e);
         }
       }}
       onMouseUp={handleDragEnd}
@@ -699,9 +686,9 @@ export function Book3DViewer({
           width: `${bookDimensions.width}px`,
           height: `${bookDimensions.height}px`,
           transformStyle: "preserve-3d",
-          transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${effectiveZoom}) rotateX(${effectiveTilt.x}deg) rotateY(${effectiveTilt.y}deg)`,
+          transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${effectiveZoom})`,
           transformOrigin: "50% 50%",
-          transition: isDragging ? "none" : "transform 240ms cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: isDragging ? "none" : "transform 200ms ease-out",
         }}
       >
         {/* ============================================================== */}
