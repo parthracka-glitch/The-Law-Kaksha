@@ -185,7 +185,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     originalPrice: 299,
     pages: "250+ Pages",
     status: "Active",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes for all 7 Acts, practice questions, and model solutions.",
     units: ["Indian Regulatory Framework", "Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
   },
@@ -207,6 +207,36 @@ const INITIAL_PRODUCTS: ProductItem[] = [
 
 const INITIAL_RESOURCES: ResourceItem[] = [
   {
+    id: "res-ca-soga-1",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
+    description: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities & Statutory Rules.",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    samplePdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "12 Pages (Free Sample PDF)",
+  },
+  {
+    id: "res-ca-3",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
+    description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Caveat Emptor.",
+    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    samplePdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "10 Pages (Free Sample PDF)",
+  },
+  {
     id: "res-ca-1",
     course: "ca-foundation",
     actName: "Indian Regulatory Framework",
@@ -214,7 +244,7 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     type: "notes",
     title: "Overview of Indian Legal System & Hierarchy of Courts",
     description: "Structure of Legislative, Executive & Judiciary in India with constitutional jurisdiction.",
-    pdfUrl: "/notes/ca-foundation-framework-notes.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     isSample: false,
     status: "Published",
     order: 1,
@@ -228,25 +258,11 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     type: "notes",
     title: "Nature & Essentials of Valid Contract (Sec 1-10)",
     description: "Offer, Acceptance, Intention to create Legal Relationship with landmark English & Indian precedents.",
-    pdfUrl: "/notes/contract-act-unit-1.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     isSample: false,
     status: "Published",
     order: 1,
     pages: "34 Pages",
-  },
-  {
-    id: "res-ca-3",
-    course: "ca-foundation",
-    actName: "The Sale of Goods Act, 1930",
-    chapterNumber: 3,
-    type: "notes",
-    title: "Conditions, Warranties & Caveat Emptor (Sec 11-17)",
-    description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Merchantable quality.",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isSample: false,
-    status: "Published",
-    order: 2,
-    pages: "26 Pages",
   },
   {
     id: "res-ca-4",
@@ -301,7 +317,7 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     type: "notes",
     title: "LLP Architecture & Comparison with Traditional Firm",
     description: "Separate legal identity, perpetual succession, Designated Partners compliance & Amendment Act 2021.",
-    pdfUrl: "/notes/llp-act-notes.pdf",
+    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
     isSample: false,
     status: "Published",
     order: 1,
@@ -315,7 +331,7 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     type: "notes",
     title: "Essential Characteristics & Lifting of Corporate Veil",
     description: "Salomon v. Salomon, Private vs Public vs One Person Company, Section 8 Non-profit companies.",
-    pdfUrl: "/notes/companies-act-unit-1.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
     isSample: false,
     status: "Published",
     order: 1,
@@ -329,7 +345,7 @@ const INITIAL_RESOURCES: ResourceItem[] = [
     type: "notes",
     title: "Promissory Notes, Bills of Exchange & Cheques",
     description: "Holder in Due Course, Section 138 Dishonour penalties, statutory notice timeline & defences.",
-    pdfUrl: "/notes/negotiable-instruments-unit-1.pdf",
+    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
     isSample: false,
     status: "Published",
     order: 1,
@@ -2898,7 +2914,7 @@ export default function AdminPortalPage() {
                     type="text"
                     value={resourceModal.data.pdfUrl || ""}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, pdfUrl: e.target.value } })}
-                    placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
+                    placeholder="/notes/sale-of-goods-unit-1.pdf"
                     className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                   />
                   <input
@@ -3248,7 +3264,7 @@ export default function AdminPortalPage() {
                     type="text"
                     value={productModal.data.pdfUrl || ""}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pdfUrl: e.target.value } })}
-                    placeholder="/notes/unit-1-general-nature-of-partnership.pdf"
+                    placeholder="/notes/sale-of-goods-unit-1.pdf"
                     className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
                   />
                   <input

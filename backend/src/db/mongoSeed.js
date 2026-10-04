@@ -23,7 +23,7 @@ const INITIAL_PRODUCTS = [
     originalPrice: 499,
     pages: "180+ Pages",
     status: "Active",
-    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     description: "Full statutory codex covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, Limited Liability Partnership Act 2008, and Companies Act 2013.",
     units: ["Indian Contract Act", "Sale of Goods Act", "Indian Partnership Act", "LLP Act", "Companies Act"],
     highlights: ["In-Web DRM Protected Reading", "Section Flowcharts & Landmark Rulings", "Weekly Case Study Alignment", "Exam Drafting Answer Templates"],

@@ -13,7 +13,7 @@ export default function ReaderClient() {
   const queryTitle = searchParams.get("title");
 
   // Compute canonical PDF url
-  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "/api/pdf/unit-1-general-nature-of-partnership.pdf");
+  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "/api/pdf/sale-of-goods-unit-1.pdf");
 
   // Clean title
   const title =

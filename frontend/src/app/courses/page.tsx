@@ -156,8 +156,8 @@ function CoursesCatalogContent() {
 
   const handleOpenPreview = (product: Product) => {
     const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
-      ? "/notes/management-principles-sample-notes.pdf"
-      : "/notes/unit-1-general-nature-of-partnership.pdf";
+      ? "/notes/cseet-management-full.pdf"
+      : "/notes/sale-of-goods-unit-1.pdf";
     setPreviewState({
       open: true,
       title: product.title,

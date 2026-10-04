@@ -70,7 +70,7 @@ export function CseetComingSoonShell({ onOpenSampleReader, onPreOrder }: CseetCo
 
           <div className="flex flex-wrap items-center gap-3 pt-3">
             <button
-              onClick={() => onOpenSampleReader("/notes/unit-1-general-nature-of-partnership.pdf", "Indian Partnership Act (Sample Unit)")}
+              onClick={() => onOpenSampleReader("/notes/sale-of-goods-unit-1.pdf", "The Sale of Goods Act, 1930 — Unit 1 (Sample)")}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-md cursor-pointer hover:scale-[1.02]"
             >
               <BookOpen className="w-4 h-4" />

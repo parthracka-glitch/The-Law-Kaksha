@@ -81,8 +81,8 @@ function LoginContent() {
 
         if (role === "admin") {
           const adminSession = {
-            name: user.name || "Academic Administrator",
-            email: user.email || "admin@thelawkaksha.com",
+            name: user.name || "Administrator",
+            email: user.email || "",
             role: "admin",
             token: res.token || `admin_token_${Date.now()}`,
           };

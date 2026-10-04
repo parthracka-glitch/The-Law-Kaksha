@@ -34,9 +34,11 @@ export async function GET(
     // Fallback to default canonical PDF if specific name not found on disk
     if (!filePath) {
       const fallbackPaths = [
+        path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"),
+        path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"),
         path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
+        path.join(process.cwd(), "public", "notes", "cseet-management-full.pdf"),
         path.join(process.cwd(), "public", "notes", "cseet-business-law-full.pdf"),
-        path.join(process.cwd(), "public", "assets", "The_Law_Kaksha_Clean_PDF_Template.pdf"),
       ];
       filePath = fallbackPaths.find((p) => fs.existsSync(p));
     }

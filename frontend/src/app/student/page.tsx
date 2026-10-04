@@ -68,7 +68,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 4,
     peerReaders: 94,
     units: [
-      { unitNumber: 1, title: "Overview of Indian Legal System & Hierarchy of Courts", pdfUrl: "/notes/ca-foundation-framework-notes.pdf", summary: "Structure of Legislative, Executive & Judiciary in India.", pages: "18 Pages" }
+      { unitNumber: 1, title: "Overview of Indian Legal System & Hierarchy of Courts", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Structure of Legislative, Executive & Judiciary in India.", pages: "18 Pages" }
     ]
   },
   {
@@ -81,9 +81,9 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 18,
     peerReaders: 186,
     units: [
-      { unitNumber: 1, title: "Nature & Essentials of Valid Contract (Sec 1-10)", pdfUrl: "/notes/contract-act-unit-1.pdf", summary: "Offer, Acceptance, Intention to create Legal Relationship.", pages: "34 Pages" },
-      { unitNumber: 2, title: "Consideration & Capacity to Contract (Sec 11-25)", pdfUrl: "/notes/contract-act-unit-2.pdf", summary: "Minor's agreements, Doctrine of Privity of Contract.", pages: "28 Pages" },
-      { unitNumber: 3, title: "Free Consent, Performance & Breach of Contract", pdfUrl: "/notes/contract-act-unit-3.pdf", summary: "Coercion, Undue Influence, Fraud, Damages under Section 73.", pages: "42 Pages" }
+      { unitNumber: 1, title: "Nature & Essentials of Valid Contract (Sec 1-10)", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Offer, Acceptance, Intention to create Legal Relationship.", pages: "34 Pages" },
+      { unitNumber: 2, title: "Consideration & Capacity to Contract (Sec 11-25)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Minor's agreements, Doctrine of Privity of Contract.", pages: "28 Pages" },
+      { unitNumber: 3, title: "Free Consent, Performance & Breach of Contract", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Coercion, Undue Influence, Fraud, Damages under Section 73.", pages: "42 Pages" }
     ]
   },
   {
@@ -98,7 +98,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     units: [
       { unitNumber: 1, title: "Unit 1: Formation of Contract of Sale & Subject Matter", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities.", pages: "12 Pages (Free Sample PDF)", isSample: true },
       { unitNumber: 2, title: "Unit 2: Conditions and Warranties (Sec 11-17)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Implied conditions of fitness, Caveat Emptor & Landmark Case Priest v. Last.", pages: "10 Pages (Free Sample PDF)", isSample: true },
-      { unitNumber: 3, title: "Unit 3: Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-3.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
+      { unitNumber: 3, title: "Unit 3: Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
     ]
   },
   {
@@ -126,7 +126,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 6,
     peerReaders: 82,
     units: [
-      { unitNumber: 1, title: "LLP Architecture & Comparison with Traditional Firm", pdfUrl: "/notes/llp-act-notes.pdf", summary: "Separate legal identity, perpetual succession, Designated Partners compliance.", pages: "20 Pages" }
+      { unitNumber: 1, title: "LLP Architecture & Comparison with Traditional Firm", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Separate legal identity, perpetual succession, Designated Partners compliance.", pages: "20 Pages" }
     ]
   },
   {
@@ -139,8 +139,8 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 15,
     peerReaders: 175,
     units: [
-      { unitNumber: 1, title: "Essential Characteristics & Lifting of Corporate Veil", pdfUrl: "/notes/companies-act-unit-1.pdf", summary: "Salomon v. Salomon, Private vs Public vs One Person Company.", pages: "36 Pages" },
-      { unitNumber: 2, title: "Memorandum & Articles of Association (MOA / AOA)", pdfUrl: "/notes/companies-act-unit-2.pdf", summary: "Doctrine of Ultra Vires, Constructive Notice & Indoor Management.", pages: "30 Pages" }
+      { unitNumber: 1, title: "Essential Characteristics & Lifting of Corporate Veil", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Salomon v. Salomon, Private vs Public vs One Person Company.", pages: "36 Pages" },
+      { unitNumber: 2, title: "Memorandum & Articles of Association (MOA / AOA)", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Doctrine of Ultra Vires, Constructive Notice & Indoor Management.", pages: "30 Pages" }
     ]
   },
   {
@@ -153,7 +153,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 8,
     peerReaders: 110,
     units: [
-      { unitNumber: 1, title: "Promissory Notes, Bills of Exchange & Cheques", pdfUrl: "/notes/negotiable-instruments-unit-1.pdf", summary: "Holder in Due Course, Section 138 Dishonour penalties.", pages: "26 Pages" }
+      { unitNumber: 1, title: "Promissory Notes, Bills of Exchange & Cheques", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Holder in Due Course, Section 138 Dishonour penalties.", pages: "26 Pages" }
     ]
   },
 ];
@@ -168,7 +168,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 45,
     caseCount: 6,
     peerReaders: 130,
-    units: [{ unitNumber: 1, title: "Contract Essentials & Types of Contracts", pdfUrl: "/notes/cseet-contract-act.pdf", summary: "Core concept notes with 40 objective questions.", pages: "24 Pages" }]
+    units: [{ unitNumber: 1, title: "Contract Essentials & Types of Contracts", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Core concept notes with 40 objective questions.", pages: "24 Pages" }]
   },
   {
     id: "cs-u2",
@@ -179,7 +179,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 35,
     caseCount: 4,
     peerReaders: 88,
-    units: [{ unitNumber: 1, title: "Sale of Goods Principles & Caveat Emptor", pdfUrl: "/notes/cseet-sale-of-goods.pdf", summary: "Essential rules, Section 16 exceptions, unpaid seller.", pages: "20 Pages" }]
+    units: [{ unitNumber: 1, title: "Sale of Goods Principles & Caveat Emptor", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Essential rules, Section 16 exceptions, unpaid seller.", pages: "20 Pages" }]
   },
   {
     id: "cs-u3",
@@ -201,7 +201,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 25,
     caseCount: 3,
     peerReaders: 76,
-    units: [{ unitNumber: 1, title: "LLP Framework & Key Distinctions", pdfUrl: "/notes/cseet-llp-notes.pdf", summary: "Comparison between LLP, Company and Traditional Partnership.", pages: "16 Pages" }]
+    units: [{ unitNumber: 1, title: "LLP Framework & Key Distinctions", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Comparison between LLP, Company and Traditional Partnership.", pages: "16 Pages" }]
   },
   {
     id: "cs-u5",
@@ -212,7 +212,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 50,
     caseCount: 8,
     peerReaders: 145,
-    units: [{ unitNumber: 1, title: "Company Formation & Constitutional Documents", pdfUrl: "/notes/cseet-company-law.pdf", summary: "Private vs Public Company, Section 8, Corporate Veil cases.", pages: "30 Pages" }]
+    units: [{ unitNumber: 1, title: "Company Formation & Constitutional Documents", pdfUrl: "/notes/cseet-business-law-full.pdf", summary: "Private vs Public Company, Section 8, Corporate Veil cases.", pages: "30 Pages" }]
   },
   {
     id: "cs-u6",
@@ -223,7 +223,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 30,
     caseCount: 4,
     peerReaders: 82,
-    units: [{ unitNumber: 1, title: "Negotiable Instruments Core Concepts", pdfUrl: "/notes/cseet-negotiable-instruments.pdf", summary: "Instruments, Parties, Crossing of Cheques, Bouncing liabilities.", pages: "22 Pages" }]
+    units: [{ unitNumber: 1, title: "Negotiable Instruments Core Concepts", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Instruments, Parties, Crossing of Cheques, Bouncing liabilities.", pages: "22 Pages" }]
   },
   {
     id: "cs-u7",
@@ -234,7 +234,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 50,
     caseCount: 6,
     peerReaders: 160,
-    units: [{ unitNumber: 1, title: "Management Principles, Functions & Theories", pdfUrl: "/notes/management-principles-sample-notes.pdf", summary: "Henry Fayol vs FW Taylor, Strategic Planning, Motivation Theories.", pages: "28 Pages (Sample PDF)", isSample: true }]
+    units: [{ unitNumber: 1, title: "Management Principles, Functions & Theories", pdfUrl: "/notes/cseet-management-full.pdf", summary: "Henry Fayol vs FW Taylor, Strategic Planning, Motivation Theories.", pages: "28 Pages (Sample PDF)", isSample: true }]
   },
   {
     id: "cs-u8",
@@ -245,7 +245,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 30,
     caseCount: 4,
     peerReaders: 95,
-    units: [{ unitNumber: 1, title: "Business Environment & Corporate Governance", pdfUrl: "/notes/cseet-business-environment.pdf", summary: "Macro/Micro factors, Ethical decision-making in business.", pages: "18 Pages" }]
+    units: [{ unitNumber: 1, title: "Business Environment & Corporate Governance", pdfUrl: "/notes/cseet-management-full.pdf", summary: "Macro/Micro factors, Ethical decision-making in business.", pages: "18 Pages" }]
   },
 ];
 
@@ -318,7 +318,7 @@ const CA_FOUNDATION_BOOKS = [
     coverImage: "/covers/vol1-codex.png",
     coverGradient: "from-amber-600 to-orange-700",
     tagBg: "bg-amber-50 text-amber-700 border-amber-100",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
     totalPages: "250+ Pages",
     peerCount: 340,
   },
@@ -420,13 +420,13 @@ export default function StudentDashboardPage() {
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [activeCourse, setActiveCourse] = useState<"ca" | "cs">("ca");
   const [activeTab, setActiveTab] = useState<TabType>("home");
-  const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch4");
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch3");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedActFilter, setSelectedActFilter] = useState<string>("all");
 
   // Modals
   const [sampleModalOpen, setSampleModalOpen] = useState<boolean>(false);
-  const [sampleBookTitle, setSampleBookTitle] = useState<string>("Indian Partnership Act 1932 Master Notes");
+  const [sampleBookTitle, setSampleBookTitle] = useState<string>("The Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale");
   const [sampleBookId, setSampleBookId] = useState<string>("ca-foundation");
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
@@ -454,8 +454,8 @@ export default function StudentDashboardPage() {
   });
   const [streak, setStreak] = useState<number>(1);
   const [lawXp, setLawXp] = useState<number>(180);
-  const [completedUnits, setCompletedUnits] = useState<string[]>(["ca-ch1-u1", "ca-ch4-u1"]);
-  const [bookmarkedUnits, setBookmarkedUnits] = useState<string[]>(["ca-ch2-u3"]);
+  const [completedUnits, setCompletedUnits] = useState<string[]>([]);
+  const [bookmarkedUnits, setBookmarkedUnits] = useState<string[]>([]);
   const [xpToast, setXpToast] = useState<{ show: boolean; msg: string; xp: number } | null>(null);
 
   // Last Read State for Quick Resume
@@ -466,11 +466,11 @@ export default function StudentDashboardPage() {
     progress: number;
     date: string;
   }>({
-    title: "The Indian Partnership Act, 1932",
-    subtitle: "Unit 1: General Nature of Partnership (Cox v. Hickman)",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    progress: 55,
-    date: "Today at 9:30 AM",
+    title: "The Sale of Goods Act, 1930",
+    subtitle: "Unit 1: Formation of Contract of Sale & Subject Matter",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    progress: 0,
+    date: "Available Now",
   });
 
   // Daily QOTD Interactive State
@@ -1123,7 +1123,8 @@ export default function StudentDashboardPage() {
                       url.includes("unit-1-general-nature-of-partnership") ||
                       url.includes("unit-2-relations-of-partners") ||
                       url.includes("unit-3-registration-and-dissolution") ||
-                      url.includes("management-principles-sample-notes")
+                      url.includes("cseet-management") ||
+                      url.includes("cseet-business-law")
                     );
                     const stream = courseType || activeCourse;
                     const isUnlocked =
@@ -1883,9 +1884,9 @@ export default function StudentDashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {[
                   { title: "Indian Partnership Act Summary Deck", desc: "One-page flowchart covering Section 4, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, and Section 69 Non-Registration disabilities.", url: "/notes/unit-1-general-nature-of-partnership.pdf", label: "Open Flowchart", badge: "Partnership Act", badgeColor: "bg-[#C4E1EC]/60 text-[#221D1D] border-[#AED7E9]" },
-                  { title: "Sale of Goods Act - Section 16 Matrix", desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.", url: "/notes/unit-2-relations-of-partners.pdf", label: "Open Matrix", badge: "Sale of Goods", badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40" },
-                  { title: "Companies Act - Corporate Veil Doctrine", desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).", url: "/notes/companies-act-unit-1.pdf", label: "Open Notes", badge: "Companies Act", badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]" },
-                  { title: "Contract Act - Essential Checklist", desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.", url: "/notes/contract-act-unit-1.pdf", label: "Open Checklist", badge: "Contract Act", badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]" },
+                  { title: "Sale of Goods Act - Section 16 Matrix", desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.", url: "/notes/sale-of-goods-unit-2.pdf", label: "Open Matrix", badge: "Sale of Goods", badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40" },
+                  { title: "Companies Act - Corporate Veil Doctrine", desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).", url: "/notes/sale-of-goods-unit-2.pdf", label: "Open Notes", badge: "Companies Act", badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]" },
+                  { title: "Contract Act - Essential Checklist", desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.", url: "/notes/sale-of-goods-unit-1.pdf", label: "Open Checklist", badge: "Contract Act", badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]" },
                 ].map((item, idx) => (
                   <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
                     <div>
