@@ -6,10 +6,25 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
 const Database = require("../db/database");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+function getRazorpayClient() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (keyId && keySecret) {
+    try {
+      return new Razorpay({ key_id: keyId, key_secret: keySecret });
+    } catch (e) {
+      console.warn("[Razorpay] Initialization warning:", e.message);
+    }
+  }
+  return null;
+}
 
 const CANONICAL_CATALOG_PRICES = {
   "course-ca-foundation-sub": 99,
@@ -42,62 +57,122 @@ function getCanonicalPrice(itemId) {
 }
 
 /**
- * 1. POST /api/orders/create
- * Creates a pending order with server-computed prices (never client-supplied)
+ * 1. Order Creation Handler
+ * POST /api/orders/create & POST /api/create-order
+ * Integrates Razorpay Orders API (orders.create) with server-side price validation
  */
-router.post("/orders/create", (req, res) => {
+async function handleCreateOrder(req, res) {
   try {
     const { items = [], shippingDetails = {}, couponCode } = req.body;
 
-    if (!items || items.length === 0) {
+    let subtotal = 0;
+    let validatedItems = [];
+
+    let finalAmount = 0;
+    let amountInPaise = 0;
+    let discountAmount = 0;
+
+    if (items && items.length > 0) {
+      validatedItems = items.map((it) => {
+        const price = getCanonicalPrice(it.id);
+        const quantity = Math.max(1, Number(it.quantity) || 1);
+        subtotal += price * quantity;
+        return {
+          id: it.id,
+          title: it.title || "Statutory Law Codex",
+          price,
+          quantity,
+          format: "pdf",
+        };
+      });
+
+      // Apply verified discounts
+      let discountPercent = 0;
+      if (couponCode) {
+        const cleanCode = String(couponCode).trim().toUpperCase();
+        const couponsTable = Database.table("coupons");
+        const coupon = couponsTable.findOne((c) => c.code === cleanCode && c.status === "Active");
+        if (coupon) {
+          discountPercent = coupon.discountPercent || 20;
+        } else if (cleanCode === "EXEMPTION2026" || cleanCode === "LAW20" || cleanCode === "CALAW20") {
+          discountPercent = 20;
+        } else if (cleanCode === "FIRST50") {
+          discountPercent = 15;
+        } else if (cleanCode === "RANKERS" || cleanCode === "RANKER10") {
+          discountPercent = 25;
+        }
+      }
+
+      discountAmount = Math.round((subtotal * discountPercent) / 100);
+      finalAmount = Math.max(0, subtotal - discountAmount);
+      amountInPaise = Math.round(finalAmount * 100);
+    } else if (req.body.amount !== undefined) {
+      amountInPaise = Math.round(Number(req.body.amount));
+      if (isNaN(amountInPaise) || amountInPaise < 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Order amount must be at least 100 paise (₹1).",
+        });
+      }
+      finalAmount = amountInPaise / 100;
+      subtotal = finalAmount;
+      validatedItems = [
+        {
+          id: "course-law-codex",
+          title: "The Law Kaksha Codex",
+          price: finalAmount,
+          quantity: 1,
+          format: "pdf",
+        },
+      ];
+    } else {
       return res.status(400).json({
         success: false,
-        message: "No items in the order cart.",
+        message: "No items or amount specified in the order cart.",
       });
     }
 
-    const name = shippingDetails.name || "Enrolled Student";
-    const email = shippingDetails.email || "student@thelawkaksha.com";
-    const phone = shippingDetails.phone || "+91 98765 43210";
-    const exam = shippingDetails.exam || "CA Foundation Paper 2: Business Laws";
-
-    // 1. Calculate strictly server-verified subtotal
-    let subtotal = 0;
-    const validatedItems = items.map((it) => {
-      const price = getCanonicalPrice(it.id);
-      const quantity = Math.max(1, Number(it.quantity) || 1);
-      subtotal += price * quantity;
-      return {
-        id: it.id,
-        title: it.title || "Statutory Law Codex",
-        price,
-        quantity,
-        format: "pdf",
-      };
-    });
-
-    // 2. Apply verified discounts
-    let discountPercent = 0;
-    if (couponCode) {
-      const cleanCode = String(couponCode).trim().toUpperCase();
-      const couponsTable = Database.table("coupons");
-      const coupon = couponsTable.findOne((c) => c.code === cleanCode && c.status === "Active");
-      if (coupon) {
-        discountPercent = coupon.discountPercent || 20;
-      } else if (cleanCode === "EXEMPTION2026" || cleanCode === "LAW20" || cleanCode === "CALAW20") {
-        discountPercent = 20;
-      } else if (cleanCode === "FIRST50") {
-        discountPercent = 15;
-      } else if (cleanCode === "RANKERS" || cleanCode === "RANKER10") {
-        discountPercent = 25;
-      }
+    // Validate minimum amount is at least 100 paise (₹1) as per Razorpay requirements
+    if (amountInPaise < 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Order amount must be at least 100 paise (₹1).",
+      });
     }
 
-    const discountAmount = Math.round((subtotal * discountPercent) / 100);
-    const finalAmount = Math.max(0, subtotal - discountAmount);
+    const name = shippingDetails.name || req.body.name || "Enrolled Student";
+    const email = shippingDetails.email || req.body.email || "student@thelawkaksha.com";
+    const phone = shippingDetails.phone || req.body.phone || "+91 98765 43210";
+    const exam = shippingDetails.exam || req.body.exam || "CA Foundation Paper 2: Business Laws";
 
     const orderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    const razorpayOrderId = `order_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    let razorpayOrderId = null;
+    const rzp = getRazorpayClient();
+
+    if (rzp) {
+      try {
+        const rzpOrder = await rzp.orders.create({
+          amount: amountInPaise,
+          currency: "INR",
+          receipt: orderId.slice(0, 40),
+          notes: {
+            customer_name: name,
+            customer_email: email,
+            customer_phone: phone,
+            target_exam: exam,
+          },
+        });
+        razorpayOrderId = rzpOrder.id;
+      } catch (rzpErr) {
+        console.error("[Razorpay API Error]:", rzpErr);
+        return res.status(500).json({
+          success: false,
+          message: rzpErr.error?.description || rzpErr.message || "Failed to create Razorpay payment order.",
+        });
+      }
+    } else {
+      razorpayOrderId = `order_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    }
 
     const ordersTable = Database.table("orders");
     const newOrder = ordersTable.insert({
@@ -111,15 +186,20 @@ router.post("/orders/create", (req, res) => {
       subtotal,
       discount_amount: discountAmount,
       total_amount: finalAmount,
+      amount_paise: amountInPaise,
       status: "PENDING",
       payment_method: "ONLINE",
     });
 
     const responseData = {
+      order_id: razorpayOrderId,
       orderId: newOrder.id,
-      razorpayOrderId: newOrder.gateway_order_id,
-      amount: newOrder.total_amount,
+      razorpayOrderId: razorpayOrderId,
+      amount: newOrder.total_amount, // in ₹
+      amount_paise: amountInPaise, // in paise
       currency: "INR",
+      receipt: orderId,
+      key_id: process.env.RAZORPAY_KEY_ID || "",
     };
 
     return res.status(200).json({
@@ -131,32 +211,49 @@ router.post("/orders/create", (req, res) => {
     console.error("[Orders] Create order error:", err);
     return res.status(500).json({ success: false, message: "Failed to initiate order." });
   }
-});
+}
 
 /**
- * 2. POST /api/orders/verify
- * Cryptographically verifies payment signature and fulfills digital enrollment
+ * 2. Payment Verification Handler
+ * POST /api/orders/verify & POST /api/verify-payment
+ * Cryptographically verifies HMAC-SHA256 signature and fulfills digital enrollment
  */
-router.post("/orders/verify", (req, res) => {
+async function handleVerifyPayment(req, res) {
   try {
-    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+    const orderId = req.body.orderId || req.body.order_id || req.body.receipt;
+    const razorpayOrderId = req.body.razorpay_order_id || req.body.razorpayOrderId || req.body.order_id;
+    const razorpayPaymentId = req.body.razorpay_payment_id || req.body.razorpayPaymentId || req.body.payment_id;
+    const razorpaySignature = req.body.razorpay_signature || req.body.razorpaySignature || req.body.signature;
 
-    if (!orderId && !razorpayOrderId) {
-      return res.status(400).json({ success: false, message: "Order ID or Gateway reference required." });
+    if (!razorpayOrderId || !razorpayPaymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required payment parameters: order_id and payment_id are required.",
+      });
     }
 
     const ordersTable = Database.table("orders");
-    let order = ordersTable.findOne((o) => (orderId && o.id === orderId) || (razorpayOrderId && o.gateway_order_id === razorpayOrderId));
+    let order = ordersTable.findOne(
+      (o) => (orderId && o.id === orderId) || (razorpayOrderId && o.gateway_order_id === razorpayOrderId)
+    );
 
     if (!order) {
-      return res.status(404).json({ success: false, message: "Pending order record not found. Please initiate checkout." });
+      return res.status(404).json({
+        success: false,
+        message: "Pending order record not found. Please initiate checkout.",
+      });
     }
 
     // Cryptographic HMAC-SHA256 signature verification
     const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-    const isProduction = process.env.NODE_ENV === "production";
-    if (razorpaySecret && razorpayOrderId && razorpayPaymentId && razorpaySignature) {
-      const crypto = require("crypto");
+    if (razorpaySecret) {
+      if (!razorpaySignature) {
+        return res.status(400).json({
+          success: false,
+          message: "Payment signature is required for verification.",
+        });
+      }
+
       const expectedSignature = crypto
         .createHmac("sha256", razorpaySecret)
         .update(`${razorpayOrderId}|${razorpayPaymentId}`)
@@ -168,17 +265,14 @@ router.post("/orders/verify", (req, res) => {
           message: "Payment signature mismatch. Transaction verification failed.",
         });
       }
-    } else if (isProduction && !razorpaySignature) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment signature is required in production environment.",
-      });
     }
 
     // Idempotent fulfillment if order was already verified
     if (order.status === "COMPLETED") {
       const usersTable = Database.table("users");
-      const student = usersTable.findOne((u) => u.email && u.email.toLowerCase() === (order.customer_email || "").toLowerCase());
+      const student = usersTable.findOne(
+        (u) => u.email && u.email.toLowerCase() === (order.customer_email || "").toLowerCase()
+      );
       return res.status(200).json({
         success: true,
         message: "Payment already verified and enrollment active.",
@@ -362,7 +456,16 @@ router.post("/orders/verify", (req, res) => {
     console.error("[Orders] Verification error:", err);
     return res.status(500).json({ success: false, message: "Payment verification failed." });
   }
-});
+}
+
+// 1. Order Creation endpoints
+router.post("/orders/create", handleCreateOrder);
+router.post("/create-order", handleCreateOrder);
+
+// 2. Payment Verification endpoints
+router.post("/orders/verify", handleVerifyPayment);
+router.post("/verify-payment", handleVerifyPayment);
+
 
 /**
  * 3. GET /api/orders/:id

@@ -1,6 +1,326 @@
 {
   "users": [
     {
+      "id": "usr-1791112785039-663",
+      "student_id": "LRK-2026-003304",
+      "name": "Victim Aspirant",
+      "email": "victim_1791112784938@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$i9QL6x1nHLo0WODCbxO55.oFMWfK2gkhJ.3S8C3JSxrTF4dcyqzm6",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:19:45.039Z",
+      "updated_at": "2026-10-04T11:19:45.039Z"
+    },
+    {
+      "id": "usr-1791112784212-112",
+      "student_id": "LRK-2026-009757",
+      "name": "Security Audit Candidate",
+      "email": "sec_test_1791112784026@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$jbgYJFxP6etfdK.lxNYncOzM2up7ZpB9lgN8cH5xhIXvCz46Qwocu",
+      "role": "student",
+      "selectedCourse": "CA Foundation Business Laws",
+      "target_exam": "CA Foundation Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:19:44.212Z",
+      "updated_at": "2026-10-04T11:19:44.212Z"
+    },
+    {
+      "id": "usr-1791112784133-874",
+      "student_id": "LRK-2026-002640",
+      "name": "Audit Test Student",
+      "email": "audit_student_784000@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$81IBJhg3zrH4OBSudq/9Be/DItBq7xe8.kA4bfBt2vAKd0MgQ3HsW",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:19:44.133Z",
+      "updated_at": "2026-10-04T11:19:44.790Z",
+      "activeDeviceId": "DEV-NEW-784000",
+      "activeDeviceName": "Current Web Browser",
+      "lastActiveAt": "2026-10-04T11:19:44.790Z",
+      "resetPasswordToken": "",
+      "resetPasswordExpires": null,
+      "activeSessionToken": "",
+      "tempPassword": ""
+    },
+    {
+      "id": "usr-1791112697765-737",
+      "student_id": "LRK-2026-006375",
+      "name": "Victim Aspirant",
+      "email": "victim_1791112697652@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$cDmRK2p7Du7lJnDZrnr9jOYGzEGth2oY4dTjaehs8vrIFb28VlW4O",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:18:17.765Z",
+      "updated_at": "2026-10-04T11:18:17.765Z"
+    },
+    {
+      "id": "usr-1791112696902-506",
+      "student_id": "LRK-2026-001985",
+      "name": "Security Audit Candidate",
+      "email": "sec_test_1791112696671@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$zP.ciRiFJ4ef0UsBTm1LyOS5gNQ3AS4Vy.i2996Yc8JNoEqNTGSQC",
+      "role": "student",
+      "selectedCourse": "CA Foundation Business Laws",
+      "target_exam": "CA Foundation Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:18:16.902Z",
+      "updated_at": "2026-10-04T11:18:16.902Z"
+    },
+    {
+      "id": "usr-1791112696824-53",
+      "student_id": "LRK-2026-002810",
+      "name": "Audit Test Student",
+      "email": "audit_student_696643@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$zaZa1bD3pehMt5Iacg4OZuODM8Ps5vmVxRbgelrX53xX1bD4/CCtO",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:18:16.824Z",
+      "updated_at": "2026-10-04T11:18:17.506Z",
+      "activeDeviceId": "DEV-NEW-696643",
+      "activeDeviceName": "Current Web Browser",
+      "lastActiveAt": "2026-10-04T11:18:17.506Z",
+      "resetPasswordToken": "",
+      "resetPasswordExpires": null,
+      "activeSessionToken": "",
+      "tempPassword": ""
+    },
+    {
+      "id": "usr-1791112630016-922",
+      "student_id": "LRK-2026-009205",
+      "name": "Victim Aspirant",
+      "email": "victim_1791112629879@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$VyWZsCtrSGlKucU43QNCRuUCKN9fzb5yrMNLlUpI39HOvXxsXLooG",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:17:10.016Z",
+      "updated_at": "2026-10-04T11:17:10.016Z"
+    },
+    {
+      "id": "usr-1791112629130-972",
+      "student_id": "LRK-2026-006686",
+      "name": "Security Audit Candidate",
+      "email": "sec_test_1791112628863@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$lKnFm3gh2c9zxR/Q.2ptvuQw0.6KSPcVqRode9khQrh20YwbSm9yC",
+      "role": "student",
+      "selectedCourse": "CA Foundation Business Laws",
+      "target_exam": "CA Foundation Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:17:09.130Z",
+      "updated_at": "2026-10-04T11:17:09.130Z"
+    },
+    {
+      "id": "usr-1791112629042-830",
+      "student_id": "LRK-2026-002852",
+      "name": "Audit Test Student",
+      "email": "audit_student_628833@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$8ZujmsUwsG0rDEx3swgf6u/S8y42NOx60wKuqLTO3zIuMCh18oPSq",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:17:09.042Z",
+      "updated_at": "2026-10-04T11:17:09.679Z",
+      "activeDeviceId": "DEV-NEW-628833",
+      "activeDeviceName": "Current Web Browser",
+      "lastActiveAt": "2026-10-04T11:17:09.679Z",
+      "resetPasswordToken": "",
+      "resetPasswordExpires": null,
+      "activeSessionToken": "",
+      "tempPassword": ""
+    },
+    {
+      "id": "usr-1791112595859-496",
+      "student_id": "LRK-2026-008045",
+      "name": "Victim Aspirant",
+      "email": "victim_1791112595759@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$g/TEpLgQ287fm6LJ70KIQ.m9Ten2rBfikmz8mafq4V0QVabNiT3w6",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:16:35.859Z",
+      "updated_at": "2026-10-04T11:16:35.859Z"
+    },
+    {
+      "id": "usr-1791112594627-647",
+      "student_id": "LRK-2026-001039",
+      "name": "Security Audit Candidate",
+      "email": "sec_test_1791112594387@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$fh88/H0rJtde9LY0JdHPNuXOJUFG1g3pu.Mm4yM/A1PRj04FPKGUa",
+      "role": "student",
+      "selectedCourse": "CA Foundation Business Laws",
+      "target_exam": "CA Foundation Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:16:34.627Z",
+      "updated_at": "2026-10-04T11:16:34.627Z"
+    },
+    {
+      "id": "usr-1791112594543-737",
+      "student_id": "LRK-2026-006468",
+      "name": "Audit Test Student",
+      "email": "audit_student_594359@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$bivpzsKqz1gbXOwRtX2gUeyjKH2pIQmhQRd78GDHu36pd.vZwj.QS",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:16:34.543Z",
+      "updated_at": "2026-10-04T11:16:35.318Z",
+      "activeDeviceId": "DEV-NEW-594359",
+      "activeDeviceName": "Current Web Browser",
+      "lastActiveAt": "2026-10-04T11:16:35.318Z",
+      "resetPasswordToken": "",
+      "resetPasswordExpires": null,
+      "activeSessionToken": "",
+      "tempPassword": ""
+    },
+    {
+      "id": "usr-1791112176007-614",
+      "student_id": "LRK-2026-002365",
+      "name": "Victim Aspirant",
+      "email": "victim_1791112175697@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$4bdYLTgUuuUszW9GklCU1.dOAhmgskm6CqnHXepW3htaZJi0bwEQK",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:09:36.007Z",
+      "updated_at": "2026-10-04T11:09:36.007Z"
+    },
+    {
+      "id": "usr-1791112175396-351",
+      "student_id": "LRK-2026-008209",
+      "name": "Security Audit Candidate",
+      "email": "sec_test_1791112175018@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$TueGwPHHln62xIkp5WCyYeBUVrSUYmz8E6jE2/HqwYREjQwELDG.i",
+      "role": "student",
+      "selectedCourse": "CA Foundation Business Laws",
+      "target_exam": "CA Foundation Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:09:35.396Z",
+      "updated_at": "2026-10-04T11:09:35.396Z"
+    },
+    {
+      "id": "usr-1791112175367-185",
+      "student_id": "LRK-2026-004097",
+      "name": "Audit Test Student",
+      "email": "audit_student_174991@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "password_hash": "$2b$10$tVXdt9D3nw39dKQj2rR8Nu5aABzfqgllSPviKEpG/6jVB9Q5p3D9e",
+      "role": "student",
+      "selectedCourse": "CA Foundation Paper 2: Business Laws",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "is_active": true,
+      "drm_access": true,
+      "enrolled_books": [
+        "CA Foundation Paper 2: Business Laws"
+      ],
+      "unlockedItemIds": [],
+      "created_at": "2026-10-04T11:09:35.367Z",
+      "updated_at": "2026-10-04T11:09:36.298Z",
+      "activeDeviceId": "DEV-NEW-174991",
+      "activeDeviceName": "Current Web Browser",
+      "lastActiveAt": "2026-10-04T11:09:36.298Z",
+      "resetPasswordToken": "",
+      "resetPasswordExpires": null,
+      "activeSessionToken": "",
+      "tempPassword": ""
+    },
+    {
       "id": "usr-1791104587086-705",
       "student_id": "LRK-2026-003066",
       "name": "Victim Aspirant",
@@ -185,11 +505,11 @@
         "course-ca-foundation-sub",
         "ca-foundation"
       ],
-      "activeDeviceId": "DEV-ORDER-DEVICE-6520",
+      "activeDeviceId": "DEV-ORDER-DEVICE-4023",
       "activeDeviceName": "Google Chrome on Windows 11",
-      "lastActiveAt": "2026-10-04T09:03:06.641Z",
+      "lastActiveAt": "2026-10-04T11:19:44.638Z",
       "created_at": "2026-10-04T06:06:20.177Z",
-      "updated_at": "2026-10-04T09:03:06.641Z"
+      "updated_at": "2026-10-04T11:19:44.638Z"
     },
     {
       "id": "usr-1791093979959-649",
@@ -1807,6 +2127,102 @@
   ],
   "subscriptions": [
     {
+      "id": "LK-SUB-2026-7149",
+      "userId": "usr-1791093980177",
+      "studentName": "Test Aspirant",
+      "studentRoll": "LRK-2026-CA8148",
+      "email": "aspirant@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "CA Foundation Business Laws Codex",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹99",
+      "date": "4 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "ca-foundation-business-laws",
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-04T11:19:44.641Z",
+      "updated_at": "2026-10-04T11:19:44.641Z"
+    },
+    {
+      "id": "LK-SUB-2026-6338",
+      "userId": "usr-1791093980177",
+      "studentName": "Test Aspirant",
+      "studentRoll": "LRK-2026-CA8148",
+      "email": "aspirant@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "CA Foundation Business Laws Codex",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹99",
+      "date": "4 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "ca-foundation-business-laws",
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-04T11:18:17.290Z",
+      "updated_at": "2026-10-04T11:18:17.290Z"
+    },
+    {
+      "id": "LK-SUB-2026-9559",
+      "userId": "usr-1791093980177",
+      "studentName": "Test Aspirant",
+      "studentRoll": "LRK-2026-CA8148",
+      "email": "aspirant@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "CA Foundation Business Laws Codex",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹99",
+      "date": "4 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "ca-foundation-business-laws",
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-04T11:16:35.516Z",
+      "updated_at": "2026-10-04T11:16:35.516Z"
+    },
+    {
+      "id": "LK-SUB-2026-2884",
+      "userId": "usr-1791093980177",
+      "studentName": "Test Aspirant",
+      "studentRoll": "LRK-2026-CA8148",
+      "email": "aspirant@thelawkaksha.com",
+      "phone": "+91 98765 43210",
+      "item": "CA Foundation Business Laws Codex",
+      "targetExam": "CA Foundation Paper 2: Business Laws",
+      "amount": "₹99",
+      "date": "4 Oct 2026",
+      "paymentMode": "UPI / Razorpay",
+      "accessStatus": "Active",
+      "status": "ACTIVE",
+      "unlockedItemIds": [
+        "ca-foundation-business-laws",
+        "book-vol-1",
+        "ca-foundation-business-laws",
+        "course-ca-foundation-sub",
+        "ca-foundation"
+      ],
+      "created_at": "2026-10-04T11:09:35.354Z",
+      "updated_at": "2026-10-04T11:09:35.354Z"
+    },
+    {
       "id": "LK-SUB-2026-2411",
       "userId": "usr-1791093980177",
       "studentName": "Test Aspirant",
@@ -2528,6 +2944,233 @@
   "quiz_attempts": [],
   "coupons": [],
   "orders": [
+    {
+      "id": "LK-ORD-705223",
+      "gateway_order_id": "order_TjoQE5Vf7ih8Ia",
+      "customer_name": "Security Aspirant",
+      "customer_email": "sec_test_1791112784026@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "course-ca-foundation-sub",
+          "title": "Tampered Price Item",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "PENDING",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:19:44.909Z",
+      "updated_at": "2026-10-04T11:19:44.909Z"
+    },
+    {
+      "id": "LK-ORD-146885",
+      "gateway_order_id": "order_TjoQDklivlRORW",
+      "customer_name": "Test Aspirant",
+      "customer_email": "aspirant@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "ca-foundation-business-laws",
+          "title": "CA Foundation Business Laws Codex",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "COMPLETED",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:19:44.621Z",
+      "updated_at": "2026-10-04T11:19:44.635Z",
+      "gateway_payment_id": "pay_1791112784630"
+    },
+    {
+      "id": "LK-ORD-718887",
+      "gateway_order_id": "order_TjoOgmtWmu4xEk",
+      "customer_name": "Security Aspirant",
+      "customer_email": "sec_test_1791112696671@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "course-ca-foundation-sub",
+          "title": "Tampered Price Item",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "PENDING",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:18:17.638Z",
+      "updated_at": "2026-10-04T11:18:17.638Z"
+    },
+    {
+      "id": "LK-ORD-320898",
+      "gateway_order_id": "order_TjoOgPZxZyXal5",
+      "customer_name": "Test Aspirant",
+      "customer_email": "aspirant@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "ca-foundation-business-laws",
+          "title": "CA Foundation Business Laws Codex",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "COMPLETED",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:18:17.261Z",
+      "updated_at": "2026-10-04T11:18:17.274Z",
+      "gateway_payment_id": "pay_1791112697270"
+    },
+    {
+      "id": "LK-ORD-768382",
+      "gateway_order_id": "order_TjoMtWxOfHtNiB",
+      "customer_name": "Security Aspirant",
+      "customer_email": "sec_test_1791112594387@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "course-ca-foundation-sub",
+          "title": "Tampered Price Item",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "PENDING",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:16:35.734Z",
+      "updated_at": "2026-10-04T11:16:35.734Z"
+    },
+    {
+      "id": "LK-ORD-309055",
+      "gateway_order_id": "order_TjoMtXARmpcs7W",
+      "customer_name": "Enrolled Student",
+      "customer_email": "student@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "course-law-codex",
+          "title": "The Law Kaksha Codex",
+          "price": 50,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 50,
+      "discount_amount": 0,
+      "total_amount": 50,
+      "amount_paise": 5000,
+      "status": "PENDING",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:16:35.726Z",
+      "updated_at": "2026-10-04T11:16:35.726Z"
+    },
+    {
+      "id": "LK-ORD-943899",
+      "gateway_order_id": "order_TjoMt2rRlCJyQo",
+      "customer_name": "Test Aspirant",
+      "customer_email": "aspirant@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "ca-foundation-business-laws",
+          "title": "CA Foundation Business Laws Codex",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "amount_paise": 9900,
+      "status": "COMPLETED",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:16:35.330Z",
+      "updated_at": "2026-10-04T11:16:35.487Z",
+      "gateway_payment_id": "pay_1791112595346"
+    },
+    {
+      "id": "LK-ORD-190039",
+      "gateway_order_id": "order_1791112175683_2964",
+      "customer_name": "Security Aspirant",
+      "customer_email": "sec_test_1791112175018@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "course-ca-foundation-sub",
+          "title": "Tampered Price Item",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "status": "PENDING",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:09:35.683Z",
+      "updated_at": "2026-10-04T11:09:35.683Z"
+    },
+    {
+      "id": "LK-ORD-141650",
+      "gateway_order_id": "order_1791112175166_9801",
+      "customer_name": "Test Aspirant",
+      "customer_email": "aspirant@thelawkaksha.com",
+      "customer_phone": "+91 98765 43210",
+      "target_exam": "CA Foundation Paper 2: Business Laws",
+      "items": [
+        {
+          "id": "ca-foundation-business-laws",
+          "title": "CA Foundation Business Laws Codex",
+          "price": 99,
+          "quantity": 1,
+          "format": "pdf"
+        }
+      ],
+      "subtotal": 99,
+      "discount_amount": 0,
+      "total_amount": 99,
+      "status": "COMPLETED",
+      "payment_method": "ONLINE",
+      "created_at": "2026-10-04T11:09:35.167Z",
+      "updated_at": "2026-10-04T11:09:35.319Z",
+      "gateway_payment_id": "pay_1791112175187"
+    },
     {
       "id": "LK-ORD-638385",
       "gateway_order_id": "order_1791104587005_4367",

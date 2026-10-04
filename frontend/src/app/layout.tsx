@@ -132,6 +132,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-white text-slate-900 antialiased overflow-x-hidden">
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <Providers>{children}</Providers>
       </body>
     </html>

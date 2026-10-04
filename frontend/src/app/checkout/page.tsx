@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import { apiRequest, setAuthSession, getActiveUser } from "@/lib/api";
+import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import {
   ShieldCheck,
   CreditCard,
@@ -18,6 +19,21 @@ import {
   Sparkles,
   BookOpen,
 } from "lucide-react";
+
+const loadRazorpayCheckoutScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -61,51 +77,8 @@ export default function CheckoutPage() {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
   };
 
-  const handleProcessPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!studentData.name || !studentData.email) {
-      setError("Please fill in your name and email.");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    // 1. Create order on server with verified prices
-    const createRes = await apiRequest("/api/orders/create", {
-      method: "POST",
-      body: JSON.stringify({
-        items,
-        shippingDetails: studentData,
-        couponCode: couponCode || null,
-      }),
-    });
-
-    let orderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    let razorpayOrderId = `order_${Date.now()}`;
-
-    if (createRes && createRes.success && createRes.data) {
-      orderId = createRes.data.orderId || orderId;
-      razorpayOrderId = createRes.data.razorpayOrderId || razorpayOrderId;
-    }
-
-    // 2. Perform server-side payment verification
-    const mockPaymentId = `pay_LK_${Date.now()}`;
-    const mockSignature = `sig_test_${Date.now()}`;
-
-    const verifyRes = await apiRequest("/api/orders/verify", {
-      method: "POST",
-      body: JSON.stringify({
-        orderId,
-        razorpayOrderId,
-        razorpayPaymentId: mockPaymentId,
-        razorpaySignature: mockSignature,
-      }),
-    });
-
-    setLoading(false);
-
-    const serverOrder = verifyRes?.data?.order || { id: orderId, total_amount: cartTotal };
+  const completeEnrollment = (verifyRes: any, orderId: string, finalAmount: number) => {
+    const serverOrder = verifyRes?.data?.order || { id: orderId, total_amount: finalAmount };
     const student = verifyRes?.data?.student;
     const newlyUnlocked = verifyRes?.data?.unlockedItemIds || [];
 
@@ -131,7 +104,9 @@ export default function CheckoutPage() {
     }
     const combinedUnlocked = Array.from(new Set([...priorUnlocked, ...fallbackUnlocked]));
 
-    const rollNumber = student?.student_id || (studentData.exam.includes("CSEET") ? "LRK-2026-009821" : "LRK-2026-004182");
+    const rollNumber =
+      student?.student_id ||
+      (studentData.exam.includes("CSEET") ? "LRK-2026-009821" : "LRK-2026-004182");
 
     // Save student session & entitlements
     if (typeof window !== "undefined") {
@@ -151,7 +126,7 @@ export default function CheckoutPage() {
         examCountdownDays: 68,
         avatarInitials: (student?.name || studentData.name).slice(0, 2).toUpperCase(),
       };
-      setAuthSession(`token_${Date.now()}`, studentSession);
+      setAuthSession(verifyRes?.token || `token_${Date.now()}`, studentSession);
 
       // Save to admin subscriptions
       const adminSubEntry = {
@@ -162,9 +137,9 @@ export default function CheckoutPage() {
         phone: studentData.phone || "+91 98765 43210",
         item: items.map((i) => i.title).join(", "),
         targetExam: studentData.exam,
-        amount: `₹${cartTotal}`,
+        amount: `₹${finalAmount}`,
         date: "Just now",
-        paymentMode: paymentMethod === "upi" ? "UPI / Razorpay" : "Card / Netbanking",
+        paymentMode: "Razorpay Standard Checkout",
         accessStatus: "Active",
       };
 
@@ -172,7 +147,6 @@ export default function CheckoutPage() {
       const parsedAdminSubs = existingAdminSubs ? JSON.parse(existingAdminSubs) : [];
       localStorage.setItem("lawkaksha_admin_subs", JSON.stringify([adminSubEntry, ...parsedAdminSubs]));
 
-      // Clear obsolete courier orders key
       localStorage.removeItem("lawkaksha_admin_orders");
     }
 
@@ -185,6 +159,138 @@ export default function CheckoutPage() {
       studentName: student?.name || studentData.name,
     });
     clearCart();
+  };
+
+  const handleProcessPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studentData.name || !studentData.email) {
+      setError("Please fill in your name and email.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    // 1. Ensure Razorpay Checkout script is loaded
+    const scriptLoaded = await loadRazorpayCheckoutScript();
+    if (!scriptLoaded) {
+      setError("Unable to load Razorpay payment gateway. Please check your internet connection.");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Call backend to create Razorpay Order
+    let createRes: any;
+    try {
+      createRes = await apiRequest("/api/orders/create", {
+        method: "POST",
+        body: JSON.stringify({
+          items,
+          shippingDetails: studentData,
+          couponCode: couponCode || null,
+        }),
+      });
+    } catch (err: any) {
+      setError(err?.message || "Failed to initiate payment order.");
+      setLoading(false);
+      return;
+    }
+
+    if (!createRes || !createRes.success) {
+      setError(createRes?.message || "Failed to create payment order.");
+      setLoading(false);
+      return;
+    }
+
+    const orderData = createRes.data || createRes;
+    const orderId = orderData.orderId || orderData.id;
+    const razorpayOrderId = orderData.order_id || orderData.razorpayOrderId;
+    const amountPaise = orderData.amount_paise || Math.round((orderData.amount || cartTotal) * 100);
+    const currency = orderData.currency || "INR";
+    const keyId =
+      process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+      orderData.key_id ||
+      "rzp_test_TjoIIrwrXrydpn";
+
+    // 3. Configure Razorpay Standard Checkout modal options
+    const options: any = {
+      key: keyId,
+      amount: amountPaise,
+      currency: currency,
+      name: "The Law कक्षा",
+      description: items.map((i) => i.title).join(", ") || "CA Foundation / CSEET Codex Pass",
+      image: "/assets/logo-transparent.png",
+      order_id: razorpayOrderId,
+      handler: async function (response: any) {
+        // response: { razorpay_payment_id, razorpay_order_id, razorpay_signature }
+        setLoading(true);
+        try {
+          const currentDeviceId = getOrCreateDeviceId();
+          const currentDeviceName = getDeviceFriendlyName();
+
+          const verifyRes = (await apiRequest("/api/orders/verify", {
+            method: "POST",
+            body: JSON.stringify({
+              orderId,
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              deviceId: currentDeviceId,
+              deviceName: currentDeviceName,
+            }),
+          })) as any;
+
+          if (!verifyRes || !verifyRes.success) {
+            throw new Error(verifyRes?.message || "Payment signature verification failed.");
+          }
+
+          completeEnrollment(verifyRes, orderId, orderData.amount || cartTotal);
+        } catch (verifyErr: any) {
+          console.error("[Payment Verification Error]", verifyErr);
+          setError(verifyErr?.message || "Payment verification failed. Please contact support.");
+        } finally {
+          setLoading(false);
+        }
+      },
+      prefill: {
+        name: studentData.name,
+        email: studentData.email,
+        contact: studentData.phone,
+      },
+      notes: {
+        exam: studentData.exam,
+        orderId: orderId,
+      },
+      theme: {
+        color: "#BFAFE5",
+      },
+      modal: {
+        ondismiss: function () {
+          setLoading(false);
+          setError("Payment window closed. You can retry whenever you are ready.");
+        },
+      },
+    };
+
+    try {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (failResponse: any) {
+        console.error("[Razorpay Payment Failed]", failResponse.error);
+        setLoading(false);
+        setError(
+          failResponse.error?.description ||
+            "Payment failed. Please verify your card/UPI account or try another payment method."
+        );
+      });
+      rzp.open();
+    } catch (modalErr: any) {
+      console.error("[Razorpay Modal Error]", modalErr);
+      setError("Unable to open Razorpay payment window. Please check your browser pop-up permissions.");
+      setLoading(false);
+    }
   };
 
   // Render Order Success Screen
