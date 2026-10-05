@@ -102,7 +102,7 @@ export function getAuthSession(): { token: string | null; user: any | null } | n
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<{ success: boolean; data?: T; message?: string; error?: string }> {
+): Promise<{ success: boolean; data?: T; message?: string; error?: string; token?: string; code?: string }> {
   const token = getAuthToken();
 
   const headers: Record<string, string> = {
@@ -132,6 +132,7 @@ export async function apiRequest<T = any>(
         success: false,
         message: data.message || `Request failed with status ${res.status}`,
         error: data.error,
+        code: data.code,
         data,
       };
     }
@@ -139,7 +140,9 @@ export async function apiRequest<T = any>(
     return {
       success: true,
       data,
-    };
+      token: data?.token,
+      message: data?.message,
+    } as any;
   } catch (err: any) {
     return {
       success: false,

@@ -76,28 +76,32 @@ function LoginContent() {
       }
 
       if (res && res.success && res.data) {
-        const user = res.data.user || res.data.student || { name: "User" };
-        const role = res.data.role || user.role || "student";
+        const respData = res.data;
+        const innerData = respData.data || respData;
+        const token = respData.token || (res as any).token || innerData.token;
+        const user = innerData.user || innerData.student || respData.user || respData.student || { name: "User" };
+        const role = innerData.role || respData.role || user.role || "student";
 
         if (role === "admin") {
           const adminSession = {
-            name: user.name || "Administrator",
-            email: user.email || "",
+            name: user.name || "The Law Kaksha Admin",
+            email: user.email || "admin@thelawkaksha.com",
             role: "admin",
-            token: res.token || `admin_token_${Date.now()}`,
+            token: token || `admin_token_${Date.now()}`,
           };
           localStorage.removeItem("lawkaksha_student_session");
           localStorage.removeItem("lawkaksha_active_student");
           localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
-          if (res.token) localStorage.setItem("lawkaksha_token", res.token);
+          if (token) localStorage.setItem("lawkaksha_token", token);
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
-          window.location.href = redirectPath || "/admin";
+          const destination = redirectPath && redirectPath.startsWith("/admin") ? redirectPath : "/admin";
+          window.location.href = destination;
         } else {
           localStorage.removeItem("lawkaksha_admin_session");
           localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
           localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
-          if (res.token) localStorage.setItem("lawkaksha_token", res.token);
+          if (token) localStorage.setItem("lawkaksha_token", token);
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
           window.location.href = redirectPath || "/student";
