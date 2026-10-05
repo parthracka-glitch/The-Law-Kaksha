@@ -8,7 +8,7 @@ Status values: Not started · In progress · Blocked · Done · Verified (checke
 | 1B | As-is documentation | Done | gemini | 2026-10-05 | | Complete 41-file as-is documentation set in docs/ |
 | 2 | Safety net (tests) | Done | gemini | 2026-10-05 | | Automated test runner, universal verification harness, and CI workflow established |
 | 3 | Security hardening | Done | gemini | 2026-10-05 | | OWASP ASVS Level 2, CSP, rate limiters, docs/07-security set & SECURITY_FINDINGS.md |
-| 4 | Dead code, duplicates, clutter | Not started | | | | |
+| 4 | Dead code, duplicates, clutter | Done | gemini | 2026-10-05 | | Tier A scratch files purged; Tier B roadmap components classified in DEAD_CODE_LOG.md |
 | 5 | Bug fixing | Not started | | | | |
 | 6 | Folder and file organization (approval gate) | Not started | | | | Requires owner approval gate |
 | 7 | Quality, refactoring, performance | Not started | | | | |
