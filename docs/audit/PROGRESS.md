@@ -11,8 +11,8 @@ Status values: Not started · In progress · Blocked · Done · Verified (checke
 | 4 | Dead code, duplicates, clutter | Done | gemini | 2026-10-05 | | Tier A scratch files purged; Tier B roadmap components classified in DEAD_CODE_LOG.md |
 | 5 | Bug fixing | Done | gemini | 2026-10-05 | | Roll ID prefix, test lifecycle, Windows EPERM, and middleware alias resolved in BUGS_FIXED.md |
 | 6 | Folder and file organization (approval gate) | Done | gemini | 2026-10-05 | | STRUCTURE_MAP.md & ROLLBACK.md established; canonical monorepo layout codified |
-| 7 | Quality, refactoring, performance | Not started | | | | |
-| 8 | Gap closure | Not started | | | | |
+| 7 | Quality, refactoring, performance | Done | gemini | 2026-10-05 | | Database indexes verified; centralized API client & error handler validated |
+| 8 | Gap closure | Done | gemini | 2026-10-05 | | High-value gaps resolved; roadmap and backlog formalized in GAPS_AND_ROADMAP.md |
 | 9 | Production readiness and legal flags | Not started | | | | |
 | 9A | Legal and policy drafts | Not started | | | | |
 | 9B | Launch readiness and go/no-go | Not started | | | | |
