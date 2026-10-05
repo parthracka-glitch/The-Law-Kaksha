@@ -70,6 +70,8 @@ export interface ProductItem {
   pdfUrl: string;
   description: string;
   units: string[];
+  cover_image?: string;
+  isSample?: boolean;
   previewPagesLimit?: number;
   samplePagesRange?: string;
 }
@@ -601,6 +603,7 @@ export default function AdminPortalPage() {
   // File Upload State
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailFileInputRef = useRef<HTMLInputElement>(null);
   const resourceFileInputRef = useRef<HTMLInputElement>(null);
 
   // CRUD Modals
@@ -3297,63 +3300,185 @@ export default function AdminPortalPage() {
       {/* 3. PRODUCT / COURSE MODAL */}
       {productModal.open && (
         <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 max-w-xl w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
-              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
-                {productModal.mode === "add" ? "Add Course / Book" : "Edit Course / Book"}
-              </h3>
+              <div>
+                <h3 className="text-base font-serif font-bold text-[#221D1D]">
+                  {productModal.mode === "add" ? "Add Digital Codex / Book" : "Edit Course / Book"}
+                </h3>
+                <p className="text-[11px] text-[#77716E]">
+                  This PDF will be published live on the website catalog for students to purchase.
+                </p>
+              </div>
               <button onClick={() => setProductModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
                 <X className="w-5 h-5 text-[#77716E]" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
+              {/* Title & Subtitle */}
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Course Title *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Codex / Book Title *</label>
                 <input
                   type="text"
                   value={productModal.data.title || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, title: e.target.value } })}
-                  placeholder="e.g. CA Foundation Business Laws"
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                  placeholder="e.g. CA Foundation Contract Act Crash Codex"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Subtitle *</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">Subtitle / Key Highlight</label>
                 <input
                   type="text"
                   value={productModal.data.subtitle || ""}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, subtitle: e.target.value } })}
-                  placeholder="e.g. Complete 7 Chapters Study Notes &amp; Cases"
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                  placeholder="e.g. High-speed revision notes with 50 practical questions"
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition"
                 />
               </div>
 
+              {/* Target Stream (Who can access) & Status */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#4D433F] mb-1">Monthly Price (₹) *</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Target Exam (Who can access) *</label>
+                  <select
+                    value={productModal.data.category || "CA Foundation"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D] font-medium"
+                  >
+                    <option value="CA Foundation">CA Foundation Students</option>
+                    <option value="CSEET">CSEET Students</option>
+                    <option value="Both">Both (Dual Pass / All-Access)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Publishing Status *</label>
+                  <select
+                    value={productModal.data.status || "Active"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, status: e.target.value as any } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D] font-medium"
+                  >
+                    <option value="Active">Active (Live on Website)</option>
+                    <option value="Draft">Draft (Hidden from Catalog)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Pricing */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Selling Price (₹) *</label>
                   <input
                     type="number"
                     value={productModal.data.price || 99}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, price: Number(e.target.value) } })}
-                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-bold text-[#221D1D]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#4D433F] mb-1">Original Price (₹)</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Original Price / MRP (₹)</label>
                   <input
                     type="number"
                     value={productModal.data.originalPrice || 299}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, originalPrice: Number(e.target.value) } })}
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#77716E]"
+                  />
+                </div>
+              </div>
+
+              {/* Thumbnail / Cover Image */}
+              <div>
+                <label className="block font-semibold text-[#4D433F] mb-1">Cover Image / Thumbnail</label>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-14 rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] overflow-hidden relative shrink-0 flex items-center justify-center">
+                    {productModal.data.cover_image ? (
+                      <img
+                        src={productModal.data.cover_image}
+                        alt="Thumbnail"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <BookOpen className="w-5 h-5 text-[#BFAFE5]" />
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={productModal.data.cover_image || ""}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, cover_image: e.target.value } })}
+                    placeholder="/assets/ca-cs-hero-books-v2.png"
+                    className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
+                  />
+                  <input
+                    type="file"
+                    ref={thumbnailFileInputRef}
+                    accept="image/png, image/jpeg, image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file, (url) => {
+                          setProductModal((prev) => ({
+                            ...prev,
+                            data: { ...prev.data, cover_image: url },
+                          }));
+                        });
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploadingFile}
+                    onClick={() => thumbnailFileInputRef.current?.click()}
+                    className="px-3 py-2 bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] rounded-2xl text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Upload Cover</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block font-semibold text-[#4D433F] mb-1">Codex Description</label>
+                <textarea
+                  rows={3}
+                  value={productModal.data.description || ""}
+                  onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, description: e.target.value } })}
+                  placeholder="Enter detailed description of what this PDF codex covers, why students should study from it, etc..."
+                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition"
+                />
+              </div>
+
+              {/* Pages & Units */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Total Pages</label>
+                  <input
+                    type="text"
+                    value={productModal.data.pages || "150+ Pages"}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, pages: e.target.value } })}
+                    placeholder="e.g. 150+ Pages"
+                    className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Units / Chapters Covered</label>
+                  <input
+                    type="text"
+                    value={Array.isArray(productModal.data.units) ? productModal.data.units.join(", ") : (productModal.data.units || "")}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, units: e.target.value.split(",").map(s => s.trim()) } })}
+                    placeholder="e.g. Unit 1, Unit 2, Unit 3"
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
                   />
                 </div>
               </div>
 
+              {/* Preview Page Limit */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#4D433F] mb-1">Preview Page Limit (Sample)</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Free Preview Limit (Pages)</label>
                   <input
                     type="number"
                     value={productModal.data.previewPagesLimit || 5}
@@ -3361,10 +3486,10 @@ export default function AdminPortalPage() {
                     placeholder="e.g. 5"
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-bold text-[#4B8097]"
                   />
-                  <span className="text-[10px] text-[#77716E]">Restricts free preview to first N pages</span>
+                  <span className="text-[10px] text-[#77716E]">Restricts free preview to first N pages before purchase lock</span>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#4D433F] mb-1">Sample Page Range</label>
+                  <label className="block font-semibold text-[#4D433F] mb-1">Sample Page Range Label</label>
                   <input
                     type="text"
                     value={productModal.data.samplePagesRange || "1-5"}
@@ -3372,12 +3497,13 @@ export default function AdminPortalPage() {
                     placeholder="e.g. 1-5"
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
                   />
-                  <span className="text-[10px] text-[#77716E]">Display label for free sample</span>
+                  <span className="text-[10px] text-[#77716E]">Display badge text for free sample</span>
                 </div>
               </div>
 
+              {/* PDF Document Upload */}
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">PDF URL / Upload</label>
+                <label className="block font-semibold text-[#4D433F] mb-1">PDF File * (Upload or select existing)</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -3407,10 +3533,10 @@ export default function AdminPortalPage() {
                     type="button"
                     disabled={isUploadingFile}
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-2 bg-[#C4E1EC]/60 hover:bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] rounded-2xl text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
+                    className="px-3.5 py-2 bg-[#C4E1EC]/60 hover:bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] rounded-2xl text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload PDF</span>
+                    <span>{isUploadingFile ? "Uploading..." : "Upload PDF"}</span>
                   </button>
                 </div>
               </div>
@@ -3435,11 +3561,14 @@ export default function AdminPortalPage() {
                     format: "Digital Codex (In-Web DRM)",
                     price: Number(productModal.data.price) || 99,
                     originalPrice: Number(productModal.data.originalPrice) || 299,
-                    pages: productModal.data.pages || "250 Pages",
+                    pages: productModal.data.pages || "150+ Pages",
                     status: productModal.data.status || "Active",
-                    pdfUrl: productModal.data.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
+                    pdfUrl: productModal.data.pdfUrl || "/notes/sale-of-goods-unit-1.pdf",
+                    cover_image: productModal.data.cover_image || "/assets/ca-cs-hero-books-v2.png",
                     description: productModal.data.description || "",
-                    units: productModal.data.units || ["Chapter 1", "Chapter 2"],
+                    units: Array.isArray(productModal.data.units)
+                      ? productModal.data.units
+                      : (productModal.data.units as any)?.split?.(",").map((s: string) => s.trim()) || ["Chapter 1"],
                     previewPagesLimit: Number(productModal.data.previewPagesLimit) || 5,
                     samplePagesRange: productModal.data.samplePagesRange || "1-5",
                   };
@@ -3447,21 +3576,22 @@ export default function AdminPortalPage() {
                   setProducts(next);
                   localStorage.setItem("lawkaksha_admin_products", JSON.stringify(next));
                   setProductModal({ open: false, mode: "add", data: {} });
-                  showToast(isAdd ? "Adding course..." : "Updating course...");
+                  showToast(isAdd ? "Adding codex to website..." : "Updating codex...");
                   try {
                     await adminFetch(`/api/admin/products${!isAdd ? "/" + payload.id : ""}`, {
                       method: isAdd ? "POST" : "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast("Course saved!");
+                    showToast("Codex published live!");
                   } catch (e) {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
-                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                Save Course
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{productModal.mode === "add" ? "Publish Codex Live" : "Save Changes"}</span>
               </button>
             </div>
           </div>
