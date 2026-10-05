@@ -2,8 +2,64 @@
  * The Law Kaksha - API Client & Session Helper
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+export const PRODUCTION_BACKEND_URL = "https://the-law-kaksha.onrender.com";
+
+/**
+ * Dynamically resolves the API base URL.
+ * Automatically detects whether code is executing in a production browser (e.g. Vercel,
+ * custom domains, or mobile devices accessing production) and routes requests to the
+ * live production Render backend when NEXT_PUBLIC_API_URL is unset or pointing to localhost.
+ */
+export function getApiBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  // 1. Browser context (client-side execution on any device)
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    const isLocalhost =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      hostname.endsWith(".local");
+
+    // If accessing from a remote production host (e.g. *.vercel.app, thelawkaksha.com, or any mobile browser)
+    if (!isLocalhost) {
+      if (
+        envUrl &&
+        !envUrl.includes("localhost") &&
+        !envUrl.includes("127.0.0.1") &&
+        !envUrl.includes("0.0.0.0")
+      ) {
+        return envUrl.replace(/\/$/, "");
+      }
+      return PRODUCTION_BACKEND_URL;
+    }
+
+    // Local dev on localhost / 127.0.0.1
+    if (envUrl) {
+      return envUrl.replace(/\/$/, "");
+    }
+    return "http://localhost:5000";
+  }
+
+  // 2. Server-side / build-time context
+  if (
+    envUrl &&
+    !envUrl.includes("localhost") &&
+    !envUrl.includes("127.0.0.1") &&
+    !envUrl.includes("0.0.0.0")
+  ) {
+    return envUrl.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+    return PRODUCTION_BACKEND_URL;
+  }
+
+  return envUrl ? envUrl.replace(/\/$/, "") : "http://localhost:5000";
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -59,9 +115,10 @@ export async function apiRequest<T = any>(
   }
 
   try {
+    const baseUrl = getApiBaseUrl();
     const url = endpoint.startsWith("http")
       ? endpoint
-      : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+      : `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
     const res = await fetch(url, {
       ...options,
@@ -86,7 +143,7 @@ export async function apiRequest<T = any>(
   } catch (err: any) {
     return {
       success: false,
-      message: err.message || "Network error. Please ensure the backend is running.",
+      message: err.message || "Network connection error. Please ensure your device is connected to the internet.",
     };
   }
 }

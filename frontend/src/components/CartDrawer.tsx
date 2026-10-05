@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useCart, BookFormat, FORMAT_PRICING } from "@/context/CartContext";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
+import { getApiBaseUrl } from "@/lib/api";
 
 export function CartDrawer() {
   const {
@@ -117,7 +118,7 @@ export function CartDrawer() {
     try {
       // 1. Create order on backend server with price verification
       const createRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders/create`,
+        `${getApiBaseUrl()}/api/orders/create`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -145,7 +146,7 @@ export function CartDrawer() {
 
       // 2. Perform Server-Side Verification with Device Binding
       const verifyRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders/verify`,
+        `${getApiBaseUrl()}/api/orders/verify`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

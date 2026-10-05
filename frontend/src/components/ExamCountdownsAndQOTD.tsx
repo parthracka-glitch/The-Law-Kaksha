@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { getApiBaseUrl } from "@/lib/api";
 import {
   Clock,
   Calendar,
@@ -299,7 +300,7 @@ const MCQ_POOL: MCQScenario[] = [
 ];
 
 export function ExamCountdownsAndQOTD() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const API_URL = getApiBaseUrl();
   const [examTargets, setExamTargets] = useState<ExamTarget[]>(EXAM_TARGETS);
   const [mcqList, setMcqList] = useState<MCQScenario[]>(MCQ_POOL);
   const [selectedExamId, setSelectedExamId] = useState<string>("ca-found");

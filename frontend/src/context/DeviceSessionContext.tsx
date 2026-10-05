@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
+import { getApiBaseUrl } from "@/lib/api";
 import { ShieldAlert, LogOut, ArrowRight, Laptop } from "lucide-react";
 import Link from "next/link";
 
@@ -80,7 +81,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
       const token = localStorage.getItem("lawkaksha_token");
       const devId = getOrCreateDeviceId();
       if (token) {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/logout`, {
+        await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/device-heartbeat`,
+          `${getApiBaseUrl()}/api/auth/device-heartbeat`,
           {
             method: "POST",
             headers: {

@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
+import { getApiBaseUrl } from "@/lib/api";
 
 export interface AnnouncementSetting {
   enabled: boolean;
@@ -612,7 +613,7 @@ export default function AdminPortalPage() {
   const [previewFormModal, setPreviewFormModal] = useState<{ open: boolean; url: string; title: string }>({ open: false, url: "", title: "" });
   const [couponModal, setCouponModal] = useState<{ open: boolean; mode: "add" | "edit"; data: Partial<CouponRecord> }>({ open: false, mode: "add", data: {} });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const API_URL = getApiBaseUrl();
   const [isAtlasConnected, setIsAtlasConnected] = useState<boolean>(true);
 
   // Authenticated Admin API Fetch Helper with Bearer Token Injection

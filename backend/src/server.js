@@ -53,7 +53,7 @@ app.use((req, res, next) => {
   res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; frame-src 'self' https://api.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.razorpay.com https://*.mongodb.net https://*.thelawkaksha.com;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; frame-src 'self' https://api.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.razorpay.com https://*.mongodb.net https://*.thelawkaksha.com https://the-law-kaksha.onrender.com;"
   );
   next();
 });
@@ -64,17 +64,24 @@ app.use(
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
       const allowedPatterns = [
-        /^http:\/\/localhost:\d+$/,
-        /^http:\/\/127\.0\.0\.1:\d+$/,
-        /^https:\/\/.*\.vercel\.app$/,
-        /^https:\/\/.*the-law-kaksha.*$/,
-        /^https:\/\/.*thelawkaksha\.com$/,
+        /^http:\/\/localhost(:\d+)?$/,
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+        /^https?:\/\/.*\.vercel\.app$/,
+        /^https?:\/\/.*the-law-kaksha.*$/,
+        /^https?:\/\/.*thelawkaksha\.com$/,
       ];
-      const isAllowed = allowedPatterns.some((pattern) => pattern.test(origin)) || origin === FRONTEND_URL;
+      const envOrigins = (process.env.FRONTEND_URL || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const isAllowed =
+        allowedPatterns.some((pattern) => pattern.test(origin)) ||
+        envOrigins.includes(origin) ||
+        origin === FRONTEND_URL;
       if (isAllowed) {
         return callback(null, true);
       }
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
+      return callback(null, false);
     },
     credentials: true,
   })

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Award, Scale, HelpCircle, BookOpen, ArrowRight, Sparkles, AlertTriangle } from "lucide-react";
+import { getApiBaseUrl } from "@/lib/api";
 
 export function Section16ComparisonBlock() {
   const [activeTab, setActiveTab] = useState<"side_by_side" | "rubric">("side_by_side");
@@ -54,7 +55,7 @@ export function Section16ComparisonBlock() {
     ],
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const API_URL = getApiBaseUrl();
 
   useEffect(() => {
     fetch(`${API_URL}/api/public/section16-comparison`)

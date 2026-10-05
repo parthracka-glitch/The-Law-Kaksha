@@ -21,6 +21,7 @@ import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
 import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
 import { CseetComingSoonShell } from "@/components/student/CseetComingSoonShell";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface ChapterUnit {
   unitNumber: number;
@@ -482,7 +483,7 @@ const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
 
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const API_URL = getApiBaseUrl();
 
   // Session & Auth
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
