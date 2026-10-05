@@ -9,7 +9,7 @@ Status values: Not started · In progress · Blocked · Done · Verified (checke
 | 2 | Safety net (tests) | Done | gemini | 2026-10-05 | | Automated test runner, universal verification harness, and CI workflow established |
 | 3 | Security hardening | Done | gemini | 2026-10-05 | | OWASP ASVS Level 2, CSP, rate limiters, docs/07-security set & SECURITY_FINDINGS.md |
 | 4 | Dead code, duplicates, clutter | Done | gemini | 2026-10-05 | | Tier A scratch files purged; Tier B roadmap components classified in DEAD_CODE_LOG.md |
-| 5 | Bug fixing | Not started | | | | |
+| 5 | Bug fixing | Done | gemini | 2026-10-05 | | Roll ID prefix, test lifecycle, Windows EPERM, and middleware alias resolved in BUGS_FIXED.md |
 | 6 | Folder and file organization (approval gate) | Not started | | | | Requires owner approval gate |
 | 7 | Quality, refactoring, performance | Not started | | | | |
 | 8 | Gap closure | Not started | | | | |

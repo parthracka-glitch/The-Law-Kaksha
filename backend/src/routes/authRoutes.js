@@ -20,7 +20,7 @@ const router = express.Router();
 function generateStudentId(exam = "") {
   const isCSEET = String(exam).toLowerCase().includes("cseet");
   const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return isCSEET ? `LRK-2026-00${randomNum}` : `LRK-2026-00${randomNum}`;
+  return isCSEET ? `LRK-2026-CS${randomNum}` : `LRK-2026-CA${randomNum}`;
 }
 
 // 1. POST /api/auth/register
