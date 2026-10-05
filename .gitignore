@@ -48,3 +48,6 @@ backend/data/*.tmp
 backend/uploads/
 # Root-level PDF assets
 /*.pdf
+
+# Agent shared memory private notes
+docs/audit/private/
