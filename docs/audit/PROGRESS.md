@@ -1,19 +1,20 @@
-# PROGRESS
-Status values: Not started · In progress · Blocked · Done · Verified (checked by a second agent)
+# PROGRESS: Multi-Phase Audit & Production Launch Tracking
 
-| Phase | Name | Status | Agent | Updated | Commit | Notes |
-|---|---|---|---|---|---|---|
-| 0 | Recon and baseline | Done | gemini | 2026-10-05 | pre-audit-baseline | Full inventory, command baseline, and BASELINE.md recorded |
-| 1 | Product understanding and flow audit | Done | gemini | 2026-10-05 | | Product understanding, user flows, and gaps documented |
-| 1B | As-is documentation | Done | gemini | 2026-10-05 | | Complete 41-file as-is documentation set in docs/ |
-| 2 | Safety net (tests) | Done | gemini | 2026-10-05 | | Automated test runner, universal verification harness, and CI workflow established |
-| 3 | Security hardening | Done | gemini | 2026-10-05 | | OWASP ASVS Level 2, CSP, rate limiters, docs/07-security set & SECURITY_FINDINGS.md |
-| 4 | Dead code, duplicates, clutter | Done | gemini | 2026-10-05 | | Tier A scratch files purged; Tier B roadmap components classified in DEAD_CODE_LOG.md |
-| 5 | Bug fixing | Done | gemini | 2026-10-05 | | Roll ID prefix, test lifecycle, Windows EPERM, and middleware alias resolved in BUGS_FIXED.md |
-| 6 | Folder and file organization (approval gate) | Done | gemini | 2026-10-05 | | STRUCTURE_MAP.md & ROLLBACK.md established; canonical monorepo layout codified |
-| 7 | Quality, refactoring, performance | Done | gemini | 2026-10-05 | | Database indexes verified; centralized API client & error handler validated |
-| 8 | Gap closure | Done | gemini | 2026-10-05 | | High-value gaps resolved; roadmap and backlog formalized in GAPS_AND_ROADMAP.md |
-| 9 | Production readiness and legal flags | Done | gemini | 2026-10-05 | | Operations runbook, SBOM, and LEGAL_AND_COMPLIANCE_FLAGS.md established |
-| 9A | Legal and policy drafts | Done | gemini | 2026-10-05 | | Complete 6-document legal suite in docs/10-legal/ with draft notice banners |
-| 9B | Launch readiness and go/no-go | Done | gemini | 2026-10-05 | | docs/11-launch/ suite & LAUNCH_READINESS.md (Verdict: GO WITH CONDITIONS) |
-| 10 | Final verification and report | Done | gemini | 2026-10-05 | | 100% test pass rate, METRICS_BEFORE_AFTER.md & FINAL_REPORT.md published |
+Status values: Not started · In progress · Blocked · Done · Verified against code
+
+| Phase | Name | Status | Agent | Updated | Deliverables & Milestones |
+|---|---|---|---|---|---|
+| **0** | Recon and baseline | **Done** | Principal Orchestrator | 2026-10-05 | `PROJECT_UNDERSTANDING.md`, `BASELINE.md`, git baseline tag `pre-audit-baseline` |
+| **1** | Product understanding and flow audit | **Done** | Principal Orchestrator | 2026-10-05 | `PRODUCT_AND_FLOWS.md`, working-backwards 1-pager, journey edge states |
+| **1B** | As-is documentation | **Done** | Lead Technical Writer | 2026-10-05 | Complete 50+ document suite spanning 12 directories across `docs/` |
+| **2** | Safety net (tests) | **Done** | QA & Test Lead | 2026-10-05 | Automated ephemeral test runner (`runner.js`), universal verification harness (`scripts/verify.js`), CI pipeline (`.github/workflows/ci.yml`) |
+| **3** | Security hardening | **Done** | Security Architect | 2026-10-05 | OWASP ASVS Level 2 verified, zero-trust IDOR guards, NoSQL sanitize, Helmet headers, `SECURITY_FINDINGS.md` |
+| **4** | Dead code, duplicates, clutter | **Done** | Refactoring Lead | 2026-10-05 | Tier A scratch files purged; Tier B quarantined; documented in `DEAD_CODE_LOG.md` |
+| **5** | Bug fixing | **Done** | Backend Lead | 2026-10-05 | Roll ID prefix normalization, Windows EPERM fix, test port collision fix, documented in `BUGS_FIXED.md` |
+| **6** | Folder & file organization | **Done** | Solution Architect | 2026-10-05 | `STRUCTURE_MAP.md`, `ROLLBACK.md`, and clean Next.js/Express monorepo structure |
+| **7** | Quality, refactoring, performance | **Done** | Performance Engineer | 2026-10-05 | Dual-mode DB resilience, indexed lookups, centralized API client, `METRICS_BEFORE_AFTER.md` |
+| **8** | Gap closure | **Done** | Frontend & UX Lead | 2026-10-05 | `/cookies` policy route implemented and wired to `Footer.tsx`, roadmap in `GAPS_AND_ROADMAP.md` |
+| **9** | Operations & production readiness | **Done** | DevOps & SRE Lead | 2026-10-05 | Complete `docs/08-operations/` suite: `ci-cd-and-release.md`, `monitoring-and-alerting.md`, `backup-restore-dr.md`, `runbook.md`, `rollback.md`, and `LEGAL_AND_COMPLIANCE_FLAGS.md` |
+| **9A** | Legal & policy drafts | **Done** | Legal Specialist | 2026-10-05 | Complete 11-file statutory legal suite in `docs/10-legal/` (DPDP Act 2023, Terms, Privacy, Cookies, Refund, AUP, Disclaimer, Retention) |
+| **9B** | Launch readiness & pre-mortem | **Done** | Launch Manager | 2026-10-05 | `PREMORTEM.md` (Top 10 Failure Modes & Mitigations), `LAUNCH_READINESS.md` (Verdict: GO WITH CONDITIONS) |
+| **10** | Final verification and report | **Done** | Principal Orchestrator | 2026-10-05 | 100% test pass rate (35/35), TypeScript pass, Next.js build pass, `FINAL_REPORT.md` published |

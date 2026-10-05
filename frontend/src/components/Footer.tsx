@@ -246,6 +246,13 @@ export function Footer() {
               Refund Policy
             </Link>
             <span>&bull;</span>
+            <Link
+              href="/cookies"
+              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+            >
+              Cookie Policy
+            </Link>
+            <span>&bull;</span>
             <button
               onClick={() => setActivePolicyModal("disclaimer")}
               className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"

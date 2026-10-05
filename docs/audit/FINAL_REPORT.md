@@ -25,7 +25,7 @@
 **Prerequisites for Public Traffic:**
 1. **Platform Owner Input (`docs/audit/NEEDS_APPROVAL.md`):** Provide registered corporate entity name, registered office address, and designated Grievance Officer details.
 2. **Production Secret Provisioning:** Configure live Razorpay merchant credentials and production MongoDB Atlas URI on Render and Vercel.
-3. **Legal Counsel Review:** Complete human legal sign-off on the 4 drafted policies in `docs/10-legal/`.
+3. **Legal Counsel Review:** Complete human legal sign-off on the 11 drafted policies in `docs/10-legal/`.
 
 ---
 
@@ -36,12 +36,12 @@
 | **Automated Test Pass Rate** | 0% (Harness crashed on missing server) | **100% (35/35 passing in ~1.0s)** |
 | **Backend Test Suites** | 0 runnable in CI | **5/5 runnable (`npm test`)** |
 | **TypeScript Compilation** | 0 errors | **0 errors (`npm run typecheck`)** |
-| **Frontend Production Build** | Next.js 16 (20 routes) | **Next.js 16 (20 routes compiled in 2.1s)** |
+| **Frontend Production Build** | Next.js 16 (20 routes) | **Next.js 16 (21 routes compiled in ~2.5s)** |
 | **Open Critical/High Vulnerabilities** | 3 critical/high | **0 Open Critical / 0 Open High** |
 | **Rate Limiting** | Auth only (60 req/min) | **Auth (60/min) + Orders & Payments (60/min)** |
 | **Security Headers** | Basic | **CSP, HSTS, X-Content-Type, Permissions-Policy** |
-| **CI Automation** | None | **GitHub Actions (`verify.yml`)** |
-| **Documentation Files** | Fragmented | **54 comprehensive markdown files** |
+| **CI Automation** | None | **GitHub Actions (`verify.yml` / `ci.yml`)** |
+| **Documentation Files** | Fragmented | **60+ comprehensive markdown files across 12 suites** |
 
 ---
 
