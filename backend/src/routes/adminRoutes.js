@@ -8,7 +8,20 @@ const path = require("path");
 const multer = require("multer");
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max to prevent memory exhaustion (SEC-08)
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Unsupported file type. Only PDF and image (JPEG, PNG, WebP) files are allowed."), false);
+    }
+  },
 });
 const Product = require("../models/Product");
 const User = require("../models/User");
@@ -235,10 +248,12 @@ router.put("/admin/cases/:id", async (req, res) => {
     const id = req.params.id;
     if (isConnected()) {
       const updated = await WeeklyCase.findOneAndUpdate({ id }, req.body, { new: true });
+      if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
       Database.table("weekly_cases").update(id, req.body);
       return res.status(200).json({ success: true, source: "mongodb_atlas", caseStudy: updated });
     }
     const updated = Database.table("weekly_cases").update(id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
     res.status(200).json({ success: true, caseStudy: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating case." });
@@ -312,10 +327,12 @@ router.put("/admin/mcq-tests/:id", async (req, res) => {
     const id = req.params.id;
     if (isConnected()) {
       const updated = await McqTest.findOneAndUpdate({ id }, req.body, { new: true });
+      if (!updated) return res.status(404).json({ success: false, message: "MCQ test not found." });
       Database.table("mcq_tests").update(id, req.body);
       return res.status(200).json({ success: true, source: "mongodb_atlas", test: updated });
     }
     const updated = Database.table("mcq_tests").update(id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "MCQ test not found." });
     res.status(200).json({ success: true, test: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating MCQ test." });
@@ -480,12 +497,32 @@ router.post("/admin/students", async (req, res) => {
 router.put("/admin/students/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    // Allowlist safe fields to prevent privilege escalation / mass assignment (SEC-07)
+    const allowedFields = [
+      "name",
+      "email",
+      "phone",
+      "target_exam",
+      "is_active",
+      "drm_access",
+      "enrolled_books",
+      "unlockedItemIds",
+    ];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
     if (isConnected()) {
-      const updated = await User.findOneAndUpdate({ id }, req.body, { new: true }).select("-password_hash");
-      Database.table("users").update(id, req.body);
+      const updated = await User.findOneAndUpdate({ id }, updateData, { new: true }).select("-password_hash");
+      if (!updated) return res.status(404).json({ success: false, message: "Student not found." });
+      Database.table("users").update(id, updateData);
       return res.status(200).json({ success: true, source: "mongodb_atlas", student: updated });
     }
-    const updated = Database.table("users").update(id, req.body);
+    const updated = Database.table("users").update(id, updateData);
+    if (!updated) return res.status(404).json({ success: false, message: "Student not found." });
     const { password_hash, ...safe } = updated;
     res.status(200).json({ success: true, student: safe });
   } catch (err) {
@@ -574,12 +611,34 @@ router.post("/admin/subscriptions", async (req, res) => {
 router.put("/admin/subscriptions/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    const allowedFields = [
+      "studentName",
+      "studentRoll",
+      "email",
+      "phone",
+      "item",
+      "targetExam",
+      "amount",
+      "date",
+      "paymentMode",
+      "accessStatus",
+      "unlockedItemIds",
+    ];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
     if (isConnected()) {
-      const updated = await Subscription.findOneAndUpdate({ id }, req.body, { new: true });
-      Database.table("subscriptions").update(id, req.body);
+      const updated = await Subscription.findOneAndUpdate({ id }, updateData, { new: true });
+      if (!updated) return res.status(404).json({ success: false, message: "Subscription not found." });
+      Database.table("subscriptions").update(id, updateData);
       return res.status(200).json({ success: true, source: "mongodb_atlas", subscription: updated });
     }
-    const updated = Database.table("subscriptions").update(id, req.body);
+    const updated = Database.table("subscriptions").update(id, updateData);
+    if (!updated) return res.status(404).json({ success: false, message: "Subscription not found." });
     res.status(200).json({ success: true, subscription: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating subscription." });
@@ -773,18 +832,50 @@ router.post("/admin/resources", async (req, res) => {
 router.put("/admin/resources/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const updateData = { ...req.body };
-    if (updateData.previewPagesLimit) {
+    const allowedFields = [
+      "course",
+      "actName",
+      "chapterNumber",
+      "type",
+      "title",
+      "description",
+      "pdfUrl",
+      "samplePdfUrl",
+      "isSample",
+      "status",
+      "order",
+      "pages",
+      "cloudinaryPublicId",
+      "previewPagesLimit",
+    ];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+    if (updateData.previewPagesLimit !== undefined) {
       updateData.previewPagesLimit = Number(updateData.previewPagesLimit);
     }
+    if (updateData.chapterNumber !== undefined) {
+      updateData.chapterNumber = Number(updateData.chapterNumber);
+    }
+    if (updateData.order !== undefined) {
+      updateData.order = Number(updateData.order);
+    }
+    if (updateData.isSample !== undefined) {
+      updateData.isSample = Boolean(updateData.isSample);
+    }
+
     if (isConnected()) {
       const updated = await Resource.findOneAndUpdate({ id }, updateData, { new: true });
-      Database.table("resources").update(id, updateData);
       if (!updated) return res.status(404).json({ success: false, message: "Resource not found." });
+      Database.table("resources").update(id, updateData);
       return res.status(200).json({ success: true, source: "mongodb_atlas", resource: updated });
     }
 
     const updated = Database.table("resources").update(id, updateData);
+    if (!updated) return res.status(404).json({ success: false, message: "Resource not found." });
     res.status(200).json({ success: true, resource: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating resource." });

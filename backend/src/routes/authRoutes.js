@@ -35,9 +35,16 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    if (String(password).trim().length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long for account security.",
+      });
+    }
+
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
-    const cleanPhone = phone ? phone.trim() : "+91 98765 43210";
+    const cleanPhone = phone ? phone.trim() : "";
     const course = selectedCourse || targetExam || target_exam || "CA Foundation Paper 2: Business Laws";
 
     // Check existing in MongoDB Atlas or local DB
@@ -78,6 +85,7 @@ router.post("/register", async (req, res) => {
       drm_access: true,
       enrolled_books: [course],
       unlockedItemIds: [],
+      tokenVersion: 1,
     };
 
     let createdUser;
@@ -94,9 +102,10 @@ router.post("/register", async (req, res) => {
         email: cleanEmail,
         role: "student",
         student_id: studentId,
+        tokenVersion: 1,
       },
-      JWT_SECRET,
-      { expiresIn: "30d" }
+      JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026",
+      { expiresIn: "7d" }
     );
 
     const { password_hash, ...safeUser } = userPayload;
@@ -189,7 +198,14 @@ router.post("/login", async (req, res) => {
     const incomingDeviceName = req.body.deviceName ? String(req.body.deviceName).trim() : "Current Web Browser";
     const forceSwitchDevice = Boolean(req.body.forceSwitchDevice);
 
-    if (user.role === "student" && incomingDeviceId) {
+    if (user.role === "student") {
+      if (!incomingDeviceId) {
+        return res.status(400).json({
+          success: false,
+          message: "Device identifier is required to maintain secure single-device access.",
+        });
+      }
+
       const activeDevId = user.activeDeviceId || "";
       const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
       const isRecent = Date.now() - lastActive < 4 * 60 * 60 * 1000; // within 4 hours
@@ -227,9 +243,10 @@ router.post("/login", async (req, res) => {
         role: user.role,
         student_id: user.student_id,
         deviceId: incomingDeviceId,
+        tokenVersion: user.tokenVersion || 1,
       },
-      JWT_SECRET,
-      { expiresIn: "30d" }
+      JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026",
+      { expiresIn: "7d" }
     );
 
     let activeSub = null;
@@ -318,30 +335,74 @@ router.post("/device-heartbeat", async (req, res) => {
   }
 });
 
-// 4. POST /api/auth/logout (Releases active device session)
+// 4. POST /api/auth/logout (Releases active device session securely - OWASP A01 & SEC-10)
 router.post("/logout", async (req, res) => {
   try {
-    const { email, studentId } = req.body;
-    const cleanEmail = (email || "").toLowerCase().trim();
-    const cleanId = (studentId || "").trim();
+    let user = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const decoded = jwt.verify(
+          authHeader.split(" ")[1],
+          JWT_SECRET || (process.env.NODE_ENV !== "production" ? "the_law_kaksha_secure_jwt_secret_key_2026" : "")
+        );
+        if (decoded && decoded.id) {
+          if (isConnected()) {
+            user = await User.findOne({ id: decoded.id });
+          }
+          if (!user) {
+            user = Database.table("users").findById(decoded.id);
+          }
+        }
+      } catch (_) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired session token.",
+        });
+      }
+    }
+
+    const { email, studentId, deviceId } = req.body || {};
+    // If unauthenticated by token, require matching active deviceId to release the device lock
+    if (!user) {
+      if (!deviceId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required to log out.",
+        });
+      }
+
+      if (isConnected()) {
+        user = await User.findOne({ activeDeviceId: deviceId });
+      }
+      if (!user) {
+        const usersTable = Database.table("users");
+        user = usersTable.findOne((u) => u.activeDeviceId === deviceId);
+      }
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "No active session associated with this device ID.",
+        });
+      }
+    }
+
+    const nextTokenVersion = (user.tokenVersion || 1) + 1;
+    const updates = {
+      activeDeviceId: "",
+      lastActiveAt: new Date(0).toISOString(),
+      tokenVersion: nextTokenVersion,
+    };
 
     if (isConnected()) {
-      await User.updateOne(
-        { $or: [{ email: cleanEmail }, { student_id: cleanId }] },
-        { $set: { activeDeviceId: "", lastActiveAt: new Date(0) } }
-      );
+      await User.updateOne({ id: user.id }, { $set: updates });
     }
-    const usersTable = Database.table("users");
-    const localUser = usersTable.findOne(
-      (u) => (cleanEmail && u.email?.toLowerCase() === cleanEmail) || (cleanId && u.student_id === cleanId)
-    );
-    if (localUser) {
-      usersTable.update(localUser.id, { activeDeviceId: "", lastActiveAt: new Date(0).toISOString() });
-    }
+    Database.table("users").update(user.id, updates);
 
     return res.status(200).json({ success: true, message: "Logged out successfully." });
   } catch (err) {
-    return res.status(200).json({ success: true });
+    return res.status(500).json({ success: false, message: "Logout processing error." });
   }
 });
 
@@ -419,26 +480,31 @@ router.post("/forgot-password", async (req, res) => {
       });
     }
 
-    // Generate secure random reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    // Generate secure random reset token and store its SHA-256 hash (OWASP A07)
+    const rawResetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(rawResetToken).digest("hex");
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
     if (isConnected() && user.save) {
-      user.resetPasswordToken = resetToken;
+      user.resetPasswordToken = hashedToken;
       user.resetPasswordExpires = expiresAt;
       await user.save();
     } else {
       const usersTable = Database.table("users");
       usersTable.update(user.id, {
-        resetPasswordToken: resetToken,
+        resetPasswordToken: hashedToken,
         resetPasswordExpires: expiresAt.toISOString(),
       });
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[Dev Mailer Simulator] Password reset token for ${cleanQuery}: ${rawResetToken}`);
     }
 
     return res.status(200).json({
       success: true,
       message: "If an account matches that email or ID, password reset instructions have been generated.",
-      resetToken: process.env.NODE_ENV !== "production" ? resetToken : undefined,
+      resetToken: process.env.NODE_ENV !== "production" ? rawResetToken : undefined,
     });
   } catch (err) {
     console.error("[Auth] Forgot password error:", err);
@@ -464,12 +530,14 @@ router.post("/reset-password", async (req, res) => {
       });
     }
 
+    const cleanToken = String(token).trim();
+    const hashedIncomingToken = crypto.createHash("sha256").update(cleanToken).digest("hex");
     let user = null;
     const now = new Date();
 
     if (isConnected()) {
       user = await User.findOne({
-        resetPasswordToken: token,
+        $or: [{ resetPasswordToken: hashedIncomingToken }, { resetPasswordToken: cleanToken }],
         resetPasswordExpires: { $gt: now },
       });
     }
@@ -478,7 +546,7 @@ router.post("/reset-password", async (req, res) => {
       const usersTable = Database.table("users");
       user = usersTable.findOne(
         (u) =>
-          u.resetPasswordToken === token &&
+          (u.resetPasswordToken === hashedIncomingToken || u.resetPasswordToken === cleanToken) &&
           u.resetPasswordExpires &&
           new Date(u.resetPasswordExpires) > now
       );
@@ -492,6 +560,7 @@ router.post("/reset-password", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
+    const nextTokenVersion = (user.tokenVersion || 1) + 1;
 
     if (isConnected() && user.save) {
       user.password_hash = hashedPassword;
@@ -500,6 +569,7 @@ router.post("/reset-password", async (req, res) => {
       user.activeDeviceId = "";
       user.activeSessionToken = "";
       user.tempPassword = "";
+      user.tokenVersion = nextTokenVersion;
       await user.save();
     } else {
       const usersTable = Database.table("users");
@@ -510,6 +580,7 @@ router.post("/reset-password", async (req, res) => {
         activeDeviceId: "",
         activeSessionToken: "",
         tempPassword: "",
+        tokenVersion: nextTokenVersion,
       });
     }
 
@@ -537,7 +608,9 @@ router.post("/google", async (req, res) => {
     const { OAuth2Client } = require("google-auth-library");
     const googleClientId =
       process.env.GOOGLE_CLIENT_ID ||
-      "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com";
+      (process.env.NODE_ENV === "production"
+        ? null
+        : "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com");
     if (!googleClientId) {
       return res.status(500).json({
         success: false,
@@ -605,6 +678,7 @@ router.post("/google", async (req, res) => {
       // Create new student registered via Google
       const studentId = generateStudentId(course);
       const userId = `usr-g-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const randomPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
 
       const userPayload = {
         id: userId,
@@ -615,7 +689,7 @@ router.post("/google", async (req, res) => {
         googleId: googleSub,
         picture: googlePicture,
         phone: "",
-        password_hash: "",
+        password_hash: randomPasswordHash,
         role: "student",
         selectedCourse: course,
         target_exam: course,
@@ -626,6 +700,7 @@ router.post("/google", async (req, res) => {
         activeDeviceId: incomingDeviceId,
         activeDeviceName: incomingDeviceName,
         lastActiveAt: new Date().toISOString(),
+        tokenVersion: 1,
       };
 
       if (isConnected()) {

@@ -121,4 +121,61 @@ describe("Production Security Hardening & Zero-Trust Access Control Tests", () =
     const data = await res.json();
     assert.strictEqual(data.success, false);
   });
+
+  test("SEC-01 Quiz Admin Guard: GET /api/quizzes/admin/attempts rejects student token with 403", async () => {
+    const res = await fetch(`${API_URL}/api/quizzes/admin/attempts`, {
+      headers: { Authorization: `Bearer ${studentToken}` },
+    });
+    assert.ok(res.status === 401 || res.status === 403);
+  });
+
+  test("SEC-07 Admin 404 Guard: PUT /api/admin/subscriptions/:id returns 404 on missing ID", async () => {
+    // Admin login
+    const adminLogin = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        emailOrPhone: "admin@thelawkaksha.com",
+        password: "AdminSecurePassword2026!",
+        deviceId: "admin_test_device_sec",
+      }),
+    });
+    const adminData = await adminLogin.json();
+    assert.strictEqual(adminLogin.status, 200);
+
+    const res = await fetch(`${API_URL}/api/admin/subscriptions/non_existent_sub_999`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminData.token}`,
+      },
+      body: JSON.stringify({ studentName: "Hacked" }),
+    });
+    assert.strictEqual(res.status, 404);
+  });
+
+  test("SEC-10 Auth Hardening: POST /api/auth/logout rejects unauthenticated logout kick with 401", async () => {
+    const res = await fetch(`${API_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: studentEmail, deviceId: "victim_device" }),
+    });
+    assert.strictEqual(res.status, 401);
+  });
+
+  test("SEC-12 Content Moderation: POST /api/reviews defaults is_verified to false", async () => {
+    const res = await fetch(`${API_URL}/api/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        student_name: "Anonymous Submitter",
+        title: "Test Review Title",
+        comment: "This is a legitimate student review submitted via frontend.",
+      }),
+    });
+    assert.strictEqual(res.status, 201);
+    const data = await res.json();
+    assert.strictEqual(data.success, true);
+    assert.strictEqual(data.review.is_verified, false);
+  });
 });

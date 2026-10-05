@@ -197,11 +197,19 @@ export function SecurePdfReader({
         pdfjsLib.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`;
       }
 
+      let token = "";
+      if (typeof window !== "undefined") {
+        token = localStorage.getItem("lawkaksha_token") || "";
+      }
+
       // Use HTTP range loading — PDF.js fetches only the pages it renders, not the whole file
-      const pdfEndpoint = `/api/pdf/${filename}`;
+      const pdfEndpoint = token
+        ? `/api/pdf/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}`
+        : `/api/pdf/${encodeURIComponent(filename)}`;
 
       const loadingTask = pdfjsLib.getDocument({
         url: pdfEndpoint,
+        httpHeaders: token ? { Authorization: `Bearer ${token}` } : {},
         cMapUrl: "/cmaps/",
         cMapPacked: true,
         standardFontDataUrl: "/standard_fonts/",

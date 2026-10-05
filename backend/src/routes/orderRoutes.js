@@ -107,6 +107,12 @@ async function handleCreateOrder(req, res) {
       finalAmount = Math.max(0, subtotal - discountAmount);
       amountInPaise = Math.round(finalAmount * 100);
     } else if (req.body.amount !== undefined) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(400).json({
+          success: false,
+          message: "Orders in production must specify valid items from the course catalog.",
+        });
+      }
       amountInPaise = Math.round(Number(req.body.amount));
       if (isNaN(amountInPaise) || amountInPaise < 100) {
         return res.status(400).json({
@@ -171,6 +177,12 @@ async function handleCreateOrder(req, res) {
         });
       }
     } else {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(500).json({
+          success: false,
+          message: "Payment gateway credentials (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing or misconfigured in production.",
+        });
+      }
       razorpayOrderId = `order_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
@@ -244,27 +256,39 @@ async function handleVerifyPayment(req, res) {
       });
     }
 
-    // Cryptographic HMAC-SHA256 signature verification
-    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (razorpaySecret) {
-      if (!razorpaySignature) {
-        return res.status(400).json({
-          success: false,
-          message: "Payment signature is required for verification.",
-        });
-      }
+    // Cryptographic HMAC-SHA256 signature verification (Fail-closed in production)
+    const razorpaySecret =
+      process.env.RAZORPAY_KEY_SECRET ||
+      (process.env.NODE_ENV !== "production" ? "mock_razorpay_secret_key" : null);
 
-      const expectedSignature = crypto
-        .createHmac("sha256", razorpaySecret)
-        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-        .digest("hex");
+    if (!razorpaySecret) {
+      return res.status(500).json({
+        success: false,
+        message: "Payment verification failed: RAZORPAY_KEY_SECRET is not configured on the server.",
+      });
+    }
 
-      if (expectedSignature !== razorpaySignature) {
-        return res.status(400).json({
-          success: false,
-          message: "Payment signature mismatch. Transaction verification failed.",
-        });
-      }
+    if (!razorpaySignature) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment signature is required for verification.",
+      });
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", razorpaySecret)
+      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .digest("hex");
+
+    const sigBuffer = Buffer.from(razorpaySignature);
+    const expectedBuffer = Buffer.from(expectedSignature);
+    const isValid = sigBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment signature mismatch. Transaction verification failed.",
+      });
     }
 
     // Idempotent fulfillment if order was already verified

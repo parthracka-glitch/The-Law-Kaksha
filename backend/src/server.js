@@ -7,9 +7,11 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
 const dotenv = require("dotenv");
 
-// Load environment variables
+// Load environment variables reliably relative to backend directory
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config();
 
 // Ensure Database & Mongo Connection
@@ -66,9 +68,9 @@ app.use(
       const allowedPatterns = [
         /^http:\/\/localhost(:\d+)?$/,
         /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-        /^https?:\/\/.*\.vercel\.app$/,
-        /^https?:\/\/.*the-law-kaksha.*$/,
-        /^https?:\/\/.*thelawkaksha\.com$/,
+        /^https:\/\/(www\.)?thelawkaksha\.com$/,
+        /^https:\/\/the-law-kaksha(-[a-z0-9-]+)?\.vercel\.app$/,
+        /^https:\/\/the-law-kaksha\.onrender\.com$/,
       ];
       const envOrigins = (process.env.FRONTEND_URL || "")
         .split(",")
@@ -90,11 +92,17 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 
-// OWASP A05: NoSQL / Mongo Operator Injection Sanitizer
+// OWASP A05: NoSQL / Mongo Operator Injection & Prototype Pollution Sanitizer
 function sanitizePayload(obj) {
   if (!obj || typeof obj !== "object") return;
   for (const key of Object.keys(obj)) {
-    if (key.startsWith("$") || key.includes(".")) {
+    if (
+      key.startsWith("$") ||
+      key.includes(".") ||
+      key === "__proto__" ||
+      key === "constructor" ||
+      key === "prototype"
+    ) {
       delete obj[key];
     } else if (typeof obj[key] === "object") {
       sanitizePayload(obj[key]);

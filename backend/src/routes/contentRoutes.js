@@ -140,15 +140,39 @@ const VERIFIED_REVIEWS = [
   },
 ];
 
+const reviewRateLimitMap = new Map();
+const REVIEW_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_REVIEWS_PER_HOUR = 5;
+
 router.get("/reviews", (req, res) => {
+  const publishedReviews = VERIFIED_REVIEWS.filter((r) => r.is_verified);
   return res.status(200).json({
     success: true,
-    reviews: VERIFIED_REVIEWS,
-    total: VERIFIED_REVIEWS.length,
+    reviews: publishedReviews,
+    total: publishedReviews.length,
   });
 });
 
 router.post("/reviews", (req, res) => {
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "global";
+  const now = Date.now();
+  const entry = reviewRateLimitMap.get(ip) || { count: 0, resetAt: now + REVIEW_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + REVIEW_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  reviewRateLimitMap.set(ip, entry);
+
+  if (entry.count > MAX_REVIEWS_PER_HOUR) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many review submissions from this IP. Please try again later.",
+    });
+  }
+
   const { student_name, student_rank, rating, title, comment } = req.body || {};
   if (!student_name || !title || !comment) {
     return res.status(400).json({
@@ -160,18 +184,18 @@ router.post("/reviews", (req, res) => {
   const newReview = {
     id: `rev-${Date.now().toString().slice(-4)}`,
     student_name: String(student_name).slice(0, 80),
-    student_rank: String(student_rank || "Verified Aspirant").slice(0, 100),
+    student_rank: String(student_rank || "Aspirant").slice(0, 100),
     rating: Math.min(Math.max(Number(rating) || 5, 1), 5),
     title: String(title).slice(0, 120),
     comment: String(comment).slice(0, 1000),
     created_at: new Date().toISOString(),
-    is_verified: true,
+    is_verified: false, // Default to unverified pending moderation
   };
 
   VERIFIED_REVIEWS.unshift(newReview);
   return res.status(201).json({
     success: true,
-    message: "Thank you! Your testimonial has been recorded.",
+    message: "Thank you! Your testimonial has been submitted for verification.",
     review: newReview,
   });
 });

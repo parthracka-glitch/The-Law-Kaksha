@@ -5,8 +5,9 @@
 
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 const Database = require("../db/database");
-const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
+const { requireAuth, requireAdmin, JWT_SECRET } = require("../middleware/authMiddleware");
 
 // -----------------------------------------------------------------------------
 // Public / Student Endpoints
@@ -163,15 +164,36 @@ router.post("/quizzes/:id/submit", (req, res) => {
       ? Number(((correctCount / (correctCount + incorrectCount)) * 100).toFixed(1))
       : 0;
 
-    const resolvedName = candidate_name || (user_id ? usersTable.findById(user_id)?.name : "Candidate") || "Candidate";
-    const resolvedStudentId = student_id || (user_id ? usersTable.findById(user_id)?.student_id : "LK-CANDIDATE") || "LK-CANDIDATE";
+    // Secure Submitter Identity Resolution (Anti-Spoofing)
+    let resolvedUserId = "usr-guest";
+    let resolvedStudentId = "GUEST";
+    let resolvedName = (candidate_name ? String(candidate_name).trim().slice(0, 60) : "Guest Aspirant");
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const decoded = jwt.verify(authHeader.split(" ")[1], JWT_SECRET);
+        if (decoded && decoded.id) {
+          resolvedUserId = decoded.id;
+          resolvedStudentId = decoded.student_id || "LRK-ENROLLED";
+          resolvedName = decoded.name || candidate_name || "Enrolled Student";
+        }
+      } catch (_) {}
+    } else if (user_id) {
+      const u = usersTable.findById(user_id);
+      if (u) {
+        resolvedUserId = u.id;
+        resolvedStudentId = u.student_id || "LRK-ENROLLED";
+        resolvedName = u.name || "Enrolled Student";
+      }
+    }
 
     // Create attempt record
     const attemptRecord = attemptsTable.insert({
       id: `att-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       quiz_id: quiz.id,
       quiz_title: quiz.title,
-      user_id: user_id || "usr-guest",
+      user_id: resolvedUserId,
       candidate_name: resolvedName,
       student_id: resolvedStudentId,
       score: finalScore,
@@ -285,8 +307,9 @@ router.get("/leaderboard", (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// Admin Management Endpoints
+// Admin Management Endpoints (OWASP A01: Protected via requireAdmin)
 // -----------------------------------------------------------------------------
+router.use("/admin", requireAdmin);
 
 /**
  * GET /api/admin/quizzes
@@ -443,10 +466,10 @@ router.delete("/admin/quizzes/:id", (req, res) => {
 });
 
 /**
- * GET /api/admin/attempts
- * List all student quiz attempts
+ * GET /api/admin/attempts & GET /api/quizzes/admin/attempts
+ * List all student quiz attempts (OWASP A01: Protected for Admin role only)
  */
-router.get("/admin/attempts", (req, res) => {
+const handleListAttempts = (req, res) => {
   try {
     const attemptsTable = Database.table("quiz_attempts");
     const attempts = attemptsTable.find();
@@ -461,6 +484,9 @@ router.get("/admin/attempts", (req, res) => {
     console.error("[Admin Quiz API] Error listing attempts:", err);
     res.status(500).json({ success: false, message: "Internal server error." });
   }
-});
+};
+
+router.get("/admin/attempts", requireAdmin, handleListAttempts);
+router.get("/quizzes/admin/attempts", requireAdmin, handleListAttempts);
 
 module.exports = router;

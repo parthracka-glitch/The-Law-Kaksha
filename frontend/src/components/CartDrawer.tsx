@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   X,
   ShoppingBag,
@@ -25,10 +26,26 @@ import {
   EyeOff,
   Smartphone,
   KeyRound,
+  AlertCircle,
 } from "lucide-react";
 import { useCart, BookFormat, FORMAT_PRICING } from "@/context/CartContext";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import { getApiBaseUrl } from "@/lib/api";
+
+const loadRazorpayCheckoutScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export function CartDrawer() {
   const {
@@ -62,8 +79,10 @@ export function CartDrawer() {
     phone: "",
     exam: "CA Foundation Paper 2: Business Laws",
   });
+  const router = useRouter();
   const [selectedPayment, setSelectedPayment] = useState<"upi" | "card">("upi");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(true);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -115,8 +134,19 @@ export function CartDrawer() {
 
   const handleCompletePayment = async () => {
     setIsProcessingPayment(true);
+    setPaymentError(null);
     try {
-      // 1. Create order on backend server with price verification
+      // 1. Ensure Razorpay Checkout script is loaded
+      const scriptLoaded = await loadRazorpayCheckoutScript();
+      if (!scriptLoaded) {
+        setPaymentError("Unable to load Razorpay payment gateway. Redirecting to checkout page...");
+        setIsProcessingPayment(false);
+        setIsCartOpen(false);
+        router.push("/checkout");
+        return;
+      }
+
+      // 2. Create order on backend server with price validation
       const createRes = await fetch(
         `${getApiBaseUrl()}/api/orders/create`,
         {
@@ -128,180 +158,209 @@ export function CartDrawer() {
             couponCode: couponCode || null,
           }),
         }
-      ).catch(() => null);
+      );
 
-      let orderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-      let razorpayOrderId = `order_${Date.now()}`;
-      const mockPaymentId = `pay_LK_${Date.now()}`;
-      const mockSignature = `sig_test_${Date.now()}`;
+      const createData = await createRes.json();
+      if (!createRes.ok || !createData.success) {
+        setPaymentError(createData?.message || "Failed to initiate payment order.");
+        setIsProcessingPayment(false);
+        return;
+      }
 
-      if (createRes && createRes.ok) {
-        const createData = await createRes.json();
-        orderId = createData.orderId || orderId;
-        razorpayOrderId = createData.razorpayOrderId || razorpayOrderId;
+      const orderData = createData.data || createData;
+      const orderId = orderData.orderId || orderData.id;
+      const razorpayOrderId = orderData.order_id || orderData.razorpayOrderId;
+      const amountPaise = orderData.amount_paise || Math.round((orderData.amount || cartTotal) * 100);
+      const currency = orderData.currency || "INR";
+      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key_id;
+
+      if (!keyId) {
+        setPaymentError("Payment gateway key is missing on the client. Please complete checkout on the main checkout page.");
+        setIsProcessingPayment(false);
+        return;
       }
 
       const currentDeviceId = getOrCreateDeviceId();
       const currentDeviceName = getDeviceFriendlyName();
 
-      // 2. Perform Server-Side Verification with Device Binding
-      const verifyRes = await fetch(
-        `${getApiBaseUrl()}/api/orders/verify`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId,
-            razorpayOrderId,
-            razorpayPaymentId: mockPaymentId,
-            razorpaySignature: mockSignature,
-            deviceId: currentDeviceId,
-            deviceName: currentDeviceName,
-          }),
-        }
-      ).catch(() => null);
-
-      let serverOrder: any = {};
-      let serverStudent: any = {};
-      let serverUnlockedIds: string[] = [];
-      let verifiedStudentId = "";
-      let verifiedTempPassword = "";
-      let verifiedToken = "";
-
-      if (verifyRes && verifyRes.ok) {
-        const verifyData = await verifyRes.json();
-        serverOrder = verifyData.order || {};
-        serverStudent = verifyData.student || {};
-        serverUnlockedIds = verifyData.unlockedItemIds || [];
-        verifiedStudentId = verifyData.studentId || (verifyData.credentials && verifyData.credentials.studentId) || serverStudent.student_id;
-        verifiedTempPassword = verifyData.tempPassword || (verifyData.credentials && verifyData.credentials.tempPassword);
-        verifiedToken = verifyData.token || "";
-      }
-
-      // Calculate unlocked IDs fallback
-      const unlockedIds: string[] = [...serverUnlockedIds];
-      items.forEach((item) => {
-        if (item.id === "ca-book-vol-1" || item.id === "book-vol-1" || item.id === "prod-vol1" || item.id === "course-ca-foundation-sub" || item.id === "ca-foundation-business-laws") {
-          unlockedIds.push("course-ca-foundation-sub", "ca-foundation-business-laws", "book-vol-1");
-        } else if (item.id === "ca-book-vol-2" || item.id === "book-vol-2" || item.id === "prod-vol2" || item.id === "course-cseet-sub" || item.id === "cseet-business-law") {
-          unlockedIds.push("course-cseet-sub", "cseet-business-law", "book-vol-2");
-        } else if (item.id === "prod-combo") {
-          unlockedIds.push("course-ca-foundation-sub", "course-cseet-sub", "book-vol-1", "book-vol-2");
-        } else if (item.id === "book-mcq" || item.title.toLowerCase().includes("mcq")) {
-          unlockedIds.push("book-mcq");
-        } else if (item.id === "book-ldr" || item.title.toLowerCase().includes("ldr")) {
-          unlockedIds.push("book-ldr");
-        } else if (item.id === "video-classes" || item.title.toLowerCase().includes("video")) {
-          unlockedIds.push("video-classes");
-        } else if (item.id === "mains-evaluation" || item.title.toLowerCase().includes("evaluation")) {
-          unlockedIds.push("mains-evaluation");
-        } else {
-          unlockedIds.push(item.id);
-        }
-      });
-
-      // Retrieve any prior unlocked IDs from existing session
-      let priorUnlocked: string[] = [];
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("lawkaksha_active_student") || localStorage.getItem("lawkaksha_student_session");
-        if (saved) {
+      // 3. Configure Razorpay Standard Checkout options
+      const options: any = {
+        key: keyId,
+        amount: amountPaise,
+        currency,
+        name: "The Law कक्षा",
+        description: items.map((i) => i.title).join(", ") || "CA Foundation / CSEET Codex Pass",
+        image: "/assets/logo-transparent.png",
+        order_id: razorpayOrderId,
+        handler: async function (response: any) {
+          setIsProcessingPayment(true);
           try {
-            const p = JSON.parse(saved);
-            if (p && Array.isArray(p.unlockedItemIds)) priorUnlocked = p.unlockedItemIds;
-          } catch (e) {}
-        }
-      }
+            const verifyRes = await fetch(
+              `${getApiBaseUrl()}/api/orders/verify`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  orderId,
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                  deviceId: currentDeviceId,
+                  deviceName: currentDeviceName,
+                }),
+              }
+            );
 
-      const studentName = serverStudent.name || studentData.name || "Student";
-      const studentEmail = serverStudent.email || studentData.email || "";
-      const rollNumber = verifiedStudentId || serverStudent.student_id || `LRK-2026-CA${Math.floor(1000 + Math.random() * 9000)}`;
-      const finalTempPassword = verifiedTempPassword || `Law@${Math.floor(1000 + Math.random() * 9000)}`;
-      const mergedUnlockedIds = Array.from(new Set([...priorUnlocked, ...unlockedIds, ...serverUnlockedIds]));
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData?.message || "Payment signature verification failed.");
+            }
 
-      const generatedOrder = {
-        orderId: serverOrder.id || orderId,
-        razorpayPaymentId: serverOrder.gateway_payment_id || mockPaymentId,
-        items: [...items],
-        totalAmount: serverOrder.total_amount || cartTotal,
-        discountGiven: cartSubtotal - cartTotal,
-        date: new Date().toLocaleDateString("en-IN", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        studentName: studentName,
-        email: studentEmail,
-        phone: studentData.phone || "",
-        studentId: rollNumber,
-        tempPassword: finalTempPassword,
-        boundGmail: studentEmail,
-        deviceId: currentDeviceId,
-        deviceName: currentDeviceName,
-        unlockedItemIds: mergedUnlockedIds,
-        accessType: "Instant In-Web DRM Access Pass",
+            const serverOrder = verifyData.order || {};
+            const serverStudent = verifyData.student || {};
+            const serverUnlockedIds = verifyData.unlockedItemIds || [];
+            const verifiedStudentId = verifyData.studentId || (verifyData.credentials && verifyData.credentials.studentId) || serverStudent.student_id;
+            const verifiedTempPassword = verifyData.tempPassword || (verifyData.credentials && verifyData.credentials.tempPassword);
+            const verifiedToken = verifyData.token || "";
+
+            const unlockedIds: string[] = [...serverUnlockedIds];
+            items.forEach((item) => {
+              if (item.id === "ca-book-vol-1" || item.id === "book-vol-1" || item.id === "prod-vol1" || item.id === "course-ca-foundation-sub" || item.id === "ca-foundation-business-laws") {
+                unlockedIds.push("course-ca-foundation-sub", "ca-foundation-business-laws", "book-vol-1");
+              } else if (item.id === "ca-book-vol-2" || item.id === "book-vol-2" || item.id === "prod-vol2" || item.id === "course-cseet-sub" || item.id === "cseet-business-law") {
+                unlockedIds.push("course-cseet-sub", "cseet-business-law", "book-vol-2");
+              } else if (item.id === "prod-combo") {
+                unlockedIds.push("course-ca-foundation-sub", "course-cseet-sub", "book-vol-1", "book-vol-2");
+              } else {
+                unlockedIds.push(item.id);
+              }
+            });
+
+            let priorUnlocked: string[] = [];
+            if (typeof window !== "undefined") {
+              const saved = localStorage.getItem("lawkaksha_active_student") || localStorage.getItem("lawkaksha_student_session");
+              if (saved) {
+                try {
+                  const p = JSON.parse(saved);
+                  if (p && Array.isArray(p.unlockedItemIds)) priorUnlocked = p.unlockedItemIds;
+                } catch (e) {}
+              }
+            }
+
+            const studentName = serverStudent.name || studentData.name || "Student";
+            const studentEmail = serverStudent.email || studentData.email || "";
+            const rollNumber = verifiedStudentId || serverStudent.student_id || `LRK-2026-CA${Math.floor(1000 + Math.random() * 9000)}`;
+            const finalTempPassword = verifiedTempPassword || `Law@${Math.floor(1000 + Math.random() * 9000)}`;
+            const mergedUnlockedIds = Array.from(new Set([...priorUnlocked, ...unlockedIds, ...serverUnlockedIds]));
+
+            const generatedOrder = {
+              orderId: serverOrder.id || orderId,
+              razorpayPaymentId: response.razorpay_payment_id,
+              items: [...items],
+              totalAmount: serverOrder.total_amount || cartTotal,
+              discountGiven: cartSubtotal - cartTotal,
+              date: new Date().toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              studentName,
+              email: studentEmail,
+              phone: studentData.phone || "",
+              studentId: rollNumber,
+              tempPassword: finalTempPassword,
+              boundGmail: studentEmail,
+              deviceId: currentDeviceId,
+              deviceName: currentDeviceName,
+              unlockedItemIds: mergedUnlockedIds,
+              accessType: "Instant In-Web DRM Access Pass",
+            };
+
+            if (typeof window !== "undefined") {
+              const studentSession = {
+                id: rollNumber,
+                name: studentName,
+                rollNumber,
+                student_id: rollNumber,
+                email: studentEmail,
+                phone: studentData.phone,
+                targetExam: studentData.exam,
+                activePlanTitle: items.map((i) => i.title).join(" + "),
+                unlockedItemIds: mergedUnlockedIds,
+                streakDays: 14,
+                todayMinutes: 40,
+                todayGoalMinutes: 45,
+                examCountdownDays: 68,
+                avatarInitials: studentName.slice(0, 2).toUpperCase(),
+                activeDeviceId: currentDeviceId,
+                activeDeviceName: currentDeviceName,
+                boundGmail: studentEmail,
+              };
+
+              localStorage.setItem("lawkaksha_student_session", JSON.stringify(studentSession));
+              localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
+              if (verifiedToken) {
+                localStorage.setItem("lawkaksha_token", verifiedToken);
+              }
+
+              const adminSubEntry = {
+                id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                studentName,
+                studentRoll: rollNumber,
+                email: studentEmail,
+                phone: studentData.phone || "+91 98765 43210",
+                item: items.map((i) => i.title).join(", "),
+                targetExam: studentData.exam,
+                amount: `₹${orderData.amount || cartTotal}`,
+                date: "Just now",
+                paymentMode: selectedPayment === "upi" ? "UPI / Razorpay" : "Card / Netbanking",
+                accessStatus: "Active",
+              };
+
+              const existingAdminSubs = localStorage.getItem("lawkaksha_admin_subs");
+              const parsedAdminSubs = existingAdminSubs ? JSON.parse(existingAdminSubs) : [];
+              localStorage.setItem("lawkaksha_admin_subs", JSON.stringify([adminSubEntry, ...parsedAdminSubs]));
+              localStorage.removeItem("lawkaksha_admin_orders");
+
+              window.dispatchEvent(new Event("storage"));
+              window.dispatchEvent(new CustomEvent("lawkaksha_student_updated", { detail: mergedUnlockedIds }));
+            }
+
+            setLastOrderDetails(generatedOrder);
+            setCheckoutStep("success");
+            clearCart();
+          } catch (verifyErr: any) {
+            console.error("Verification error:", verifyErr);
+            setPaymentError(verifyErr?.message || "Payment verification failed. Please contact support.");
+          } finally {
+            setIsProcessingPayment(false);
+          }
+        },
+        prefill: {
+          name: studentData.name,
+          email: studentData.email,
+          contact: studentData.phone,
+        },
+        theme: {
+          color: "#BFAFE5",
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessingPayment(false);
+          },
+        },
       };
 
-      if (typeof window !== "undefined") {
-        const studentSession = {
-          id: rollNumber,
-          name: studentName,
-          rollNumber: rollNumber,
-          student_id: rollNumber,
-          email: studentEmail,
-          phone: studentData.phone,
-          targetExam: studentData.exam,
-          activePlanTitle: items.map((i) => i.title).join(" + "),
-          unlockedItemIds: mergedUnlockedIds,
-          streakDays: 14,
-          todayMinutes: 40,
-          todayGoalMinutes: 45,
-          examCountdownDays: 68,
-          avatarInitials: studentName.slice(0, 2).toUpperCase(),
-          activeDeviceId: currentDeviceId,
-          activeDeviceName: currentDeviceName,
-          boundGmail: studentEmail,
-        };
-
-        localStorage.setItem("lawkaksha_student_session", JSON.stringify(studentSession));
-        localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
-        if (verifiedToken) {
-          localStorage.setItem("lawkaksha_token", verifiedToken);
-        }
-
-        // Save into Admin Subscriptions
-        const adminSubEntry = {
-          id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-          studentName: studentName,
-          studentRoll: rollNumber,
-          email: studentEmail,
-          phone: studentData.phone || "+91 98765 43210",
-          item: items.map((i) => i.title).join(", "),
-          targetExam: studentData.exam,
-          amount: `₹${cartTotal}`,
-          date: "Just now",
-          paymentMode: selectedPayment === "upi" ? "UPI / Razorpay" : "Card / Netbanking",
-          accessStatus: "Active",
-        };
-
-        const existingAdminSubs = localStorage.getItem("lawkaksha_admin_subs");
-        const parsedAdminSubs = existingAdminSubs ? JSON.parse(existingAdminSubs) : [];
-        localStorage.setItem("lawkaksha_admin_subs", JSON.stringify([adminSubEntry, ...parsedAdminSubs]));
-
-        // Clean out legacy courier orders key
-        localStorage.removeItem("lawkaksha_admin_orders");
-
-        window.dispatchEvent(new Event("storage"));
-        window.dispatchEvent(new CustomEvent("lawkaksha_student_updated", { detail: mergedUnlockedIds }));
-      }
-
-      setLastOrderDetails(generatedOrder);
-      setCheckoutStep("success");
-      clearCart();
-    } catch (err) {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
       console.error("Payment error:", err);
-    } finally {
+      setPaymentError(err?.message || "Failed to complete payment transaction.");
       setIsProcessingPayment(false);
     }
   };
@@ -653,6 +712,13 @@ export function CartDrawer() {
                 </div>
               </div>
 
+              {paymentError && (
+                <div className="p-3 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-[#C35F3B] text-xs flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
+                  <span>{paymentError}</span>
+                </div>
+              )}
+
               <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
@@ -668,7 +734,10 @@ export function CartDrawer() {
                   className="flex-1 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   {isProcessingPayment ? (
-                    <span>Activating DRM Access...</span>
+                    <span className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
+                      <span>Opening Secure Gateway...</span>
+                    </span>
                   ) : (
                     <>
                       <Lock className="w-3.5 h-3.5" />
@@ -676,6 +745,16 @@ export function CartDrawer() {
                     </>
                   )}
                 </button>
+              </div>
+
+              <div className="text-center pt-1">
+                <Link
+                  href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
+                  className="text-[11px] text-[#4B8097] hover:underline"
+                >
+                  Prefer full-page checkout? Click here →
+                </Link>
               </div>
             </div>
           )}

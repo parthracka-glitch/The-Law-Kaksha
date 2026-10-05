@@ -22,13 +22,29 @@ yarn-error.log*
 # Environment files
 .env
 .env.local
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
 frontend/.env
 frontend/.env.local
+frontend/.env.production
+frontend/.env.production.local
 backend/.env
 backend/.env.local
+backend/.env.production
+
+# Database & Backups (OWASP / Sensitive PII)
+backend/data/*.json
+backend/data/backups/
+backend/data/*.tmp
+backend/uploads/
+
+# Paid Codex PDFs & Source Materials
+frontend/public/notes/*.pdf
+assets/source-materials/*.pdf
+Assets/source-materials/*.pdf
+/*.pdf
 
 # Vercel & Render
 .vercel/
@@ -44,10 +60,6 @@ frontend/next-env.d.ts
 .DS_Store
 Thumbs.db
 *.tmp
-backend/data/*.tmp
-backend/uploads/
-# Root-level PDF assets
-/*.pdf
 
 # Agent shared memory private notes
 docs/audit/private/

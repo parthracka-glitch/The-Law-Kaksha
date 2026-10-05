@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
+
+function verifyJwtToken(token: string, secret: string): any | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const [headerB64, payloadB64, sigB64] = parts;
+
+    const expectedSig = crypto
+      .createHmac("sha256", secret)
+      .update(`${headerB64}.${payloadB64}`)
+      .digest("base64url");
+
+    const sigBuf = Buffer.from(sigB64);
+    const expBuf = Buffer.from(expectedSig);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return null;
+    }
+
+    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf-8"));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -9,11 +37,85 @@ export async function GET(
   try {
     const { filename } = await context.params;
     const url = new URL(request.url);
-    const format = url.searchParams.get("format");
     
     // Sanitize filename to prevent directory traversal and decode URL components
     const decodedFilename = decodeURIComponent(filename);
     const safeFilename = path.basename(decodedFilename);
+    const lowerName = safeFilename.toLowerCase();
+
+    // SECURITY DRM: Prevent direct browser file download / Save As.
+    // If accessed as a browser navigation (new tab, address bar, or standard link click),
+    // redirect directly to the in-portal DRM Protected Reader where downloading is disabled.
+    const dest = request.headers.get("sec-fetch-dest");
+    const mode = request.headers.get("sec-fetch-mode");
+    const accept = request.headers.get("accept") || "";
+
+    if (dest === "document" || mode === "navigate" || accept.includes("text/html")) {
+      return NextResponse.redirect(
+        new URL(`/reader?file=${encodeURIComponent(safeFilename)}`, request.url),
+        307
+      );
+    }
+
+    // Check sample status
+    const isSampleFile =
+      lowerName.includes("sample") ||
+      lowerName.includes("preview") ||
+      lowerName.includes("infographic") ||
+      lowerName.includes("infogarphic");
+
+    // Authenticate request via Bearer header, URL query token, or cookie (SEC-06)
+    const authHeader = request.headers.get("authorization") || "";
+    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
+    const queryToken = url.searchParams.get("token") || "";
+    const cookieToken =
+      request.cookies.get("lawkaksha_token")?.value ||
+      request.cookies.get("token")?.value ||
+      "";
+    const rawToken = bearerToken || queryToken || cookieToken;
+
+    const jwtSecret =
+      process.env.JWT_SECRET ||
+      (process.env.NODE_ENV !== "production" ? "the_law_kaksha_jwt_super_secret_2026_foundation" : null);
+
+    if (!jwtSecret && process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "Server authentication misconfigured (JWT_SECRET missing)." },
+        { status: 500 }
+      );
+    }
+
+    if (!rawToken) {
+      if (!isSampleFile) {
+        return NextResponse.json(
+          {
+            error: "Authentication required to access DRM-protected codex material.",
+            code: "UNAUTHORIZED_DRM",
+          },
+          { status: 401 }
+        );
+      }
+    } else if (jwtSecret) {
+      const decodedUser = verifyJwtToken(rawToken, jwtSecret);
+      if (!decodedUser) {
+        if (!isSampleFile) {
+          return NextResponse.json(
+            { error: "Invalid or expired DRM authorization token.", code: "INVALID_TOKEN" },
+            { status: 401 }
+          );
+        }
+      } else {
+        const isAdmin = decodedUser.role === "admin";
+        const hasDrmAccess = decodedUser.drm_access !== false;
+        if (!isAdmin && !hasDrmAccess) {
+          return NextResponse.json(
+            { error: "Active enrollment / DRM access pass required.", code: "DRM_ACCESS_REVOKED" },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     const possiblePaths = [
       path.join(process.cwd(), "public", "notes", safeFilename),
       path.join(process.cwd(), "..", "backend", "uploads", safeFilename),
@@ -24,8 +126,7 @@ export async function GET(
       path.join(process.cwd(), "..", "backend", "uploads", path.basename(filename)),
     ];
 
-    // Aliases for Indian Partnership Act & SOGA units if accessed via canonical or original names
-    const lowerName = safeFilename.toLowerCase();
+    // Canonical aliases for specific units
     if (lowerName.includes("infographic") || lowerName.includes("infogarphic")) {
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-infographics.pdf"));
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Partnership Infogarphics.pdf"));
@@ -62,36 +163,11 @@ export async function GET(
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"));
     }
 
-    let filePath = possiblePaths.find((p) => fs.existsSync(p));
+    const filePath = possiblePaths.find((p) => fs.existsSync(p));
 
-    // Fallback to default canonical PDF if specific name not found on disk
+    // Fail closed with 404 if file does not exist on disk (no silent leaks of other paid PDFs)
     if (!filePath) {
-      const fallbackPaths = [
-        path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
-        path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"),
-        path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"),
-        path.join(process.cwd(), "public", "notes", "cseet-management-full.pdf"),
-        path.join(process.cwd(), "public", "notes", "cseet-business-law-full.pdf"),
-      ];
-      filePath = fallbackPaths.find((p) => fs.existsSync(p));
-    }
-
-    if (!filePath) {
-      return NextResponse.json({ error: "PDF not found" }, { status: 404 });
-    }
-
-    // SECURITY DRM: Prevent direct browser file download / Save As.
-    // If accessed as a browser navigation (new tab, address bar, or standard link click),
-    // redirect directly to the in-portal DRM Protected Reader where downloading is disabled.
-    const dest = request.headers.get("sec-fetch-dest");
-    const mode = request.headers.get("sec-fetch-mode");
-    const accept = request.headers.get("accept") || "";
-
-    if (dest === "document" || mode === "navigate" || accept.includes("text/html")) {
-      return NextResponse.redirect(
-        new URL(`/reader?file=${encodeURIComponent(safeFilename)}`, request.url),
-        307
-      );
+      return NextResponse.json({ error: "PDF resource not found." }, { status: 404 });
     }
 
     const stat = await fs.promises.stat(filePath);

@@ -58,8 +58,38 @@ function loadFromDisk() {
       db = JSON.parse(data);
       console.log("[Database] Loaded existing database from disk.");
     } catch (err) {
-      console.error("[Database] Error parsing database file, initializing empty:", err);
-      saveToDisk();
+      console.error("[Database] CRITICAL: Error parsing database file:", err);
+      // Quarantine corrupted file to prevent data loss
+      const corruptFile = `${DB_FILE}.corrupt.${Date.now()}`;
+      try {
+        fs.copyFileSync(DB_FILE, corruptFile);
+        console.warn(`[Database] Quarantined corrupted DB file to: ${corruptFile}`);
+      } catch (copyErr) {
+        console.error("[Database] Failed to quarantine corrupt DB file:", copyErr);
+      }
+
+      // Check for available backups
+      const backupsDir = path.join(DATA_DIR, "backups");
+      let restored = false;
+      if (fs.existsSync(backupsDir)) {
+        try {
+          const files = fs.readdirSync(backupsDir).filter((f) => f.endsWith(".json")).sort().reverse();
+          for (const bf of files) {
+            try {
+              const bData = fs.readFileSync(path.join(backupsDir, bf), "utf8");
+              db = JSON.parse(bData);
+              console.log(`[Database] Successfully restored database state from backup: ${bf}`);
+              restored = true;
+              break;
+            } catch (_) {}
+          }
+        } catch (_) {}
+      }
+
+      if (!restored) {
+        console.error("[Database] No valid backup found. Initializing empty database state.");
+        saveToDisk();
+      }
     }
   } else {
     console.log("[Database] Initializing new database file.");

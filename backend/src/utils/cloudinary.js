@@ -4,7 +4,10 @@ const path = require("path");
 
 // Configure Cloudinary from environment variables
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME || "wpt4eabs",
+  cloud_name:
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    process.env.CLOUDINARY_NAME ||
+    (process.env.NODE_ENV === "production" ? "" : "wpt4eabs"),
   api_key: process.env.CLOUDINARY_API_KEY || "",
   api_secret: process.env.CLOUDINARY_API_SECRET || "",
   secure: true,
@@ -82,18 +85,6 @@ const uploadToStorage = async (fileInput, options = {}) => {
     fs.copyFileSync(fileInput, targetPath);
   }
 
-  // Also mirror to frontend/public/notes if present
-  const frontendNotesDir = path.join(__dirname, "../../../frontend/public/notes");
-  if (fs.existsSync(frontendNotesDir)) {
-    try {
-      const frontendTarget = path.join(frontendNotesDir, filename);
-      if (Buffer.isBuffer(fileInput)) {
-        fs.writeFileSync(frontendTarget, fileInput);
-      } else if (typeof fileInput === "string" && fs.existsSync(fileInput)) {
-        fs.copyFileSync(fileInput, frontendTarget);
-      }
-    } catch (e) {}
-  }
 
   return {
     url: `/api/pdf/${filename}`,

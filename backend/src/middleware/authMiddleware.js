@@ -8,7 +8,15 @@ const Database = require("../db/database");
 const User = require("../models/User");
 const { isConnected } = require("../db/mongo");
 
-const JWT_SECRET = process.env.JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026";
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  (process.env.NODE_ENV === "production"
+    ? null
+    : "the_law_kaksha_secure_jwt_secret_key_2026");
+
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("[FATAL SECURITY CONFIGURATION] JWT_SECRET environment variable is mandatory in production.");
+}
 
 /**
  * Enforces authenticated student or admin session
@@ -24,7 +32,7 @@ async function requireAuth(req, res, next) {
 
   const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026");
     let user = null;
 
     if (isConnected()) {
@@ -48,6 +56,18 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({
         success: false,
         message: "User session is invalid or has been deactivated.",
+      });
+    }
+
+    // Check tokenVersion for instant revocation on password reset or force logout
+    if (
+      decoded.tokenVersion !== undefined &&
+      user.tokenVersion !== undefined &&
+      decoded.tokenVersion !== user.tokenVersion
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Session has been invalidated due to a security update or password change. Please log in again.",
       });
     }
 

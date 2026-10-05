@@ -205,14 +205,17 @@ export default function CheckoutPage() {
     const orderData = createRes.data || createRes;
     const orderId = orderData.orderId || orderData.id;
     const razorpayOrderId = orderData.order_id || orderData.razorpayOrderId;
-    const amountPaise = orderData.amount_paise || Math.round((orderData.amount || cartTotal) * 100);
-    const currency = orderData.currency || "INR";
     const keyId =
       process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
-      orderData.key_id ||
-      "rzp_test_TjoIIrwrXrydpn";
+      orderData.key_id;
+    const amountPaise = orderData.amount || Math.round(cartTotal * 100);
+    const currency = orderData.currency || "INR";
 
-    // 3. Configure Razorpay Standard Checkout modal options
+    if (!keyId) {
+      setError("Razorpay payment gateway is not configured. Please ensure NEXT_PUBLIC_RAZORPAY_KEY_ID or server key_id is set.");
+      setLoading(false);
+      return;
+    }
     const options: any = {
       key: keyId,
       amount: amountPaise,
