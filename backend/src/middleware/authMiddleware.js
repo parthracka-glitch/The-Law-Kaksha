@@ -125,6 +125,7 @@ async function optionalAuth(req, res, next) {
 
 module.exports = {
   requireAuth,
+  authenticateToken: requireAuth,
   requireAdmin,
   optionalAuth,
   JWT_SECRET,

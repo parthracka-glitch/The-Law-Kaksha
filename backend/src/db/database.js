@@ -35,7 +35,16 @@ function saveToDisk() {
   try {
     const tempFile = `${DB_FILE}.tmp`;
     fs.writeFileSync(tempFile, JSON.stringify(db, null, 2), "utf8");
-    fs.renameSync(tempFile, DB_FILE);
+    try {
+      fs.renameSync(tempFile, DB_FILE);
+    } catch (renameErr) {
+      if (process.platform === "win32" && (renameErr.code === "EPERM" || renameErr.code === "EBUSY")) {
+        fs.copyFileSync(tempFile, DB_FILE);
+        try { fs.unlinkSync(tempFile); } catch (_) {}
+      } else {
+        throw renameErr;
+      }
+    }
   } catch (err) {
     console.error("[Database] Error writing to disk:", err);
   }

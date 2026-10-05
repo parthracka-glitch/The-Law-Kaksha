@@ -51,6 +51,10 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
   res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; frame-src 'self' https://api.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.razorpay.com https://*.mongodb.net https://*.thelawkaksha.com;"
+  );
   next();
 });
 
@@ -123,6 +127,36 @@ app.use("/api/auth", (req, res, next) => {
   }
   next();
 });
+
+// OWASP ASVS: Sliding-Window Rate Limiter for Orders & Payments (Carding & Brute Force Guard)
+const orderRateLimitMap = new Map();
+const ORDER_WINDOW_MS = 60 * 1000;
+const MAX_ORDER_REQUESTS = process.env.NODE_ENV === "test" ? 500 : 60;
+const orderRateLimiter = (req, res, next) => {
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "global";
+  const now = Date.now();
+  const entry = orderRateLimitMap.get(ip) || { count: 0, resetAt: now + ORDER_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + ORDER_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  orderRateLimitMap.set(ip, entry);
+
+  if (entry.count > MAX_ORDER_REQUESTS) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many transaction requests. Please slow down and try again in 1 minute.",
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+};
+app.use("/api/orders", orderRateLimiter);
+app.use("/api/create-order", orderRateLimiter);
+app.use("/api/verify-payment", orderRateLimiter);
 
 // Mount API Routes
 app.use("/api/auth", authRoutes);
