@@ -16,7 +16,7 @@ const server = app.listen(0, "127.0.0.1", () => {
     ["--test", "tests/admin_security.test.js", "tests/auth_device.test.js", "tests/catalog.test.js", "tests/orders_drm.test.js", "tests/security_hardening.test.js"],
     {
       cwd: __dirname + "/..",
-      env: { ...process.env, API_URL: testApiUrl, PORT: String(port) },
+      env: { ...process.env, NODE_ENV: "test", API_URL: testApiUrl, PORT: String(port) },
       stdio: "inherit",
     }
   );

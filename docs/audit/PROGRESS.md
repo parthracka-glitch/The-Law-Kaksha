@@ -7,7 +7,7 @@ Status values: Not started · In progress · Blocked · Done · Verified (checke
 | 1 | Product understanding and flow audit | Done | gemini | 2026-10-05 | | Product understanding, user flows, and gaps documented |
 | 1B | As-is documentation | Done | gemini | 2026-10-05 | | Complete 41-file as-is documentation set in docs/ |
 | 2 | Safety net (tests) | Done | gemini | 2026-10-05 | | Automated test runner, universal verification harness, and CI workflow established |
-| 3 | Security hardening | Not started | | | | |
+| 3 | Security hardening | Done | gemini | 2026-10-05 | | OWASP ASVS Level 2, CSP, rate limiters, docs/07-security set & SECURITY_FINDINGS.md |
 | 4 | Dead code, duplicates, clutter | Not started | | | | |
 | 5 | Bug fixing | Not started | | | | |
 | 6 | Folder and file organization (approval gate) | Not started | | | | Requires owner approval gate |

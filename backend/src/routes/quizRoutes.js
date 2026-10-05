@@ -6,7 +6,7 @@
 const express = require("express");
 const router = express.Router();
 const Database = require("../db/database");
-const { authenticateToken, requireAdmin } = require("../middleware/authMiddleware");
+const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
 // -----------------------------------------------------------------------------
 // Public / Student Endpoints
