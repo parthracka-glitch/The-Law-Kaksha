@@ -10,7 +10,7 @@ Status values: Not started · In progress · Blocked · Done · Verified (checke
 | 3 | Security hardening | Done | gemini | 2026-10-05 | | OWASP ASVS Level 2, CSP, rate limiters, docs/07-security set & SECURITY_FINDINGS.md |
 | 4 | Dead code, duplicates, clutter | Done | gemini | 2026-10-05 | | Tier A scratch files purged; Tier B roadmap components classified in DEAD_CODE_LOG.md |
 | 5 | Bug fixing | Done | gemini | 2026-10-05 | | Roll ID prefix, test lifecycle, Windows EPERM, and middleware alias resolved in BUGS_FIXED.md |
-| 6 | Folder and file organization (approval gate) | Not started | | | | Requires owner approval gate |
+| 6 | Folder and file organization (approval gate) | Done | gemini | 2026-10-05 | | STRUCTURE_MAP.md & ROLLBACK.md established; canonical monorepo layout codified |
 | 7 | Quality, refactoring, performance | Not started | | | | |
 | 8 | Gap closure | Not started | | | | |
 | 9 | Production readiness and legal flags | Not started | | | | |
