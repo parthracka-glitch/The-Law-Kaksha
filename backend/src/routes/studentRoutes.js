@@ -224,4 +224,409 @@ router.post("/sync-progress", requireAuth, async (req, res) => {
   }
 });
 
+// ==========================================
+// SURFACE C SPECIFIC MODULES (§9 & §10)
+// ==========================================
+
+// GET /api/student/gate — Gate check: account has >= 1 active entitlement (§2, C0)
+router.get("/gate", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const now = new Date();
+
+    const entitlementsTable = Database.table("entitlements");
+    const activeEntitlements = entitlementsTable.find((e) => {
+      if (e.user_id !== userId && e.user_email !== email) return false;
+      if (e.status !== "active") return false;
+      if (e.expires_at && new Date(e.expires_at) < now) return false;
+      return true;
+    });
+
+    let isAllowed = activeEntitlements.length > 0;
+
+    // Check legacy subscriptions fallback
+    if (!isAllowed) {
+      const subsTable = Database.table("subscriptions");
+      const legacySub = subsTable.findOne((s) => (s.email === email || s.studentRoll === req.user.student_id) && s.accessStatus === "Active");
+      if (legacySub || req.user.drm_access) {
+        isAllowed = true;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      allowed: isAllowed,
+      hasActiveSubscription: isAllowed,
+      entitlementsCount: activeEntitlements.length,
+      user: {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        student_id: req.user.student_id,
+        role: req.user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error checking student gate: " + err.message });
+  }
+});
+
+// GET /api/student/resources — Subscribed resources with expiry badge (C1)
+router.get("/resources", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const now = new Date();
+
+    const entitlementsTable = Database.table("entitlements");
+    const activeEntitlements = entitlementsTable.find((e) => {
+      if (e.user_id !== userId && e.user_email !== email) return false;
+      if (e.status !== "active") return false;
+      if (e.expires_at && new Date(e.expires_at) < now) return false;
+      return true;
+    });
+
+    const plansTable = Database.table("subscription_plans");
+    const coursesTable = Database.table("courses");
+    const resourcesTable = Database.table("resources");
+
+    const entitledCourseIds = new Set();
+    const planItems = [];
+
+    activeEntitlements.forEach((ent) => {
+      if (ent.item_type === "subscription") {
+        const plan = plansTable.findOne((p) => p.id === ent.item_id || p.slug === ent.item_id);
+        if (plan) {
+          (plan.course_ids || []).forEach((cId) => entitledCourseIds.add(cId));
+          planItems.push({
+            ...plan,
+            expires_at: ent.expires_at,
+            days_remaining: Math.max(0, Math.ceil((new Date(ent.expires_at) - now) / (1000 * 60 * 60 * 24))),
+          });
+        }
+      } else if (ent.item_type === "extra_course" || ent.item_type === "course") {
+        entitledCourseIds.add(ent.item_id);
+      }
+    });
+
+    // Fallback: If student has drm_access, default to core courses
+    if (entitledCourseIds.size === 0 && (req.user.drm_access || req.user.role === "admin")) {
+      entitledCourseIds.add("course-ca-foundation");
+      entitledCourseIds.add("course-cseet");
+    }
+
+    const availableCourses = coursesTable.find((c) => entitledCourseIds.has(c.id));
+    const availableResources = resourcesTable.find((r) => entitledCourseIds.has(r.course_id) || entitledCourseIds.has(r.course));
+
+    res.status(200).json({
+      success: true,
+      subscriptions: planItems,
+      courses: availableCourses,
+      resources: availableResources,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching student resources: " + err.message });
+  }
+});
+
+// GET /api/student/explore — Other resources available to buy (C2)
+router.get("/explore", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const now = new Date();
+
+    const entitlementsTable = Database.table("entitlements");
+    const activeItemIds = new Set(
+      entitlementsTable
+        .find((e) => (e.user_id === userId || e.user_email === email) && e.status === "active" && new Date(e.expires_at) >= now)
+        .map((e) => e.item_id)
+    );
+
+    const coursesTable = Database.table("courses");
+    const plansTable = Database.table("subscription_plans");
+
+    // Unowned extra courses
+    const extraCourses = coursesTable
+      .find((c) => c.kind === "extra" && c.is_active !== false && !activeItemIds.has(c.id))
+      .map((c) => ({ ...c, item_type: "extra_course" }));
+
+    // Unowned subscription plans
+    const subscriptions = plansTable
+      .find((p) => p.is_active !== false && !activeItemIds.has(p.id) && !activeItemIds.has(p.slug))
+      .map((p) => ({ ...p, item_type: "subscription" }));
+
+    res.status(200).json({
+      success: true,
+      exploreItems: [...extraCourses, ...subscriptions],
+      extraCourses,
+      subscriptions,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching explore carousel items: " + err.message });
+  }
+});
+
+// GET /api/student/calendar — Live sessions, subscription expiries, streak days (C4)
+router.get("/calendar", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+
+    const liveSessionsTable = Database.table("live_sessions");
+    const sessions = liveSessionsTable.find((s) => s.is_active !== false);
+
+    const entitlementsTable = Database.table("entitlements");
+    const expiries = entitlementsTable
+      .find((e) => (e.user_id === userId || e.user_email === email) && e.status === "active")
+      .map((e) => ({
+        id: `exp-${e.id}`,
+        title: `Access Expiry (${e.item_type})`,
+        date: e.expires_at,
+        type: "expiry",
+      }));
+
+    const userStatsTable = Database.table("user_stats");
+    const stats = userStatsTable.findOne((u) => u.user_id === userId);
+
+    res.status(200).json({
+      success: true,
+      sessions,
+      expiries,
+      streakDays: stats ? stats.current_streak : 1,
+      lastActiveDate: stats ? stats.last_active_date : new Date().toISOString().split("T")[0],
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching student calendar: " + err.message });
+  }
+});
+
+// GET /api/student/case-studies — Case studies for student dashboard (C7)
+router.get("/case-studies", requireAuth, async (req, res) => {
+  try {
+    const caseStudiesTable = Database.table("case_studies");
+    const caseStudies = caseStudiesTable.find((c) => c.is_published !== false && c.show_on_dashboard !== false);
+    res.status(200).json({ success: true, count: caseStudies.length, caseStudies });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching dashboard case studies: " + err.message });
+  }
+});
+
+// GET /api/student/profile & PUT /api/student/profile — Profile changes (C5)
+router.get("/profile", requireAuth, async (req, res) => {
+  try {
+    const usersTable = Database.table("users");
+    const user = usersTable.findOne((u) => u.id === req.user.id) || req.user;
+    res.status(200).json({
+      success: true,
+      profile: {
+        id: user.id,
+        name: user.name,
+        email: user.email, // read-only per §9 C5
+        phone: user.phone || "",
+        city: user.city || "",
+        state: user.state || "",
+        avatar_url: user.avatar_url || user.picture || "",
+        student_id: user.student_id,
+        role: user.role,
+        joined_date: user.joined_date || user.created_at,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching profile: " + err.message });
+  }
+});
+
+router.put("/profile", requireAuth, async (req, res) => {
+  try {
+    const { name, phone, city, state, avatar_url } = req.body;
+    const usersTable = Database.table("users");
+    const updates = {};
+    if (name) updates.name = String(name).trim();
+    if (phone !== undefined) updates.phone = String(phone).trim();
+    if (city !== undefined) updates.city = String(city).trim();
+    if (state !== undefined) updates.state = String(state).trim();
+    if (avatar_url !== undefined) {
+      updates.avatar_url = avatar_url;
+      updates.picture = avatar_url;
+    }
+
+    const updated = usersTable.update(req.user.id, updates);
+
+    if (isConnected()) {
+      try {
+        await User.findOneAndUpdate({ id: req.user.id }, updates);
+      } catch (_) {}
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      profile: updated,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating profile: " + err.message });
+  }
+});
+
+// GET /api/student/refer — Refer & earn stats and code (C6, §10.6)
+router.get("/refer", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const usersTable = Database.table("users");
+    let user = usersTable.findOne((u) => u.id === userId);
+
+    if (!user.referral_code) {
+      const randomCode = `LK-${(user.name || "REF").slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      usersTable.update(userId, { referral_code: randomCode });
+      user.referral_code = randomCode;
+    }
+
+    const referralsTable = Database.table("referrals");
+    const referrals = referralsTable.find((r) => r.referrer_user_id === userId);
+
+    const qualifiedCount = referrals.filter((r) => r.status === "qualified" || r.status === "rewarded").length;
+    const pendingCount = referrals.filter((r) => r.status === "pending").length;
+
+    res.status(200).json({
+      success: true,
+      referralCode: user.referral_code,
+      referralLink: `https://thelawkaksha.com?ref=${user.referral_code}`,
+      stats: {
+        totalInvites: referrals.length,
+        qualified: qualifiedCount,
+        pending: pendingCount,
+        rewardPoints: qualifiedCount * 50,
+      },
+      referrals,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching referral details: " + err.message });
+  }
+});
+
+// POST /api/student/activity — Record streak & XP event (C3, §10.5)
+router.post("/activity", requireAuth, async (req, res) => {
+  try {
+    const { actionType, refId } = req.body; // daily_checkin, resource_completed, live_session
+    const userId = req.user.id;
+
+    // XP configuration defaults per §10.5
+    const XP_MAP = {
+      daily_checkin: 5,
+      resource_completed: 10,
+      live_session: 20,
+      streak_milestone: 50,
+    };
+
+    const points = XP_MAP[actionType] || 5;
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const statsTable = Database.table("user_stats");
+    let stats = statsTable.findOne((s) => s.user_id === userId);
+
+    if (!stats) {
+      stats = statsTable.insert({
+        id: `stat-${userId}`,
+        user_id: userId,
+        xp_total: 0,
+        current_streak: 1,
+        longest_streak: 1,
+        last_active_date: todayStr,
+        events: [],
+      });
+    }
+
+    const lastActive = stats.last_active_date;
+    let newStreak = stats.current_streak;
+
+    if (lastActive !== todayStr) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+      if (lastActive === yesterdayStr) {
+        newStreak += 1;
+      } else {
+        newStreak = 1; // reset streak after missed day per §10.5
+      }
+    }
+
+    const newXp = (stats.xp_total || 0) + points;
+    const longest = Math.max(stats.longest_streak || 1, newStreak);
+
+    statsTable.update(stats.id, {
+      xp_total: newXp,
+      current_streak: newStreak,
+      longest_streak: longest,
+      last_active_date: todayStr,
+    });
+
+    const xpEventsTable = Database.table("xp_events");
+    xpEventsTable.insert({
+      id: `xp-${Date.now()}`,
+      user_id: userId,
+      type: actionType,
+      points,
+      ref_type: actionType,
+      ref_id: refId || "",
+    });
+
+    res.status(200).json({
+      success: true,
+      currentStreak: newStreak,
+      longestStreak: longest,
+      totalXp: newXp,
+      pointsEarned: points,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating activity: " + err.message });
+  }
+});
+
+// GET /api/student/checkout-item/:itemType/:itemId — Direct Buy Now helper (§3.2, C2)
+router.get("/checkout-item/:itemType/:itemId", requireAuth, async (req, res) => {
+  try {
+    const { itemType, itemId } = req.params;
+    let item = null;
+
+    if (itemType === "subscription") {
+      const plansTable = Database.table("subscription_plans");
+      item = plansTable.findOne((p) => p.id === itemId || p.slug === itemId);
+    } else {
+      const coursesTable = Database.table("courses");
+      item = coursesTable.findOne((c) => c.id === itemId || c.slug === itemId);
+    }
+
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    const usersTable = Database.table("users");
+    const user = usersTable.findOne((u) => u.id === req.user.id) || req.user;
+
+    res.status(200).json({
+      success: true,
+      item: {
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        mrp: item.mrp || item.originalPrice || 299,
+        thumbnail: item.thumbnail,
+        item_type: itemType,
+      },
+      prefilledDetails: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "",
+        city: user.city || "",
+        state: user.state || "",
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching item for direct checkout: " + err.message });
+  }
+});
+
 module.exports = router;

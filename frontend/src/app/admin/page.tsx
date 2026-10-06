@@ -43,10 +43,22 @@ import {
   Send,
   Share2,
   ArrowRight,
+  DollarSign,
+  Gift,
+  FileSpreadsheet,
+  Settings,
+  Video,
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
 import { getApiBaseUrl } from "@/lib/api";
+import { AdminOrdersTab } from "@/components/admin/AdminOrdersTab";
+import { AdminCarouselTab } from "@/components/admin/AdminCarouselTab";
+import { AdminLiveSessionsTab } from "@/components/admin/AdminLiveSessionsTab";
+import { AdminExpensesTab } from "@/components/admin/AdminExpensesTab";
+import { AdminOffersTab } from "@/components/admin/AdminOffersTab";
+import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
+import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 
 export interface AnnouncementSetting {
   enabled: boolean;
@@ -535,7 +547,23 @@ export default function AdminPortalPage() {
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
-  type TabType = "overview" | "promo_banners" | "subscriptions" | "books_and_notes" | "students" | "cases" | "mcq" | "coupons" | "qotd";
+  type TabType =
+    | "overview"
+    | "orders"
+    | "subscriptions"
+    | "books_and_notes"
+    | "carousel"
+    | "live_sessions"
+    | "expenses"
+    | "offers"
+    | "students"
+    | "cases"
+    | "mcq"
+    | "coupons"
+    | "payments"
+    | "settings"
+    | "qotd"
+    | "promo_banners";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -947,14 +975,21 @@ export default function AdminPortalPage() {
 
   const NAV_TABS = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
-    { id: "promo_banners" as TabType, label: "Codex Passes", icon: Megaphone },
+    { id: "orders" as TabType, label: "Orders & Bookings", icon: CreditCard },
     { id: "subscriptions" as TabType, label: "Subscriptions", icon: CreditCard, badge: subscriptions.length },
     { id: "books_and_notes" as TabType, label: "Books & Notes", icon: BookOpen, badge: products.length + resources.length },
+    { id: "carousel" as TabType, label: "Carousel Editor", icon: Layers },
+    { id: "live_sessions" as TabType, label: "Live Meet Classes", icon: Video },
+    { id: "expenses" as TabType, label: "Expenses & P&L", icon: DollarSign },
+    { id: "offers" as TabType, label: "Promotions & Offers", icon: Gift },
     { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
     { id: "cases" as TabType, label: "Case Studies", icon: Flame },
     { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles, badge: mcqTests.length },
     { id: "coupons" as TabType, label: "Coupons", icon: Percent },
+    { id: "payments" as TabType, label: "Payments Ledger", icon: FileSpreadsheet },
+    { id: "settings" as TabType, label: "Platform Settings", icon: Settings },
     { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
+    { id: "promo_banners" as TabType, label: "Codex Passes", icon: Megaphone },
   ];
 
   return (
@@ -2892,6 +2927,41 @@ export default function AdminPortalPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* MODULE B1: ORDERS & BOOKINGS MANAGEMENT */}
+          {activeTab === "orders" && (
+            <AdminOrdersTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B4: CAROUSEL SLIDES EDITOR */}
+          {activeTab === "carousel" && (
+            <AdminCarouselTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B5: LIVE MEET SESSIONS */}
+          {activeTab === "live_sessions" && (
+            <AdminLiveSessionsTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B6: EXPENSES TRACKER & P&L */}
+          {activeTab === "expenses" && (
+            <AdminExpensesTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B7: PROMOTIONAL OFFERS */}
+          {activeTab === "offers" && (
+            <AdminOffersTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B10: PAYMENTS LEDGER & CSV EXPORTS */}
+          {activeTab === "payments" && (
+            <AdminPaymentsTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B11: PLATFORM SETTINGS */}
+          {activeTab === "settings" && (
+            <AdminSettingsTab adminFetch={adminFetch} showToast={showToast} />
           )}
 
         </div>

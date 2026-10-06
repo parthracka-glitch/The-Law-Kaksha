@@ -870,6 +870,413 @@ async function seed() {
     console.log("[Seeder] Resources seeded successfully.");
   }
 
+  // 3. Seed Default Admin User if missing
+  const adminEmail = "admin@thelawkaksha.com";
+  const existingAdmin = usersTable.findOne((u) => u.email && u.email.toLowerCase() === adminEmail);
+  if (!existingAdmin) {
+    console.log("[Seeder] Seeding default admin user...");
+    const adminHash = await bcrypt.hash("Admin@LawKaksha2026!", 10);
+    usersTable.insert({
+      id: "usr-admin-primary",
+      student_id: "LK-ADM-000001",
+      name: "The Law Kaksha Admin",
+      email: adminEmail,
+      phone: "+91 98765 43210",
+      password_hash: adminHash,
+      role: "admin",
+      is_active: true,
+      drm_access: true,
+    });
+    console.log("[Seeder] Admin user seeded.");
+  }
+
+  // 4. Seed Subscription Plans (Purchasable bundles per §1 & §5)
+  const plansTable = Database.table("subscription_plans");
+  if (plansTable.count() === 0) {
+    console.log("[Seeder] Seeding subscription plans...");
+    const initialPlans = [
+      {
+        id: "sub-ca-foundation-monthly",
+        title: "CA Foundation Business Laws — Monthly Pass",
+        slug: "ca-foundation-monthly",
+        short_desc: "Visual, structured learning designed for 1st-attempt exemption in Paper 2.",
+        description: "Full digital access to CA Foundation Paper 2: Business Laws. Includes Contract Act, Sale of Goods Act, Partnership Act, LLP Act, Companies Act, Regulatory Framework, and Negotiable Instruments. Watermarked DRM reader with 1-device active lock.",
+        price: 99,
+        mrp: 299,
+        duration_days: 30,
+        thumbnail: "/assets/ca-cs-hero-books-v2.png",
+        features: [
+          "All 7 Business Laws Chapters",
+          "DRM-Protected In-Web Reading",
+          "6/6 ICAI Step-Marking Model Answers",
+          "Last Day Revision (LDR) Flowcharts",
+          "Weekly Live Sessions & Google Meet Access"
+        ],
+        course_ids: ["course-ca-foundation"],
+        display_order: 1,
+        is_active: true,
+      },
+      {
+        id: "sub-cseet-monthly",
+        title: "CSEET Business Law & Management — Monthly Pass",
+        slug: "cseet-monthly",
+        short_desc: "Smart MCQ revision bank and concept notes for ICSI CSEET Legal Aptitude.",
+        description: "Comprehensive preparation suite for CSEET Legal Aptitude and Business Communication. Includes 8 syllabus units, active recall flash drills, and real exam pattern practice.",
+        price: 99,
+        mrp: 299,
+        duration_days: 30,
+        thumbnail: "/assets/ca-cs-hero-books-v2.png",
+        features: [
+          "8 ICSI Syllabus Units & MCQ Bank",
+          "Topic-wise Active Recall Drills",
+          "Instant Solution Precedents",
+          "Digital Codex DRM Reader",
+          "Live Doubt Resolution Sessions"
+        ],
+        course_ids: ["course-cseet"],
+        display_order: 2,
+        is_active: true,
+      },
+      {
+        id: "sub-ca-cseet-combo",
+        title: "CA Foundation & CSEET Dual Combo",
+        slug: "ca-cseet-combo",
+        short_desc: "Full comprehensive bundle for dual aspirants with extended 90 days validity.",
+        description: "Everything in CA Foundation Business Laws plus complete CSEET Legal Aptitude module. Ideal for students taking foundation and entrance simultaneously.",
+        price: 249,
+        mrp: 599,
+        duration_days: 90,
+        thumbnail: "/assets/ca-cs-hero-books-v2.png",
+        features: [
+          "Complete CA Foundation 7 Chapters",
+          "Complete CSEET 8 Syllabus Units",
+          "90-Day Extended Validity",
+          "Priority Google Meet Live Sessions",
+          "All Future Unit Updates Included"
+        ],
+        course_ids: ["course-ca-foundation", "course-cseet"],
+        display_order: 3,
+        is_active: true,
+      },
+    ];
+    initialPlans.forEach((p) => plansTable.insert(p));
+    console.log("[Seeder] Subscription plans seeded.");
+  }
+
+  // 5. Seed Extra Standalone Courses (kind = extra per §5 & B3)
+  const existingExtra = coursesTable.find((c) => c.kind === "extra");
+  if (existingExtra.length === 0) {
+    console.log("[Seeder] Seeding standalone extra courses...");
+    coursesTable.insert({
+      id: "course-extra-sec16",
+      title: "Section 16(1) Caveat Emptor Mastery Workshop",
+      slug: "section-16-caveat-emptor-workshop",
+      description: "Deep dive into Sale of Goods Act §16(1) exception rules, 6/6 step-marking rubric, and real examiner pitfalls.",
+      thumbnail: "/assets/ca-cs-hero-books-v2.png",
+      kind: "extra",
+      price: 49,
+      mrp: 149,
+      show_on_website: true,
+      is_active: true,
+      display_order: 1,
+    });
+    coursesTable.insert({
+      id: "course-extra-partnership-ldr",
+      title: "Partnership Act Last Day Revision (LDR) Mindmaps",
+      slug: "partnership-act-ldr-mindmaps",
+      description: "High-yield visual memory anchors, relation of partners, and registration consequences summarized in 18 pages.",
+      thumbnail: "/assets/ca-cs-hero-books-v2.png",
+      kind: "extra",
+      price: 49,
+      mrp: 149,
+      show_on_website: true,
+      is_active: true,
+      display_order: 2,
+    });
+    console.log("[Seeder] Extra standalone courses seeded.");
+  }
+
+  // 6. Seed Carousel Slides (per §5 & B4)
+  const carouselTable = Database.table("carousel_slides");
+  if (carouselTable.count() === 0) {
+    console.log("[Seeder] Seeding carousel slides...");
+    const slides = [
+      {
+        id: "slide-1",
+        placement: "website",
+        title: "Crack CA Foundation Business Laws",
+        subtitle: "Visual, structured learning designed for 1st-attempt exemption in Paper 2.",
+        image: "/assets/ca-cs-hero-books-v2.png",
+        cta_label: "View Subscriptions",
+        subscription_id: "sub-ca-foundation-monthly",
+        display_order: 1,
+        is_active: true,
+      },
+      {
+        id: "slide-2",
+        placement: "website",
+        title: "CSEET Legal Aptitude Mastery",
+        subtitle: "High-yield MCQ question bank with instant rationale and ICSI precedents.",
+        image: "/assets/ca-cs-hero-books-v2.png",
+        cta_label: "Start Learning",
+        subscription_id: "sub-cseet-monthly",
+        display_order: 2,
+        is_active: true,
+      },
+      {
+        id: "slide-3",
+        placement: "website",
+        title: "Model Answer Writing Architecture",
+        subtitle: "Transform 2/6 average answers into 6/6 ICAI topper scores.",
+        image: "/assets/ca-cs-hero-books-v2.png",
+        cta_label: "Explore Plans",
+        subscription_id: "sub-ca-foundation-monthly",
+        display_order: 3,
+        is_active: true,
+      },
+    ];
+    slides.forEach((s) => carouselTable.insert(s));
+    console.log("[Seeder] Carousel slides seeded.");
+  }
+
+  // 7. Seed Offers (per §5 & B7)
+  const offersTable = Database.table("offers");
+  if (offersTable.count() === 0) {
+    console.log("[Seeder] Seeding promotional offers...");
+    offersTable.insert({
+      id: "offer-launch50",
+      title: "Launch Celebration Offer — 50% Off",
+      description: "Get 50% off on your first monthly subscription with code LAUNCH50.",
+      banner: "/assets/ca-cs-hero-books-v2.png",
+      coupon_id: "coup-launch50",
+      coupon_code: "LAUNCH50",
+      valid_from: new Date().toISOString(),
+      valid_to: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      display_order: 1,
+      is_active: true,
+    });
+    offersTable.insert({
+      id: "offer-welcome10",
+      title: "Student Welcome Privilege",
+      description: "Flat 10% discount on any standalone study module or revision pass.",
+      banner: "/assets/ca-cs-hero-books-v2.png",
+      coupon_id: "coup-welcome10",
+      coupon_code: "WELCOME10",
+      valid_from: new Date().toISOString(),
+      valid_to: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+      display_order: 2,
+      is_active: true,
+    });
+    console.log("[Seeder] Promotional offers seeded.");
+  }
+
+  // 8. Seed Case Studies (per §5 & B8)
+  const caseStudiesTable = Database.table("case_studies");
+  if (caseStudiesTable.count() === 0) {
+    console.log("[Seeder] Seeding legal case studies...");
+    caseStudiesTable.insert({
+      id: "case-sec16",
+      title: "Section 16(1) Caveat Emptor & Fitness for Purpose",
+      slug: "section-16-caveat-emptor",
+      summary: "Timber trader dispute revolving around implied condition as to quality or fitness under the Sale of Goods Act, 1930.",
+      content: `# Section 16(1) Sale of Goods Act, 1930
+
+## Fact Scenario
+Buyer orders timber for a specific overseas railway project. Seller claims Caveat Emptor applies because the goods conformed to general descriptions.
+
+## Legal Basis
+Under Section 16(1), when the buyer expressly makes known the particular purpose for which goods are required, and relies on the seller's skill or judgment, an implied condition arises that the goods shall be reasonably fit for such purpose.
+
+## Analysis & Conclusion
+The seller was liable because the buyer expressly communicated the particular purpose and relied upon the seller's trade expertise.`,
+      cover_image: "/assets/ca-cs-hero-books-v2.png",
+      act_name: "The Sale of Goods Act, 1930",
+      marks_weight: 6,
+      show_on_website: true,
+      show_on_dashboard: true,
+      is_published: true,
+    });
+    caseStudiesTable.insert({
+      id: "case-turquand",
+      title: "Doctrine of Indoor Management: Royal British Bank v. Turquand",
+      slug: "royal-british-bank-turquand",
+      summary: "Protection of outsiders dealing with registered companies against internal irregularities.",
+      content: `# Doctrine of Indoor Management
+
+## The Rule
+Persons contracting with a company and dealing in good faith may assume that acts within the company's constitution and powers have been properly and duly performed and are not bound to inquire whether acts of internal management have been regular.
+
+## Exceptions
+1. Knowledge of irregularity
+2. Suspicion of irregularity
+3. Forgery`,
+      cover_image: "/assets/ca-cs-hero-books-v2.png",
+      act_name: "The Companies Act, 2013",
+      marks_weight: 6,
+      show_on_website: true,
+      show_on_dashboard: true,
+      is_published: true,
+    });
+    console.log("[Seeder] Legal case studies seeded.");
+  }
+
+  // 9. Seed Coupons (per §5 & B9)
+  const couponsTable = Database.table("coupons");
+  if (couponsTable.count() === 0) {
+    console.log("[Seeder] Seeding coupons...");
+    couponsTable.insert({
+      id: "coup-launch50",
+      code: "LAUNCH50",
+      discount_type: "percent",
+      value: 50,
+      discountPercent: 50,
+      max_discount: 100,
+      min_order: 50,
+      valid_from: new Date().toISOString(),
+      valid_to: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      usage_limit: 1000,
+      used_count: 0,
+      per_user_limit: 1,
+      applies_to: "all",
+      is_active: true,
+      status: "Active",
+    });
+    couponsTable.insert({
+      id: "coup-welcome10",
+      code: "WELCOME10",
+      discount_type: "percent",
+      value: 10,
+      discountPercent: 10,
+      max_discount: 50,
+      min_order: 0,
+      valid_from: new Date().toISOString(),
+      valid_to: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+      usage_limit: 500,
+      used_count: 0,
+      per_user_limit: 1,
+      applies_to: "all",
+      is_active: true,
+      status: "Active",
+    });
+    couponsTable.insert({
+      id: "coup-flat20",
+      code: "FLAT20",
+      discount_type: "flat",
+      value: 20,
+      max_discount: 20,
+      min_order: 99,
+      valid_from: new Date().toISOString(),
+      valid_to: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+      usage_limit: 500,
+      used_count: 0,
+      per_user_limit: 1,
+      applies_to: "all",
+      is_active: true,
+      status: "Active",
+    });
+    console.log("[Seeder] Coupons seeded.");
+  }
+
+  // 10. Seed Live Sessions (per §5 & B5)
+  const liveSessionsTable = Database.table("live_sessions");
+  if (liveSessionsTable.count() === 0) {
+    console.log("[Seeder] Seeding live sessions...");
+    const nextSat = new Date();
+    nextSat.setDate(nextSat.getDate() + ((6 - nextSat.getDay() + 7) % 7 || 7));
+    nextSat.setHours(18, 0, 0, 0);
+    const endSat = new Date(nextSat.getTime() + 90 * 60 * 1000);
+
+    liveSessionsTable.insert({
+      id: "live-session-1",
+      subscription_id: "sub-ca-foundation-monthly",
+      course_id: "course-ca-foundation",
+      title: "Contract Act Landmark Precedents & Examiner Traps",
+      starts_at: nextSat.toISOString(),
+      ends_at: endSat.toISOString(),
+      meet_link: "https://meet.google.com/law-kaksha-live",
+      notes: "Please review Chapter 2 Offer & Acceptance notes before attending.",
+      is_active: true,
+    });
+    console.log("[Seeder] Live sessions seeded.");
+  }
+
+  // 11. Seed Expenses (per §5 & B6)
+  const expensesTable = Database.table("expenses");
+  if (expensesTable.count() === 0) {
+    console.log("[Seeder] Seeding business expenses...");
+    expensesTable.insert({
+      id: "exp-1",
+      category: "Hosting",
+      title: "Render API & Vercel Pro Hosting Infrastructure",
+      amount: 2400,
+      expense_date: new Date().toISOString(),
+      notes: "Monthly web server & high-availability database cluster costs.",
+      receipt_url: "",
+      created_by: "admin",
+    });
+    expensesTable.insert({
+      id: "exp-2",
+      category: "Content",
+      title: "3D Digital Codex Typesetting & PDF DRM Watermarking",
+      amount: 5000,
+      expense_date: new Date().toISOString(),
+      notes: "Typesetting and vector diagram design for ICAI syllabus notes.",
+      receipt_url: "",
+      created_by: "admin",
+    });
+    expensesTable.insert({
+      id: "exp-3",
+      category: "Software",
+      title: "Domain, SSL Security & Tooling Subscriptions",
+      amount: 1200,
+      expense_date: new Date().toISOString(),
+      notes: "Annual domain registration and developer tooling licenses.",
+      receipt_url: "",
+      created_by: "admin",
+    });
+    console.log("[Seeder] Business expenses seeded.");
+  }
+
+  // 12. Seed Site Settings (per §5 & A4)
+  const settingsTable = Database.table("site_settings");
+  if (settingsTable.count() === 0) {
+    console.log("[Seeder] Seeding site settings...");
+    settingsTable.insert({
+      key: "footer_details",
+      value: {
+        brand: "The Law Kaksha",
+        tagline: "Premier Visual Learning Space for CA Foundation & CSEET Law Aspirants.",
+        contact_email: "support@thelawkaksha.com",
+        contact_phone: "+91 98765 43210",
+        address: "Mumbai, Maharashtra, India",
+        copyright: "© 2026 The Law Kaksha. All rights reserved.",
+      },
+    });
+    settingsTable.insert({
+      key: "social_links",
+      value: {
+        instagram: "https://instagram.com/thelawkaksha",
+        youtube: "https://youtube.com/@thelawkaksha",
+        telegram: "https://t.me/thelawkaksha",
+        linkedin: "https://linkedin.com/company/thelawkaksha",
+      },
+    });
+    settingsTable.insert({
+      key: "about_us",
+      value: {
+        headline: "Law, Made Simple. Learning, Made Smarter.",
+        subheading: "Transforming dense statutory statutes into visual frameworks, memory anchors, and active recall mastery.",
+        values: [
+          { title: "Visual Frameworks", desc: "Complex legal sections broken down into intuitive decision trees and memory maps." },
+          { title: "ICAI Step Precision", desc: "Target 6/6 model answer architectures designed around examiner scoring rubrics." },
+          { title: "Single-Device DRM", desc: "Protected, distraction-free in-browser reading without intrusive downloads." },
+          { title: "Active Recall Quizzes", desc: "Scenario-based question banks reinforcing conceptual clarity before exam day." }
+        ],
+      },
+    });
+    console.log("[Seeder] Site settings seeded.");
+  }
+
   console.log("[Seeder] Seeding complete.");
 }
 

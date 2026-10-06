@@ -757,12 +757,14 @@ export default function StudentDashboardPage() {
   // Session & Local Storage Loading
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const studentToken = localStorage.getItem("lawkaksha_student_token");
+      const studentUser = localStorage.getItem("lawkaksha_student_user");
       const studentSession = localStorage.getItem("lawkaksha_student_session");
       const adminSession = localStorage.getItem("lawkaksha_admin_session");
-      if (!studentSession && !adminSession) {
+      if (!studentToken && !studentUser && !studentSession && !adminSession) {
         setIsAuthorized(false);
         setIsCheckingAuth(false);
-        router.push("/login");
+        router.push("/student/login");
         return;
       }
       setIsAuthorized(true);
@@ -968,9 +970,11 @@ export default function StudentDashboardPage() {
 
       localStorage.removeItem("lawkaksha_student_session");
       localStorage.removeItem("lawkaksha_active_student");
+      localStorage.removeItem("lawkaksha_student_token");
+      localStorage.removeItem("lawkaksha_student_user");
       localStorage.removeItem("lawkaksha_token");
       window.dispatchEvent(new Event("storage"));
-      router.push("/login");
+      router.push("/student/login");
     }
   };
 

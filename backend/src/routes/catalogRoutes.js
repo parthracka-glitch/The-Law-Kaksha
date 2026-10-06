@@ -289,4 +289,269 @@ router.get("/public/section16-comparison", async (req, res) => {
   }
 });
 
+// ==========================================
+// SURFACE A & C PUBLIC CONTENT ENDPOINTS (§6)
+// ==========================================
+
+// GET /api/subscriptions — List active subscriptions
+router.get("/subscriptions", async (req, res) => {
+  try {
+    let plans = [];
+    const plansTable = Database.table("subscription_plans");
+    plans = plansTable.find((p) => p.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+    if (isConnected()) {
+      try {
+        const Subscription = require("../models/Subscription");
+        const mongoPlans = await Subscription.find({ is_active: true, price: { $gt: 0 } }).sort({ display_order: 1 }).lean();
+        if (mongoPlans && mongoPlans.length > 0) plans = mongoPlans;
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, count: plans.length, subscriptions: plans });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching subscriptions: " + err.message });
+  }
+});
+
+// GET /api/subscriptions/:slug — Single subscription detail
+router.get("/subscriptions/:slug", async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    let plan = null;
+    const plansTable = Database.table("subscription_plans");
+    plan = plansTable.findOne((p) => p.slug === slug || p.id === slug);
+
+    if (!plan && isConnected()) {
+      try {
+        const Subscription = require("../models/Subscription");
+        plan = await Subscription.findOne({ $or: [{ slug }, { id: slug }] }).lean();
+      } catch (_) {}
+    }
+
+    if (!plan) {
+      return res.status(404).json({ success: false, message: "Subscription plan not found" });
+    }
+
+    // Attach courses
+    const coursesTable = Database.table("courses");
+    const attachedCourses = (plan.course_ids || []).map((cId) => coursesTable.findOne((c) => c.id === cId)).filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      subscription: { ...plan, courses: attachedCourses },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching subscription detail: " + err.message });
+  }
+});
+
+// GET /api/extra-courses — Standalone purchasable courses (kind = extra)
+router.get("/extra-courses", async (req, res) => {
+  try {
+    const coursesTable = Database.table("courses");
+    let extras = coursesTable.find((c) => c.kind === "extra" && c.is_active !== false);
+
+    if (isConnected()) {
+      try {
+        const Course = require("../models/Course");
+        const mongoExtras = await Course.find({ kind: "extra", is_active: true }).lean();
+        if (mongoExtras && mongoExtras.length > 0) extras = mongoExtras;
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, count: extras.length, extraCourses: extras });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching extra courses: " + err.message });
+  }
+});
+
+// GET /api/carousel-slides — Website banner & subscription slides (A1, B4)
+router.get("/carousel-slides", async (req, res) => {
+  try {
+    const carouselTable = Database.table("carousel_slides");
+    let slides = carouselTable.find((s) => s.placement === "website" && s.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        const mongoSlides = await CarouselSlide.find({ placement: "website", is_active: true }).sort({ display_order: 1 }).lean();
+        if (mongoSlides && mongoSlides.length > 0) slides = mongoSlides;
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, count: slides.length, slides });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching carousel slides: " + err.message });
+  }
+});
+
+// GET /api/offers — Active promotional offers (A5, B7)
+router.get("/offers", async (req, res) => {
+  try {
+    const offersTable = Database.table("offers");
+    const now = new Date();
+    let offers = offersTable.find((o) => {
+      if (o.is_active === false) return false;
+      if (o.valid_to && new Date(o.valid_to) < now) return false;
+      return true;
+    }).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+    if (isConnected()) {
+      try {
+        const Offer = require("../models/Offer");
+        const mongoOffers = await Offer.find({ is_active: true, $or: [{ valid_to: { $gte: now } }, { valid_to: null }] }).sort({ display_order: 1 }).lean();
+        if (mongoOffers && mongoOffers.length > 0) offers = mongoOffers;
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, count: offers.length, offers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching offers: " + err.message });
+  }
+});
+
+// GET /api/case-studies — Published legal case studies (A6, B8)
+router.get("/case-studies", async (req, res) => {
+  try {
+    const forDashboard = req.query.dashboard === "true";
+    const caseStudiesTable = Database.table("case_studies");
+    let caseStudies = caseStudiesTable.find((c) => {
+      if (c.is_published === false) return false;
+      if (forDashboard) return c.show_on_dashboard !== false;
+      return c.show_on_website !== false;
+    });
+
+    if (isConnected()) {
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        const filter = { is_published: true };
+        if (forDashboard) filter.show_on_dashboard = true;
+        else filter.show_on_website = true;
+        const mongoCases = await CaseStudy.find(filter).lean();
+        if (mongoCases && mongoCases.length > 0) caseStudies = mongoCases;
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, count: caseStudies.length, caseStudies });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching case studies: " + err.message });
+  }
+});
+
+// GET /api/case-studies/:slug — Single case study detail
+router.get("/case-studies/:slug", async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    const caseStudiesTable = Database.table("case_studies");
+    let caseStudy = caseStudiesTable.findOne((c) => (c.slug === slug || c.id === slug) && c.is_published !== false);
+
+    if (!caseStudy && isConnected()) {
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        caseStudy = await CaseStudy.findOne({ $or: [{ slug }, { id: slug }], is_published: true }).lean();
+      } catch (_) {}
+    }
+
+    if (!caseStudy) {
+      return res.status(404).json({ success: false, message: "Case study not found" });
+    }
+
+    res.status(200).json({ success: true, caseStudy });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching case study: " + err.message });
+  }
+});
+
+// GET /api/settings/public — Public site settings (footer, about, contact) (A4)
+router.get("/settings/public", async (req, res) => {
+  try {
+    const settingsTable = Database.table("site_settings");
+    const footerSetting = settingsTable.findOne((s) => s.key === "footer_details");
+    const socialsSetting = settingsTable.findOne((s) => s.key === "social_links");
+    const aboutSetting = settingsTable.findOne((s) => s.key === "about_us");
+
+    res.status(200).json({
+      success: true,
+      footer: footerSetting ? footerSetting.value : null,
+      socials: socialsSetting ? socialsSetting.value : null,
+      about: aboutSetting ? aboutSetting.value : null,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching public settings: " + err.message });
+  }
+});
+
+// POST /api/coupons/validate — Server-side coupon validator (§10.1)
+router.post("/coupons/validate", async (req, res) => {
+  try {
+    const { code, subtotal } = req.body;
+    if (!code) {
+      return res.status(400).json({ success: false, message: "Coupon code is required" });
+    }
+
+    const cleanCode = String(code).trim().toUpperCase();
+    const orderSubtotal = Number(subtotal) || 0;
+    const couponsTable = Database.table("coupons");
+    let coupon = couponsTable.findOne((c) => c.code === cleanCode && c.is_active !== false);
+
+    if (!coupon && isConnected()) {
+      try {
+        const Coupon = require("../models/Coupon");
+        coupon = await Coupon.findOne({ code: cleanCode, is_active: true }).lean();
+      } catch (_) {}
+    }
+
+    if (!coupon) {
+      return res.status(404).json({ success: false, message: "Invalid or inactive coupon code." });
+    }
+
+    // Date range check
+    const now = new Date();
+    if (coupon.valid_to && new Date(coupon.valid_to) < now) {
+      return res.status(400).json({ success: false, message: "This coupon has expired." });
+    }
+
+    // Min order check
+    if (coupon.min_order && orderSubtotal < coupon.min_order) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum order amount of ₹${coupon.min_order} required to use this coupon.`,
+      });
+    }
+
+    // Usage limit check
+    if (coupon.usage_limit && (coupon.used_count || coupon.usedCount || 0) >= coupon.usage_limit) {
+      return res.status(400).json({ success: false, message: "Coupon usage limit reached." });
+    }
+
+    // Calculate discount on server
+    let discount = 0;
+    const discountType = coupon.discount_type || "percent";
+    const discountVal = Number(coupon.value || coupon.discountPercent || 0);
+
+    if (discountType === "percent") {
+      discount = Math.round((orderSubtotal * discountVal) / 100);
+      if (coupon.max_discount && discount > coupon.max_discount) {
+        discount = coupon.max_discount;
+      }
+    } else {
+      discount = Math.min(discountVal, orderSubtotal);
+    }
+
+    res.status(200).json({
+      success: true,
+      valid: true,
+      code: coupon.code,
+      discount_type: discountType,
+      value: discountVal,
+      discount,
+      final_total: Math.max(0, orderSubtotal - discount),
+      coupon_id: coupon.id,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error validating coupon: " + err.message });
+  }
+});
+
 module.exports = router;

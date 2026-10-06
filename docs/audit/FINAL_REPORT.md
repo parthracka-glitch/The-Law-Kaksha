@@ -36,7 +36,7 @@
 | **Automated Test Pass Rate** | 0% (Harness crashed on missing server) | **100% (39/39 passing in ~1.05s)** |
 | **Backend Test Suites** | 0 runnable in CI | **5/5 runnable (`npm test`)** |
 | **TypeScript Compilation** | 0 errors | **0 errors (`npm run typecheck`)** |
-| **Frontend Production Build** | Next.js 16 (20 routes) | **Next.js 16 (21 routes compiled in 4.2s)** |
+| **Frontend Production Build** | Next.js 16 (20 routes) | **Next.js 16 (29 routes compiled in 4.5s)** |
 | **Open Critical/High Vulnerabilities** | 3 critical/high | **0 Open Critical / 0 Open High** |
 | **Rate Limiting** | Auth only (60 req/min) | **Auth (60/min) + Orders & Payments (60/min)** |
 | **Security Headers** | Basic | **CSP, HSTS, X-Content-Type, Permissions-Policy** |
@@ -77,6 +77,12 @@
 - Formalized gap assessment and roadmap in `docs/audit/GAPS_AND_ROADMAP.md`.
 - Created operations runbooks (`docs/08-operations/`, `docs/11-launch/runbook.md`).
 - Drafted complete legal policy suite with draft banners in `docs/10-legal/`.
+
+### 4.7 Law Kaksha Implementation Spec (§0–§14)
+- **Backend Architecture & Models:** Engineered 12 Mongoose + JSON fallback models (`Course`, `SubscriptionPlan`, `CarouselSlide`, `Offer`, `CaseStudy`, `Coupon`, `Order`, `Payment`, `Entitlement`, `LiveSession`, `Expense`, `UserStats`, `Referral`), dual-mode database engine with 21 collections, and comprehensive seed data.
+- **Surface A (Main Website):** Built dynamic `SubscriptionCarousel`, `SubscriptionOverview`, `/subscriptions/[slug]` detail page, dedicated `/offers` with 1-click coupon copy, `/case-studies` repository with model answers, and dedicated post-checkout `/checkout/success/[orderNo]` with direct student dashboard entry point.
+- **Surface B (Admin Dashboard Modules B0–B10):** Integrated modules for Orders/Bookings with candidate snapshot modal and refund/revocation, Carousel slide management, Google Meet live sessions with test links, Business expense tracker & P&L report, Promotional offers, Gateway payments ledger with 4 CSV exports, and Site settings.
+- **Surface C (Student Dashboard & Entitlement Gate):** Created isolated `/student/login` page with automated gate check (`/api/student/gate`), access-restriction view for unentitled visitors, DRM PDF reader for enrolled courses/resources, unowned course discovery carousel with 1-click checkout, interactive Google Meet live session calendar, streak/XP gamification, profile editor, and refer-and-earn system.
 
 ---
 

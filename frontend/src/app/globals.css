@@ -6,12 +6,25 @@
   --font-serif: var(--font-serif), "Noto Serif Devanagari", Georgia, Cambria, "Times New Roman", Times, serif;
 
   /* ========================================
-     PRIMARY VISUAL IDENTITY: SKY BLUE
+     LAW KAKSHA LUXURY PALETTE (§11 Phase 1)
+     Deep Navy + Gold Accent on Ivory
      ======================================== */
-  --color-primary: #AED7E9;
-  --color-primary-hover: #98C5D8;
+  --color-navy: #0B192C;
+  --color-navy-light: #1E2E42;
+  --color-navy-dark: #060E18;
+  --color-gold: #C5A880;
+  --color-gold-hover: #B3956B;
+  --color-gold-light: #DFCDAE;
+  --color-ivory: #FDFBF7;
+  --color-ivory-dark: #F5EFEB;
+
+  /* ========================================
+     PRIMARY VISUAL IDENTITY
+     ======================================== */
+  --color-primary: #0B192C;
+  --color-primary-hover: #1E2E42;
   --color-primary-light: #C4E1EC;
-  --color-primary-dark: #6799AE;
+  --color-primary-dark: #060E18;
   --color-sky-blue: #AED7E9;
   --color-soft-blue: #C4E1EC;
   --color-deep-blue: #98C5D8;
@@ -22,19 +35,19 @@
      ======================================== */
   --color-accent-purple: #BFAFE5;
   --color-accent-purple-dark: #A08DC9;
-  --color-accent: #BFAFE5;
-  --color-accent-hover: #A08DC9;
+  --color-accent: #C5A880;
+  --color-accent-hover: #B3956B;
   --color-lavender: #BFAFE5;
   --color-lavender-dark: #A08DC9;
 
   /* ========================================
      SURFACES
      ======================================== */
-  --color-background: #AED7E9;
+  --color-background: #FDFBF7;
   --color-surface: #FFFFFF;
   --color-surface-white: #FFFFFF;
   --color-surface-secondary: #F7F7F5;
-  --color-surface-offwhite: #F7F7F5;
+  --color-surface-offwhite: #FDFBF7;
 
   /* ========================================
      TEXT
@@ -67,13 +80,19 @@
 }
 
 :root {
+  --navy: #0B192C;
+  --gold: #C5A880;
+  --gold-hover: #B3956B;
+  --ivory: #FDFBF7;
+  --ivory-dark: #F5EFEB;
+
   /* ========================================
-     PRIMARY VISUAL IDENTITY: SKY BLUE
+     PRIMARY VISUAL IDENTITY
      ======================================== */
-  --primary: #AED7E9;
-  --primary-hover: #98C5D8;
+  --primary: #0B192C;
+  --primary-hover: #1E2E42;
   --primary-light: #C4E1EC;
-  --primary-dark: #6799AE;
+  --primary-dark: #060E18;
 
   --color-primary: #AED7E9;
   --color-primary-hover: #98C5D8;

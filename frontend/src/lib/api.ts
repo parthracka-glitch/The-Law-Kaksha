@@ -91,6 +91,36 @@ export function getActiveUser(): any | null {
   }
 }
 
+export function getStudentAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("lawkaksha_student_token");
+}
+
+export function setStudentAuthSession(token: string, user: any) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("lawkaksha_student_token", token);
+  localStorage.setItem("lawkaksha_student_user", JSON.stringify(user));
+  window.dispatchEvent(new Event("storage"));
+}
+
+export function clearStudentAuthSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("lawkaksha_student_token");
+  localStorage.removeItem("lawkaksha_student_user");
+  window.dispatchEvent(new Event("storage"));
+}
+
+export function getStudentUser(): any | null {
+  if (typeof window === "undefined") return null;
+  const saved = localStorage.getItem("lawkaksha_student_user");
+  if (!saved) return null;
+  try {
+    return JSON.parse(saved);
+  } catch (e) {
+    return null;
+  }
+}
+
 export function getAuthSession(): { token: string | null; user: any | null } | null {
   if (typeof window === "undefined") return null;
   const token = getAuthToken();
@@ -103,14 +133,15 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ success: boolean; data?: T; message?: string; error?: string; token?: string; code?: string }> {
-  const token = getAuthToken();
+  const isStudentEndpoint = endpoint.includes("/student");
+  const token = (isStudentEndpoint ? getStudentAuthToken() : null) || getAuthToken() || getStudentAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
+  if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 

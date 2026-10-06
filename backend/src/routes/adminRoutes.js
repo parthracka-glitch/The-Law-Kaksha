@@ -1111,4 +1111,711 @@ router.get("/promo-banners", async (req, res) => {
   }
 });
 
+// ==========================================
+// SURFACE B: ADMIN MODULES (B0 - B10)
+// ==========================================
+
+// B0: OVERVIEW METRICS (§8 B0)
+router.get("/admin/overview", async (req, res) => {
+  try {
+    const ordersTable = Database.table("orders");
+    const expensesTable = Database.table("expenses");
+    const usersTable = Database.table("users");
+    const entitlementsTable = Database.table("entitlements");
+
+    const allOrders = ordersTable.find();
+    const allExpenses = expensesTable.find();
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Revenue calculations
+    const paidOrders = allOrders.filter((o) => o.status === "paid" || o.status === "COMPLETED");
+    const todayRevenue = paidOrders
+      .filter((o) => (o.created_at || "").startsWith(todayStr))
+      .reduce((sum, o) => sum + (o.total || o.total_amount || 0), 0);
+
+    const monthRevenue = paidOrders
+      .filter((o) => {
+        const d = new Date(o.created_at);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((sum, o) => sum + (o.total || o.total_amount || 0), 0);
+
+    // Expenses calculations
+    const monthExpenses = allExpenses
+      .filter((e) => {
+        const d = new Date(e.expense_date || e.created_at);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    // Active students with valid entitlements
+    const activeStudents = entitlementsTable.find((e) => e.status === "active" && new Date(e.expires_at) >= now).length;
+    const totalStudents = usersTable.count((u) => u.role === "student");
+
+    // Recent orders (last 10)
+    const recentOrders = [...allOrders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+
+    res.status(200).json({
+      success: true,
+      overview: {
+        todayRevenue,
+        monthRevenue,
+        monthExpenses,
+        netProfit: monthRevenue - monthExpenses,
+        newBookingsToday: allOrders.filter((o) => (o.created_at || "").startsWith(todayStr)).length,
+        totalBookings: allOrders.length,
+        activeStudents: activeStudents || totalStudents,
+        totalStudents,
+        recentOrders,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching overview: " + err.message });
+  }
+});
+
+// B1: ORDERS (BOOKINGS) MANAGEMENT (§8 B1)
+router.get("/admin/orders", async (req, res) => {
+  try {
+    const ordersTable = Database.table("orders");
+    let orders = ordersTable.find();
+
+    const { status, search, dateFrom, dateTo } = req.query;
+    if (status && status !== "all") {
+      orders = orders.filter((o) => (o.status || "").toLowerCase() === status.toLowerCase());
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      orders = orders.filter(
+        (o) =>
+          (o.id || "").toLowerCase().includes(q) ||
+          (o.order_no || "").toLowerCase().includes(q) ||
+          (o.customer_name || o.personal_details?.name || "").toLowerCase().includes(q) ||
+          (o.customer_email || o.personal_details?.email || "").toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom) {
+      orders = orders.filter((o) => new Date(o.created_at) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      orders = orders.filter((o) => new Date(o.created_at) <= new Date(dateTo));
+    }
+
+    orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.status(200).json({ success: true, count: orders.length, orders });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching orders: " + err.message });
+  }
+});
+
+// B1: ORDER REFUND & ENTITLEMENT REVOCATION (§8 B1, §10.2)
+router.post("/admin/orders/:id/refund", async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const ordersTable = Database.table("orders");
+    const order = ordersTable.findOne((o) => o.id === orderId || o.order_no === orderId);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    ordersTable.update(order.id, { status: "refunded" });
+
+    // Revoke corresponding entitlements
+    const entitlementsTable = Database.table("entitlements");
+    const relatedEntitlements = entitlementsTable.find((e) => e.order_id === order.id);
+    relatedEntitlements.forEach((e) => {
+      entitlementsTable.update(e.id, { status: "revoked" });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Order marked as refunded and entitlements revoked.",
+      orderId: order.id,
+      revokedCount: relatedEntitlements.length,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error refunding order: " + err.message });
+  }
+});
+
+// B1: ENTITLEMENT MANAGEMENT: REVOKE & EXTEND
+router.post("/admin/entitlements/:id/revoke", async (req, res) => {
+  try {
+    const entitlementsTable = Database.table("entitlements");
+    const updated = entitlementsTable.update(req.params.id, { status: "revoked" });
+    if (!updated) return res.status(404).json({ success: false, message: "Entitlement not found" });
+    res.status(200).json({ success: true, message: "Entitlement revoked.", entitlement: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/entitlements/:id/extend", async (req, res) => {
+  try {
+    const { days = 30 } = req.body;
+    const entitlementsTable = Database.table("entitlements");
+    const ent = entitlementsTable.findById(req.params.id);
+    if (!ent) return res.status(404).json({ success: false, message: "Entitlement not found" });
+
+    const currentExpiry = new Date(ent.expires_at || Date.now());
+    const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+    const newExpiry = new Date(baseDate.getTime() + Number(days) * 24 * 60 * 60 * 1000);
+
+    const updated = entitlementsTable.update(ent.id, {
+      expires_at: newExpiry.toISOString(),
+      status: "active",
+    });
+
+    res.status(200).json({ success: true, message: `Entitlement extended by ${days} days.`, entitlement: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B2: SUBSCRIPTION PLANS CRUD (§8 B2)
+router.post("/admin/subscriptions", async (req, res) => {
+  try {
+    const { title, slug, short_desc, description, price, mrp, duration_days, thumbnail, features, course_ids, display_order } = req.body;
+    if (!title || price === undefined) {
+      return res.status(400).json({ success: false, message: "Title and price are required." });
+    }
+
+    const plansTable = Database.table("subscription_plans");
+    const generatedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+    const newPlan = plansTable.insert({
+      id: `sub-${Date.now()}`,
+      title,
+      slug: generatedSlug,
+      short_desc: short_desc || "",
+      description: description || "",
+      price: Number(price),
+      mrp: Number(mrp || price * 2),
+      duration_days: Number(duration_days || 30),
+      thumbnail: thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      features: Array.isArray(features) ? features : [],
+      course_ids: Array.isArray(course_ids) ? course_ids : [],
+      display_order: Number(display_order || 0),
+      is_active: true,
+    });
+
+    res.status(201).json({ success: true, subscription: newPlan });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating subscription: " + err.message });
+  }
+});
+
+// B2 & B3: COURSES & EXTRA COURSES CRUD (§8 B2 & B3)
+router.get("/admin/courses", async (req, res) => {
+  try {
+    const coursesTable = Database.table("courses");
+    const courses = coursesTable.find();
+    res.status(200).json({ success: true, count: courses.length, courses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/courses", async (req, res) => {
+  try {
+    const { title, description, thumbnail, kind, price, mrp, show_on_website, display_order } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Course title is required." });
+
+    const coursesTable = Database.table("courses");
+    const newCourse = coursesTable.insert({
+      id: `course-${Date.now()}`,
+      title,
+      description: description || "",
+      thumbnail: thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      kind: kind === "extra" ? "extra" : "core",
+      price: Number(price || 0),
+      mrp: Number(mrp || 0),
+      show_on_website: show_on_website !== false,
+      is_active: true,
+      display_order: Number(display_order || 0),
+    });
+
+    res.status(201).json({ success: true, course: newCourse });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/courses/:id", async (req, res) => {
+  try {
+    const coursesTable = Database.table("courses");
+    const updated = coursesTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Course not found" });
+    res.status(200).json({ success: true, course: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/courses/:id", async (req, res) => {
+  try {
+    const coursesTable = Database.table("courses");
+    coursesTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Course deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B3: EXTRA COURSES SPECIFIC ENDPOINTS
+router.get("/admin/extra-courses", async (req, res) => {
+  try {
+    const coursesTable = Database.table("courses");
+    const extraCourses = coursesTable.find((c) => c.kind === "extra");
+    res.status(200).json({ success: true, extraCourses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/extra-courses", async (req, res) => {
+  try {
+    req.body.kind = "extra";
+    const coursesTable = Database.table("courses");
+    const newExtra = coursesTable.insert({
+      id: `course-extra-${Date.now()}`,
+      title: req.body.title,
+      description: req.body.description || "",
+      thumbnail: req.body.thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      kind: "extra",
+      price: Number(req.body.price || 49),
+      mrp: Number(req.body.mrp || 149),
+      show_on_website: req.body.show_on_website !== false,
+      is_active: true,
+    });
+    res.status(201).json({ success: true, course: newExtra });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B4: WEBSITE CAROUSEL CRUD & REORDER (§8 B4)
+router.get("/admin/carousel", async (req, res) => {
+  try {
+    const carouselTable = Database.table("carousel_slides");
+    const slides = carouselTable.find().sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    res.status(200).json({ success: true, slides });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/carousel", async (req, res) => {
+  try {
+    const { title, subtitle, image, cta_label, subscription_id, display_order, is_active } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Slide title is required." });
+
+    const carouselTable = Database.table("carousel_slides");
+    const newSlide = carouselTable.insert({
+      id: `slide-${Date.now()}`,
+      placement: "website",
+      title,
+      subtitle: subtitle || "",
+      image: image || "/assets/ca-cs-hero-books-v2.png",
+      cta_label: cta_label || "Explore Plan",
+      subscription_id: subscription_id || null,
+      display_order: Number(display_order || 0),
+      is_active: is_active !== false,
+    });
+
+    res.status(201).json({ success: true, slide: newSlide });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/carousel/:id", async (req, res) => {
+  try {
+    const carouselTable = Database.table("carousel_slides");
+    const updated = carouselTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Slide not found." });
+    res.status(200).json({ success: true, slide: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/carousel/:id", async (req, res) => {
+  try {
+    const carouselTable = Database.table("carousel_slides");
+    carouselTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Slide deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B5: LIVE SESSIONS (GOOGLE MEET LINKS) CRUD (§8 B5)
+router.get("/admin/live-sessions", async (req, res) => {
+  try {
+    const liveSessionsTable = Database.table("live_sessions");
+    const sessions = liveSessionsTable.find().sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+    res.status(200).json({ success: true, count: sessions.length, sessions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/live-sessions", async (req, res) => {
+  try {
+    const { title, subscription_id, course_id, starts_at, ends_at, meet_link, notes } = req.body;
+    if (!title || !meet_link || !starts_at) {
+      return res.status(400).json({ success: false, message: "Title, Meet link, and start time are required." });
+    }
+
+    const liveSessionsTable = Database.table("live_sessions");
+    const newSession = liveSessionsTable.insert({
+      id: `live-${Date.now()}`,
+      title,
+      subscription_id: subscription_id || null,
+      course_id: course_id || null,
+      starts_at: new Date(starts_at).toISOString(),
+      ends_at: ends_at ? new Date(ends_at).toISOString() : new Date(new Date(starts_at).getTime() + 90 * 60 * 1000).toISOString(),
+      meet_link,
+      notes: notes || "",
+      is_active: true,
+    });
+
+    res.status(201).json({ success: true, session: newSession });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/live-sessions/:id", async (req, res) => {
+  try {
+    const liveSessionsTable = Database.table("live_sessions");
+    const updated = liveSessionsTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Live session not found." });
+    res.status(200).json({ success: true, session: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/live-sessions/:id", async (req, res) => {
+  try {
+    const liveSessionsTable = Database.table("live_sessions");
+    liveSessionsTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Live session deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B6: EXPENSE TRACKER CRUD & SUMMARY (§8 B6)
+router.get("/admin/expenses", async (req, res) => {
+  try {
+    const expensesTable = Database.table("expenses");
+    const expenses = expensesTable.find().sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date));
+    res.status(200).json({ success: true, count: expenses.length, expenses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/expenses", async (req, res) => {
+  try {
+    const { category, title, amount, expense_date, notes, receipt_url } = req.body;
+    if (!category || !title || amount === undefined) {
+      return res.status(400).json({ success: false, message: "Category, title, and amount are required." });
+    }
+
+    const expensesTable = Database.table("expenses");
+    const newExpense = expensesTable.insert({
+      id: `exp-${Date.now()}`,
+      category,
+      title,
+      amount: Number(amount),
+      expense_date: expense_date ? new Date(expense_date).toISOString() : new Date().toISOString(),
+      notes: notes || "",
+      receipt_url: receipt_url || "",
+      created_by: req.user.name || "admin",
+    });
+
+    res.status(201).json({ success: true, expense: newExpense });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/expenses/:id", async (req, res) => {
+  try {
+    const expensesTable = Database.table("expenses");
+    const updated = expensesTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Expense not found." });
+    res.status(200).json({ success: true, expense: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/expenses/:id", async (req, res) => {
+  try {
+    const expensesTable = Database.table("expenses");
+    expensesTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Expense deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.get("/admin/expenses/summary", async (req, res) => {
+  try {
+    const expensesTable = Database.table("expenses");
+    const ordersTable = Database.table("orders");
+    const allExpenses = expensesTable.find();
+    const allOrders = ordersTable.find();
+
+    const categoryBreakdown = {};
+    let totalExpenses = 0;
+    allExpenses.forEach((e) => {
+      categoryBreakdown[e.category] = (categoryBreakdown[e.category] || 0) + (e.amount || 0);
+      totalExpenses += e.amount || 0;
+    });
+
+    const paidOrders = allOrders.filter((o) => o.status === "paid" || o.status === "COMPLETED");
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total || o.total_amount || 0), 0);
+
+    res.status(200).json({
+      success: true,
+      totalRevenue,
+      totalExpenses,
+      netProfit: totalRevenue - totalExpenses,
+      categoryBreakdown,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B7: OFFERS SECTION CRUD (§8 B7)
+router.get("/admin/offers", async (req, res) => {
+  try {
+    const offersTable = Database.table("offers");
+    const offers = offersTable.find().sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    res.status(200).json({ success: true, count: offers.length, offers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/offers", async (req, res) => {
+  try {
+    const { title, description, banner, coupon_id, coupon_code, valid_from, valid_to, display_order, is_active } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Offer title is required." });
+
+    const offersTable = Database.table("offers");
+    const newOffer = offersTable.insert({
+      id: `offer-${Date.now()}`,
+      title,
+      description: description || "",
+      banner: banner || "/assets/ca-cs-hero-books-v2.png",
+      coupon_id: coupon_id || null,
+      coupon_code: coupon_code || "",
+      valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
+      valid_to: valid_to ? new Date(valid_to).toISOString() : null,
+      display_order: Number(display_order || 0),
+      is_active: is_active !== false,
+    });
+
+    res.status(201).json({ success: true, offer: newOffer });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/offers/:id", async (req, res) => {
+  try {
+    const offersTable = Database.table("offers");
+    const updated = offersTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Offer not found." });
+    res.status(200).json({ success: true, offer: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/offers/:id", async (req, res) => {
+  try {
+    const offersTable = Database.table("offers");
+    offersTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Offer deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B8: CASE STUDIES CRUD (§8 B8)
+router.get("/admin/case-studies", async (req, res) => {
+  try {
+    const caseStudiesTable = Database.table("case_studies");
+    const cases = caseStudiesTable.find();
+    res.status(200).json({ success: true, count: cases.length, caseStudies: cases });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/case-studies", async (req, res) => {
+  try {
+    const { title, slug, summary, content, cover_image, act_name, marks_weight, show_on_website, show_on_dashboard, is_published } = req.body;
+    if (!title || !content) return res.status(400).json({ success: false, message: "Title and content are required." });
+
+    const generatedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const caseStudiesTable = Database.table("case_studies");
+
+    const newCase = caseStudiesTable.insert({
+      id: `case-${Date.now()}`,
+      title,
+      slug: generatedSlug,
+      summary: summary || "",
+      content,
+      cover_image: cover_image || "/assets/ca-cs-hero-books-v2.png",
+      act_name: act_name || "Contract Act",
+      marks_weight: Number(marks_weight || 6),
+      show_on_website: show_on_website !== false,
+      show_on_dashboard: show_on_dashboard !== false,
+      is_published: is_published !== false,
+    });
+
+    res.status(201).json({ success: true, caseStudy: newCase });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/admin/case-studies/:id", async (req, res) => {
+  try {
+    const caseStudiesTable = Database.table("case_studies");
+    const updated = caseStudiesTable.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
+    res.status(200).json({ success: true, caseStudy: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete("/admin/case-studies/:id", async (req, res) => {
+  try {
+    const caseStudiesTable = Database.table("case_studies");
+    caseStudiesTable.delete(req.params.id);
+    res.status(200).json({ success: true, message: "Case study deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B10: PAYMENTS TABLE & DATA EXPORT (§8 B10)
+router.get("/admin/payments", async (req, res) => {
+  try {
+    const paymentsTable = Database.table("payments");
+    const ordersTable = Database.table("orders");
+    let payments = paymentsTable.find();
+
+    // If no direct payment records yet, synthesize from paid orders
+    if (payments.length === 0) {
+      const paidOrders = ordersTable.find((o) => o.status === "paid" || o.status === "COMPLETED");
+      payments = paidOrders.map((o) => ({
+        id: `pay-${o.id}`,
+        order_id: o.id,
+        order_no: o.order_no || o.id,
+        customer_name: o.customer_name || o.personal_details?.name || "Student",
+        customer_email: o.customer_email || o.personal_details?.email || "",
+        amount: o.total || o.total_amount || 0,
+        currency: "INR",
+        gateway: "Razorpay",
+        gateway_payment_id: o.payment_id || `pay_${Date.now()}`,
+        status: "success",
+        method: "UPI",
+        paid_at: o.created_at,
+      }));
+    }
+
+    res.status(200).json({ success: true, count: payments.length, payments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// B10: DATA EXPORT (CSV / EXCEL FORMAT)
+router.get("/admin/export/:entity", async (req, res) => {
+  try {
+    const { entity } = req.params; // orders, payments, expenses
+    let records = [];
+
+    if (entity === "orders") {
+      records = Database.table("orders").find();
+    } else if (entity === "payments") {
+      records = Database.table("payments").find();
+      if (records.length === 0) {
+        records = Database.table("orders").find((o) => o.status === "paid" || o.status === "COMPLETED");
+      }
+    } else if (entity === "expenses") {
+      records = Database.table("expenses").find();
+    } else {
+      return res.status(400).json({ success: false, message: "Unsupported export entity. Use orders, payments, or expenses." });
+    }
+
+    if (records.length === 0) {
+      return res.status(200).send("No records found to export.");
+    }
+
+    // Convert to CSV
+    const keys = Object.keys(records[0]).filter((k) => typeof records[0][k] !== "object");
+    const csvHeader = keys.join(",");
+    const csvRows = records.map((r) =>
+      keys.map((k) => `"${String(r[k] || "").replace(/"/g, '""')}"`).join(",")
+    );
+    const csvContent = [csvHeader, ...csvRows].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename=lawkaksha_${entity}_${Date.now()}.csv`);
+    res.status(200).send(csvContent);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Export error: " + err.message });
+  }
+});
+
+// SITE SETTINGS MANAGEMENT
+router.get("/admin/settings", async (req, res) => {
+  try {
+    const settingsTable = Database.table("site_settings");
+    const settings = settingsTable.find();
+    res.status(200).json({ success: true, settings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/settings", async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    if (!key) return res.status(400).json({ success: false, message: "Settings key is required." });
+
+    const settingsTable = Database.table("site_settings");
+    const existing = settingsTable.findOne((s) => s.key === key);
+    let updated;
+    if (existing) {
+      updated = settingsTable.update(existing.id, { value });
+    } else {
+      updated = settingsTable.insert({ id: `set-${Date.now()}`, key, value });
+    }
+
+    res.status(200).json({ success: true, setting: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;
