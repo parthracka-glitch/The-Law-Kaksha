@@ -2,8 +2,8 @@
 
 > **Purpose:** Comparative record of technical metrics, test coverage, code quality, and security posture before and after the phased audit.  
 > **Status:** Verified against code & test runners  
-> **Last Verified:** 2026-10-05 (`audit/2026-10-05`)  
-> **Owner:** Lead Auditor  
+> **Last Verified:** 2026-10-07 (`audit/2026-10-07`)  
+> **Owner:** Principal Orchestrator  
 
 ---
 
@@ -11,16 +11,16 @@
 
 | Quality Dimension | Baseline Metric (Pre-Audit) | Post-Audit Final Metric | Delta / Impact |
 |---|---|---|---|
-| **Automated Test Pass Rate** | 0% (Backend tests failed due to absent server runner) | **100% (35 / 35 tests passing in ~1.0s)** | **+100%** (Automated in-process lifecycle) |
+| **Automated Test Pass Rate** | 0% (Backend tests failed due to absent server runner) | **100% (39 / 39 tests passing in ~1.05s)** | **+100%** (Automated in-process lifecycle) |
 | **Backend Test Suites Active** | 0/5 runnable out-of-the-box | **5/5 runnable (`npm test`)** | 5 suites automated |
 | **TypeScript Typecheck** | 0 Errors | **0 Errors (`tsc --noEmit`)** | Zero regression |
-| **Frontend Production Build** | Next.js 16 build passing (20 routes) | **Next.js 16 build passing (20 routes in 2.1s)** | Stable & verified |
+| **Frontend Production Build** | Next.js 16 build passing (20 routes) | **Next.js 16 build passing (21 routes in 4.2s)** | Stable & verified |
 | **High/Critical Security Vulnerabilities** | 3 critical/high vulnerabilities (P0 purchase backdoor, P0 student dashboard IDOR, P1 order IDOR) | **0 Critical / 0 High Open** | **100% Remediated** (OWASP ASVS Level 2) |
 | **Rate Limiting Protection** | Auth only | **Auth (60/min) + Orders & Payments (60/min)** | Brute force & carding protection added |
 | **HTTP Security Headers** | Basic headers | **Full Suite: CSP, HSTS, X-Content-Type, Permissions-Policy, X-Frame** | Hardened |
 | **Tier A Dead / Scratch Files** | 2 unreferenced dump files (`extracted_*.txt`) | **0 Tier A files (Purged)** | Cleaned |
 | **Documentation Set** | Partial / fragmented notes in `md/` | **54 comprehensive docs across 00–11 and `docs/audit/`** | +100% formal documentation coverage |
-| **Universal Verification Harness** | None (manual disjointed scripts) | **1 unified command (`npm run verify`)** | Continuous automated safety net |
+| **Universal Verification Harness** | None (manual disjointed scripts) | **1 unified command (`npm run verify` / `node scripts/verify.js`)** | Continuous automated safety net |
 | **CI / CD Automated Pipeline** | None | **GitHub Actions (`.github/workflows/verify.yml`)** | Verified on every push |
 
 ---
@@ -68,6 +68,10 @@
   ✔ P0 Order IDOR Guard: GET /api/orders/:id rejects unauthenticated request with 401
   ✔ P0 Order IDOR Guard: GET /api/orders/:id permits authentic order owner
   ✔ P0 Order IDOR Guard: GET /api/orders/:id blocks another student with 403 Forbidden
+  ✔ SEC-01 Quiz Admin Guard: GET /api/quizzes/admin/attempts rejects student token with 403
+  ✔ SEC-07 Admin 404 Guard: PUT /api/admin/subscriptions/:id returns 404 on missing ID
+  ✔ SEC-10 Auth Hardening: POST /api/auth/logout rejects unauthenticated logout kick with 401
+  ✔ SEC-12 Content Moderation: POST /api/reviews defaults is_verified to false
 
-ℹ tests 35 | suites 5 | pass 35 | fail 0 | duration ~1.0s
+ℹ tests 39 | suites 5 | pass 39 | fail 0 | duration ~1.05s
 ```
