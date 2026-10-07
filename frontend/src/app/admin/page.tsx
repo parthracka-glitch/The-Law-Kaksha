@@ -25,6 +25,7 @@ import {
   LogOut,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
   TrendingUp,
   ExternalLink,
   BookMarked,
@@ -570,6 +571,26 @@ export default function AdminPortalPage() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [materialSubTab, setMaterialSubTab] = useState<"all" | "books" | "notes">("all");
   const [subFilterTab, setSubFilterTab] = useState<"all" | "active" | "expiring_soon" | "revoked">("all");
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
+  const [studentStatusFilter, setStudentStatusFilter] = useState<"all" | "active" | "blocked">("all");
+  const [showAdvancedTabs, setShowAdvancedTabs] = useState(false);
+
+  const handleToggleStudentDrm = async (std: StudentRecord) => {
+    try {
+      const nextDrm = !std.drm_access;
+      const updated = students.map((s) => (s.id === std.id ? { ...s, drm_access: nextDrm } : s));
+      setStudents(updated);
+      localStorage.setItem("lawkaksha_admin_students", JSON.stringify(updated));
+      showToast(`DRM Access ${nextDrm ? "Activated" : "Blocked"} for ${std.name}`);
+      await adminFetch(`/api/admin/students/${std.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ drm_access: nextDrm }),
+      });
+    } catch (e) {
+      showToast("Access updated locally.");
+    }
+  };
 
   // Announcement Banner state
   const [announcement, setAnnouncement] = useState<AnnouncementSetting>({
@@ -973,24 +994,49 @@ export default function AdminPortalPage() {
     );
   }
 
-  const NAV_TABS = [
+  const CORE_TABS = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
-    { id: "orders" as TabType, label: "Orders & Bookings", icon: CreditCard },
+    { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
     { id: "subscriptions" as TabType, label: "Subscriptions", icon: CreditCard, badge: subscriptions.length },
     { id: "books_and_notes" as TabType, label: "Books & Notes", icon: BookOpen, badge: products.length + resources.length },
     { id: "carousel" as TabType, label: "Carousel Editor", icon: Layers },
-    { id: "live_sessions" as TabType, label: "Live Meet Classes", icon: Video },
-    { id: "expenses" as TabType, label: "Expenses & P&L", icon: DollarSign },
+    { id: "live_sessions" as TabType, label: "Live Classes", icon: Video },
     { id: "offers" as TabType, label: "Promotions & Offers", icon: Gift },
-    { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
-    { id: "cases" as TabType, label: "Case Studies", icon: Flame },
-    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles, badge: mcqTests.length },
+    { id: "settings" as TabType, label: "Platform Settings", icon: Settings },
+  ];
+
+  const ADVANCED_TABS = [
+    { id: "orders" as TabType, label: "Orders & Bookings", icon: CreditCard },
     { id: "coupons" as TabType, label: "Coupons", icon: Percent },
     { id: "payments" as TabType, label: "Payments Ledger", icon: FileSpreadsheet },
-    { id: "settings" as TabType, label: "Platform Settings", icon: Settings },
+    { id: "expenses" as TabType, label: "Expenses & P&L", icon: DollarSign },
+    { id: "cases" as TabType, label: "Case Studies", icon: Flame },
+    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles, badge: mcqTests.length },
     { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
     { id: "promo_banners" as TabType, label: "Codex Passes", icon: Megaphone },
   ];
+
+  const ALL_TABS = [...CORE_TABS, ...ADVANCED_TABS];
+  const isAdvancedActive = ADVANCED_TABS.some((t) => t.id === activeTab);
+
+  const TAB_DESCRIPTIONS: Record<string, string> = {
+    overview: "Platform performance, revenue, and daily snapshot",
+    students: "Manage student profiles, enrollments, and DRM access",
+    subscriptions: "Active subscriptions, validity periods, and pass renewals",
+    books_and_notes: "Study materials, digital codices, and DRM PDF notes",
+    carousel: "Customize homepage hero carousel slides and call-to-actions",
+    live_sessions: "Schedule and manage Google Meet live class batches",
+    offers: "Special discounts, promotional passes, and launch offers",
+    settings: "Platform configuration, announcement banners, and notifications",
+    orders: "Purchases, student transactions, and order receipts",
+    coupons: "Promo discount codes, limits, and expiry dates",
+    payments: "Transaction history and financial audit ledger",
+    expenses: "Operational platform expenses, profits, and losses",
+    cases: "Weekly legal case problems and landmark precedents",
+    mcq: "Google Forms test links and timed mock examinations",
+    qotd: "Question of the day and daily practice problems",
+    promo_banners: "Student dashboard codex passes and promotional cards",
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F7F5] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -1031,7 +1077,7 @@ export default function AdminPortalPage() {
 
         {/* NAVIGATION ITEMS */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_TABS.map((tab) => {
+          {CORE_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -1060,6 +1106,54 @@ export default function AdminPortalPage() {
               </button>
             );
           })}
+
+          {/* ADVANCED MODULES ACCORDION */}
+          <div className="pt-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedTabs(!showAdvancedTabs)}
+              className="w-full flex items-center justify-between px-3.5 py-2 text-[11px] font-semibold text-[#77716E] hover:text-[#221D1D] rounded-xl hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+            >
+              <span>More Modules ({ADVANCED_TABS.length})</span>
+              <ChevronRight
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  showAdvancedTabs || isAdvancedActive ? "rotate-90 text-[#221D1D]" : ""
+                }`}
+              />
+            </button>
+
+            {(showAdvancedTabs || isAdvancedActive) && (
+              <div className="mt-1 space-y-1 pl-1 pt-1 border-l-2 border-[#E7E4E7] ml-3.5">
+                {ADVANCED_TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setSearchQuery("");
+                        setSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[38px] ${
+                        isActive
+                          ? "bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9]"
+                          : "text-[#77716E] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
+                      }`}
+                    >
+                      <Icon className={`shrink-0 ${isActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 15, height: 15 }} />
+                      <span className="truncate">{tab.label}</span>
+                      {tab.badge !== undefined && tab.badge > 0 && (
+                        <span className="ml-auto px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* BOTTOM ADMIN PROFILE */}
@@ -1069,8 +1163,8 @@ export default function AdminPortalPage() {
               AD
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#221D1D] truncate">Academic Admin</p>
-              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">The Law Kaksha Hub</p>
+              <p className="text-xs font-bold text-[#221D1D] truncate">The Law Kaksha</p>
+              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">Admin Management</p>
             </div>
             <button
               onClick={handleLogout}
@@ -1098,32 +1192,23 @@ export default function AdminPortalPage() {
             </button>
             <div>
               <h1 className="text-base font-serif font-bold text-[#221D1D]">
-                {NAV_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
+                {ALL_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
               </h1>
               <p className="text-[11px] text-[#77716E] leading-none mt-0.5">
-                Cloudinary Storage, DRM Rights, Student Passes &amp; Act-Wise Resources
+                {TAB_DESCRIPTIONS[activeTab] || "The Law Kaksha Admin Control Center"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${
               isAtlasConnected
                 ? "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]"
                 : "bg-[#F4C5C0]/30 text-[#C35F3B] border-[#F4C5C0]"
             }`}>
               <span className={`w-2 h-2 rounded-full ${isAtlasConnected ? "bg-[#4B8097] animate-pulse" : "bg-[#F7892A]"}`} />
-              <span>{isAtlasConnected ? "MongoDB Atlas Active" : "Local Sync Active"}</span>
+              <span>{isAtlasConnected ? "Database Connected" : "Local Sync Active"}</span>
             </div>
-
-            <Link
-              href="/student"
-              target="_blank"
-              className="px-4 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] hover:bg-[#F7F7F5] shadow-xs flex items-center gap-1.5 transition-all"
-            >
-              <span>Student View</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#77716E]" />
-            </Link>
           </div>
         </header>
 
@@ -2408,112 +2493,253 @@ export default function AdminPortalPage() {
           )}
 
           {/* TAB 4: STUDENTS */}
-          {activeTab === "students" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Students Directory</h2>
-                  <p className="text-xs text-[#4D433F] mt-0.5">View registered students, DRM permissions, and export contact roster.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleExportStudents}
-                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                    title="Export all students as CSV file"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#77716E]" />
-                    <span>Export CSV</span>
-                  </button>
-                  <button
-                    onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
-                    className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Student</span>
-                  </button>
-                </div>
-              </div>
+          {activeTab === "students" && (() => {
+            const activeCount = students.filter((s) => s.drm_access).length;
+            const blockedCount = students.filter((s) => !s.drm_access).length;
+            const query = studentSearchQuery.trim().toLowerCase();
 
-              {/* STUDENTS LIST */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#77716E] font-semibold">
-                      <tr>
-                        <th className="py-3 px-4">Student &amp; Roll No.</th>
-                        <th className="py-3 px-4">Contact Info</th>
-                        <th className="py-3 px-4">Target Exam</th>
-                        <th className="py-3 px-4">Enrolled Courses</th>
-                        <th className="py-3 px-4">Access Status</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E7E4E7]">
-                      {students.map((std) => (
-                        <tr key={std.id} className="hover:bg-[#F7F7F5]/50 transition-colors">
-                          <td className="py-3.5 px-4">
-                            <p className="font-bold text-[#221D1D]">{std.name}</p>
-                            <p className="text-[10px] text-[#4B8097] font-mono">{std.student_id}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="text-[#4D433F]">{std.email}</p>
-                            <p className="text-[10px] text-[#77716E]">{std.phone}</p>
-                          </td>
-                          <td className="py-3.5 px-4 font-semibold text-[#4D433F]">
-                            {std.target_exam}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex flex-wrap gap-1">
-                              {std.enrolled_books?.map((b, i) => (
-                                <span key={i} className="text-[10px] bg-[#F7F7F5] text-[#4D433F] px-2 py-0.5 rounded-full border border-[#E7E4E7]">
-                                  {b}
+            const filteredStudents = students.filter((std) => {
+              const matchesSearch =
+                !query ||
+                std.name?.toLowerCase().includes(query) ||
+                std.student_id?.toLowerCase().includes(query) ||
+                std.email?.toLowerCase().includes(query) ||
+                std.phone?.toLowerCase().includes(query) ||
+                std.target_exam?.toLowerCase().includes(query);
+
+              const matchesStatus =
+                studentStatusFilter === "all" ||
+                (studentStatusFilter === "active" && std.drm_access) ||
+                (studentStatusFilter === "blocked" && !std.drm_access);
+
+              return matchesSearch && matchesStatus;
+            });
+
+            return (
+              <div className="space-y-5">
+                {/* DIRECTORY HEADER & PRIMARY ACTIONS */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-serif font-bold text-[#221D1D]">Students Directory</h2>
+                    <p className="text-xs text-[#4D433F] mt-0.5">
+                      Effortlessly search students, toggle DRM permissions in 1-click, and manage registrations.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleExportStudents}
+                      className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      title="Export all students as CSV file"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#77716E]" />
+                      <span>Export CSV</span>
+                    </button>
+                    <button
+                      onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
+                      className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Student</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* SEARCH & FILTER CONTROLS */}
+                <div className="bg-white rounded-2xl border border-[#E7E4E7] p-3.5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  {/* SEARCH BAR */}
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#77716E]" />
+                    <input
+                      type="text"
+                      value={studentSearchQuery}
+                      onChange={(e) => setStudentSearchQuery(e.target.value)}
+                      placeholder="Search by name, roll no, email, or mobile..."
+                      className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-[#F7F7F5] border border-transparent focus:border-[#BFAFE5] focus:bg-white text-[#221D1D] placeholder-[#77716E] outline-none transition-all"
+                    />
+                    {studentSearchQuery && (
+                      <button
+                        onClick={() => setStudentSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-[#E7E4E7] text-[#77716E] cursor-pointer"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* STATUS FILTER PILLS & COUNT */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-xl border border-[#E7E4E7]">
+                      <button
+                        type="button"
+                        onClick={() => setStudentStatusFilter("all")}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          studentStatusFilter === "all"
+                            ? "bg-white text-[#221D1D] shadow-xs font-bold"
+                            : "text-[#77716E] hover:text-[#221D1D]"
+                        }`}
+                      >
+                        All ({students.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStudentStatusFilter("active")}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          studentStatusFilter === "active"
+                            ? "bg-[#AED7E9]/60 text-[#221D1D] shadow-xs font-bold"
+                            : "text-[#77716E] hover:text-[#221D1D]"
+                        }`}
+                      >
+                        Active ({activeCount})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStudentStatusFilter("blocked")}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          studentStatusFilter === "blocked"
+                            ? "bg-[#F4C5C0]/60 text-[#C35F3B] shadow-xs font-bold"
+                            : "text-[#77716E] hover:text-[#221D1D]"
+                        }`}
+                      >
+                        Blocked ({blockedCount})
+                      </button>
+                    </div>
+
+                    <span className="text-[11px] text-[#77716E] px-1 font-medium">
+                      Showing {filteredStudents.length} of {students.length}
+                    </span>
+                  </div>
+                </div>
+
+                {/* STUDENTS TABLE */}
+                <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
+                  {filteredStudents.length === 0 ? (
+                    <div className="py-12 px-4 text-center">
+                      <div className="w-12 h-12 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] mx-auto flex items-center justify-center text-[#77716E] mb-3">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-sm font-serif font-bold text-[#221D1D]">No students found</h3>
+                      <p className="text-xs text-[#77716E] mt-1 max-w-sm mx-auto">
+                        {studentSearchQuery
+                          ? `No student matching "${studentSearchQuery}" in ${studentStatusFilter} status.`
+                          : "No students registered under the selected status filter."}
+                      </p>
+                      {(studentSearchQuery || studentStatusFilter !== "all") && (
+                        <button
+                          onClick={() => {
+                            setStudentSearchQuery("");
+                            setStudentStatusFilter("all");
+                          }}
+                          className="mt-3.5 px-4 py-1.5 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] hover:bg-[#E7E4E7] transition-colors cursor-pointer"
+                        >
+                          Clear Filters
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#77716E] font-semibold">
+                          <tr>
+                            <th className="py-3 px-4">Student &amp; Roll No.</th>
+                            <th className="py-3 px-4">Contact Info</th>
+                            <th className="py-3 px-4">Target Exam</th>
+                            <th className="py-3 px-4">Enrolled Courses</th>
+                            <th className="py-3 px-4">DRM Access (1-Click Toggle)</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E7E4E7]">
+                          {filteredStudents.map((std) => (
+                            <tr key={std.id} className="hover:bg-[#F7F7F5]/50 transition-colors">
+                              <td className="py-3.5 px-4">
+                                <p className="font-bold text-[#221D1D]">{std.name}</p>
+                                <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-[#AED7E9]/30 text-[#4B8097] text-[10px] font-mono border border-[#AED7E9]/50">
+                                  {std.student_id}
                                 </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              std.drm_access ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]" : "bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0]"
-                            }`}>
-                              {std.drm_access ? "Active" : "Blocked"}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
-                                className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] transition-colors cursor-pointer"
-                                title="Edit Student"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  if (confirm(`Delete student ${std.name}?`)) {
-                                    const next = students.filter((s) => s.id !== std.id);
-                                    setStudents(next);
-                                    localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
-                                    try {
-                                      await adminFetch(`/api/admin/students/${std.id}`, { method: "DELETE" });
-                                    } catch (e) {}
-                                    showToast("Student deleted.");
-                                  }
-                                }}
-                                className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B] transition-colors cursor-pointer"
-                                title="Delete Student"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <p className="text-[#4D433F]">{std.email}</p>
+                                <p className="text-[10px] text-[#77716E]">{std.phone}</p>
+                              </td>
+                              <td className="py-3.5 px-4 font-semibold text-[#4D433F]">
+                                {std.target_exam}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="flex flex-wrap gap-1">
+                                  {std.enrolled_books && std.enrolled_books.length > 0 ? (
+                                    std.enrolled_books.map((b, i) => (
+                                      <span key={i} className="text-[10px] bg-[#F7F7F5] text-[#4D433F] px-2 py-0.5 rounded-full border border-[#E7E4E7]">
+                                        {b}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[10px] text-[#77716E] italic">Standard Pass</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleStudentDrm(std)}
+                                  className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
+                                    std.drm_access
+                                      ? "bg-[#AED7E9]/50 hover:bg-[#AED7E9] text-[#221D1D] border border-[#98C5D8]"
+                                      : "bg-[#F4C5C0]/50 hover:bg-[#F4C5C0] text-[#C35F3B] border border-[#F4C5C0]"
+                                  }`}
+                                  title={`Click to ${std.drm_access ? "revoke/block" : "grant"} DRM access`}
+                                >
+                                  {std.drm_access ? (
+                                    <>
+                                      <Unlock className="w-3 h-3 text-[#4B8097]" />
+                                      <span>Active</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Lock className="w-3 h-3 text-[#C35F3B]" />
+                                      <span>Blocked</span>
+                                    </>
+                                  )}
+                                </button>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
+                                    className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] transition-colors cursor-pointer"
+                                    title="Edit Student Details"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm(`Delete student ${std.name}?`)) {
+                                        const next = students.filter((s) => s.id !== std.id);
+                                        setStudents(next);
+                                        localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
+                                        try {
+                                          await adminFetch(`/api/admin/students/${std.id}`, { method: "DELETE" });
+                                        } catch (e) {}
+                                        showToast("Student deleted.");
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B] transition-colors cursor-pointer"
+                                    title="Delete Student"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB 5: WEEKLY CASES */}
           {activeTab === "cases" && (
