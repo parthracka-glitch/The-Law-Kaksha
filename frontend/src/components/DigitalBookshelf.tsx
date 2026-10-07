@@ -163,6 +163,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
 export function DigitalBookshelf() {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
   const [hoveredBook, setHoveredBook] = useState<string | null>(null);
+  const activeHoveredBook = STATUTORY_BOOKS.find((b) => b.id === hoveredBook);
   const [readerState, setReaderState] = useState<{
     open: boolean; title: string; pdfUrl: string;
     previewLimit: number; price: number; bookId: string;
@@ -226,14 +227,23 @@ export function DigitalBookshelf() {
             {/* Ambient Glow */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(174,215,233,0.08)_0%,_transparent_60%)] pointer-events-none" />
 
-            {/* Top label */}
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            {/* Top label & Active Codex Indicator */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-white/5">
               <span className="text-[10px] font-bold tracking-widest uppercase text-white/30">The Law कक्षा — Statutory Library</span>
-              <span className="text-[10px] font-mono text-white/25">CA Foundation + CSEET · 2026</span>
+              <div className="text-[10px] text-white/60 font-medium hidden sm:flex items-center gap-2">
+                {activeHoveredBook ? (
+                  <span className="text-[#AED7E9] font-bold flex items-center gap-1.5 animate-in fade-in">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#AED7E9]" />
+                    {activeHoveredBook.actName} {activeHoveredBook.year !== "ICAI" && activeHoveredBook.year !== "ICSI" ? `(${activeHoveredBook.year})` : ""} · {activeHoveredBook.exam}
+                  </span>
+                ) : (
+                  <span className="text-white/25 font-mono">CA Foundation + CSEET · 2026</span>
+                )}
+              </div>
             </div>
 
-            {/* Books Row */}
-            <div className="flex items-end justify-start sm:justify-center gap-1.5 sm:gap-2 px-4 sm:px-8 pt-4 overflow-x-auto pb-0 scroll-container-x">
+            {/* Books Row with Generous Headroom so Tooltips Never Clip */}
+            <div className="flex items-end justify-start sm:justify-center gap-2 sm:gap-3 px-6 sm:px-10 pt-16 sm:pt-20 overflow-x-auto pb-0 scroll-container-x">
               {STATUTORY_BOOKS.map((book) => {
                 const isHovered = hoveredBook === book.id;
                 return (
@@ -244,33 +254,16 @@ export function DigitalBookshelf() {
                     onMouseLeave={() => setHoveredBook(null)}
                     onClick={() => handleOpenBook(book)}
                   >
-                    {/* Hover Tooltip Card */}
+                    {/* Hover Floating Tooltip Pill (Centered, properly aligned, zero clipping) */}
                     {isHovered && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-52 bg-white rounded-2xl shadow-2xl border border-[#E7E4E7] p-4 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[#77716E]">{book.exam}</p>
-                            <h3 className="text-sm font-bold text-[#221D1D] leading-tight mt-0.5">{book.actName} {book.year !== "ICAI" && book.year !== "ICSI" ? `(${book.year})` : ""}</h3>
-                          </div>
-                          {book.isSample && (
-                            <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[#AED7E9]/40 border border-[#AED7E9] text-[9px] font-bold text-[#221D1D]">FREE</span>
-                          )}
+                      <div className="absolute -top-11 sm:-top-12 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                        <div className="relative px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white text-[#221D1D] text-[11px] sm:text-xs font-bold shadow-2xl border border-[#E7E4E7] flex items-center gap-1.5 whitespace-nowrap">
+                          <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#4B8097]" />
+                          <span>Tap to read sample</span>
+                          <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#4B8097]" />
+                          {/* Downward triangle pointer pointing directly at the spine */}
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-r border-b border-[#E7E4E7] rotate-45" />
                         </div>
-                        <p className="text-[10px] text-[#4D433F] font-medium mb-2">{book.chapters}</p>
-                        <div className="space-y-1 border-t border-[#E7E4E7] pt-2">
-                          {book.topics.map((t, i) => (
-                            <div key={i} className="flex items-start gap-1.5 text-[10px] text-[#4D433F]">
-                              <ChevronRight className="w-3 h-3 text-[#4B8097] shrink-0 mt-px" />
-                              <span>{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-3 pt-2 border-t border-[#E7E4E7] flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-[#4B8097]">Tap to read sample →</span>
-                          {book.isFeatured && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#BFAFE5]/40 border border-[#BFAFE5] text-[#221D1D] font-bold">HIGH YIELD</span>}
-                        </div>
-                        {/* Arrow pointing down */}
-                        <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-[#E7E4E7] rotate-45" />
                       </div>
                     )}
 
@@ -342,8 +335,18 @@ export function DigitalBookshelf() {
             {/* Bottom CTA inside shelf */}
             <div className="px-5 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
-                <p className="text-white/50 text-xs font-medium">Includes free sample chapters for Indian Partnership Act</p>
-                <p className="text-white/25 text-[10px] mt-0.5">All notes are DRM-protected · For in-app reading only</p>
+                <p className="text-white/75 text-xs font-medium transition-all">
+                  {activeHoveredBook ? (
+                    <>
+                      <strong className="text-white font-bold">{activeHoveredBook.actName} {activeHoveredBook.year !== "ICAI" && activeHoveredBook.year !== "ICSI" ? `(${activeHoveredBook.year})` : ""}</strong>
+                      <span className="text-white/40"> — </span>
+                      <span className="text-[#AED7E9]">{activeHoveredBook.chapters}</span>
+                    </>
+                  ) : (
+                    "Includes free sample chapters for Indian Partnership Act, 1932"
+                  )}
+                </p>
+                <p className="text-white/30 text-[10px] mt-0.5">All notes are DRM-protected · Click any book for interactive in-app reading</p>
               </div>
               <div className="flex gap-2">
                 <Link
