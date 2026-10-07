@@ -99,15 +99,24 @@ export function getStudentAuthToken(): string | null {
 export function setStudentAuthSession(token: string, user: any) {
   if (typeof window === "undefined") return;
   localStorage.setItem("lawkaksha_student_token", token);
+  localStorage.setItem("lawkaksha_token", token);
   localStorage.setItem("lawkaksha_student_user", JSON.stringify(user));
+  localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
+  localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
+  localStorage.removeItem("lawkaksha_admin_session");
   window.dispatchEvent(new Event("storage"));
+  window.dispatchEvent(new Event("lawkaksha_student_updated"));
 }
 
 export function clearStudentAuthSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("lawkaksha_student_token");
+  localStorage.removeItem("lawkaksha_token");
   localStorage.removeItem("lawkaksha_student_user");
+  localStorage.removeItem("lawkaksha_student_session");
+  localStorage.removeItem("lawkaksha_active_student");
   window.dispatchEvent(new Event("storage"));
+  window.dispatchEvent(new Event("lawkaksha_student_updated"));
 }
 
 export function getStudentUser(): any | null {

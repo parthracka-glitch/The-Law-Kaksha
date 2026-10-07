@@ -60,8 +60,13 @@ function RegisterForm() {
         const student = innerData.student || innerData.user || respData.student || respData.user || { name: formData.name };
         localStorage.setItem("lawkaksha_student_session", JSON.stringify(student));
         localStorage.setItem("lawkaksha_active_student", JSON.stringify(student));
-        if (token) localStorage.setItem("lawkaksha_token", token);
+        localStorage.setItem("lawkaksha_student_user", JSON.stringify(student));
+        if (token) {
+          localStorage.setItem("lawkaksha_token", token);
+          localStorage.setItem("lawkaksha_student_token", token);
+        }
         window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("lawkaksha_student_updated"));
         router.push("/student");
       } else {
         setErrorMsg(res?.message || "Failed to complete registration.");

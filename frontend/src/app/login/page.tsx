@@ -188,7 +188,11 @@ function LoginContent() {
           localStorage.removeItem("lawkaksha_admin_session");
           localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
           localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
-          if (token) localStorage.setItem("lawkaksha_token", token);
+          localStorage.setItem("lawkaksha_student_user", JSON.stringify(user));
+          if (token) {
+            localStorage.setItem("lawkaksha_token", token);
+            localStorage.setItem("lawkaksha_student_token", token);
+          }
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
           window.location.href = redirectPath || "/student";

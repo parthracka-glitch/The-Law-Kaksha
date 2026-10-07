@@ -26,32 +26,9 @@ export default function StudentLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Gating state: when user is valid but has 0 active entitlements
+  // Gating state: fallback display when needed
   const [isGated, setIsGated] = useState(false);
   const [gatedUser, setGatedUser] = useState<any | null>(null);
-
-  const checkEntitlementAndProceed = async (token: string, user: any) => {
-    try {
-      const gateRes = await apiRequest("/api/student/gate", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (gateRes.success && gateRes.data?.has_active_entitlement) {
-        // Enrolled and entitled -> store session and proceed
-        setStudentAuthSession(token, user);
-        router.push("/student");
-      } else {
-        // Unentitled -> display gated screen
-        setIsGated(true);
-        setGatedUser(user);
-      }
-    } catch (e: any) {
-      // If gate check fails unexpectedly, show error
-      setError(e?.message || "Failed to verify student subscription status.");
-    }
-  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +61,26 @@ export default function StudentLoginPage() {
         return;
       }
 
-      await checkEntitlementAndProceed(res.token, res.data?.user || res.data);
+      const innerData = (res.data as any)?.data || res.data;
+      const user =
+        innerData?.user ||
+        innerData?.student ||
+        (res.data as any)?.user ||
+        (res.data as any)?.student || {
+          email,
+          name: "Student",
+          role: "student",
+        };
+
+      // Set complete auth session for the student in localStorage
+      setStudentAuthSession(res.token, user);
+
+      // Route to destination
+      if (user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/student");
+      }
     } catch (err: any) {
       setError(err?.message || "Login failed. Please check your network connection.");
     } finally {
@@ -166,18 +162,27 @@ export default function StudentLoginPage() {
               </div>
 
               <div className="space-y-3 pt-2">
-                <Link
-                  href="/#subscriptions"
+                <button
+                  type="button"
+                  onClick={() => router.push("/student")}
                   className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-all flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer active:scale-[0.98]"
                 >
                   <BookOpen className="w-4 h-4 text-[#221D1D]" />
-                  <span>Browse Subscriptions on Website</span>
+                  <span>Enter Student Portal (Preview Mode)</span>
                   <ArrowRight className="w-4 h-4 text-[#221D1D]" />
+                </button>
+
+                <Link
+                  href="/#subscriptions"
+                  className="w-full py-3 px-6 rounded-full font-bold text-xs text-[#221D1D] hover:bg-[#F7F7F5] bg-white border border-[#E7E4E7] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Browse Subscriptions on Website (₹99/mo)</span>
                 </Link>
 
                 <button
+                  type="button"
                   onClick={handleResetToLogin}
-                  className="w-full py-3 px-6 rounded-full font-bold text-xs text-[#221D1D] hover:bg-[#F7F7F5] bg-white border border-[#221D1D] transition-colors cursor-pointer"
+                  className="w-full py-2.5 px-6 rounded-full font-bold text-xs text-[#77716E] hover:text-[#221D1D] transition-colors cursor-pointer"
                 >
                   Sign in with another account
                 </button>

@@ -258,6 +258,7 @@ router.get("/gate", requireAuth, async (req, res) => {
       success: true,
       allowed: isAllowed,
       hasActiveSubscription: isAllowed,
+      has_active_entitlement: isAllowed,
       entitlementsCount: activeEntitlements.length,
       user: {
         id: req.user.id,
