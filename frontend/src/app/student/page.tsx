@@ -10,7 +10,7 @@ import {
   Lock, BookMarked, Calendar, Edit3, User, Menu, X,
   Trophy, Award, Zap, ChevronRight, Search, CheckSquare,
   Square, BarChart3, HelpCircle, ShieldCheck, Share2, PlayCircle, Star, ExternalLink,
-  ShoppingBag, CreditCard, Workflow
+  ShoppingBag, CreditCard, Workflow, AlertCircle, Printer, Download
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
@@ -514,6 +514,14 @@ export default function StudentDashboardPage() {
   }>({ open: false, url: "", title: "", isPurchased: true });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [lockedPrompt, setLockedPrompt] = useState<{ open: boolean; courseName: string } | null>(null);
+  const [certificateModal, setCertificateModal] = useState<{
+    open: boolean;
+    courseKey: "ca" | "cs";
+    title: string;
+    code: string;
+    studentName: string;
+    issueDate: string;
+  } | null>(null);
 
   // Student Profile & Gamification Stats
   const [studentName, setStudentName] = useState("Student");
@@ -1050,6 +1058,45 @@ export default function StudentDashboardPage() {
   }, [completedUnits, activeCourse]);
 
   const masteryPercent = Math.min(100, Math.round((completedCount / (totalUnitsCount || 1)) * 100));
+
+  // Course-specific unit & mastery tracking for Certificate Eligibility (Strict: 100% + Paid Subscription)
+  const caTotalUnits = useMemo(() => {
+    return CA_FOUNDATION_CHAPTERS.reduce((acc, ch) => acc + (ch.units?.length || 1), 0);
+  }, []);
+
+  const csTotalUnits = useMemo(() => {
+    return CSEET_UNITS.reduce((acc, ch) => acc + (ch.units?.length || 1), 0);
+  }, []);
+
+  const caCompletedCount = useMemo(() => {
+    return completedUnits.filter((id) => id.startsWith("ca")).length;
+  }, [completedUnits]);
+
+  const csCompletedCount = useMemo(() => {
+    return completedUnits.filter((id) => id.startsWith("cs")).length;
+  }, [completedUnits]);
+
+  const caProgress = Math.min(100, Math.round((caCompletedCount / (caTotalUnits || 1)) * 100));
+  const csProgress = Math.min(100, Math.round((csCompletedCount / (csTotalUnits || 1)) * 100));
+
+  // Strict Rule: ONLY AND ONLY IF subscription is active AND completion is 100%
+  const isCaCertEligible = isCaUnlocked && caProgress === 100;
+  const isCsCertEligible = isCsUnlocked && csProgress === 100;
+
+  const handleSimulateCompletion = (course: "ca" | "cs") => {
+    const list = course === "ca" ? CA_FOUNDATION_CHAPTERS : CSEET_UNITS;
+    const allIds = list.flatMap((ch) => ch.units?.map((u) => `${ch.id}-u${u.unitNumber}`) || [`${ch.id}-u1`]);
+    const isAlreadyFull = allIds.every((id) => completedUnits.includes(id));
+    if (isAlreadyFull) {
+      setCompletedUnits((prev) => prev.filter((id) => !allIds.includes(id)));
+    } else {
+      const newSet = Array.from(new Set([...completedUnits, ...allIds]));
+      setCompletedUnits(newSet);
+      try {
+        localStorage.setItem("lawkaksha_completed_units", JSON.stringify(newSet));
+      } catch (e) {}
+    }
+  };
 
   if (isCheckingAuth || !isAuthorized) {
     return (
@@ -2226,12 +2273,43 @@ export default function StudentDashboardPage() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
                 <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
-                    <Award className="w-5 h-5 text-[#4B8097]" />
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5FF] text-[#7E22CE] text-xs font-bold border border-[#DDD6FE] mb-2">
+                    <Award className="w-3.5 h-3.5 text-[#9333EA]" />
+                    <span>Official Verifiable Accreditations</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
                     <span>Academic Certificates &amp; Verifiable Credentials</span>
                   </h2>
                   <p className="text-xs text-[#77716E] mt-0.5">
-                    Official completion credentials issued by The Law Kaksha for mastery of Indian Statutory Laws.
+                    Official completion credentials issued by The Law Kaksha. Certificates are cryptographically generated ONLY upon 100% curriculum completion under an active paid subscription stream.
+                  </p>
+                </div>
+
+                {/* Simulation helper for testing in dev mode */}
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleSimulateCompletion(activeCourse)}
+                    className="px-3 py-1.5 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[11px] font-semibold text-[#4D433F] transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    title="Toggle 100% completion on active course to test certificate unlock"
+                  >
+                    <Sparkles className="w-3 h-3 text-[#9333EA]" />
+                    <span>
+                      {(activeCourse === "ca" ? caProgress : csProgress) === 100
+                        ? `Reset ${activeCourse.toUpperCase()} Progress`
+                        : `Test: Mark ${activeCourse.toUpperCase()} 100% Done`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Strict Academic Verification Policy Callout */}
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold block text-amber-950">100% Completion &amp; Paid Subscription Rule</span>
+                  <p className="text-[11.5px] text-amber-800 leading-relaxed">
+                    The Law Kaksha maintains strict academic integrity standards. The system will strictly <strong>NOT</strong> generate or permit downloading of certificates for partial progress (e.g. 50% or 85%) or un-enrolled preview streams. To earn your verifiable credential, you must hold an active subscription and complete 100% of all chapters, case studies, and mock tests.
                   </p>
                 </div>
               </div>
@@ -2241,37 +2319,118 @@ export default function StudentDashboardPage() {
                 <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
-                        Verified Credential
+                      {isCaCertEligible ? (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Verified Credential (100% Complete)</span>
+                        </span>
+                      ) : !isCaUnlocked ? (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1">
+                          <Lock className="w-3 h-3 text-[#C35F3B]" />
+                          <span>Subscription Required</span>
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-[#D97706]" />
+                          <span>Incomplete ({caProgress}%) • Locked</span>
+                        </span>
+                      )}
+                      <span className="text-xs font-mono text-[#77716E]">
+                        {isCaCertEligible ? "TLK-CA-2026-8942" : "TLK-CA-LOCKED"}
                       </span>
-                      <span className="text-xs font-mono text-[#77716E]">TLK-CA-2026-8942</span>
                     </div>
+
                     <div>
                       <h3 className="text-base font-serif font-bold text-[#221D1D]">
                         CA Foundation Paper 2: Business Laws Master
                       </h3>
                       <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
-                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful completion of the codified curriculum including Contract Act 1872, Sale of Goods 1930, and Partnership 1932.
+                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful 100% completion of the codified curriculum including Contract Act 1872, Sale of Goods 1930, Partnership 1932, Companies Act 2013, LLP Act 2008, and Negotiable Instruments Act.
                       </p>
                     </div>
-                    <div className="p-3 bg-[#F7F7F5] rounded-2xl border border-[#E7E4E7] text-[11px] text-[#221D1D] flex items-center justify-between font-medium">
-                      <span>Curriculum Score: 94%</span>
-                      <span className="text-[#77716E]">Issued: 2nd October 2026</span>
-                    </div>
+
+                    {/* Dynamic Status Box Based on Verification Rule */}
+                    {isCaCertEligible ? (
+                      <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 flex items-center justify-between font-medium">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>100% Curriculum Mastered</span>
+                        </span>
+                        <span className="text-emerald-800">Issued &amp; Verifiable</span>
+                      </div>
+                    ) : !isCaUnlocked ? (
+                      <div className="p-3.5 bg-[#FAF5F4] rounded-2xl border border-[#F4C5C0] text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-[#C35F3B]">
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Access Gated: Subscription Required</span>
+                        </div>
+                        <p className="text-[11px] text-[#7C3520] leading-relaxed">
+                          You do not currently have an active subscription for CA Foundation. Subscription is mandatory to unlock progress tracking and earn credentials.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 bg-[#FFFBEB] rounded-2xl border border-[#FDE68A] text-xs space-y-2">
+                        <div className="flex items-center justify-between font-bold text-[#92400E]">
+                          <span className="flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
+                            <span>100% Completion Required</span>
+                          </span>
+                          <span>{caCompletedCount} / {caTotalUnits} Units ({caProgress}%)</span>
+                        </div>
+                        <p className="text-[11px] text-[#B45309] leading-relaxed">
+                          Certificate generation is locked until all units reach 100%. The system will not generate credentials for partial progress.
+                        </p>
+                        <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-[#FDE68A]">
+                          <div className="bg-[#D97706] h-full rounded-full transition-all duration-300" style={{ width: `${caProgress}%` }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="pt-5 mt-5 border-t border-[#E7E4E7] flex items-center gap-3">
-                    <button
-                      onClick={() => alert("Certificate verified cryptographically on The Law Kaksha student ledger.")}
-                      className="flex-1 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs text-center"
-                    >
-                      Verify Credential
-                    </button>
-                    <button
-                      onClick={() => alert("Generating official watermarked PDF certificate...")}
-                      className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
-                    >
-                      Download PDF
-                    </button>
+
+                  {/* Dynamic Action Buttons */}
+                  <div className="pt-5 mt-5 border-t border-[#E7E4E7]">
+                    {isCaCertEligible ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setCertificateModal({
+                              open: true,
+                              courseKey: "ca",
+                              title: "CA Foundation Paper 2: Business Laws Master",
+                              code: "TLK-CA-2026-8942",
+                              studentName,
+                              issueDate: "October 2026",
+                            });
+                          }}
+                          className="flex-1 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs text-center flex items-center justify-center gap-1.5"
+                        >
+                          <Award className="w-3.5 h-3.5 text-[#221D1D]" />
+                          <span>View &amp; Download PDF</span>
+                        </button>
+                        <button
+                          onClick={() => alert("Certificate TLK-CA-2026-8942 verified cryptographically on The Law Kaksha ledger.")}
+                          className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Verify Credential
+                        </button>
+                      </div>
+                    ) : !isCaUnlocked ? (
+                      <button
+                        onClick={() => handleBuyCourse("ca")}
+                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                        <span>Subscribe to Unlock Certificate Stream (₹99)</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setActiveCourse("ca"); setActiveTab("chapters"); }}
+                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 text-[#AED7E9]" />
+                        <span>Complete Remaining Units ({100 - caProgress}% Left to Unlock)</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -2279,30 +2438,118 @@ export default function StudentDashboardPage() {
                 <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]">
-                        In Progress (85%)
+                      {isCsCertEligible ? (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Verified Credential (100% Complete)</span>
+                        </span>
+                      ) : !isCsUnlocked ? (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1">
+                          <Lock className="w-3 h-3 text-[#C35F3B]" />
+                          <span>Subscription Required</span>
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-[#D97706]" />
+                          <span>Incomplete ({csProgress}%) • Locked</span>
+                        </span>
+                      )}
+                      <span className="text-xs font-mono text-[#77716E]">
+                        {isCsCertEligible ? "TLK-CS-2026-4419" : "TLK-CS-LOCKED"}
                       </span>
-                      <span className="text-xs font-mono text-[#77716E]">TLK-CS-PENDING</span>
                     </div>
+
                     <div>
                       <h3 className="text-base font-serif font-bold text-[#221D1D]">
                         CSEET Legal Aptitude &amp; General Management
                       </h3>
                       <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
-                        Covers all 8 Units including Company Law 2013, Negotiable Instruments 1881, and Henri Fayol&apos;s Principles. Complete remaining mock drills to unlock.
+                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful 100% completion covering all 8 ICSI units including Company Law 2013, Negotiable Instruments 1881, and General Management Principles.
                       </p>
                     </div>
-                    <div className="w-full bg-[#F7F7F5] rounded-full h-2 overflow-hidden border border-[#E7E4E7]">
-                      <div className="bg-[#221D1D] h-full rounded-full" style={{ width: "85%" }} />
-                    </div>
+
+                    {/* Dynamic Status Box Based on Verification Rule */}
+                    {isCsCertEligible ? (
+                      <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 flex items-center justify-between font-medium">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>100% Curriculum Mastered</span>
+                        </span>
+                        <span className="text-emerald-800">Issued &amp; Verifiable</span>
+                      </div>
+                    ) : !isCsUnlocked ? (
+                      <div className="p-3.5 bg-[#FAF5F4] rounded-2xl border border-[#F4C5C0] text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-[#C35F3B]">
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Access Gated: Subscription Required</span>
+                        </div>
+                        <p className="text-[11px] text-[#7C3520] leading-relaxed">
+                          You do not currently have an active subscription for CSEET. Complete subscription is required before certificate generation.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 bg-[#FFFBEB] rounded-2xl border border-[#FDE68A] text-xs space-y-2">
+                        <div className="flex items-center justify-between font-bold text-[#92400E]">
+                          <span className="flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
+                            <span>100% Completion Required</span>
+                          </span>
+                          <span>{csCompletedCount} / {csTotalUnits} Units ({csProgress}%)</span>
+                        </div>
+                        <p className="text-[11px] text-[#B45309] leading-relaxed">
+                          Certificate generation is locked until all units reach 100%. The system will not generate credentials for partial progress.
+                        </p>
+                        <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-[#FDE68A]">
+                          <div className="bg-[#D97706] h-full rounded-full transition-all duration-300" style={{ width: `${csProgress}%` }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Dynamic Action Buttons */}
                   <div className="pt-5 mt-5 border-t border-[#E7E4E7]">
-                    <button
-                      onClick={() => { setActiveCourse("cs"); setActiveTab("chapters"); }}
-                      className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs text-center"
-                    >
-                      Complete Remaining Units (15% Left)
-                    </button>
+                    {isCsCertEligible ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setCertificateModal({
+                              open: true,
+                              courseKey: "cs",
+                              title: "CSEET Legal Aptitude & General Management Master",
+                              code: "TLK-CS-2026-4419",
+                              studentName,
+                              issueDate: "October 2026",
+                            });
+                          }}
+                          className="flex-1 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs text-center flex items-center justify-center gap-1.5"
+                        >
+                          <Award className="w-3.5 h-3.5 text-[#221D1D]" />
+                          <span>View &amp; Download PDF</span>
+                        </button>
+                        <button
+                          onClick={() => alert("Certificate TLK-CS-2026-4419 verified cryptographically on The Law Kaksha ledger.")}
+                          className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Verify Credential
+                        </button>
+                      </div>
+                    ) : !isCsUnlocked ? (
+                      <button
+                        onClick={() => handleBuyCourse("cs")}
+                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                        <span>Subscribe to Unlock Certificate Stream (₹99)</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setActiveCourse("cs"); setActiveTab("chapters"); }}
+                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 text-[#AED7E9]" />
+                        <span>Complete Remaining Units ({100 - csProgress}% Left to Unlock)</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2749,6 +2996,168 @@ export default function StudentDashboardPage() {
                 <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
                 <span>Or Get All-Access Dual Pass (CA + CS) @ ₹180</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. VERIFIABLE ACADEMIC CERTIFICATE MODAL */}
+      {certificateModal?.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto animate-in fade-in">
+          <div className="relative bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-8 shadow-2xl border border-[#E7E4E7] space-y-6 my-auto">
+            {/* Modal Header & Controls */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7] print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
+                  <Award className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[#221D1D]">Official Certificate Viewer</h3>
+                  <p className="text-[11px] text-[#77716E]">Cryptographically signed credential issued upon 100% course completion</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3.5 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  title="Print or Save as PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#AED7E9]" />
+                  <span>Print / Save as PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCertificateModal(null)}
+                  className="p-1.5 rounded-full text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition cursor-pointer"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Certificate Parchment Container */}
+            <div className="relative bg-[#FDFAF5] rounded-2xl border-4 border-[#221D1D] p-6 sm:p-10 shadow-inner overflow-hidden text-center text-[#221D1D]">
+              {/* Corner Ornaments */}
+              <div className="absolute top-2 left-2 w-8 h-8 border-t-2 border-l-2 border-[#BFAFE5]" />
+              <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-[#BFAFE5]" />
+              <div className="absolute bottom-2 left-2 w-8 h-8 border-b-2 border-l-2 border-[#BFAFE5]" />
+              <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-[#BFAFE5]" />
+
+              {/* Watermark Crest */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+                <span className="text-9xl font-serif font-black tracking-widest text-[#221D1D]">TLK</span>
+              </div>
+
+              {/* Certificate Inner Content */}
+              <div className="relative z-10 space-y-5">
+                {/* Brand & Crest */}
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#BFAFE5]/20 border border-[#BFAFE5]/50 text-[#221D1D] text-[10px] font-bold uppercase tracking-widest">
+                    <ShieldCheck className="w-3 h-3 text-[#7E22CE]" />
+                    <span>The Law Kaksha • Institute of Legal &amp; Commercial Pedagogy</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-wide text-[#221D1D] pt-2">
+                    CERTIFICATE OF ACADEMIC EXCELLENCE
+                  </h1>
+                  <p className="text-xs uppercase tracking-widest text-[#77716E] font-semibold">
+                    Statutory Law &amp; Jurisprudence Mastery
+                  </p>
+                </div>
+
+                <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#221D1D] to-transparent mx-auto my-2" />
+
+                {/* Recipient Details */}
+                <div className="space-y-1">
+                  <p className="text-xs italic text-[#77716E]">This is to certify that</p>
+                  <p className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D] tracking-wide underline decoration-[#BFAFE5] decoration-2 underline-offset-8">
+                    {certificateModal.studentName}
+                  </p>
+                </div>
+
+                {/* Achievement Narrative */}
+                <p className="text-xs text-[#4D433F] max-w-xl mx-auto leading-relaxed pt-2">
+                  has demonstrated exemplary diligence, academic rigor, and statutory proficiency by successfully completing <strong className="text-[#221D1D]">100% of the prescribed curriculum</strong>, case analyses, and examination simulations under an active institutional enrollment pass in:
+                </p>
+
+                {/* Course Name Highlight */}
+                <div className="py-2.5 px-6 rounded-xl bg-white/80 border border-[#E7E4E7] shadow-2xs max-w-lg mx-auto">
+                  <h2 className="text-base sm:text-lg font-serif font-bold text-[#221D1D]">
+                    {certificateModal.title}
+                  </h2>
+                </div>
+
+                {/* Credential Seal, Date & Signatures Grid */}
+                <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 items-end border-t border-[#E7E4E7]/70">
+                  {/* Left: Verification & Code */}
+                  <div className="text-left space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-[#77716E] tracking-wider block">
+                      Credential ID
+                    </span>
+                    <span className="text-xs font-mono font-bold text-[#221D1D] bg-white px-2 py-0.5 rounded border border-[#E7E4E7] inline-block">
+                      {certificateModal.code}
+                    </span>
+                    <span className="text-[10px] text-[#77716E] block">
+                      Issued: {certificateModal.issueDate}
+                    </span>
+                  </div>
+
+                  {/* Center: Gold Circular Accreditation Seal */}
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FEF08A] via-[#FDE047] to-[#CA8A04] p-0.5 shadow-md flex items-center justify-center">
+                      <div className="w-full h-full rounded-full border-2 border-dashed border-[#854D0E] flex flex-col items-center justify-center text-center p-1">
+                        <Award className="w-5 h-5 text-[#854D0E]" />
+                        <span className="text-[8px] font-black uppercase text-[#854D0E] leading-tight">100% Verified</span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] uppercase font-bold text-[#77716E] mt-1 tracking-wider">Official Ledger Seal</span>
+                  </div>
+
+                  {/* Right: Academic Signature */}
+                  <div className="text-right space-y-1">
+                    <div className="font-serif italic text-base text-[#221D1D] select-none">
+                      Nirvanaa Studios
+                    </div>
+                    <div className="w-28 h-px bg-[#221D1D] ml-auto" />
+                    <span className="text-[10px] font-bold text-[#77716E] block uppercase tracking-wider">
+                      Academic Directorate
+                    </span>
+                    <span className="text-[9px] text-[#77716E] block">The Law Kaksha</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Bottom Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 print:hidden">
+              <div className="flex items-center gap-2 text-xs text-[#77716E]">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Digitally issued &amp; permanently recorded on The Law Kaksha student directory</span>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== "undefined" && navigator?.clipboard) {
+                      navigator.clipboard.writeText(`https://thelawkaksha.com/verify?cred=${certificateModal.code}`);
+                      alert(`Verification URL copied: https://thelawkaksha.com/verify?cred=${certificateModal.code}`);
+                    }
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-xs font-bold text-[#221D1D] transition cursor-pointer"
+                >
+                  Copy Verification Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="flex-1 sm:flex-none px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-xs font-bold text-[#221D1D] transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download / Print</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
