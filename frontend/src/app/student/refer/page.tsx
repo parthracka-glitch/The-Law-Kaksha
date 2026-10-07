@@ -74,21 +74,21 @@ export default function StudentReferPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               Refer &amp; Earn Rewards
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               Invite Peers &amp; Earn Extended Free Access Days
             </p>
           </div>
@@ -98,16 +98,16 @@ export default function StudentReferPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
         {/* Banner */}
-        <div className="bg-gradient-to-br from-[#0B192C] to-[#11233D] text-white p-8 sm:p-10 rounded-3xl border border-[#C5A880]/30 shadow-xl relative overflow-hidden">
+        <div className="bg-white text-[#221D1D] p-8 sm:p-10 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] relative overflow-hidden">
           <div className="relative z-10 space-y-4 max-w-xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-[#C5A880]/20 text-[#E5D0B5] border border-[#C5A880]/30">
-              <Gift className="w-3.5 h-3.5 text-[#C5A880]" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
+              <Gift className="w-3.5 h-3.5 text-[#2B5B70]" />
               Peer Invite Program
             </span>
-            <h2 className="text-3xl font-serif font-bold text-[#FDFBF7]">
+            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#221D1D]">
               Give 15% Off, Get 15 Free Days
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed">
               When fellow commerce law aspirants enroll using your personal invite link, they get 15% off their subscription pass, and your active entitlement is extended by 15 days automatically!
             </p>
           </div>
@@ -115,48 +115,48 @@ export default function StudentReferPage() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto mb-3">
-              <Users className="w-5 h-5" />
+          <div className="bg-white p-6 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] text-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-[#221D1D] flex items-center justify-center mx-auto mb-3">
+              <Users className="w-5 h-5 text-[#4D433F]" />
             </div>
-            <p className="text-3xl font-serif font-bold text-[#0B192C]">{data.totalInvited}</p>
-            <p className="text-xs text-slate-500 mt-1">Friends Invited</p>
+            <p className="text-3xl font-serif font-black text-[#221D1D]">{data.totalInvited}</p>
+            <p className="text-xs text-[#77716E] mt-1">Friends Invited</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+          <div className="bg-white p-6 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] text-center">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3">
               <Check className="w-5 h-5" />
             </div>
-            <p className="text-3xl font-serif font-bold text-[#0B192C]">{data.successfulReferrals}</p>
-            <p className="text-xs text-slate-500 mt-1">Successful Enrolments</p>
+            <p className="text-3xl font-serif font-black text-[#221D1D]">{data.successfulReferrals}</p>
+            <p className="text-xs text-[#77716E] mt-1">Successful Enrolments</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-            <div className="w-10 h-10 rounded-xl bg-[#C5A880]/15 text-[#0B192C] flex items-center justify-center mx-auto mb-3">
-              <Sparkles className="w-5 h-5 text-[#C5A880]" />
+          <div className="bg-white p-6 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] text-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/25 border border-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center mx-auto mb-3">
+              <Sparkles className="w-5 h-5 text-[#2B5B70]" />
             </div>
-            <p className="text-3xl font-serif font-bold text-[#0B192C]">+{data.rewardDaysEarned} Days</p>
-            <p className="text-xs text-slate-500 mt-1">Free Access Added</p>
+            <p className="text-3xl font-serif font-black text-[#221D1D]">+{data.rewardDaysEarned} Days</p>
+            <p className="text-xs text-[#77716E] mt-1">Free Access Added</p>
           </div>
         </div>
 
         {/* Personal Invite Link Card */}
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-          <h3 className="font-serif font-bold text-lg text-[#0B192C]">
+        <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] space-y-6">
+          <h3 className="font-serif font-black text-lg text-[#221D1D]">
             Your Shareable Referral Link
           </h3>
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex-1 w-full bg-[#FDFBF7] border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs sm:text-sm text-slate-700 select-all overflow-x-auto">
+            <div className="flex-1 w-full bg-[#F7F7F5] border border-[#E7E4E7] rounded-2xl px-4 py-3 font-mono text-xs sm:text-sm text-[#221D1D] select-all overflow-x-auto">
               {data.referralUrl}
             </div>
 
             <button
               onClick={handleCopy}
-              className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shrink-0 ${
+              className={`w-full sm:w-auto px-6 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer ${
                 copied
                   ? "bg-emerald-600 text-white"
-                  : "bg-[#0B192C] text-white hover:bg-[#11233D]"
+                  : "bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)]"
               }`}
             >
               {copied ? (
@@ -174,12 +174,12 @@ export default function StudentReferPage() {
           </div>
 
           {/* Social Share */}
-          <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
+          <div className="pt-4 border-t border-[#E7E4E7] flex items-center gap-3">
             <a
               href={`https://api.whatsapp.com/send?text=${shareText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white transition-colors text-xs font-bold shadow-xs"
             >
               <MessageCircle className="w-4 h-4" />
               <span>Share on WhatsApp</span>

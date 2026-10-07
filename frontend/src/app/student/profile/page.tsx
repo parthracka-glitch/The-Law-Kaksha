@@ -105,21 +105,21 @@ export default function StudentProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               Candidate Profile
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               Identity Records &amp; Academic Examination Details
             </p>
           </div>
@@ -128,14 +128,14 @@ export default function StudentProfilePage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] space-y-6">
           {/* Avatar and Info Header */}
-          <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0B192C] to-[#1E3E62] text-[#C5A880] font-serif font-bold text-2xl flex items-center justify-center shadow-md">
+          <div className="flex items-center gap-4 pb-6 border-b border-[#E7E4E7]">
+            <div className="w-16 h-16 rounded-2xl bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] font-serif font-black text-2xl flex items-center justify-center shadow-xs">
               {(profile.name || "S").slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-xl font-serif font-bold text-[#0B192C]">
+              <h2 className="text-xl font-serif font-black text-[#221D1D]">
                 {profile.name}
               </h2>
               <p className="text-xs text-slate-500 font-mono mt-0.5">
@@ -192,29 +192,29 @@ export default function StudentProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#221D1D] uppercase tracking-wider mb-1.5">
                   Mobile Contact Number
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] focus:bg-white text-sm text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#221D1D] uppercase tracking-wider mb-1.5">
                   Target Exam Stream
                 </label>
                 <select
                   value={profile.target_exam}
                   onChange={(e) => setProfile({ ...profile, target_exam: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] bg-white"
+                  className="w-full px-4 py-2.5 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] focus:bg-white text-sm text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                 >
                   <option value="CA Foundation Paper 2: Business Laws">
                     CA Foundation Paper 2: Business Laws
@@ -231,23 +231,23 @@ export default function StudentProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#221D1D] uppercase tracking-wider mb-1.5">
                   City
                 </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <MapPin className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={profile.city}
                     onChange={(e) => setProfile({ ...profile, city: e.target.value })}
                     placeholder="e.g. Mumbai, New Delhi"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] focus:bg-white text-sm text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#221D1D] uppercase tracking-wider mb-1.5">
                   State
                 </label>
                 <input
@@ -255,30 +255,30 @@ export default function StudentProfilePage() {
                   value={profile.state}
                   onChange={(e) => setProfile({ ...profile, state: e.target.value })}
                   placeholder="e.g. Maharashtra, Delhi"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880]"
+                  className="w-full px-4 py-2.5 rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] focus:bg-white text-sm text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#C5A880]" />
+            <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between">
+              <span className="text-xs text-[#77716E] flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#2B5B70]" />
                 Single Device Hardware Lock Enabled
               </span>
 
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 rounded-xl font-medium text-xs sm:text-sm bg-[#0B192C] text-white hover:bg-[#11233D] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-colors flex items-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer disabled:opacity-50"
               >
                 {saving ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#221D1D]" />
                     <span>Saving Changes...</span>
                   </>
                 ) : (
                   <>
-                    <Check className="w-4 h-4 text-[#C5A880]" />
+                    <Check className="w-4 h-4 text-[#221D1D]" />
                     <span>Save Profile Changes</span>
                   </>
                 )}

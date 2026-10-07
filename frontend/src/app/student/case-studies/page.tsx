@@ -108,21 +108,21 @@ export default function StudentCaseStudiesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
       {/* Top Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               Candidate Case Studies Repository
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               Exam Precedents &amp; ICAI Model Answer Blueprints
             </p>
           </div>
@@ -134,13 +134,13 @@ export default function StudentCaseStudiesPage() {
         {/* Search */}
         <div className="mb-8 max-w-md">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search precedent, section or judgment..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] bg-white"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E7E4E7] text-sm focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-white text-[#221D1D] placeholder:text-[#77716E]"
             />
           </div>
         </div>
@@ -150,42 +150,42 @@ export default function StudentCaseStudiesPage() {
           {filtered.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              className="bg-white rounded-3xl p-6 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#C5A880]">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#2B5B70]">
                     {item.subject}
                   </span>
                   {item.badge && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0B192C]/5 text-[#0B192C]">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                       {item.badge}
                     </span>
                   )}
                 </div>
 
-                <h3 className="text-base font-serif font-bold text-[#0B192C] mb-2 leading-snug line-clamp-2">
+                <h3 className="text-base font-serif font-black text-[#221D1D] mb-2 leading-snug line-clamp-2">
                   {item.title}
                 </h3>
 
-                <p className="text-xs text-slate-600 leading-relaxed mb-4 line-clamp-3">
+                <p className="text-xs text-[#4D433F] leading-relaxed mb-4 line-clamp-3">
                   {item.summary}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between">
                 {item.marks ? (
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">
                     {item.marks}
                   </span>
                 ) : <span />}
 
                 <button
                   onClick={() => setSelectedCase(item)}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#0B192C] hover:text-[#C5A880] transition-colors"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#221D1D] hover:text-[#4B8097] transition-colors cursor-pointer"
                 >
                   <span>Study Blueprint</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 text-[#221D1D]" />
                 </button>
               </div>
             </div>
@@ -195,40 +195,40 @@ export default function StudentCaseStudiesPage() {
 
       {/* Case Study Reading Modal Drawer */}
       {selectedCase && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-10 shadow-2xl space-y-6 relative">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-10 shadow-2xl space-y-6 relative border border-[#E7E4E7]">
             <button
               onClick={() => setSelectedCase(null)}
-              className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+              className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#C5A880]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#2B5B70]">
                 {selectedCase.subject}
               </span>
-              <h2 className="text-2xl font-serif font-bold text-[#0B192C] mt-1">
+              <h2 className="text-2xl font-serif font-black text-[#221D1D] mt-1">
                 {selectedCase.title}
               </h2>
               {selectedCase.precedent && (
-                <p className="text-xs font-mono text-slate-500 mt-1">
+                <p className="text-xs font-mono text-[#77716E] mt-1">
                   Citation: {selectedCase.precedent}
                 </p>
               )}
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#FDFBF7] border border-[#C5A880]/20 text-sm italic text-slate-700">
+            <div className="p-4 rounded-2xl bg-[#FDFBF7] border border-[#E7E4E7] text-sm italic text-[#4D433F]">
               {selectedCase.summary}
             </div>
 
             {selectedCase.facts && (
               <div>
-                <h4 className="font-serif font-bold text-base text-[#0B192C] mb-2 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#C5A880]" />
+                <h4 className="font-serif font-black text-base text-[#221D1D] mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#2B5B70]" />
                   Material Facts
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed whitespace-pre-line">
                   {selectedCase.facts}
                 </p>
               </div>
@@ -236,34 +236,34 @@ export default function StudentCaseStudiesPage() {
 
             {selectedCase.ruling && (
               <div>
-                <h4 className="font-serif font-bold text-base text-[#0B192C] mb-2 flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#C5A880]" />
+                <h4 className="font-serif font-black text-base text-[#221D1D] mb-2 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#2B5B70]" />
                   Ratio Decidendi / Court Ruling
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed whitespace-pre-line">
                   {selectedCase.ruling}
                 </p>
               </div>
             )}
 
             {selectedCase.model_answer && (
-              <div className="bg-[#0B192C] text-white p-6 rounded-2xl space-y-3">
+              <div className="bg-[#FDFBF7] border border-[#E7E4E7] text-[#221D1D] p-6 rounded-3xl space-y-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#C5A880]" />
-                  <h4 className="font-serif font-bold text-sm text-[#FDFBF7]">
+                  <Sparkles className="w-4 h-4 text-[#2B5B70]" />
+                  <h4 className="font-serif font-black text-sm text-[#221D1D]">
                     ICAI Model Answer Drafting Scheme
                   </h4>
                 </div>
-                <pre className="font-sans text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
+                <pre className="font-sans text-xs text-[#4D433F] whitespace-pre-wrap leading-relaxed">
                   {selectedCase.model_answer}
                 </pre>
               </div>
             )}
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 border-t border-[#E7E4E7] flex justify-end">
               <button
                 onClick={() => setSelectedCase(null)}
-                className="px-6 py-2.5 rounded-xl bg-[#0B192C] text-white text-xs font-medium hover:bg-[#11233D] transition-colors"
+                className="px-6 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer"
               >
                 Close Blueprint
               </button>

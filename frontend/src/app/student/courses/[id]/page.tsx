@@ -98,20 +98,20 @@ export default function StudentCourseDetailPage() {
   }, [courseId, router]);
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               {course.title}
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               Syllabus Units &amp; Chapter Study Codices
             </p>
           </div>
@@ -119,20 +119,20 @@ export default function StudentCourseDetailPage() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#C5A880]">
+        <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] space-y-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2B5B70]">
             {course.exam_body || "Official Syllabus"}
           </span>
-          <h2 className="text-2xl font-serif font-bold text-[#0B192C]">
+          <h2 className="text-2xl font-serif font-black text-[#221D1D]">
             {course.title}
           </h2>
-          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
+          <p className="text-sm text-[#4D433F] leading-relaxed max-w-2xl">
             {course.description}
           </p>
         </div>
 
         <div className="space-y-4">
-          <h3 className="font-serif font-bold text-xl text-[#0B192C]">
+          <h3 className="font-serif font-black text-xl text-[#221D1D]">
             Curriculum Units
           </h3>
 
@@ -140,16 +140,16 @@ export default function StudentCourseDetailPage() {
             {course.chapters?.map((chap, idx) => (
               <div
                 key={chap.id || idx}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-[#C5A880]/50 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className="bg-white p-6 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
                 <div>
-                  <span className="text-xs font-semibold text-slate-400">
+                  <span className="text-xs font-bold text-[#77716E]">
                     Chapter {idx + 1}
                   </span>
-                  <h4 className="text-base font-serif font-bold text-[#0B192C] mt-0.5">
+                  <h4 className="text-base font-serif font-black text-[#221D1D] mt-0.5">
                     {chap.title}
                   </h4>
-                  <p className="text-xs text-slate-600 mt-1">{chap.description}</p>
+                  <p className="text-xs text-[#4D433F] mt-1">{chap.description}</p>
                 </div>
 
                 <button
@@ -160,9 +160,9 @@ export default function StudentCourseDetailPage() {
                       title: chap.title,
                     })
                   }
-                  className="px-4 py-2.5 rounded-xl font-medium text-xs bg-[#0B192C] text-white hover:bg-[#11233D] transition-colors flex items-center gap-2 shrink-0"
+                  className="px-5 py-2.5 rounded-full font-bold text-xs bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-colors flex items-center gap-2 shrink-0 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer"
                 >
-                  <Eye className="w-3.5 h-3.5 text-[#C5A880]" />
+                  <Eye className="w-3.5 h-3.5 text-[#221D1D]" />
                   <span>Open Codex</span>
                 </button>
               </div>

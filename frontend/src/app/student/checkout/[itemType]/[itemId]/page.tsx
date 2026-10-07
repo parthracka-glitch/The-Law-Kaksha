@@ -213,21 +213,21 @@ export default function StudentDirectCheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
+      {/* Top Header */}
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student/explore"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               1-Click Candidate Checkout
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               Direct Unlocking Linked to Existing Hardware ID
             </p>
           </div>
@@ -236,78 +236,78 @@ export default function StudentDirectCheckoutPage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-xl mx-auto px-4 py-12 w-full space-y-6">
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-6">
+        <div className="bg-white rounded-3xl p-8 border border-[#E7E4E7] shadow-[0_10px_40px_rgba(34,29,29,0.06)] space-y-6">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#C5A880]">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2B5B70]">
               Instant Access Pass
             </span>
-            <h2 className="text-2xl font-serif font-bold text-[#0B192C] mt-1">
+            <h2 className="text-2xl font-serif font-black text-[#221D1D] mt-1">
               {item.title}
             </h2>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+            <p className="text-xs text-[#4D433F] mt-2 leading-relaxed">
               {item.description}
             </p>
           </div>
 
           {error && (
-            <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Student Account Snapshot */}
-          <div className="p-4 rounded-2xl bg-[#FDFBF7] border border-slate-200 text-xs space-y-1.5">
-            <p className="font-semibold text-[#0B192C]">Enrolling Account:</p>
-            <p className="text-slate-600">Name: {student.name}</p>
-            <p className="text-slate-600">Email: {student.email}</p>
+          <div className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-xs space-y-1.5">
+            <p className="font-bold text-[#221D1D]">Enrolling Account:</p>
+            <p className="text-[#4D433F]">Name: {student.name}</p>
+            <p className="text-[#4D433F]">Email: {student.email}</p>
           </div>
 
           {/* Coupon Input */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Tag className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Tag className="w-4 h-4 text-[#77716E] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="PROMO CODE"
-                  className="w-full pl-9 pr-3 py-2 text-xs font-mono uppercase rounded-xl border border-slate-200 focus:outline-none focus:border-[#C5A880]"
+                  className="w-full pl-9 pr-3 py-2 text-xs font-mono uppercase rounded-2xl border border-[#E7E4E7] bg-[#F7F7F5] focus:bg-white text-[#221D1D] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleApplyCoupon}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className="px-5 py-2 rounded-full text-xs font-bold bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
               >
                 Apply
               </button>
             </div>
             {couponMsg && (
-              <p className={`text-xs ${discount > 0 ? "text-emerald-600 font-medium" : "text-slate-500"}`}>
+              <p className={`text-xs ${discount > 0 ? "text-emerald-700 font-bold" : "text-[#77716E]"}`}>
                 {couponMsg}
               </p>
             )}
           </div>
 
           {/* Order Summary */}
-          <div className="pt-4 border-t border-slate-100 space-y-2 text-sm">
-            <div className="flex justify-between text-slate-600">
+          <div className="pt-4 border-t border-[#E7E4E7] space-y-2 text-sm">
+            <div className="flex justify-between text-[#4D433F]">
               <span>Item MRP:</span>
-              <span className="line-through">₹{item.mrp}</span>
+              <span className="line-through text-[#77716E]">₹{item.mrp}</span>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex justify-between text-[#4D433F]">
               <span>Candidate Price:</span>
               <span>₹{item.price}</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-emerald-600 font-medium">
+              <div className="flex justify-between text-emerald-700 font-bold">
                 <span>Coupon Discount:</span>
                 <span>-₹{discount}</span>
               </div>
             )}
-            <div className="flex justify-between text-base font-serif font-bold text-[#0B192C] pt-2 border-t border-slate-200">
+            <div className="flex justify-between text-base font-serif font-black text-[#221D1D] pt-2 border-t border-[#E7E4E7]">
               <span>Total Payable:</span>
               <span>₹{finalAmount}</span>
             </div>
@@ -317,14 +317,14 @@ export default function StudentDirectCheckoutPage() {
           <button
             onClick={handlePayNow}
             disabled={loading}
-            className="w-full py-3.5 px-6 rounded-xl font-medium text-sm bg-[#0B192C] text-white hover:bg-[#11233D] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0B192C]/20 disabled:opacity-50"
+            className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-all flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] disabled:opacity-50 cursor-pointer active:scale-[0.98]"
           >
-            <Zap className="w-4 h-4 text-[#C5A880]" />
+            <Zap className="w-4 h-4 text-[#221D1D]" />
             <span>{loading ? "Processing..." : `Pay ₹${finalAmount} & Unlock Instantly`}</span>
           </button>
 
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#C5A880]" />
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#77716E]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#2B5B70]" />
             <span>Secured by Razorpay • Single Device Hardware Binding</span>
           </div>
         </div>

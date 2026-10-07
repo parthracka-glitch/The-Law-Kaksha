@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Lock,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   BookOpen,
   AlertCircle,
-  CheckCircle2,
   RefreshCw,
-  LogOut,
   Mail,
   Key,
 } from "lucide-react";
@@ -102,64 +102,65 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B192C] text-[#FDFBF7] flex flex-col justify-between selection:bg-[#C5A880]/30 selection:text-white">
-      {/* Top Ambient Lights */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 left-1/4 w-96 h-96 bg-[#C5A880]/15 rounded-full blur-3xl" />
-        <div className="absolute top-10 right-1/4 w-80 h-80 bg-[#1E3E62]/30 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between p-4 sm:p-6 lg:p-8 text-[#221D1D] selection:bg-[#BFAFE5]/40 selection:text-[#221D1D]">
+      {/* Top Header */}
+      <header className="max-w-6xl w-full mx-auto flex items-center justify-between py-2">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-xs font-semibold text-[#221D1D] transition-all cursor-pointer min-h-[44px] shadow-xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-[#4D433F]" />
+          <span>Back to Home</span>
+        </Link>
 
-      {/* Header bar */}
-      <header className="relative z-10 max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C5A880] to-[#E5D0B5] text-[#0B192C] flex items-center justify-center font-serif font-bold text-lg shadow-md">
-            LK
-          </div>
-          <div>
-            <span className="font-serif font-bold text-lg text-[#FDFBF7] tracking-tight block">
-              The Law Kaksha
-            </span>
-            <span className="text-[10px] text-[#C5A880] tracking-widest uppercase font-semibold block -mt-1">
-              Student Portal
-            </span>
+        <Link href="/" className="inline-block transition-opacity hover:opacity-90">
+          <div className="relative h-10 w-36 sm:h-11 sm:w-44 flex items-center">
+            <Image
+              src="/assets/logo-transparent.png"
+              alt="The Law Kaksha Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
         </Link>
 
         <Link
-          href="/"
-          className="text-xs text-slate-400 hover:text-[#C5A880] transition-colors"
+          href="/login"
+          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#4D433F] hover:text-[#221D1D] px-4 py-2 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] transition min-h-[44px]"
         >
-          Return to Website &rarr;
+          <span>Website Login</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </header>
 
       {/* Main Container */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex items-center justify-center py-8">
+        <div className="max-w-md w-full space-y-6">
           {/* GATED STATE SCREEN */}
           {isGated ? (
-            <div className="bg-[#11233D] border border-[#C5A880]/40 rounded-3xl p-8 sm:p-10 shadow-2xl text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+            <div className="bg-white rounded-3xl border border-[#E7E4E7] p-8 sm:p-10 shadow-[0_10px_40px_rgba(34,29,29,0.06)] text-center space-y-6">
+              <div className="w-16 h-16 rounded-full bg-[#C4E1EC]/40 border border-[#AED7E9] text-[#2B5B70] flex items-center justify-center mx-auto shadow-xs">
                 <Lock className="w-8 h-8" />
               </div>
 
               <div className="space-y-2">
-                <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
                   Access Restricted
                 </span>
-                <h1 className="text-2xl font-serif font-bold text-[#FDFBF7]">
+                <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#221D1D]">
                   No Active Subscription
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Welcome, <strong>{gatedUser?.name || "Student"}</strong> ({gatedUser?.email}). Your account is verified, but you do not currently have an active course or study pass entitlement.
+                <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed">
+                  Welcome, <strong className="text-[#221D1D]">{gatedUser?.name || "Student"}</strong>{gatedUser?.email ? ` (${gatedUser.email})` : ""}. Your account is verified, but you do not currently have an active course or study pass entitlement.
                 </p>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-slate-300 text-left space-y-2">
-                <p className="font-semibold text-[#C5A880]">To unlock the Student Portal:</p>
-                <ul className="space-y-1 list-disc list-inside text-slate-400">
+              <div className="bg-[#FDFBF7] border border-[#E7E4E7] rounded-2xl p-5 text-xs text-[#4D433F] text-left space-y-2.5">
+                <p className="font-bold text-[#221D1D]">To unlock the Student Portal:</p>
+                <ul className="space-y-1.5 list-disc list-inside text-[#4D433F]">
                   <li>Enroll in CA Foundation Business Laws pass</li>
-                  <li>Enroll in CSEET Legal Aptitude & Management pass</li>
+                  <li>Enroll in CSEET Legal Aptitude &amp; Management pass</li>
                   <li>Purchase a Standalone Extra Course or Codex</li>
                 </ul>
               </div>
@@ -167,16 +168,16 @@ export default function StudentLoginPage() {
               <div className="space-y-3 pt-2">
                 <Link
                   href="/#subscriptions"
-                  className="w-full py-3.5 px-6 rounded-xl font-medium text-sm bg-gradient-to-r from-[#C5A880] to-[#E5D0B5] text-[#0B192C] hover:from-[#d6bd99] hover:to-[#f0dfc8] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C5A880]/20"
+                  className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-all flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer active:scale-[0.98]"
                 >
-                  <BookOpen className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4 text-[#221D1D]" />
                   <span>Browse Subscriptions on Website</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-[#221D1D]" />
                 </Link>
 
                 <button
                   onClick={handleResetToLogin}
-                  className="w-full py-3 px-6 rounded-xl font-medium text-xs text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                  className="w-full py-3 px-6 rounded-full font-bold text-xs text-[#221D1D] hover:bg-[#F7F7F5] bg-white border border-[#221D1D] transition-colors cursor-pointer"
                 >
                   Sign in with another account
                 </button>
@@ -184,93 +185,95 @@ export default function StudentLoginPage() {
             </div>
           ) : (
             /* NORMAL STUDENT LOGIN FORM */
-            <div className="bg-[#11233D] border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl space-y-6">
+            <div className="space-y-6">
               <div className="text-center space-y-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-[#C5A880]/20 text-[#E5D0B5] border border-[#C5A880]/30">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
-                  Candidate Workspace
-                </span>
-                <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#FDFBF7]">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/70 text-[#221D1D] text-xs font-bold border border-[#AED7E9] mb-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#2B5B70]" />
+                  <span>Candidate Workspace</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#221D1D] tracking-tight">
                   Student Sign In
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400">
+                <p className="text-xs sm:text-sm text-[#4D433F]">
                   Access your encrypted DRM codices, live Google Meet sessions, and study streaks.
                 </p>
               </div>
 
-              {error && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Login Form */}
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Registered Student Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@example.com"
-                      required
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition-all"
-                    />
+              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 sm:p-8 shadow-[0_10px_40px_rgba(34,29,29,0.06)] space-y-5">
+                {error && (
+                  <div className="p-3.5 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
+                    <span>{error}</span>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880] transition-all"
-                    />
+                {/* Login Form */}
+                <form onSubmit={handleEmailLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                      Registered Student Email *
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="student@example.com"
+                        required
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] placeholder:text-[#77716E] bg-[#F7F7F5] focus:bg-white transition-all min-h-[48px]"
+                      />
+                    </div>
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                      Password *
+                    </label>
+                    <div className="relative">
+                      <Key className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] placeholder:text-[#77716E] bg-[#F7F7F5] focus:bg-white transition-all min-h-[48px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-[#77716E] pt-1">
+                    <span>Hardware DRM session will be locked</span>
+                    <Link href="/login" className="text-[#221D1D] font-semibold hover:underline">
+                      Website Login &rarr;
+                    </Link>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2 cursor-pointer active:scale-[0.98] min-h-[48px]"
+                  >
+                    {loading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-[#221D1D]" />
+                        <span>Verifying Entitlement...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Enter Candidate Portal</span>
+                        <ArrowRight className="w-4 h-4 text-[#221D1D]" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Security Footnote */}
+                <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-center gap-2 text-[11px] text-[#77716E]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2B5B70]" />
+                  <span>Protected by DPDP &amp; Single-Device Hardware Security</span>
                 </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                  <span>Hardware DRM session will be locked</span>
-                  <Link href="/login" className="text-[#C5A880] hover:underline">
-                    Website Login
-                  </Link>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-xl font-medium text-sm bg-gradient-to-r from-[#C5A880] to-[#E5D0B5] text-[#0B192C] hover:from-[#d6bd99] hover:to-[#f0dfc8] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C5A880]/20 disabled:opacity-50 mt-2"
-                >
-                  {loading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Verifying Entitlement...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Enter Candidate Portal</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Security Footnote */}
-              <div className="pt-4 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#C5A880]" />
-                <span>Protected by DPDP &amp; Single-Device Hardware Security</span>
               </div>
             </div>
           )}
@@ -278,8 +281,8 @@ export default function StudentLoginPage() {
       </main>
 
       {/* Footer bar */}
-      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 py-4 text-center text-xs text-slate-500">
-        &copy; {new Date().getFullYear()} The Law Kaksha. All Rights Reserved. Exclusively for CA Foundation &amp; CSEET Candidates.
+      <footer className="text-center py-3 text-xs text-[#77716E]">
+        &copy; {new Date().getFullYear()} The Law Kaksha • Academic Learning Space. Exclusively for CA Foundation &amp; CSEET Candidates.
       </footer>
     </div>
   );

@@ -101,35 +101,35 @@ export default function CaseStudiesDirectoryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#221D1D] flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase bg-[#0B192C]/5 text-[#0B192C] border border-[#0B192C]/10 mb-4">
-            <Scale className="w-3.5 h-3.5 text-[#C5A880]" />
-            Jurisprudence & Precedents
+        <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-widest uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
+            <Scale className="w-3.5 h-3.5 text-[#4B8097]" />
+            Jurisprudence &amp; Precedents
           </span>
-          <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#0B192C] tracking-tight">
-            Legal Case Studies & Analysis
+          <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#221D1D] tracking-tight">
+            Legal Case Studies &amp; Analysis
           </h1>
-          <p className="mt-4 text-base sm:text-lg text-slate-600">
+          <p className="mt-4 text-base sm:text-lg text-[#4D433F]">
             Deconstruct statutory judgments with ICAI/ICSI model answers, facts breakdown, and ratio decidendi.
           </p>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-white p-4 rounded-3xl border border-[#E7E4E7] shadow-sm">
           {/* Search Input */}
           <div className="relative w-full sm:w-96">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search case name, section, ratio..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#C5A880] focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-[#E7E4E7] text-sm focus:outline-none focus:border-[#AED7E9] focus:ring-1 focus:ring-[#AED7E9]"
             />
           </div>
 
@@ -139,10 +139,10 @@ export default function CaseStudiesDirectoryPage() {
               <button
                 key={sub}
                 onClick={() => setSelectedSubject(sub)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   selectedSubject === sub
-                    ? "bg-[#0B192C] text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-[#BFAFE5] text-[#221D1D] shadow-xs"
+                    : "bg-[#F7F7F5] text-[#4D433F] hover:bg-[#E7E4E7] hover:text-[#221D1D]"
                 }`}
               >
                 {sub === "all" ? "All Acts" : sub}
@@ -153,58 +153,58 @@ export default function CaseStudiesDirectoryPage() {
 
         {/* Case Studies Grid */}
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm max-w-lg mx-auto">
-            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="font-serif font-bold text-lg text-[#0B192C]">No Case Studies Found</h3>
-            <p className="text-sm text-slate-500 mt-1">Try adjusting your search criteria or filter options.</p>
+          <div className="bg-white rounded-3xl p-12 text-center border border-[#E7E4E7] shadow-sm max-w-lg mx-auto">
+            <BookOpen className="w-12 h-12 text-[#77716E] mx-auto mb-4" />
+            <h3 className="font-serif font-black text-lg text-[#221D1D]">No Case Studies Found</h3>
+            <p className="text-sm text-[#4D433F] mt-1">Try adjusting your search criteria or filter options.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                className="bg-white rounded-3xl p-7 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-[0_12px_36px_rgba(34,29,29,0.08)] hover:border-[#AED7E9] transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-xs font-bold text-[#C5A880] uppercase tracking-wider">
+                    <span className="text-xs font-bold text-[#4B8097] uppercase tracking-wider">
                       {item.subject}
                     </span>
                     {item.badge && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#0B192C]/5 text-[#0B192C] border border-[#0B192C]/10">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
                         {item.badge}
                       </span>
                     )}
                   </div>
 
-                  <h2 className="text-lg font-serif font-bold text-[#0B192C] mb-3 leading-snug line-clamp-2">
+                  <h2 className="text-lg font-serif font-black text-[#221D1D] mb-3 leading-snug line-clamp-2">
                     {item.title}
                   </h2>
 
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">
+                  <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed mb-4 line-clamp-3">
                     {item.summary}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="pt-4 border-t border-[#E7E4E7] space-y-3">
                   {item.precedent && (
-                    <p className="text-[11px] text-slate-400 font-mono truncate">
+                    <p className="text-[11px] text-[#77716E] font-mono truncate">
                       Citation: {item.precedent}
                     </p>
                   )}
 
                   <div className="flex items-center justify-between">
                     {item.marks && (
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
+                      <span className="text-xs font-bold text-[#221D1D] bg-[#C4E1EC]/60 border border-[#AED7E9] px-2.5 py-1 rounded-full">
                         {item.marks}
                       </span>
                     )}
 
                     <Link
                       href={`/case-studies/${item.slug}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B192C] hover:text-[#C5A880] transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#221D1D] hover:text-[#4B8097] transition-colors"
                     >
-                      Read Full Analysis
+                      <span>Read Full Analysis</span>
                       <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>

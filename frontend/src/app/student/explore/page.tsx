@@ -104,21 +104,21 @@ export default function StudentExplorePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#221D1D] font-sans flex flex-col">
       {/* Top Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-[#E7E4E7] sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/student"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 text-[#4D433F]" />
           </Link>
           <div>
-            <h1 className="font-serif font-bold text-lg text-[#0B192C]">
+            <h1 className="font-serif font-black text-lg text-[#221D1D]">
               Explore Add-On Codices &amp; Passes
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#77716E]">
               1-Click Instant Unlocking For Active Aspirants
             </p>
           </div>
@@ -128,14 +128,14 @@ export default function StudentExplorePage() {
       {/* Main Grid */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase bg-[#C5A880]/20 text-[#0B192C] border border-[#C5A880]/30 mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#2B5B70]" />
             Additional Learning Modules
           </span>
-          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#0B192C]">
+          <h2 className="text-2xl sm:text-4xl font-serif font-black text-[#221D1D]">
             Enhance Your Preparation Arsenal
           </h2>
-          <p className="mt-3 text-sm text-slate-600">
+          <p className="mt-3 text-sm text-[#4D433F]">
             Enrolled candidates receive instant 1-click checkout with existing credentials and immediate DRM library activation.
           </p>
         </div>
@@ -147,40 +147,40 @@ export default function StudentExplorePage() {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-3xl p-7 border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                className="bg-white rounded-3xl p-7 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#C5A880]">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#2B5B70]">
                       {item.item_type === "subscription" ? "Access Pass" : "Specialized Codex"}
                     </span>
                     {item.badge && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0B192C]/5 text-[#0B192C]">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                         {item.badge}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-xl font-serif font-bold text-[#0B192C] mb-2 leading-snug">
+                  <h3 className="text-xl font-serif font-black text-[#221D1D] mb-2 leading-snug">
                     {item.title}
                   </h3>
 
-                  <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                  <p className="text-xs text-[#4D433F] leading-relaxed mb-6">
                     {item.description}
                   </p>
 
                   {/* Pricing */}
-                  <div className="flex items-baseline justify-between p-3.5 rounded-2xl bg-[#FDFBF7] border border-slate-100 mb-6">
+                  <div className="flex items-baseline justify-between p-3.5 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] mb-6">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-serif font-bold text-[#0B192C]">
+                      <span className="text-2xl font-serif font-black text-[#221D1D]">
                         ₹{item.price}
                       </span>
-                      <span className="text-xs text-slate-400 line-through">
+                      <span className="text-xs text-[#77716E] line-through">
                         ₹{item.mrp}
                       </span>
                     </div>
                     {discountPct > 0 && (
-                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
                         {discountPct}% OFF
                       </span>
                     )}
@@ -189,22 +189,22 @@ export default function StudentExplorePage() {
                   {/* Features */}
                   <ul className="space-y-2 mb-6">
                     {item.features.map((feat, fIdx) => (
-                      <li key={fIdx} className="flex items-start gap-2 text-xs text-slate-700">
-                        <Check className="w-3.5 h-3.5 text-[#C5A880] shrink-0 mt-0.5" />
+                      <li key={fIdx} className="flex items-start gap-2 text-xs text-[#4D433F]">
+                        <Check className="w-3.5 h-3.5 text-[#2B5B70] shrink-0 mt-0.5" />
                         <span>{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-[#E7E4E7]">
                   <Link
                     href={`/student/checkout/${item.item_type}/${item.id}`}
-                    className="w-full py-3 px-4 rounded-xl font-medium text-xs sm:text-sm bg-[#0B192C] text-white hover:bg-[#11233D] transition-colors flex items-center justify-center gap-2 shadow-md"
+                    className="w-full py-3 px-4 rounded-full font-bold text-xs sm:text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-colors flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer"
                   >
-                    <Zap className="w-4 h-4 text-[#C5A880]" />
+                    <Zap className="w-4 h-4 text-[#221D1D]" />
                     <span>1-Click Buy Now</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 text-[#221D1D]" />
                   </Link>
                 </div>
               </div>

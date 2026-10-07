@@ -112,7 +112,7 @@ export default function CaseStudyDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#221D1D] flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
@@ -120,24 +120,24 @@ export default function CaseStudyDetailPage() {
         <div className="flex items-center justify-between mb-8">
           <Link
             href="/case-studies"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-[#0B192C] transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#4D433F] hover:text-[#221D1D] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
             Back to Case Studies
           </Link>
 
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#E7E4E7] text-xs font-bold text-[#221D1D] bg-white hover:bg-[#F7F7F5] transition-all shadow-xs cursor-pointer active:scale-95"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                 <span>Link Copied</span>
               </>
             ) : (
               <>
-                <Share2 className="w-3.5 h-3.5 text-[#C5A880]" />
+                <Share2 className="w-3.5 h-3.5 text-[#4B8097]" />
                 <span>Share Case</span>
               </>
             )}
@@ -145,34 +145,34 @@ export default function CaseStudyDetailPage() {
         </div>
 
         {/* Case Header Card */}
-        <div className="bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 shadow-md mb-8">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#C5A880]">
+        <div className="bg-white p-8 sm:p-12 rounded-3xl md:rounded-[2.5rem] border border-[#E7E4E7] shadow-[0_10px_40px_rgba(34,29,29,0.08)] mb-8">
+          <div className="flex flex-wrap items-center gap-2.5 mb-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">
               {caseData.subject}
             </span>
             {caseData.badge && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0B192C]/5 text-[#0B192C] border border-[#0B192C]/10">
+              <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
                 {caseData.badge}
               </span>
             )}
             {caseData.marks && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
                 {caseData.marks}
               </span>
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#0B192C] leading-snug mb-4">
+          <h1 className="text-2xl sm:text-4xl font-serif font-black text-[#221D1D] leading-snug mb-4">
             {caseData.title}
           </h1>
 
           {caseData.precedent && (
-            <p className="font-mono text-xs text-slate-500 mb-6 bg-slate-50 px-3 py-1.5 rounded-lg inline-block border border-slate-100">
+            <p className="font-mono text-xs text-[#77716E] mb-6 bg-[#F7F7F5] px-3.5 py-1.5 rounded-full inline-block border border-[#E7E4E7]">
               Citation: {caseData.precedent}
             </p>
           )}
 
-          <p className="text-base sm:text-lg text-slate-700 leading-relaxed border-l-4 border-[#C5A880] pl-4 italic bg-[#FDFBF7] py-3 rounded-r-xl">
+          <p className="text-base sm:text-lg text-[#4D433F] leading-relaxed border-l-4 border-[#BFAFE5] pl-4 italic bg-[#FDFBF7] py-3.5 rounded-r-2xl">
             {caseData.summary}
           </p>
         </div>
@@ -180,24 +180,24 @@ export default function CaseStudyDetailPage() {
         {/* Facts & Legal Issues */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {caseData.facts && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-              <h2 className="text-lg font-serif font-bold text-[#0B192C] mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#C5A880]" />
+            <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)]">
+              <h2 className="text-lg font-serif font-black text-[#221D1D] mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#4B8097]" />
                 Material Facts
               </h2>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#4D433F] leading-relaxed whitespace-pre-line">
                 {caseData.facts}
               </p>
             </div>
           )}
 
           {caseData.issue && (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-              <h2 className="text-lg font-serif font-bold text-[#0B192C] mb-4 flex items-center gap-2">
-                <Scale className="w-5 h-5 text-[#C5A880]" />
+            <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)]">
+              <h2 className="text-lg font-serif font-black text-[#221D1D] mb-4 flex items-center gap-2">
+                <Scale className="w-5 h-5 text-[#4B8097]" />
                 Legal Issue Raised
               </h2>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#4D433F] leading-relaxed whitespace-pre-line">
                 {caseData.issue}
               </p>
             </div>
@@ -206,12 +206,12 @@ export default function CaseStudyDetailPage() {
 
         {/* Ratio Decidendi / Ruling */}
         {caseData.ruling && (
-          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm mb-8">
-            <h2 className="text-xl font-serif font-bold text-[#0B192C] mb-4 flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#C5A880]" />
-              Judgment & Ratio Decidendi
+          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] mb-8">
+            <h2 className="text-xl font-serif font-black text-[#221D1D] mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#4B8097]" />
+              Judgment &amp; Ratio Decidendi
             </h2>
-            <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">
+            <p className="text-sm sm:text-base text-[#4D433F] leading-relaxed whitespace-pre-line">
               {caseData.ruling}
             </p>
           </div>
@@ -219,14 +219,14 @@ export default function CaseStudyDetailPage() {
 
         {/* Model Answer Drafting Framework */}
         {caseData.model_answer && (
-          <div className="bg-gradient-to-br from-[#0B192C] to-[#11233D] text-white p-8 sm:p-10 rounded-3xl border border-[#C5A880]/30 shadow-xl mb-8">
+          <div className="bg-white text-[#221D1D] p-8 sm:p-10 rounded-3xl border-2 border-[#AED7E9] shadow-[0_8px_30px_rgba(174,215,233,0.3)] mb-8 relative overflow-hidden">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-[#C5A880]" />
-              <h2 className="text-xl font-serif font-bold text-[#FDFBF7]">
+              <Sparkles className="w-5 h-5 text-[#4B8097]" />
+              <h2 className="text-xl font-serif font-black text-[#221D1D]">
                 ICAI / ICSI Model Answer Blueprint
               </h2>
             </div>
-            <pre className="font-sans text-xs sm:text-sm text-slate-200 whitespace-pre-wrap leading-relaxed bg-black/20 p-6 rounded-2xl border border-white/10">
+            <pre className="font-sans text-xs sm:text-sm text-[#221D1D] whitespace-pre-wrap leading-relaxed bg-[#FDFBF7] p-6 rounded-2xl border border-[#E7E4E7]">
               {caseData.model_answer}
             </pre>
           </div>
@@ -234,18 +234,18 @@ export default function CaseStudyDetailPage() {
 
         {/* Key Takeaways */}
         {caseData.key_takeaways && caseData.key_takeaways.length > 0 && (
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm mb-12">
-            <h2 className="text-lg font-serif font-bold text-[#0B192C] mb-4">
+          <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-sm mb-12">
+            <h2 className="text-lg font-serif font-black text-[#221D1D] mb-4">
               Exam Summary Anchors
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {caseData.key_takeaways.map((point, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 p-3.5 rounded-xl bg-[#FDFBF7] border border-slate-100 text-xs sm:text-sm text-slate-700"
+                  className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D]"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>{point}</span>
+                  <CheckCircle2 className="w-4 h-4 text-[#4B8097] shrink-0 mt-0.5" />
+                  <span className="font-medium">{point}</span>
                 </div>
               ))}
             </div>

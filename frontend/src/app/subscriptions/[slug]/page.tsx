@@ -226,7 +226,7 @@ export default function SubscriptionDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#0B192C] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#221D1D] flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
@@ -234,70 +234,77 @@ export default function SubscriptionDetailPage() {
         <div className="mb-6">
           <Link
             href="/#subscriptions"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-[#0B192C] transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#4D433F] hover:text-[#221D1D] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
             Back to All Subscriptions
           </Link>
         </div>
 
         {/* Hero Banner Card */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#0B192C] via-[#11233D] to-[#0A1422] text-white p-8 sm:p-12 shadow-2xl border border-[#C5A880]/30 relative overflow-hidden mb-12">
-          <div className="absolute -top-32 -right-32 w-80 h-80 bg-[#C5A880]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="rounded-3xl md:rounded-[2.5rem] bg-white text-[#221D1D] p-8 sm:p-12 shadow-[0_10px_40px_rgba(34,29,29,0.08)] border border-[#E7E4E7] relative overflow-hidden mb-12">
+          {/* Ambient aura */}
+          <div
+            className="absolute inset-0 rounded-3xl pointer-events-none -z-0 blur-3xl opacity-40"
+            style={{
+              background:
+                "radial-gradient(circle at 80% 20%, #C4E1EC 0%, #AED7E9 40%, transparent 75%)",
+            }}
+          />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               {subData.badge && (
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-[#C5A880]/20 text-[#E5D0B5] border border-[#C5A880]/40">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
+                  <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
                   {subData.badge}
                 </span>
               )}
 
-              <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#FDFBF7] leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#221D1D] leading-tight">
                 {subData.title}
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+              <p className="text-base sm:text-lg text-[#4D433F] max-w-2xl leading-relaxed">
                 {subData.description}
               </p>
 
-              <div className="flex flex-wrap gap-4 pt-2 text-xs sm:text-sm text-slate-300">
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-                  <Clock className="w-4 h-4 text-[#C5A880]" />
+              <div className="flex flex-wrap gap-2.5 pt-2 text-xs sm:text-sm text-[#221D1D]">
+                <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                  <Clock className="w-4 h-4 text-[#4B8097]" />
                   {subData.duration_days} Days Access
                 </span>
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-                  <ShieldCheck className="w-4 h-4 text-[#C5A880]" />
+                <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                  <ShieldCheck className="w-4 h-4 text-[#4B8097]" />
                   Single Device DRM Protected
                 </span>
-                <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-                  <Video className="w-4 h-4 text-[#C5A880]" />
+                <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                  <Video className="w-4 h-4 text-[#4B8097]" />
                   Google Meet Live Sessions
                 </span>
               </div>
             </div>
 
             {/* Quick Purchase Box in Hero */}
-            <div className="lg:col-span-4 bg-white text-[#0B192C] p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col justify-between">
+            <div className="lg:col-span-4 bg-[#FDFBF7] text-[#221D1D] p-6 sm:p-8 rounded-3xl shadow-sm border border-[#E7E4E7] flex flex-col justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">
+                <p className="text-xs uppercase tracking-wider text-[#77716E] font-bold mb-1">
                   Subscription Pass
                 </p>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-serif font-bold text-[#0B192C]">
+                  <span className="text-4xl font-serif font-black text-[#221D1D]">
                     ₹{subData.price}
                   </span>
-                  <span className="text-lg text-slate-400 line-through">
+                  <span className="text-lg text-[#77716E] line-through font-medium">
                     ₹{subData.mrp}
                   </span>
                   {discountPercent > 0 && (
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] text-xs font-bold">
                       {discountPercent}% OFF
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mb-6">
+                <p className="text-xs text-[#77716E] mb-6 font-medium">
                   One-time payment for {subData.duration_days} days. Instant access.
                 </p>
               </div>
@@ -305,16 +312,16 @@ export default function SubscriptionDetailPage() {
               <div className="space-y-3">
                 <button
                   onClick={handleBuyNow}
-                  className="w-full py-3.5 px-6 rounded-xl font-medium text-sm flex items-center justify-center gap-2 bg-[#0B192C] text-white hover:bg-[#11233D] transition-all shadow-md"
+                  className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all active:scale-95 cursor-pointer min-h-[46px]"
                 >
                   <span>Buy Now</span>
-                  <ArrowRight className="w-4 h-4 text-[#C5A880]" />
+                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </button>
                 <button
                   onClick={handleAddToCart}
-                  className="w-full py-3 px-6 rounded-xl font-medium text-sm text-[#0B192C] bg-white border border-[#0B192C]/20 hover:bg-slate-50 flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#221D1D] bg-white border border-[#221D1D] hover:bg-[#F7F7F5] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
                 >
-                  <ShoppingCart className="w-4 h-4 text-slate-500" />
+                  <ShoppingCart className="w-4 h-4 text-[#221D1D]" />
                   <span>Add to Cart</span>
                 </button>
               </div>
@@ -324,42 +331,42 @@ export default function SubscriptionDetailPage() {
 
         {/* Features & Benefits */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-serif font-bold text-[#0B192C] mb-6 flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#C5A880]" />
+          <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)]">
+            <h2 className="text-xl font-serif font-black text-[#221D1D] mb-6 flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#4B8097]" />
               Key Inclusions
             </h2>
             <ul className="space-y-4">
               {subData.features.map((feat, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                  <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-4 h-4" />
+                <li key={idx} className="flex items-start gap-3 text-sm text-[#221D1D]">
+                  <div className="w-5 h-5 rounded-full bg-[#C4E1EC] text-[#221D1D] flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </div>
-                  <span>{feat}</span>
+                  <span className="font-medium">{feat}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] flex flex-col justify-between">
             <div>
-              <h2 className="text-xl font-serif font-bold text-[#0B192C] mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#C5A880]" />
+              <h2 className="text-xl font-serif font-black text-[#221D1D] mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#4B8097]" />
                 Digital Rights Management (DRM)
               </h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-4">
+              <p className="text-sm text-[#4D433F] leading-relaxed mb-4">
                 To protect original pedagogical scholarship, all study codices are loaded directly into our proprietary high-fidelity web reader.
               </p>
-              <ul className="text-xs text-slate-500 space-y-2">
+              <ul className="text-xs text-[#77716E] space-y-2">
                 <li>• Real-time watermark embedded with your registered Student ID and contact</li>
                 <li>• Single active hardware device session enforced at all times</li>
                 <li>• Optimized for seamless reading across iPads, laptops, and mobile screens</li>
               </ul>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div className="mt-6 pt-6 border-t border-[#E7E4E7] flex items-center justify-between text-xs text-[#77716E]">
               <span>Support available 7 days a week</span>
-              <Link href="/contact" className="text-[#0B192C] font-semibold hover:underline">
+              <Link href="/contact" className="text-[#221D1D] font-bold hover:underline">
                 Contact Academic Helpdesk
               </Link>
             </div>
@@ -368,13 +375,13 @@ export default function SubscriptionDetailPage() {
 
         {/* Detailed Syllabus Breakdown (if available) */}
         {subData.syllabus && subData.syllabus.length > 0 && (
-          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm mb-12">
+          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#E7E4E7] shadow-sm mb-12">
             <div className="mb-8">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#C5A880]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">
                 Curriculum Structure
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#0B192C] mt-1">
-                Detailed Syllabus & Covered Acts
+              <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#221D1D] mt-1">
+                Detailed Syllabus &amp; Covered Acts
               </h2>
             </div>
 
@@ -382,24 +389,24 @@ export default function SubscriptionDetailPage() {
               {subData.syllabus.map((unit, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-2xl bg-[#FDFBF7] border border-slate-200/80 hover:border-[#C5A880]/50 transition-all"
+                  className="p-6 rounded-3xl bg-[#FDFBF7] border border-[#E7E4E7] hover:border-[#AED7E9] transition-all"
                 >
                   <div className="flex items-start justify-between gap-4 mb-2">
-                    <h3 className="text-lg font-serif font-bold text-[#0B192C]">
+                    <h3 className="text-lg font-serif font-black text-[#221D1D]">
                       {unit.actTitle}
                     </h3>
-                    <span className="text-xs font-semibold text-slate-400">
+                    <span className="text-xs font-bold text-[#77716E] bg-[#F7F7F5] px-2.5 py-1 rounded-full border border-[#E7E4E7]">
                       Module {idx + 1}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 mb-4">{unit.description}</p>
+                  <p className="text-sm text-[#4D433F] mb-4">{unit.description}</p>
                   <div className="flex flex-wrap gap-2">
                     {unit.chapters.map((chap, cIdx) => (
                       <span
                         key={cIdx}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs bg-white border border-slate-200 text-slate-700"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white border border-[#E7E4E7] text-[#221D1D]"
                       >
-                        <FileText className="w-3 h-3 text-[#C5A880]" />
+                        <FileText className="w-3 h-3 text-[#4B8097]" />
                         {chap}
                       </span>
                     ))}

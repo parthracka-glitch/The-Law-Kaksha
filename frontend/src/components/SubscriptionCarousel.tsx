@@ -110,78 +110,83 @@ export function SubscriptionCarousel() {
 
   return (
     <section
-      className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8"
+      className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label="Subscription Highlights Carousel"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B192C] via-[#11233D] to-[#0A1422] text-white shadow-2xl border border-[#C5A880]/30 min-h-[380px] sm:min-h-[420px] flex items-center">
-        {/* Ambient luxury lighting */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#C5A880]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#1E3E62]/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-white border border-[#E7E4E7] text-[#221D1D] shadow-[0_10px_40px_rgba(34,29,29,0.08)] min-h-[360px] sm:min-h-[400px] flex items-center">
+        {/* Soft pastel ambient aura */}
+        <div
+          className="absolute inset-0 rounded-3xl pointer-events-none -z-0 blur-3xl opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle at 80% 20%, #C4E1EC 0%, #AED7E9 40%, transparent 75%)",
+          }}
+        />
 
         {/* Slide Content */}
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center p-8 sm:p-12 w-full">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center p-6 sm:p-10 lg:p-12 w-full">
           {/* Text Column */}
-          <div className="md:col-span-7 lg:col-span-8 space-y-5">
+          <div className="md:col-span-7 lg:col-span-8 space-y-4 sm:space-y-5 text-center md:text-left">
             {current.badge && (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-[#C5A880]/20 text-[#E5D0B5] border border-[#C5A880]/40 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
+                <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
                 {current.badge}
               </span>
             )}
 
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#FDFBF7] tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-black text-[#221D1D] tracking-tight leading-tight">
               {current.title}
             </h2>
 
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-[#4D433F] max-w-2xl leading-relaxed mx-auto md:mx-0">
               {current.subtitle}
             </p>
 
             {/* Feature Pills */}
-            <div className="flex flex-wrap gap-3 pt-2 text-xs sm:text-sm text-slate-300">
-              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
-                <ShieldCheck className="w-4 h-4 text-[#C5A880]" />
+            <div className="flex flex-wrap justify-center md:justify-start gap-2.5 pt-1 text-xs sm:text-sm text-[#221D1D]">
+              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                <ShieldCheck className="w-4 h-4 text-[#4B8097]" />
                 Watermarked DRM
               </span>
-              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
-                <Clock className="w-4 h-4 text-[#C5A880]" />
+              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                <Clock className="w-4 h-4 text-[#4B8097]" />
                 30 Days Full Access
               </span>
-              <span className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
-                <BookOpen className="w-4 h-4 text-[#C5A880]" />
-                ICAI/ICSI Aligned
+              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E7E4E7] px-3.5 py-1.5 rounded-full font-medium">
+                <BookOpen className="w-4 h-4 text-[#4B8097]" />
+                ICAI / ICSI Aligned
               </span>
             </div>
 
-            <div className="pt-4 flex flex-wrap gap-4">
+            <div className="pt-3 flex flex-wrap justify-center md:justify-start items-center gap-3 sm:gap-4">
               <Link
                 href={current.cta_link || (current.subscription_id ? `/subscriptions/${current.subscription_id}` : "/courses")}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-medium text-sm sm:text-base bg-gradient-to-r from-[#C5A880] to-[#E5D0B5] text-[#0B192C] hover:from-[#d6bd99] hover:to-[#f0dfc8] transition-all duration-200 shadow-lg shadow-[#C5A880]/20 transform hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm sm:text-base bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
               >
-                {current.cta_label || "Explore Subscription"}
-                <ArrowRight className="w-4 h-4" />
+                <span>{current.cta_label || "Explore Subscription"}</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </Link>
 
               <Link
                 href="/student/login"
-                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl font-medium text-sm sm:text-base bg-white/10 text-white hover:bg-white/15 border border-white/20 transition-all duration-200 backdrop-blur-sm"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm sm:text-base bg-white border border-[#221D1D] text-[#221D1D] hover:bg-[#F7F7F5] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
               >
-                Student Portal
+                <span>Student Portal</span>
               </Link>
             </div>
           </div>
 
           {/* Graphic Column */}
           <div className="md:col-span-5 lg:col-span-4 flex justify-center items-center">
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl bg-gradient-to-tr from-[#1E3E62]/40 to-[#C5A880]/20 p-4 border border-[#C5A880]/30 shadow-inner flex flex-col justify-center items-center text-center backdrop-blur-md">
-              <div className="w-20 h-20 rounded-2xl bg-[#0B192C] border border-[#C5A880]/50 flex items-center justify-center text-[#C5A880] mb-4 shadow-xl">
-                <BookOpen className="w-10 h-10" />
+            <div className="relative w-60 h-60 sm:w-68 sm:h-68 rounded-3xl bg-[#FDFBF7] p-6 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.05)] flex flex-col justify-center items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-[#AED7E9] text-[#221D1D] flex items-center justify-center mb-3 shadow-xs">
+                <BookOpen className="w-8 h-8" />
               </div>
-              <p className="font-serif font-bold text-xl text-[#FDFBF7]">The Law Kaksha</p>
-              <p className="text-xs text-[#C5A880] tracking-widest uppercase font-semibold mt-1">Study Codex Edition</p>
-              <div className="mt-4 px-3 py-1 rounded-full bg-[#C5A880]/20 border border-[#C5A880]/30 text-[11px] text-[#E5D0B5]">
+              <p className="font-serif font-black text-xl text-[#221D1D]">The Law Kaksha</p>
+              <p className="text-xs text-[#4B8097] tracking-wider uppercase font-bold mt-1">Study Codex Edition</p>
+              <div className="mt-3 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[11px] font-semibold text-[#221D1D]">
                 Instant In-Browser Unlocking
               </div>
             </div>
@@ -194,14 +199,14 @@ export function SubscriptionCarousel() {
             <button
               onClick={prevSlide}
               aria-label="Previous slide"
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all duration-150 focus:outline-none"
+              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white border border-[#E7E4E7] text-[#221D1D] shadow-md flex items-center justify-center backdrop-blur-md transition-all duration-150 focus:outline-none cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next slide"
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all duration-150 focus:outline-none"
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white border border-[#E7E4E7] text-[#221D1D] shadow-md flex items-center justify-center backdrop-blur-md transition-all duration-150 focus:outline-none cursor-pointer"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -216,8 +221,8 @@ export function SubscriptionCarousel() {
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
-                className={`transition-all duration-300 rounded-full h-2 ${
-                  idx === currentIndex ? "w-8 bg-[#C5A880]" : "w-2 bg-white/40 hover:bg-white/60"
+                className={`transition-all duration-300 rounded-full h-2 cursor-pointer ${
+                  idx === currentIndex ? "w-8 bg-[#4B8097]" : "w-2 bg-[#AED7E9] hover:bg-[#98C5D8]"
                 }`}
               />
             ))}
