@@ -136,6 +136,31 @@ export function SubscriptionCarousel() {
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 45;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
   // Auto-rotation every 5 seconds (pauses on hover)
   useEffect(() => {
     if (isPaused || total <= 1) return;
@@ -152,16 +177,19 @@ export function SubscriptionCarousel() {
 
   return (
     <section
-      className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6"
+      className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 my-4 sm:my-6 select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       aria-label="Subscription Highlights Carousel"
     >
-      <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-white border border-[#E7E4E7] text-[#221D1D] shadow-[0_15px_50px_rgba(34,29,29,0.08)] min-h-[420px] sm:min-h-[460px] flex items-center transition-all duration-500">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] bg-white border border-[#E7E4E7] text-[#221D1D] shadow-[0_15px_50px_rgba(34,29,29,0.08)] min-h-[390px] sm:min-h-[460px] flex items-center transition-all duration-500">
         
         {/* Dynamic ambient radiant aura */}
         <div
-          className="absolute inset-0 rounded-3xl md:rounded-[2.5rem] pointer-events-none transition-all duration-700 blur-3xl opacity-60"
+          className="absolute inset-0 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] pointer-events-none transition-all duration-700 blur-3xl opacity-60"
           style={{
             background:
               current.glowGradient ||
@@ -175,7 +203,7 @@ export function SubscriptionCarousel() {
         {/* Slide Content Grid */}
         <div
           key={current.id || currentIndex}
-          className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center px-6 sm:px-12 md:px-14 lg:px-16 py-8 sm:py-12 w-full animate-in fade-in duration-500"
+          className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-12 items-center px-4 sm:px-12 md:px-14 lg:px-16 py-6 sm:py-12 w-full animate-in fade-in duration-500"
         >
           {/* Left Text Column (safe margin ensures chevron arrows never overlap) */}
           <div className="md:col-span-7 lg:col-span-7 space-y-4 sm:space-y-5 text-center md:text-left">

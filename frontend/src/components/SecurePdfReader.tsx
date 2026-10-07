@@ -640,13 +640,13 @@ export function SecurePdfReader({
         </div>
 
         {/* 3D CODEX vs FLAT STUDIO MODE SWITCHER */}
-        <div className="flex items-center bg-black/10 dark:bg-white/10 p-0.5 rounded-full border border-current/15 shrink-0 mx-2 shadow-xs">
+        <div className="flex items-center bg-black/10 dark:bg-white/10 p-0.5 rounded-full border border-current/15 shrink-0 mx-1 sm:mx-2 shadow-xs">
           <button
             onClick={() => {
               setViewerMode("3d");
               setScale(1.0);
             }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
               viewerMode === "3d"
                 ? "bg-[#BFAFE5] text-[#221D1D] shadow-xs font-bold"
                 : "opacity-70 hover:opacity-100"
@@ -654,14 +654,15 @@ export function SecurePdfReader({
             title="3D Leatherbound Codex with Realistic Turning Pages"
           >
             <BookOpen className="w-3.5 h-3.5 text-[#221D1D]" />
-            <span className="text-[11px] font-bold">3D Book</span>
+            <span className="hidden sm:inline text-[11px] font-bold">3D Book</span>
+            <span className="sm:hidden text-[10px] font-bold">3D</span>
           </button>
           <button
             onClick={() => {
               setViewerMode("flat");
               handleFitWidth();
             }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
               viewerMode === "flat"
                 ? "bg-[#AED7E9] text-[#221D1D] shadow-xs font-bold"
                 : "opacity-70 hover:opacity-100"
@@ -669,7 +670,8 @@ export function SecurePdfReader({
             title="Studio Single Page View"
           >
             <FileText className="w-3.5 h-3.5 text-[#221D1D]" />
-            <span className="text-[11px] font-bold">Flat View</span>
+            <span className="hidden sm:inline text-[11px] font-bold">Flat View</span>
+            <span className="sm:hidden text-[10px] font-bold">Flat</span>
           </button>
         </div>
 
@@ -1150,7 +1152,7 @@ export function SecurePdfReader({
       {/* 3. ULTRA-SLEEK FLOATING CONTROLLER ISLAND */}
       {totalPages > 0 && (
         <footer
-          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[92%] sm:w-auto min-w-[320px] sm:min-w-[420px] h-12 px-2.5 sm:px-4 rounded-full border shadow-xl flex items-center justify-between gap-2.5 sm:gap-4 transition-all duration-200 ${themeStyles.dockBg}`}
+          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[95%] sm:w-auto min-w-0 sm:min-w-[420px] h-12 px-2 sm:px-4 rounded-full border shadow-xl flex items-center justify-between gap-1.5 sm:gap-4 transition-all duration-200 ${themeStyles.dockBg}`}
         >
           {/* PREVIOUS PAGE BUTTON */}
           <button

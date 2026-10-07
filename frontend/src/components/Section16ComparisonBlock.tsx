@@ -112,26 +112,26 @@ export function Section16ComparisonBlock() {
 
         {/* Toggle between Side-by-Side and Marking Rubric */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex p-1 rounded-2xl bg-white/60 border border-[#98C5D8] shadow-xs">
+          <div className="inline-flex max-w-full overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-2xl bg-white/60 border border-[#98C5D8] shadow-xs">
             <button
               onClick={() => setActiveTab("side_by_side")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 activeTab === "side_by_side"
                   ? "bg-white text-[#221D1D] shadow-xs"
                   : "text-[#4D433F] hover:text-[#221D1D]"
               }`}
             >
-              Side-by-Side Answer Comparison
+              <span className="hidden sm:inline">Side-by-Side </span>Comparison
             </button>
             <button
               onClick={() => setActiveTab("rubric")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 activeTab === "rubric"
                   ? "bg-white text-[#221D1D] shadow-xs"
                   : "text-[#4D433F] hover:text-[#221D1D]"
               }`}
             >
-              ICAI Step-by-Step Mark Rubric
+              <span className="hidden sm:inline">ICAI Step </span>Mark Rubric
             </button>
           </div>
         </div>
@@ -233,10 +233,10 @@ export function Section16ComparisonBlock() {
           </div>
         ) : (
           /* RUBRIC TAB */
-          <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 space-y-4 text-[#221D1D] shadow-md">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-6 space-y-4 text-[#221D1D] shadow-md">
             <h3 className="text-base font-bold text-[#221D1D] mb-2">ICAI 6-Marks Step-Wise Marking Rubric (Sec 16(1))</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+              <table className="w-full text-left text-xs sm:text-sm min-w-[520px]">
                 <thead>
                   <tr className="border-b border-[#E7E4E7] text-[#77716E]">
                     <th className="py-2.5 px-3 font-semibold">Answer Component</th>

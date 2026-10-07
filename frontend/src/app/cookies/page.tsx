@@ -14,8 +14,8 @@ export default function CookiesPage() {
     <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between text-[#221D1D]">
       <Navbar />
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 w-full">
-        <div className="bg-white border border-[#E7E4E7] rounded-3xl p-6 sm:p-10 md:p-14 shadow-xs space-y-8">
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 w-full">
+        <div className="bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl p-5 sm:p-10 md:p-14 shadow-xs space-y-8">
           
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] text-xs font-semibold">
@@ -48,7 +48,7 @@ export default function CookiesPage() {
             <div className="space-y-2">
               <h2 className="text-base font-bold text-[#221D1D]">2. Technical Storage Inventory</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-[#E7E4E7] rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs border border-[#E7E4E7] rounded-xl overflow-hidden min-w-[580px]">
                   <thead className="bg-[#F7F7F5] text-[#221D1D] font-bold">
                     <tr>
                       <th className="p-3 border-b border-[#E7E4E7]">Storage Key / Cookie</th>

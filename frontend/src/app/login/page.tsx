@@ -419,7 +419,7 @@ function LoginContent() {
           </div>
 
           {/* Main Card */}
-          <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 sm:p-8 shadow-sm space-y-5">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-5 sm:p-8 shadow-sm space-y-5">
             {/* Device Conflict Notification Modal/Banner */}
             {deviceConflictData && (
               <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-3 animate-in fade-in-50">
@@ -684,8 +684,8 @@ function LoginContent() {
 
       {/* Forgot / Reset Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-2xl bg-[#BFAFE5]/20 flex items-center justify-center text-[#221D1D]">

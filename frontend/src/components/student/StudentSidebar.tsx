@@ -19,6 +19,7 @@ import {
   Bookmark,
   CheckSquare,
   Workflow,
+  X,
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -78,24 +79,34 @@ export function StudentSidebar({
       >
         {/* TOP BRAND SECTION (OFFICIAL LOGO + PORTAL BADGE) */}
         <div>
-          <div className="px-5 pt-5 pb-4 border-b border-[#F3F4F6]">
-            <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-              <div className="relative h-9 w-40 flex items-center">
-                <Image
-                  src="/assets/logo-transparent.png"
-                  alt="The Law Kaksha"
-                  fill
-                  className="object-contain object-left"
-                  priority
-                />
+          <div className="px-5 pt-5 pb-4 border-b border-[#F3F4F6] flex items-center justify-between">
+            <div>
+              <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
+                <div className="relative h-9 w-40 flex items-center">
+                  <Image
+                    src="/assets/logo-transparent.png"
+                    alt="The Law Kaksha"
+                    fill
+                    className="object-contain object-left"
+                    priority
+                  />
+                </div>
+              </Link>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#F3E8FF] text-[#7E22CE]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-pulse" />
+                  <span>Student Portal</span>
+                </span>
               </div>
-            </Link>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#F3E8FF] text-[#7E22CE]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-pulse" />
-                <span>Student Portal</span>
-              </span>
             </div>
+            <button
+              type="button"
+              onClick={onCloseSidebar}
+              className="lg:hidden p-1.5 rounded-xl text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              aria-label="Close sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* MAIN MENU ITEMS (NOTES & STUDY MATERIAL FIRST) */}

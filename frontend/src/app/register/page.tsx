@@ -79,7 +79,7 @@ function RegisterForm() {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 sm:p-8 shadow-sm">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-5 sm:p-8 shadow-sm">
       {errorMsg && (
         <div className="mb-5 p-3.5 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
           <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />

@@ -70,7 +70,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
                 Chapter-Wise ICAI Weightage Matrix:
               </h3>
               <div className="overflow-x-auto rounded-xl border border-slate-200 text-xs">
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[480px]">
                   <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                     <tr>
                       <th className="py-2.5 px-3 font-bold">Chapter &amp; Provisions</th>
@@ -158,7 +158,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
               Companies (Management &amp; Administration) Rules 2014 Matrix
             </h3>
             <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[480px]">
                 <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="py-2 px-3 font-bold">Rule</th>
@@ -311,7 +311,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
               Exam Eve Fast-Track Penalty &amp; Threshold Sheet
             </h3>
             <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[480px]">
                 <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="py-2 px-3 font-bold">Section</th>
@@ -407,7 +407,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 text-xs">
-              <table className="w-full text-left">
+              <table className="w-full text-left min-w-[480px]">
                 <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="py-2 px-3 font-bold">Act / Subject</th>
@@ -533,7 +533,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 text-xs">
-              <table className="w-full text-left">
+              <table className="w-full text-left min-w-[480px]">
                 <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="py-2 px-3 font-bold">Statute</th>
@@ -829,7 +829,7 @@ export function EnhancedSampleChapterModal({
           {bookData.pages.map((p) => (
             <div
               key={p.pageNumber}
-              className="w-full max-w-3xl bg-white border border-[#E7E4E7] rounded-3xl shadow-xs p-6 sm:p-10 font-serif leading-relaxed text-[#221D1D] relative transition-transform"
+              className="w-full max-w-3xl bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl shadow-xs p-4 sm:p-10 font-serif leading-relaxed text-[#221D1D] relative transition-transform"
             >
               {/* Running Header On Every Page */}
               <div className="flex items-center justify-between pb-3 mb-5 border-b border-[#E7E4E7] text-[10px] font-sans text-[#77716E]">

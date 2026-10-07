@@ -260,7 +260,7 @@ function CoursesCatalogContent() {
         {/* 2. Simple Minimal Filter & Search Bar */}
         <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-[#E7E4E7] shadow-xs">
           {/* Program Toggle */}
-          <div className="flex p-1 bg-[#F7F7F5] rounded-xl w-full sm:w-auto gap-1 overflow-x-auto scrollable-tabs border border-[#E7E4E7]">
+          <div className="flex p-1 bg-[#F7F7F5] rounded-xl w-full sm:w-auto gap-1 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x border border-[#E7E4E7]">
             <button
               onClick={() => setSelectedCourse("all")}
               className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center ${
@@ -332,7 +332,7 @@ function CoursesCatalogContent() {
               return (
                 <div
                   key={product.id}
-                  className="bg-white border border-[#E7E4E7] rounded-3xl p-7 sm:p-8 shadow-xs hover:border-[#AED7E9] hover:shadow-sm transition-all duration-300 flex flex-col justify-between space-y-6 relative group"
+                  className="bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs hover:border-[#AED7E9] hover:shadow-sm transition-all duration-300 flex flex-col justify-between space-y-6 relative group"
                 >
                   <div className="space-y-5">
                     {/* Header Badges */}

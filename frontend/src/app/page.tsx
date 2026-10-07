@@ -33,7 +33,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Case Studies Card */}
-            <div className="bg-white rounded-3xl p-8 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-[0_12px_36px_rgba(34,29,29,0.08)] hover:border-[#AED7E9] flex flex-col justify-between transition-all duration-300">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)] hover:shadow-[0_12px_36px_rgba(34,29,29,0.08)] hover:border-[#AED7E9] flex flex-col justify-between transition-all duration-300">
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
@@ -41,7 +41,7 @@ export default function Home() {
                     Legal Jurisprudence
                   </span>
                 </div>
-                <h3 className="text-2xl font-serif font-black text-[#221D1D] mb-2">
+                <h3 className="text-xl sm:text-2xl font-serif font-black text-[#221D1D] mb-2">
                   High-Yield Case Studies Library
                 </h3>
                 <p className="text-sm text-[#4D433F] leading-relaxed mb-6">
@@ -58,7 +58,7 @@ export default function Home() {
             </div>
 
             {/* Active Offers Card */}
-            <div className="bg-white rounded-3xl p-8 border-2 border-[#AED7E9] shadow-[0_8px_30px_rgba(174,215,233,0.3)] flex flex-col justify-between relative overflow-hidden transition-all duration-300">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border-2 border-[#AED7E9] shadow-[0_8px_30px_rgba(174,215,233,0.3)] flex flex-col justify-between relative overflow-hidden transition-all duration-300">
               <div className="absolute top-0 right-0 w-36 h-36 bg-[#C4E1EC]/40 rounded-bl-full pointer-events-none" />
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-3">

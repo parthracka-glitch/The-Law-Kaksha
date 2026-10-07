@@ -997,8 +997,8 @@ export function CartDrawer() {
 
       {/* Printable Tax Invoice Modal */}
       {invoiceModalOpen && lastOrderDetails && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-[#221D1D]/50 backdrop-blur-xl animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-[#E7E4E7] shadow-2xl p-6 space-y-4 text-[#221D1D] animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-[#221D1D]/50 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full border border-[#E7E4E7] shadow-2xl p-4 sm:p-6 space-y-4 text-[#221D1D] animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-[#E7E4E7] pb-3">
               <div>
                 <span className="text-[10px] font-bold uppercase text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
@@ -1015,21 +1015,21 @@ export function CartDrawer() {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs bg-[#F7F7F5] p-3.5 rounded-2xl border border-[#E7E4E7]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#F7F7F5] p-3.5 rounded-2xl border border-[#E7E4E7]">
               <div>
                 <span className="text-[10px] font-semibold uppercase text-[#77716E] block">Student:</span>
                 <strong className="text-[#221D1D]">{lastOrderDetails.studentName}</strong>
                 <p className="text-[#4D433F] text-[11px]">{lastOrderDetails.email}</p>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <span className="text-[10px] font-semibold uppercase text-[#77716E] block">Access Ref:</span>
                 <p className="font-mono font-bold text-[#221D1D]">{lastOrderDetails.orderId}</p>
                 <p className="text-[#77716E] text-[10.5px]">{lastOrderDetails.date}</p>
               </div>
             </div>
 
-            <div className="border border-[#E7E4E7] rounded-2xl overflow-hidden text-xs">
-              <table className="w-full text-left">
+            <div className="border border-[#E7E4E7] rounded-2xl overflow-x-auto text-xs">
+              <table className="w-full text-left min-w-[320px]">
                 <thead className="bg-[#F7F7F5] text-[#77716E] font-bold uppercase text-[10px]">
                   <tr>
                     <th className="p-3">Codex / Pass</th>

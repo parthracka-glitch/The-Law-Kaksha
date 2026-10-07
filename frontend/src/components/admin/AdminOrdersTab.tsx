@@ -197,12 +197,12 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 no-scrollbar scrollbar-none touch-pan-x">
           {["all", "paid", "pending", "refunded"].map((st) => (
             <button
               key={st}
               onClick={() => setFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all shrink-0 ${
                 filter === st
                   ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]"
                   : "bg-[#F7F7F5] text-slate-600 hover:bg-slate-100"
@@ -217,7 +217,7 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
       {/* Orders Table */}
       <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[720px]">
             <thead className="bg-[#F7F7F5] text-slate-500 font-bold uppercase tracking-wider border-b border-[#E7E4E7]">
               <tr>
                 <th className="p-4">Order Ref</th>

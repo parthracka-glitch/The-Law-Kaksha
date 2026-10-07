@@ -1204,27 +1204,28 @@ export default function AdminPortalPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${
+            <div className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border ${
               isAtlasConnected
                 ? "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]"
                 : "bg-[#F4C5C0]/30 text-[#C35F3B] border-[#F4C5C0]"
             }`}>
-              <span className={`w-2 h-2 rounded-full ${isAtlasConnected ? "bg-[#4B8097] animate-pulse" : "bg-[#F7892A]"}`} />
-              <span>{isAtlasConnected ? "Database Connected" : "Local Sync Active"}</span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isAtlasConnected ? "bg-[#4B8097] animate-pulse" : "bg-[#F7892A]"}`} />
+              <span className="hidden sm:inline">{isAtlasConnected ? "Database Connected" : "Local Sync Active"}</span>
+              <span className="sm:hidden">{isAtlasConnected ? "Live DB" : "Sync"}</span>
             </div>
           </div>
         </header>
 
         {/* TAB WORKSPACES */}
-        <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+        <div className="p-3 sm:p-6 space-y-6 max-w-6xl">
 
           {/* SUB-NAV PILLS FOR STUDY MATERIALS */}
           {activeHub === "materials" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("books_and_notes")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "books_and_notes"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1239,7 +1240,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("live_sessions")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "live_sessions"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1251,7 +1252,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("cases")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "cases"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1266,7 +1267,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("mcq")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "mcq"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1281,7 +1282,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("qotd")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "qotd"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1295,11 +1296,11 @@ export default function AdminPortalPage() {
 
           {/* SUB-NAV PILLS FOR ORDERS & SALES */}
           {activeHub === "sales" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("orders")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "orders"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1311,7 +1312,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("subscriptions")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "subscriptions"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1326,7 +1327,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("coupons")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "coupons"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1341,7 +1342,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("payments")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "payments"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1353,7 +1354,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("expenses")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "expenses"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1367,11 +1368,11 @@ export default function AdminPortalPage() {
 
           {/* SUB-NAV PILLS FOR WEBSITE & BRANDING */}
           {activeHub === "website" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("carousel")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "carousel"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1383,7 +1384,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("promo_banners")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "promo_banners"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1395,7 +1396,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("offers")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "offers"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -1407,7 +1408,7 @@ export default function AdminPortalPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("settings")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "settings"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
@@ -2295,7 +2296,7 @@ export default function AdminPortalPage() {
               {/* SUBSCRIPTIONS LIST */}
               <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full text-left text-xs min-w-[720px]">
                     <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#221D1D] font-semibold">
                       <tr>
                         <th className="py-3 px-4">ID &amp; Date</th>
@@ -2924,7 +2925,7 @@ export default function AdminPortalPage() {
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-left text-xs min-w-[720px]">
                         <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#77716E] font-semibold">
                           <tr>
                             <th className="py-3 px-4">Student &amp; Roll No.</th>
@@ -3483,8 +3484,8 @@ export default function AdminPortalPage() {
 
       {/* 1. RESOURCE ADD / EDIT MODAL */}
       {resourceModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {resourceModal.mode === "add" ? "Add PDF Note" : "Edit PDF Note"}
@@ -3734,8 +3735,8 @@ export default function AdminPortalPage() {
 
       {/* 2. SUBSCRIPTION ADD / EDIT MODAL */}
       {subModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {subModal.mode === "add" ? "Add Subscription" : "Edit Subscription"}
@@ -3881,8 +3882,8 @@ export default function AdminPortalPage() {
 
       {/* 3. PRODUCT / COURSE MODAL */}
       {productModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-xl w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-xl w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <div>
                 <h3 className="text-base font-serif font-bold text-[#221D1D]">
@@ -4182,8 +4183,8 @@ export default function AdminPortalPage() {
 
       {/* 4. STUDENT MODAL */}
       {studentModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {studentModal.mode === "add" ? "Add Student" : "Edit Student"}
@@ -4287,8 +4288,8 @@ export default function AdminPortalPage() {
 
       {/* 5. CASE STUDY MODAL */}
       {caseModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {caseModal.mode === "add" ? "Add Case Study" : "Edit Case Study"}
@@ -4438,8 +4439,8 @@ export default function AdminPortalPage() {
 
       {/* 6. GOOGLE FORM MCQ TEST MODAL */}
       {mcqModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {mcqModal.mode === "add" ? "Add Google Form MCQ Test" : "Edit Google Form MCQ Test"}
@@ -4657,8 +4658,8 @@ export default function AdminPortalPage() {
 
       {/* 8. COUPON MODAL */}
       {couponModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="text-sm font-serif font-bold text-[#221D1D]">
                 {couponModal.mode === "add" ? "Add Coupon" : "Edit Coupon"}
@@ -4781,8 +4782,8 @@ export default function AdminPortalPage() {
 
       {/* 9. IN-APP PDF PREVIEW INSPECTOR MODAL */}
       {previewPdfModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl border border-[#E7E4E7] flex flex-col max-h-[92vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-6 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-4xl shadow-2xl border border-[#E7E4E7] flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden">
             {/* MODAL HEADER */}
             <div className="px-5 py-4 border-b border-[#E7E4E7] flex items-center justify-between gap-3 bg-[#F7F7F5]">
               <div className="min-w-0">

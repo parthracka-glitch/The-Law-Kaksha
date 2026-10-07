@@ -146,7 +146,7 @@ export function AdminPaymentsTab({
       {/* Table */}
       <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[680px]">
             <thead className="bg-[#F7F7F5] text-slate-500 font-bold uppercase tracking-wider border-b border-[#E7E4E7]">
               <tr>
                 <th className="p-4">Payment Ref</th>
