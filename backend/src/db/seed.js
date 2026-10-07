@@ -998,45 +998,72 @@ async function seed() {
 
   // 6. Seed Carousel Slides (per §5 & B4)
   const carouselTable = Database.table("carousel_slides");
+  const canonicalSlides = [
+    {
+      id: "slide-1",
+      placement: "website",
+      title: "Master CA Foundation Business Laws",
+      subtitle: "Complete codified ICAI syllabus notes, high-yield visual flowcharts & daily exam-calibrated case studies.",
+      image: "/images/hero_ca_foundation.jpg",
+      cta_label: "Explore CA Foundation Pass",
+      cta_link: "/courses",
+      badge: "MOST POPULAR • PAPER 2",
+      rating: "4.9/5 Rating (1,200+ Candidates)",
+      subscription_id: "sub-ca-foundation-monthly",
+      display_order: 1,
+      order: 1,
+      is_active: true,
+    },
+    {
+      id: "slide-2",
+      placement: "website",
+      title: "CSEET Legal Aptitude & Management",
+      subtitle: "Interactive 3D digital codices, ICSI unit MCQs, and weekly live Google Meet doubt clearing sessions.",
+      image: "/images/hero_cseet_law.jpg",
+      cta_label: "Explore CSEET Pass",
+      cta_link: "/courses",
+      badge: "ICSI SYLLABUS • 8 UNITS",
+      rating: "100% ICSI Exam Aligned",
+      subscription_id: "sub-cseet-monthly",
+      display_order: 2,
+      order: 2,
+      is_active: true,
+    },
+    {
+      id: "slide-3",
+      placement: "website",
+      title: "Dual Foundation + CSEET All-Access Pass",
+      subtitle: "One unified pass for comprehensive commerce law mastery. Complete statutory library at special launch pricing.",
+      image: "/images/hero_dual_combo.jpg",
+      cta_label: "Get Dual All-Access Pass @ ₹180",
+      cta_link: "/courses",
+      badge: "BEST VALUE • LAUNCH SPECIAL",
+      rating: "Dual Course Master Bundle",
+      subscription_id: "sub-combo-bundle",
+      display_order: 3,
+      order: 3,
+      is_active: true,
+    },
+  ];
+
   if (carouselTable.count() === 0) {
     console.log("[Seeder] Seeding carousel slides...");
-    const slides = [
-      {
-        id: "slide-1",
-        placement: "website",
-        title: "Crack CA Foundation Business Laws",
-        subtitle: "Visual, structured learning designed for 1st-attempt exemption in Paper 2.",
-        image: "/assets/ca-cs-hero-books-v2.png",
-        cta_label: "View Subscriptions",
-        subscription_id: "sub-ca-foundation-monthly",
-        display_order: 1,
-        is_active: true,
-      },
-      {
-        id: "slide-2",
-        placement: "website",
-        title: "CSEET Legal Aptitude Mastery",
-        subtitle: "High-yield MCQ question bank with instant rationale and ICSI precedents.",
-        image: "/assets/ca-cs-hero-books-v2.png",
-        cta_label: "Start Learning",
-        subscription_id: "sub-cseet-monthly",
-        display_order: 2,
-        is_active: true,
-      },
-      {
-        id: "slide-3",
-        placement: "website",
-        title: "Model Answer Writing Architecture",
-        subtitle: "Transform 2/6 average answers into 6/6 ICAI topper scores.",
-        image: "/assets/ca-cs-hero-books-v2.png",
-        cta_label: "Explore Plans",
-        subscription_id: "sub-ca-foundation-monthly",
-        display_order: 3,
-        is_active: true,
-      },
-    ];
-    slides.forEach((s) => carouselTable.insert(s));
+    canonicalSlides.forEach((s) => carouselTable.insert(s));
     console.log("[Seeder] Carousel slides seeded.");
+  } else {
+    // If existing slides still contain legacy placeholder images or old copy, synchronize with modern hero artworks
+    const existing = carouselTable.find();
+    if (existing.some((s) => !s.image || s.image.includes("ca-cs-hero-books-v2") || s.title.includes("Crack CA Foundation"))) {
+      canonicalSlides.forEach((s) => {
+        const found = carouselTable.findOne((item) => item.id === s.id);
+        if (found) {
+          carouselTable.update(s.id, s);
+        } else {
+          carouselTable.insert(s);
+        }
+      });
+      console.log("[Seeder] Synchronized carousel slides with website hero artworks.");
+    }
   }
 
   // 7. Seed Offers (per §5 & B7)

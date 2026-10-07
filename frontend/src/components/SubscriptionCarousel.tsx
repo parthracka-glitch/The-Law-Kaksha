@@ -93,22 +93,28 @@ export function SubscriptionCarousel() {
     let isMounted = true;
     async function loadSlides() {
       try {
-        const res = await apiRequest<CarouselSlideData[]>("/api/carousel-slides");
-        if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
-          if (isMounted) {
-            // Merge with local fallback images if remote image is placeholder
-            const enhanced = res.data.map((item, idx) => ({
-              ...item,
-              image:
-                item.image && item.image.startsWith("/images/")
-                  ? item.image
-                  : FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].image,
-              glowGradient: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].glowGradient,
-              badgeColor: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].badgeColor,
-              rating: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].rating,
-            }));
-            setSlides(enhanced);
-          }
+        const res = await apiRequest<any>("/api/carousel-slides");
+        const rawSlides = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray((res.data as any)?.slides)
+          ? (res.data as any).slides
+          : Array.isArray((res.data as any)?.data)
+          ? (res.data as any).data
+          : [];
+
+        if (rawSlides.length > 0 && isMounted) {
+          // Merge with local fallback styling / images if remote image is placeholder
+          const enhanced = rawSlides.map((item: any, idx: number) => ({
+            ...item,
+            image:
+              item.image && (item.image.startsWith("/images/") || item.image.startsWith("http"))
+                ? item.image
+                : FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].image,
+            glowGradient: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].glowGradient,
+            badgeColor: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].badgeColor,
+            rating: item.rating || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].rating,
+          }));
+          setSlides(enhanced);
         }
       } catch (e) {
         // Fallback remains

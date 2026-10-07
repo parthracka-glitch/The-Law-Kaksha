@@ -370,17 +370,25 @@ router.get("/extra-courses", async (req, res) => {
 router.get("/carousel-slides", async (req, res) => {
   try {
     const carouselTable = Database.table("carousel_slides");
-    let slides = carouselTable.find((s) => s.placement === "website" && s.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    let slides = carouselTable.find((s) => (s.placement === "website" || s.placement === "homepage_top") && s.is_active !== false).sort((a, b) => (a.display_order || a.order || 0) - (b.display_order || b.order || 0));
 
     if (isConnected()) {
       try {
         const CarouselSlide = require("../models/CarouselSlide");
-        const mongoSlides = await CarouselSlide.find({ placement: "website", is_active: true }).sort({ display_order: 1 }).lean();
+        const mongoSlides = await CarouselSlide.find({ is_active: true }).sort({ display_order: 1 }).lean();
         if (mongoSlides && mongoSlides.length > 0) slides = mongoSlides;
       } catch (_) {}
     }
 
-    res.status(200).json({ success: true, count: slides.length, slides });
+    const normalized = slides.map((s) => ({
+      ...s,
+      order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      display_order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      cta_link: s.cta_link || "/courses",
+      image: s.image || "/images/hero_ca_foundation.jpg",
+    }));
+
+    res.status(200).json({ success: true, count: normalized.length, slides: normalized, data: normalized });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching carousel slides: " + err.message });
   }

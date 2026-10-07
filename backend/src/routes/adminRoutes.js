@@ -1400,11 +1400,130 @@ router.post("/admin/extra-courses", async (req, res) => {
 });
 
 // B4: WEBSITE CAROUSEL CRUD & REORDER (§8 B4)
+const CANONICAL_WEBSITE_SLIDES = [
+  {
+    id: "slide-1",
+    placement: "website",
+    title: "Master CA Foundation Business Laws",
+    subtitle: "Complete codified ICAI syllabus notes, high-yield visual flowcharts & daily exam-calibrated case studies.",
+    image: "/images/hero_ca_foundation.jpg",
+    cta_label: "Explore CA Foundation Pass",
+    cta_link: "/courses",
+    badge: "MOST POPULAR • PAPER 2",
+    rating: "4.9/5 Rating (1,200+ Candidates)",
+    subscription_id: "sub-ca-foundation-monthly",
+    display_order: 1,
+    order: 1,
+    is_active: true,
+  },
+  {
+    id: "slide-2",
+    placement: "website",
+    title: "CSEET Legal Aptitude & Management",
+    subtitle: "Interactive 3D digital codices, ICSI unit MCQs, and weekly live Google Meet doubt clearing sessions.",
+    image: "/images/hero_cseet_law.jpg",
+    cta_label: "Explore CSEET Pass",
+    cta_link: "/courses",
+    badge: "ICSI SYLLABUS • 8 UNITS",
+    rating: "100% ICSI Exam Aligned",
+    subscription_id: "sub-cseet-monthly",
+    display_order: 2,
+    order: 2,
+    is_active: true,
+  },
+  {
+    id: "slide-3",
+    placement: "website",
+    title: "Dual Foundation + CSEET All-Access Pass",
+    subtitle: "One unified pass for comprehensive commerce law mastery. Complete statutory library at special launch pricing.",
+    image: "/images/hero_dual_combo.jpg",
+    cta_label: "Get Dual All-Access Pass @ ₹180",
+    cta_link: "/courses",
+    badge: "BEST VALUE • LAUNCH SPECIAL",
+    rating: "Dual Course Master Bundle",
+    subscription_id: "sub-combo-bundle",
+    display_order: 3,
+    order: 3,
+    is_active: true,
+  },
+];
+
 router.get("/admin/carousel", async (req, res) => {
   try {
     const carouselTable = Database.table("carousel_slides");
-    const slides = carouselTable.find().sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-    res.status(200).json({ success: true, slides });
+    let slides = carouselTable.find().sort((a, b) => (a.display_order || a.order || 0) - (b.display_order || b.order || 0));
+
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        const mongoSlides = await CarouselSlide.find().sort({ display_order: 1 }).lean();
+        if (mongoSlides && mongoSlides.length > 0) slides = mongoSlides;
+      } catch (_) {}
+    }
+
+    // If database is empty or still has placeholder images, auto-sync canonical slides
+    if (slides.length === 0 || slides.some((s) => !s.image || s.image.includes("ca-cs-hero-books-v2") || s.title.includes("Crack CA Foundation"))) {
+      CANONICAL_WEBSITE_SLIDES.forEach((s) => {
+        const found = carouselTable.findOne((item) => item.id === s.id);
+        if (found) {
+          carouselTable.update(s.id, s);
+        } else {
+          carouselTable.insert(s);
+        }
+      });
+      slides = carouselTable.find().sort((a, b) => (a.display_order || a.order || 0) - (b.display_order || b.order || 0));
+    }
+
+    const normalizedSlides = slides.map((s) => ({
+      ...s,
+      order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      display_order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      cta_link: s.cta_link || "/courses",
+      badge: s.badge || "",
+      image: s.image || "/images/hero_ca_foundation.jpg",
+    }));
+
+    res.status(200).json({ success: true, count: normalizedSlides.length, slides: normalizedSlides, data: normalizedSlides });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/carousel/sync-defaults", async (req, res) => {
+  try {
+    const carouselTable = Database.table("carousel_slides");
+    CANONICAL_WEBSITE_SLIDES.forEach((s) => {
+      const found = carouselTable.findOne((item) => item.id === s.id);
+      if (found) {
+        carouselTable.update(s.id, s);
+      } else {
+        carouselTable.insert(s);
+      }
+    });
+
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        for (const s of CANONICAL_WEBSITE_SLIDES) {
+          await CarouselSlide.findOneAndUpdate({ id: s.id }, { $set: s }, { upsert: true });
+        }
+      } catch (_) {}
+    }
+
+    const currentSlides = carouselTable.find().sort((a, b) => (a.display_order || a.order || 0) - (b.display_order || b.order || 0));
+    const normalized = currentSlides.map((s) => ({
+      ...s,
+      order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      display_order: s.display_order !== undefined ? s.display_order : (s.order || 1),
+      cta_link: s.cta_link || "/courses",
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "Synchronized with current live website carousel slides.",
+      slides: normalized,
+      data: normalized,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1412,23 +1531,35 @@ router.get("/admin/carousel", async (req, res) => {
 
 router.post("/admin/carousel", async (req, res) => {
   try {
-    const { title, subtitle, image, cta_label, subscription_id, display_order, is_active } = req.body;
+    const { title, subtitle, image, cta_label, cta_link, badge, rating, subscription_id, display_order, order, is_active } = req.body;
     if (!title) return res.status(400).json({ success: false, message: "Slide title is required." });
 
+    const orderNum = Number(display_order !== undefined ? display_order : (order !== undefined ? order : 1));
     const carouselTable = Database.table("carousel_slides");
     const newSlide = carouselTable.insert({
       id: `slide-${Date.now()}`,
       placement: "website",
       title,
       subtitle: subtitle || "",
-      image: image || "/assets/ca-cs-hero-books-v2.png",
+      image: image || "/images/hero_ca_foundation.jpg",
       cta_label: cta_label || "Explore Plan",
+      cta_link: cta_link || "/courses",
+      badge: badge || "",
+      rating: rating || "",
       subscription_id: subscription_id || null,
-      display_order: Number(display_order || 0),
+      display_order: orderNum,
+      order: orderNum,
       is_active: is_active !== false,
     });
 
-    res.status(201).json({ success: true, slide: newSlide });
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        await CarouselSlide.create(newSlide);
+      } catch (_) {}
+    }
+
+    res.status(201).json({ success: true, slide: newSlide, data: newSlide });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1437,9 +1568,24 @@ router.post("/admin/carousel", async (req, res) => {
 router.put("/admin/carousel/:id", async (req, res) => {
   try {
     const carouselTable = Database.table("carousel_slides");
-    const updated = carouselTable.update(req.params.id, req.body);
+    const payload = { ...req.body };
+    if (payload.order !== undefined && payload.display_order === undefined) {
+      payload.display_order = Number(payload.order);
+    } else if (payload.display_order !== undefined && payload.order === undefined) {
+      payload.order = Number(payload.display_order);
+    }
+
+    const updated = carouselTable.update(req.params.id, payload);
     if (!updated) return res.status(404).json({ success: false, message: "Slide not found." });
-    res.status(200).json({ success: true, slide: updated });
+
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        await CarouselSlide.findOneAndUpdate({ id: req.params.id }, { $set: payload }, { new: true });
+      } catch (_) {}
+    }
+
+    res.status(200).json({ success: true, slide: updated, data: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1449,6 +1595,14 @@ router.delete("/admin/carousel/:id", async (req, res) => {
   try {
     const carouselTable = Database.table("carousel_slides");
     carouselTable.delete(req.params.id);
+
+    if (isConnected()) {
+      try {
+        const CarouselSlide = require("../models/CarouselSlide");
+        await CarouselSlide.deleteOne({ id: req.params.id });
+      } catch (_) {}
+    }
+
     res.status(200).json({ success: true, message: "Slide deleted." });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
