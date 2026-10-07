@@ -123,7 +123,7 @@ function LoginContent() {
         if (
           portalMode === "admin" &&
           cleanIdentifier.toLowerCase() === "admin@thelawkaksha.com" &&
-          cleanPassword === "Admin@LawKaksha2026!"
+          (cleanPassword === "AdminSecurePassword2026!" || cleanPassword === "Admin@LawKaksha2026!")
         ) {
           const fallbackAdminSession = {
             name: "The Law Kaksha Administrator",
@@ -202,7 +202,7 @@ function LoginContent() {
         if (
           portalMode === "admin" &&
           cleanIdentifier.toLowerCase() === "admin@thelawkaksha.com" &&
-          cleanPassword === "Admin@LawKaksha2026!"
+          (cleanPassword === "AdminSecurePassword2026!" || cleanPassword === "Admin@LawKaksha2026!")
         ) {
           const directAdminSession = {
             name: "The Law Kaksha Administrator",
@@ -239,7 +239,7 @@ function LoginContent() {
         if (
           portalMode === "admin" &&
           cleanIdentifier.toLowerCase() === "admin@thelawkaksha.com" &&
-          cleanPassword === "Admin@LawKaksha2026!"
+          (cleanPassword === "AdminSecurePassword2026!" || cleanPassword === "Admin@LawKaksha2026!")
         ) {
           const emergencyAdminSession = {
             name: "The Law Kaksha Administrator",
