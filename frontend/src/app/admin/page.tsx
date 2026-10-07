@@ -994,48 +994,87 @@ export default function AdminPortalPage() {
     );
   }
 
-  const CORE_TABS = [
-    { id: "overview" as TabType, label: "Overview", icon: LayoutDashboard },
-    { id: "students" as TabType, label: "Students", icon: Users, badge: students.length },
-    { id: "subscriptions" as TabType, label: "Subscriptions", icon: CreditCard, badge: subscriptions.length },
-    { id: "books_and_notes" as TabType, label: "Books & Notes", icon: BookOpen, badge: products.length + resources.length },
-    { id: "carousel" as TabType, label: "Carousel Editor", icon: Layers },
-    { id: "live_sessions" as TabType, label: "Live Classes", icon: Video },
-    { id: "offers" as TabType, label: "Promotions & Offers", icon: Gift },
-    { id: "settings" as TabType, label: "Platform Settings", icon: Settings },
+  const MATERIALS_TABS: TabType[] = ["books_and_notes", "live_sessions", "cases", "mcq", "qotd"];
+  const SALES_TABS: TabType[] = ["orders", "subscriptions", "coupons", "payments", "expenses"];
+  const WEBSITE_TABS: TabType[] = ["carousel", "promo_banners", "offers", "settings"];
+
+  type HubId = "overview" | "students" | "materials" | "sales" | "website";
+
+  const activeHub: HubId =
+    activeTab === "overview"
+      ? "overview"
+      : activeTab === "students"
+      ? "students"
+      : MATERIALS_TABS.includes(activeTab)
+      ? "materials"
+      : SALES_TABS.includes(activeTab)
+      ? "sales"
+      : "website";
+
+  const SHORTLISTED_NAV = [
+    {
+      id: "overview" as HubId,
+      label: "Dashboard",
+      description: "Quick stats & announcements",
+      icon: LayoutDashboard,
+      badge: undefined,
+      defaultTab: "overview" as TabType,
+    },
+    {
+      id: "students" as HubId,
+      label: "Students",
+      description: "Directory & DRM access",
+      icon: Users,
+      badge: students.length,
+      defaultTab: "students" as TabType,
+    },
+    {
+      id: "materials" as HubId,
+      label: "Study Materials",
+      description: "Notes, tests & live classes",
+      icon: BookOpen,
+      badge: products.length + resources.length,
+      defaultTab: "books_and_notes" as TabType,
+    },
+    {
+      id: "sales" as HubId,
+      label: "Orders & Sales",
+      description: "Subscriptions & revenue",
+      icon: CreditCard,
+      badge: subscriptions.length,
+      defaultTab: "orders" as TabType,
+    },
+    {
+      id: "website" as HubId,
+      label: "Website & Branding",
+      description: "Hero carousel & settings",
+      icon: Settings,
+      badge: undefined,
+      defaultTab: "carousel" as TabType,
+    },
   ];
 
-  const ADVANCED_TABS = [
-    { id: "orders" as TabType, label: "Orders & Bookings", icon: CreditCard },
-    { id: "coupons" as TabType, label: "Coupons", icon: Percent },
-    { id: "payments" as TabType, label: "Payments Ledger", icon: FileSpreadsheet },
-    { id: "expenses" as TabType, label: "Expenses & P&L", icon: DollarSign },
-    { id: "cases" as TabType, label: "Case Studies", icon: Flame },
-    { id: "mcq" as TabType, label: "MCQ Tests", icon: Sparkles, badge: mcqTests.length },
-    { id: "qotd" as TabType, label: "Exam Dates & QOTD", icon: Calendar },
-    { id: "promo_banners" as TabType, label: "Codex Passes", icon: Megaphone },
-  ];
-
-  const ALL_TABS = [...CORE_TABS, ...ADVANCED_TABS];
-  const isAdvancedActive = ADVANCED_TABS.some((t) => t.id === activeTab);
-
-  const TAB_DESCRIPTIONS: Record<string, string> = {
-    overview: "Platform performance, revenue, and daily snapshot",
-    students: "Manage student profiles, enrollments, and DRM access",
-    subscriptions: "Active subscriptions, validity periods, and pass renewals",
-    books_and_notes: "Study materials, digital codices, and DRM PDF notes",
-    carousel: "Customize homepage hero carousel slides and call-to-actions",
-    live_sessions: "Schedule and manage Google Meet live class batches",
-    offers: "Special discounts, promotional passes, and launch offers",
-    settings: "Platform configuration, announcement banners, and notifications",
-    orders: "Purchases, student transactions, and order receipts",
-    coupons: "Promo discount codes, limits, and expiry dates",
-    payments: "Transaction history and financial audit ledger",
-    expenses: "Operational platform expenses, profits, and losses",
-    cases: "Weekly legal case problems and landmark precedents",
-    mcq: "Google Forms test links and timed mock examinations",
-    qotd: "Question of the day and daily practice problems",
-    promo_banners: "Student dashboard codex passes and promotional cards",
+  const HUB_HEADERS: Record<HubId, { title: string; subtitle: string }> = {
+    overview: {
+      title: "Dashboard Overview",
+      subtitle: "Welcome back! Here is your live platform summary and quick owner controls.",
+    },
+    students: {
+      title: "Students Directory",
+      subtitle: "View registered students, instant search, and 1-click DRM permissions.",
+    },
+    materials: {
+      title: "Study Materials & Courseware",
+      subtitle: "Manage digital codices, chapter notes, live batches, case studies, and tests.",
+    },
+    sales: {
+      title: "Orders, Passes & Revenue",
+      subtitle: "Student transactions, active subscriptions, discount coupons, and financial ledger.",
+    },
+    website: {
+      title: "Website & Brand Customization",
+      subtitle: "Homepage hero carousel, student dashboard promo cards, and system settings.",
+    },
   };
 
   return (
@@ -1056,7 +1095,7 @@ export default function AdminPortalPage() {
         />
       )}
 
-      {/* 1. SIDEBAR */}
+      {/* 1. SHORTLISTED MINIMAL SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-[#E7E4E7] flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
@@ -1075,85 +1114,49 @@ export default function AdminPortalPage() {
           </div>
         </div>
 
-        {/* NAVIGATION ITEMS */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {CORE_TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+        {/* 5 SHORTLISTED NAVIGATION HUBS */}
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+          {SHORTLISTED_NAV.map((nav) => {
+            const Icon = nav.icon;
+            const isNavActive = activeHub === nav.id;
             return (
               <button
-                key={tab.id}
+                key={nav.id}
+                type="button"
                 onClick={() => {
-                  setActiveTab(tab.id);
+                  if (nav.id === "materials") {
+                    setActiveTab((prev) => (MATERIALS_TABS.includes(prev) ? prev : nav.defaultTab));
+                  } else if (nav.id === "sales") {
+                    setActiveTab((prev) => (SALES_TABS.includes(prev) ? prev : nav.defaultTab));
+                  } else if (nav.id === "website") {
+                    setActiveTab((prev) => (WEBSITE_TABS.includes(prev) ? prev : nav.defaultTab));
+                  } else {
+                    setActiveTab(nav.defaultTab);
+                  }
                   setSearchQuery("");
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[44px] ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[46px] ${
+                  isNavActive
                     ? "bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9] shadow-xs"
                     : "text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
                 }`}
               >
-                <Icon className={`shrink-0 ${isActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 17, height: 17 }} />
-                <span className="truncate">{tab.label}</span>
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    isActive ? "bg-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
+                <Icon className={`shrink-0 ${isNavActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 18, height: 18 }} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold leading-tight">{nav.label}</p>
+                  <p className="text-[10px] text-[#77716E] font-normal truncate mt-0.5">{nav.description}</p>
+                </div>
+                {nav.badge !== undefined && nav.badge > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    isNavActive ? "bg-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
                   }`}>
-                    {tab.badge}
+                    {nav.badge}
                   </span>
                 )}
               </button>
             );
           })}
-
-          {/* ADVANCED MODULES ACCORDION */}
-          <div className="pt-3">
-            <button
-              type="button"
-              onClick={() => setShowAdvancedTabs(!showAdvancedTabs)}
-              className="w-full flex items-center justify-between px-3.5 py-2 text-[11px] font-semibold text-[#77716E] hover:text-[#221D1D] rounded-xl hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-            >
-              <span>More Modules ({ADVANCED_TABS.length})</span>
-              <ChevronRight
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  showAdvancedTabs || isAdvancedActive ? "rotate-90 text-[#221D1D]" : ""
-                }`}
-              />
-            </button>
-
-            {(showAdvancedTabs || isAdvancedActive) && (
-              <div className="mt-1 space-y-1 pl-1 pt-1 border-l-2 border-[#E7E4E7] ml-3.5">
-                {ADVANCED_TABS.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setSearchQuery("");
-                        setSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[38px] ${
-                        isActive
-                          ? "bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9]"
-                          : "text-[#77716E] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
-                      }`}
-                    >
-                      <Icon className={`shrink-0 ${isActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 15, height: 15 }} />
-                      <span className="truncate">{tab.label}</span>
-                      {tab.badge !== undefined && tab.badge > 0 && (
-                        <span className="ml-auto px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]">
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* BOTTOM ADMIN PROFILE */}
@@ -1192,10 +1195,10 @@ export default function AdminPortalPage() {
             </button>
             <div>
               <h1 className="text-base font-serif font-bold text-[#221D1D]">
-                {ALL_TABS.find((t) => t.id === activeTab)?.label || "Admin Console"}
+                {HUB_HEADERS[activeHub]?.title || "Admin Console"}
               </h1>
               <p className="text-[11px] text-[#77716E] leading-none mt-0.5">
-                {TAB_DESCRIPTIONS[activeTab] || "The Law Kaksha Admin Control Center"}
+                {HUB_HEADERS[activeHub]?.subtitle || "The Law Kaksha Admin Control Center"}
               </p>
             </div>
           </div>
@@ -1214,6 +1217,207 @@ export default function AdminPortalPage() {
 
         {/* TAB WORKSPACES */}
         <div className="p-4 sm:p-6 space-y-6 max-w-6xl">
+
+          {/* SUB-NAV PILLS FOR STUDY MATERIALS */}
+          {activeHub === "materials" && (
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setActiveTab("books_and_notes")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "books_and_notes"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Books & Notes</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  {products.length + resources.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("live_sessions")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "live_sessions"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Video className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Live Meet Classes</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("cases")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "cases"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Case Studies</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  {cases.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("mcq")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "mcq"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>MCQ Tests</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  {mcqTests.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("qotd")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "qotd"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Exam Dates & QOTD</span>
+              </button>
+            </div>
+          )}
+
+          {/* SUB-NAV PILLS FOR ORDERS & SALES */}
+          {activeHub === "sales" && (
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setActiveTab("orders")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "orders"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Orders & Bookings</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("subscriptions")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "subscriptions"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Key className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Subscriptions</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  {subscriptions.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("coupons")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "coupons"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Percent className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Coupons</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  {coupons.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("payments")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "payments"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Payments Ledger</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("expenses")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "expenses"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Expenses & P&L</span>
+              </button>
+            </div>
+          )}
+
+          {/* SUB-NAV PILLS FOR WEBSITE & BRANDING */}
+          {activeHub === "website" && (
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setActiveTab("carousel")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "carousel"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Homepage Hero Carousel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("promo_banners")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "promo_banners"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Student Codex Passes</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("offers")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "offers"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Gift className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Promotions & Offers</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("settings")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === "settings"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Settings className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Platform Settings</span>
+              </button>
+            </div>
+          )}
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
@@ -1241,43 +1445,125 @@ export default function AdminPortalPage() {
                 </div>
               </div>
 
-              {/* STAT CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
-                  <div className="w-10 h-10 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
-                    <BookOpen className="w-5 h-5" />
+              {/* QUICK OWNER SHORTCUTS */}
+              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E7E4E7] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#BFAFE5]/40 border border-[#BFAFE5] flex items-center justify-center text-[#221D1D] shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#221D1D]" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">Books &amp; Notes</p>
-                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{products.length + resources.length} Materials</h3>
-                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#221D1D]">Owner Quick Shortcuts</h4>
+                    <p className="text-[11px] text-[#77716E]">Fastest actions for everyday management.</p>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
-                  <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#BFAFE5]">
-                    <CreditCard className="w-5 h-5" />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
+                    className="px-3.5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Student</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("books_and_notes");
+                      setMaterialSubTab("books");
+                    }}
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <span>Upload Notes</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("coupons");
+                      setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 15, minOrder: 99, maxUses: 100 } });
+                    }}
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
+                    <Percent className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <span>New Coupon</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("carousel")}
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <span>Homepage Carousel</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* STAT CARDS - CLICKABLE WITH HOVER */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("books_and_notes")}
+                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  <p className="text-xs text-[#77716E] font-medium">Study Materials</p>
+                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{products.length + resources.length} Items</h3>
+                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("subscriptions")}
+                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#BFAFE5] hover:shadow-md text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center border border-[#BFAFE5] group-hover:bg-[#BFAFE5] transition-colors">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
                   </div>
                   <p className="text-xs text-[#77716E] font-medium">Subscriptions</p>
                   <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{subscriptions.length} Passes</h3>
                   <p className="text-[11px] text-[#221D1D] font-semibold mt-1">{activeSubsCount} Active Passes</p>
-                </div>
+                </button>
 
-                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
-                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
-                    <Users className="w-5 h-5" />
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("students")}
+                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">Students</p>
+                  <p className="text-xs text-[#77716E] font-medium">Students Directory</p>
                   <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{students.length} Registered</h3>
                   <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{activeStudentsCount} Active Access</p>
-                </div>
+                </button>
 
-                <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm">
-                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center mb-3 border border-[#AED7E9]">
-                    <ShieldCheck className="w-5 h-5 text-[#4B8097]" />
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("students")}
+                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
+                      <ShieldCheck className="w-5 h-5 text-[#4B8097]" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
                   </div>
                   <p className="text-xs text-[#77716E] font-medium">DRM Protection</p>
                   <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">Active</h3>
-                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">Secure Read Mode</p>
-                </div>
+                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">1-Click Toggle Mode</p>
+                </button>
               </div>
 
               {/* BROADCAST ANNOUNCEMENT BANNER MANAGER */}
