@@ -10,7 +10,7 @@ import {
   Lock, BookMarked, Calendar, Edit3, User, Menu, X,
   Trophy, Award, Zap, ChevronRight, Search, CheckSquare,
   Square, BarChart3, HelpCircle, ShieldCheck, Share2, PlayCircle, Star, ExternalLink,
-  ShoppingBag, CreditCard
+  ShoppingBag, CreditCard, Workflow
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
@@ -472,10 +472,10 @@ type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr" | "
 const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
   { id: "home", label: "Dashboard", icon: LayoutDashboard },
   { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-  { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
   { id: "cases", label: "Case Studies", icon: Flame },
   { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
-  { id: "ldr", label: "Build Resume", icon: FileText },
+  { id: "ldr", label: "Revision Flowcharts", icon: Workflow, badge: "LDR" },
+  { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
   { id: "certificates", label: "Certificates", icon: Award },
   { id: "refer", label: "Refer and Earn", icon: Share2 },
   { id: "purchases", label: "Purchase History", icon: CreditCard },
@@ -494,6 +494,7 @@ export default function StudentDashboardPage() {
   const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch3");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedActFilter, setSelectedActFilter] = useState<string>("all");
+  const [ldrFilter, setLdrFilter] = useState<string>("all");
 
   // Modals
   const [sampleModalOpen, setSampleModalOpen] = useState<boolean>(false);
@@ -2049,111 +2050,171 @@ export default function StudentDashboardPage() {
           {/* ========================================================================= */}
           {activeTab === "ldr" && (
             <div className="space-y-6">
-              <div className="max-w-xl">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Last Day Revision</span>
-                <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-1">Exam Flowcharts &amp; Quick Notes</h2>
-                <p className="text-sm text-[#4D433F] mt-1">High-speed visual recall aids for the final 36 hours before your law exam (Protected DRM In-Web View).</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5FF] text-[#7E22CE] text-xs font-bold border border-[#DDD6FE] mb-2">
+                    <Workflow className="w-3.5 h-3.5 text-[#9333EA]" />
+                    <span>Visual Revision Decision Trees</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D] tracking-tight">
+                    Exam Revision Flowcharts &amp; Quick Notes
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#4D433F] mt-1 max-w-2xl leading-relaxed">
+                    High-speed visual recall flowcharts, statutory mind maps, and decision trees curated for the final 36 hours before your law exam (Protected DRM In-Web View).
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4F8] text-[#1E3A4B] text-xs font-semibold border border-[#C4E1EC] self-start sm:self-auto shrink-0 shadow-2xs">
+                  <ShieldCheck className="w-4 h-4 text-[#2B5B70]" />
+                  <span>DRM Protected</span>
+                </div>
               </div>
+
+              {/* Subject Filter Pills */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  { id: "all", label: "All Flowcharts" },
+                  { id: "partnership", label: "Partnership Act" },
+                  { id: "companies", label: "Companies Act" },
+                  { id: "soga", label: "Sale of Goods" },
+                  { id: "contract", label: "Contract Act" },
+                  { id: "llp", label: "LLP & NI Act" },
+                  { id: "trends", label: "Exam Trends & PYQ" },
+                ].map((pill) => (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setLdrFilter(pill.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      ldrFilter === pill.id
+                        ? "bg-[#221D1D] text-white shadow-xs font-bold"
+                        : "bg-white border border-[#E7E4E7] text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Flowchart Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {[
                   {
-                    title: "Indian Partnership Act - LDR Flowcharts",
-                    desc: "High-speed visual recall flowcharts covering Section 4, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights, and Section 69 Non-Registration disabilities.",
+                    act: "partnership",
+                    title: "Indian Partnership Act — Section 6 True Test & Agency Flowchart",
+                    desc: "High-speed visual recall flowcharts covering Section 4 essentials, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights (Sec 30), and Section 69 Non-Registration disabilities.",
                     url: "/notes/partnership-ldr-charts.pdf",
-                    label: "Open LDR Charts",
-                    badge: "Partnership Act",
+                    label: "Open Flowcharts",
+                    badge: "Partnership Act • Flowchart",
                     badgeColor: "bg-[#FAF5FF] text-[#7E22CE] border-[#DDD6FE]"
                   },
                   {
-                    title: "Indian Partnership Act - Visual Infographics",
-                    desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures.",
+                    act: "partnership",
+                    title: "Indian Partnership Act — Visual Infographics & Dissolution Tree",
+                    desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures under Sections 39-44.",
                     url: "/notes/partnership-infographics.pdf",
                     label: "Open Infographics",
-                    badge: "Infographics",
+                    badge: "Partnership Act • Infographics",
                     badgeColor: "bg-amber-50 text-amber-800 border-amber-200"
                   },
                   {
-                    title: "Indian Partnership Act - Chapter-wise Practice Questions",
-                    desc: "Unit 1, 2 & 3 descriptive practice questions with ICAI model step-marking framework and key statutory provisions.",
-                    url: "/notes/indian-partnership-act-practice-questions.pdf",
-                    label: "Open Practice Questions",
-                    badge: "Practice Qs",
-                    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  },
-                  {
-                    title: "Smart Revision Question Bank (Part 1)",
-                    desc: "High-yield case study problem sets and revision questions covering CA Foundation Paper 2 Business Laws.",
-                    url: "/notes/smart-revision-question-bank-part-1.pdf",
-                    label: "Open Question Bank",
-                    badge: "Question Bank",
-                    badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
-                  },
-                  {
-                    title: "September 2026 Paper Analysis & Suggested Answers",
-                    desc: "In-depth trend analysis, question-by-question breakdown, and suggested model answers for CA Foundation Business Laws.",
-                    url: "/notes/september-2026-paper-analysis.pdf",
-                    label: "Open Paper Analysis",
-                    badge: "PYQ Analysis",
-                    badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
-                  },
-                  {
-                    title: "Sale of Goods Act - Section 16 Matrix",
-                    desc: "Caveat Emptor exceptions chart, Priest v. Last, Grant v. Australian Knitting Mills, and Section 54 Unpaid Seller Resale rules.",
+                    act: "companies",
+                    title: "The Companies Act — Corporate Veil & Indoor Management Decision Tree",
+                    desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires, and Turquand's Rule indoor management exception diagram.",
                     url: "/notes/sale-of-goods-unit-2.pdf",
-                    label: "Open Matrix",
-                    badge: "Sale of Goods",
-                    badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
-                  },
-                  {
-                    title: "Companies Act - Corporate Veil Doctrine",
-                    desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires and Indoor Management rule (Royal British Bank v. Turquand).",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
-                    label: "Open Notes",
-                    badge: "Companies Act",
+                    label: "Open Decision Tree",
+                    badge: "Companies Act • Decision Tree",
                     badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
                   },
                   {
-                    title: "Contract Act - Essential Checklist",
-                    desc: "Quick reference for Section 2 definitions, valid/void/voidable contracts, and 8 essential elements checklist for exam speed.",
+                    act: "soga",
+                    title: "The Sale of Goods Act — Section 16 Condition & Warranty Flowchart",
+                    desc: "Caveat Emptor baseline rule, Priest v. Last fitness exception tree, merchantable quality, and Section 54 Unpaid Seller Resale rules.",
+                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    label: "Open Flowchart",
+                    badge: "Sale of Goods • Flowchart",
+                    badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
+                  },
+                  {
+                    act: "contract",
+                    title: "The Indian Contract Act — Offer, Acceptance & Consideration Matrix",
+                    desc: "Postal communication timeline, Section 25 exceptions (natural love & affection), lawful consideration flowchart, and Chinnaya v. Ramayya privity tree.",
                     url: "/notes/sale-of-goods-unit-1.pdf",
-                    label: "Open Checklist",
-                    badge: "Contract Act",
+                    label: "Open Checklist & Tree",
+                    badge: "Contract Act • Flowchart",
                     badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
                   },
-                ].map((item, idx) => (
-                  <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${item.badgeColor}`}>{item.badge}</div>
-                        <div className="flex items-center gap-1 text-[10px] text-[#77716E] font-medium">
-                          <Lock className="w-3 h-3 text-[#4B8097]" />
-                          <span>DRM Protected</span>
+                  {
+                    act: "llp",
+                    title: "The Limited Liability Partnership Act — Incorporation & Partner Flowchart",
+                    desc: "Statutory flow diagram for LLP incorporation, DPIN requirements, Section 31 whistleblowing protection, and partner cessation rules.",
+                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    label: "Open Flowchart",
+                    badge: "LLP Act • Flowchart",
+                    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  },
+                  {
+                    act: "llp",
+                    title: "The Negotiable Instruments Act — Cheque Bounce & Dishonour Flowchart",
+                    desc: "Promissory Note vs Bill vs Cheque matrix, Section 9 Holder in Due Course privileges, and Section 138 cheque bounce statutory timeline flowchart.",
+                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    label: "Open Flowchart",
+                    badge: "NI Act • Flowchart",
+                    badgeColor: "bg-cyan-50 text-cyan-800 border-cyan-200"
+                  },
+                  {
+                    act: "trends",
+                    title: "Smart Revision Question Bank — High-Yield Decision Charts",
+                    desc: "Fact-pattern to statutory provision identifier charts. Step-by-step problem solving framework for ICAI examination questions.",
+                    url: "/notes/smart-revision-question-bank-part-1.pdf",
+                    label: "Open Case Maps",
+                    badge: "Case Maps • Step Marking",
+                    badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
+                  },
+                  {
+                    act: "trends",
+                    title: "September 2026 Examination Trend Blueprint & Marking Scheme",
+                    desc: "In-depth chapter weightage trends, recurring question patterns, and 1.5-day revision timetable allocation for Paper 2.",
+                    url: "/notes/september-2026-paper-analysis.pdf",
+                    label: "Open Exam Blueprint",
+                    badge: "PYQ Trend Blueprint",
+                    badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
+                  },
+                ]
+                  .filter((item) => ldrFilter === "all" || item.act === ldrFilter)
+                  .map((item, idx) => (
+                    <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${item.badgeColor}`}>{item.badge}</div>
+                          <div className="flex items-center gap-1 text-[10px] text-[#77716E] font-medium">
+                            <Lock className="w-3 h-3 text-[#4B8097]" />
+                            <span>DRM Protected</span>
+                          </div>
                         </div>
+                        <h3 className="text-sm font-serif font-bold text-[#221D1D]">{item.title}</h3>
+                        <p className="text-xs text-[#4D433F] leading-relaxed mt-1">{item.desc}</p>
                       </div>
-                      <h3 className="text-sm font-serif font-bold text-[#221D1D]">{item.title}</h3>
-                      <p className="text-xs text-[#4D433F] leading-relaxed mt-1">{item.desc}</p>
+                      <div className="pt-2">
+                        {hasActiveCourseAccess ? (
+                          <button
+                            onClick={() => handleOpenPdf(item.url, item.title, "LDR Quick Deck")}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{item.label} (Secure Reader)</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          >
+                            <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                            <span>Unlock LDR Flowchart</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="pt-2">
-                      {hasActiveCourseAccess ? (
-                        <button
-                          onClick={() => handleOpenPdf(item.url, item.title, "LDR Quick Deck")}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>{item.label} (Secure Reader)</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                        >
-                          <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                          <span>Unlock LDR Flowchart</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}

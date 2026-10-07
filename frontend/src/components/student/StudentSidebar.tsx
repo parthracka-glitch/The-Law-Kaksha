@@ -18,6 +18,7 @@ import {
   User,
   Bookmark,
   CheckSquare,
+  Workflow,
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -49,6 +50,7 @@ export function StudentSidebar({
     { id: "chapters", label: "Chapter Notes", icon: BookOpen },
     { id: "cases", label: "Case Studies", icon: Flame },
     { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
+    { id: "ldr", label: "Revision Flowcharts", icon: Workflow },
     { id: "mastery", label: "My Progress", icon: CheckSquare },
   ];
 
@@ -56,7 +58,6 @@ export function StudentSidebar({
   const EXTRAS_MENU = [
     { id: "certificates", label: "Certificates", icon: Award },
     { id: "refer", label: "Refer and Earn", icon: Share2 },
-    { id: "ldr", label: "Build Resume", icon: FileText },
     { id: "purchases", label: "Purchase History", icon: CreditCard },
   ];
 
