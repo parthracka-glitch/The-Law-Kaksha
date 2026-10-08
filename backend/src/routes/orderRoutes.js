@@ -51,8 +51,17 @@ function getCanonicalPrice(itemId) {
     return CANONICAL_CATALOG_PRICES[cleanId];
   }
   const productsTable = Database.table("products");
-  const p = productsTable.findById(cleanId);
+  const p = productsTable.findById(cleanId) || productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
   if (p && typeof p.price === "number") return p.price;
+
+  const coursesTable = Database.table("courses");
+  const c = coursesTable.findById(cleanId) || coursesTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
+  if (c && typeof c.price === "number") return c.price;
+
+  const plansTable = Database.table("subscription_plans");
+  const plan = plansTable.findById(cleanId) || plansTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
+  if (plan && typeof plan.price === "number") return plan.price;
+
   return 99;
 }
 

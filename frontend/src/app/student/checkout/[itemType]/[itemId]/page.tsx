@@ -16,7 +16,7 @@ import {
   Tag,
   Check,
 } from "lucide-react";
-import { apiRequest, getStudentAuthToken, getStudentUser } from "@/lib/api";
+import { apiRequest, getStudentAuthToken, getStudentUser, setStudentAuthSession } from "@/lib/api";
 
 const loadRazorpayCheckoutScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -87,7 +87,20 @@ export default function StudentDirectCheckoutPage() {
       try {
         const res = await apiRequest(`/api/student/checkout-item/${itemType}/${itemId}`);
         if (res.success && res.data) {
-          setItem(res.data);
+          const itemObj = (res.data as any).item || res.data;
+          setItem({
+            id: itemObj.id || itemId,
+            title: itemObj.title || "High-Yield Law Codex Pass",
+            price: Number(itemObj.price) || 49,
+            mrp: Number(itemObj.mrp) || 149,
+            description: itemObj.description || "Specialized study codex with in-browser DRM reader access.",
+          });
+          if ((res.data as any).prefilledDetails) {
+            setStudent((prev) => ({
+              ...prev,
+              ...(res.data as any).prefilledDetails,
+            }));
+          }
         }
       } catch (e) {
         // Fallback remains
@@ -156,29 +169,44 @@ export default function StudentDirectCheckoutPage() {
         return;
       }
 
-      const orderData = createRes.data;
-      const orderId = orderData.orderId || orderData.id;
+      const orderData = createRes.data || createRes;
+      const internalOrderId = orderData.order?.id || orderData.orderId || orderData.id;
+      const razorpayOrderId = orderData.order_id || orderData.razorpayOrderId || orderData.gateway_order_id;
+      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key_id;
+
+      if (!keyId) {
+        setError("Payment gateway is not configured. Please contact support.");
+        setLoading(false);
+        return;
+      }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-        amount: Math.round(finalAmount * 100),
-        currency: "INR",
-        name: "The Law Kaksha",
+        key: keyId,
+        amount: orderData.amount_paise || Math.round(finalAmount * 100),
+        currency: orderData.currency || "INR",
+        name: "The Law कक्षा",
         description: item.title,
-        order_id: orderId,
+        image: "/assets/logo-transparent.png",
+        order_id: razorpayOrderId,
         handler: async function (response: any) {
           try {
             const verifyRes = await apiRequest("/api/orders/verify", {
               method: "POST",
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
+                razorpay_order_id: response.razorpay_order_id || razorpayOrderId,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                orderId: orderId,
+                orderId: internalOrderId || razorpayOrderId,
               }),
             });
 
             if (verifyRes.success) {
+              const resData = verifyRes.data || verifyRes;
+              const serverStudent = resData.student || {};
+              const serverToken = resData.token;
+              if (serverToken) {
+                setStudentAuthSession(serverToken, serverStudent);
+              }
               router.push("/student/resources");
             } else {
               setError("Payment verification failed.");
@@ -195,16 +223,25 @@ export default function StudentDirectCheckoutPage() {
           contact: student.phone,
         },
         theme: {
-          color: "#0B192C",
+          color: "#BFAFE5",
         },
         modal: {
           ondismiss: function () {
             setLoading(false);
+            setError("Payment window closed. You can retry whenever you are ready.");
           },
         },
       };
 
       const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (failResponse: any) {
+        console.error("[Razorpay Payment Failed]", failResponse.error);
+        setLoading(false);
+        setError(
+          failResponse.error?.description ||
+            "Payment failed. Please verify your card/UPI account or try another payment method."
+        );
+      });
       rzp.open();
     } catch (err: any) {
       setError(err?.message || "Payment process interrupted.");

@@ -29,7 +29,8 @@ export default function OrderSuccessPage() {
       try {
         const res = await apiRequest(`/api/orders/${orderNo}`);
         if (res.success && res.data) {
-          if (isMounted) setOrder(res.data);
+          const orderObj = (res.data as any).order || res.data;
+          if (isMounted) setOrder(orderObj);
         }
       } catch (e) {
         // Fallback to minimal state
@@ -42,6 +43,18 @@ export default function OrderSuccessPage() {
       isMounted = false;
     };
   }, [orderNo]);
+
+  const studentName =
+    order?.customer_name ||
+    order?.customerName ||
+    order?.personalDetails?.fullName;
+
+  const studentEmail =
+    order?.customer_email ||
+    order?.customerEmail ||
+    order?.personalDetails?.email;
+
+  const totalPaid = order?.total_amount || order?.amount;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#221D1D] flex flex-col font-sans">
@@ -77,24 +90,24 @@ export default function OrderSuccessPage() {
               <span className="font-mono font-bold text-[#221D1D]">{orderNo}</span>
             </div>
 
-            {order?.personalDetails?.fullName && (
+            {studentName && (
               <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
                 <span className="text-[#77716E]">Student Name:</span>
-                <span className="font-bold text-[#221D1D]">{order.personalDetails.fullName}</span>
+                <span className="font-bold text-[#221D1D]">{studentName}</span>
               </div>
             )}
 
-            {order?.personalDetails?.email && (
+            {studentEmail && (
               <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
                 <span className="text-[#77716E]">Registered Email:</span>
-                <span className="font-bold text-[#221D1D]">{order.personalDetails.email}</span>
+                <span className="font-bold text-[#221D1D]">{studentEmail}</span>
               </div>
             )}
 
-            {order?.total_amount && (
+            {totalPaid && (
               <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
                 <span className="text-[#77716E]">Total Paid:</span>
-                <span className="font-black text-[#221D1D]">₹{order.total_amount}</span>
+                <span className="font-black text-[#221D1D]">₹{totalPaid}</span>
               </div>
             )}
 
