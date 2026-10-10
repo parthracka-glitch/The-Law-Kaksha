@@ -721,6 +721,16 @@ export function SecurePdfReader({
 
           <div className="w-px h-4 bg-current opacity-10 mx-0.5" />
 
+          {/* Main Website Return Button */}
+          <button
+            onClick={onClose}
+            className="px-2.5 py-1.5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer opacity-80 hover:opacity-100"
+            title="Return to Main Website (The Law Kaksha)"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Main Website</span>
+          </button>
+
           {/* Close Button */}
           <button
             onClick={onClose}

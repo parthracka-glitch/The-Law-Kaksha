@@ -99,12 +99,25 @@ export default function ReaderClient() {
 
   const handleClose = () => {
     if (typeof window !== "undefined") {
+      const fromParam = searchParams.get("from");
+      if (fromParam === "admin") {
+        router.push("/admin");
+        return;
+      }
+      if (fromParam === "student") {
+        router.push("/student");
+        return;
+      }
+      if (fromParam === "main" || fromParam === "home") {
+        router.push("/");
+        return;
+      }
       if (window.opener) {
         window.close();
-      } else if (window.history.length > 1) {
+      } else if (window.history.length > 1 && !document.referrer.includes("/login") && !document.referrer.includes("/notes/")) {
         router.back();
       } else {
-        router.push("/student");
+        router.push("/");
       }
     }
   };
