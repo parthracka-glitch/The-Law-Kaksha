@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText, LogIn, LogOut, User, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { AnnouncementBar } from "./AnnouncementBar";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -132,13 +133,15 @@ export function Navbar() {
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "py-3 bg-white/95 backdrop-blur-md shadow-[0_2px_16px_rgba(34,29,29,0.06)] border-b border-[#E7E4E7]"
-            : "py-3.5 sm:py-4 bg-white border-b border-[#E7E4E7]"
-        }`}
-      >
+      <div className="sticky top-0 z-50">
+        <AnnouncementBar />
+        <header
+          className={`transition-all duration-300 ${
+            scrolled
+              ? "py-3 bg-white/95 backdrop-blur-md shadow-[0_2px_16px_rgba(34,29,29,0.06)] border-b border-[#E7E4E7]"
+              : "py-3.5 sm:py-4 bg-white border-b border-[#E7E4E7]"
+          }`}
+        >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Official Brand Logo */}
           <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
@@ -340,14 +343,14 @@ export function Navbar() {
             {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT DASHBOARD & PROFILE (when logged in) */}
             {activeStudent ? (
               <div className="flex items-center gap-2">
-                {/* 1-Click Visit Dashboard Button */}
+                {/* 1-Click Student Dashboard Button */}
                 <Link
-                  href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                  href={activeStudent.role === "admin" ? "/admin" : "/student/login"}
                   className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-95"
-                  title="Visit Dashboard"
+                  title="Student Dashboard"
                 >
                   <GraduationCap className="w-4 h-4 text-white" />
-                  <span>Visit Dashboard</span>
+                  <span>Student Dashboard</span>
                 </Link>
 
                 {/* Simplified User Profile Button */}
@@ -396,7 +399,7 @@ export function Navbar() {
                       {/* Direct Quick-Access Navigation */}
                       <div className="space-y-0.5">
                         <Link
-                          href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                          href={activeStudent.role === "admin" ? "/admin" : "/student/login"}
                           onClick={() => setProfileDropdownOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors"
                         >
@@ -603,12 +606,12 @@ export function Navbar() {
                     </div>
 
                     <Link
-                      href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                      href={activeStudent.role === "admin" ? "/admin" : "/student/login"}
                       onClick={() => setMobileMenuOpen(false)}
                       className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px]"
                     >
                       <LayoutDashboard className="w-4 h-4 text-white" />
-                      <span>{activeStudent.role === "admin" ? "Admin Console" : "Visit Dashboard"}</span>
+                      <span>{activeStudent.role === "admin" ? "Admin Console" : "Student Dashboard"}</span>
                     </Link>
 
                     <button
@@ -637,6 +640,7 @@ export function Navbar() {
           </>
         )}
       </header>
+      </div>
     </>
   );
 }

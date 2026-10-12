@@ -20,6 +20,8 @@ import { StreakCalendarModal } from "@/components/StreakCalendarModal";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
 import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
+import { StudentMobileBottomNav } from "@/components/student/StudentMobileBottomNav";
+import { StudentSchedulePanel } from "@/components/student/StudentSchedulePanel";
 import { CseetComingSoonShell } from "@/components/student/CseetComingSoonShell";
 import { getApiBaseUrl } from "@/lib/api";
 
@@ -467,18 +469,17 @@ const DAILY_QOTD_DATA = {
   xpReward: 15,
 };
 
-type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr" | "certificates" | "refer" | "purchases";
+type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr" | "refer" | "calendar";
 
 const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
   { id: "home", label: "Dashboard", icon: LayoutDashboard },
   { id: "chapters", label: "Chapter Notes", icon: BookOpen },
+  { id: "calendar", label: "Your Schedule", icon: Calendar },
   { id: "cases", label: "Case Studies", icon: Flame },
   { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
   { id: "ldr", label: "Revision Flowcharts", icon: Workflow, badge: "LDR" },
   { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
-  { id: "certificates", label: "Certificates", icon: Award },
   { id: "refer", label: "Refer and Earn", icon: Share2 },
-  { id: "purchases", label: "Purchase History", icon: CreditCard },
 ];
 
 export default function StudentDashboardPage() {
@@ -573,9 +574,8 @@ export default function StudentDashboardPage() {
 
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
 
-  // Purchase-Based Access Control: determines if active course stream is unlocked
+  // Purchase-Based Access Control: reflects whether active course stream has been subscribed to
   const isCaUnlocked = useMemo(() => {
-    if (isAdminUser) return true;
     return purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
@@ -592,10 +592,9 @@ export default function StudentDashboardPage() {
         lower.includes("question-bank")
       );
     });
-  }, [isAdminUser, purchasedBooks]);
+  }, [purchasedBooks]);
 
   const isCsUnlocked = useMemo(() => {
-    if (isAdminUser) return true;
     return purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
@@ -612,13 +611,30 @@ export default function StudentDashboardPage() {
         lower.includes("cs-")
       );
     });
-  }, [isAdminUser, purchasedBooks]);
+  }, [purchasedBooks]);
 
   const hasActiveCourseAccess = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
   const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management";
 
-  const handleBuyCourse = (courseType: "ca" | "cs" | "all-access") => {
-    if (courseType === "all-access") {
+  // Auto-detect active course stream based on student's actual subscription
+  useEffect(() => {
+    if (isCsUnlocked && !isCaUnlocked) {
+      if (activeCourse !== "cs") {
+        setActiveCourse("cs");
+        setSelectedChapterId("cs-u7");
+        setSelectedActFilter("all");
+      }
+    } else if (isCaUnlocked && !isCsUnlocked) {
+      if (activeCourse !== "ca") {
+        setActiveCourse("ca");
+        setSelectedChapterId("ca-ch4");
+        setSelectedActFilter("all");
+      }
+    }
+  }, [isCsUnlocked, isCaUnlocked, activeCourse]);
+
+  const handleBuyCourse = (courseType: "ca" | "cs" | "all-access" | string) => {
+    if (courseType === "all-access" || courseType === "prod-combo") {
       addToCart({
         id: "prod-combo",
         title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
@@ -630,7 +646,7 @@ export default function StudentDashboardPage() {
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
-    } else if (courseType === "ca") {
+    } else if (courseType === "ca" || courseType === "course-ca-foundation-sub") {
       addToCart({
         id: "course-ca-foundation-sub",
         title: "CA Foundation Business Laws Master Pass",
@@ -642,7 +658,7 @@ export default function StudentDashboardPage() {
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
-    } else {
+    } else if (courseType === "cs" || courseType === "course-cseet-sub") {
       addToCart({
         id: "course-cseet-sub",
         title: "CSEET Business Law & Management Master Pass",
@@ -651,6 +667,42 @@ export default function StudentDashboardPage() {
         originalPrice: 299,
         category: "Full Course Subscription",
         badge: "ICSI • 8 Units",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else if (courseType === "prod-vol1") {
+      addToCart({
+        id: "prod-vol1",
+        title: "Volume 1: Business Law (CA Foundation & CSEET)",
+        format: "pdf",
+        price: 99,
+        originalPrice: 249,
+        category: "Digital Codex",
+        badge: "Bare Act • 180+ Pages",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else if (courseType === "prod-vol2") {
+      addToCart({
+        id: "prod-vol2",
+        title: "Volume 2: Business Law & Management (CSEET)",
+        format: "pdf",
+        price: 99,
+        originalPrice: 249,
+        category: "Digital Codex",
+        badge: "Management • 120+ Pages",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else {
+      addToCart({
+        id: "prod-combo",
+        title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
+        format: "pdf",
+        price: 180,
+        originalPrice: 499,
+        category: "Full Course Subscription",
+        badge: "Dual Pass • 15 Chapters",
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
@@ -818,8 +870,30 @@ export default function StudentDashboardPage() {
         } catch (e) {}
       }
 
+      const purchasedBooksStorage = localStorage.getItem("lawkaksha_purchased_books");
+      if (purchasedBooksStorage) {
+        try {
+          const pb = JSON.parse(purchasedBooksStorage);
+          if (Array.isArray(pb)) {
+            initialUnlocked.push(...pb);
+          }
+        } catch (e) {}
+      }
+
       if (initialUnlocked.length > 0) {
         setPurchasedBooks((prev) => Array.from(new Set([...prev, ...initialUnlocked])));
+      }
+
+      const isVerifiedStudent =
+        Boolean(adminSession) ||
+        initialUnlocked.length > 0 ||
+        localStorage.getItem("lawkaksha_student_verified") === "true";
+
+      if (!isVerifiedStudent) {
+        setIsAuthorized(false);
+        setIsCheckingAuth(false);
+        router.push("/student/login?error=no_purchase");
+        return;
       }
 
       // Listen for instant purchase unlocks from CartDrawer
@@ -829,12 +903,24 @@ export default function StudentDashboardPage() {
           setPurchasedBooks((prev) => Array.from(new Set([...prev, ...detail])));
         } else {
           try {
+            const newlyUnlocked: string[] = [];
             const act = localStorage.getItem("lawkaksha_active_student");
+            const sess = localStorage.getItem("lawkaksha_student_session");
+            const pb = localStorage.getItem("lawkaksha_purchased_books");
             if (act) {
               const parsed = JSON.parse(act);
-              if (Array.isArray(parsed.unlockedItemIds)) {
-                setPurchasedBooks((prev) => Array.from(new Set([...prev, ...parsed.unlockedItemIds])));
-              }
+              if (Array.isArray(parsed.unlockedItemIds)) newlyUnlocked.push(...parsed.unlockedItemIds);
+            }
+            if (sess) {
+              const parsed = JSON.parse(sess);
+              if (Array.isArray(parsed.unlockedItemIds)) newlyUnlocked.push(...parsed.unlockedItemIds);
+            }
+            if (pb) {
+              const parsed = JSON.parse(pb);
+              if (Array.isArray(parsed)) newlyUnlocked.push(...parsed);
+            }
+            if (newlyUnlocked.length > 0) {
+              setPurchasedBooks((prev) => Array.from(new Set([...prev, ...newlyUnlocked])));
             }
           } catch (err) {}
         }
@@ -1111,7 +1197,7 @@ export default function StudentDashboardPage() {
   const initials = studentName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "AS";
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex select-none text-[#4D433F]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }} onContextMenu={(e) => e.preventDefault()}>
+    <div className="min-h-screen bg-[#EEF3FB] flex select-none text-[#13264F]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }} onContextMenu={(e) => e.preventDefault()}>
       {/* CSS DRM SECURITY PRINT BLOCKER */}
       <style jsx global>{`
         @media print {
@@ -1151,98 +1237,72 @@ export default function StudentDashboardPage() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
-        {/* HEADER BAR */}
-        <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#E7E4E7] px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+        {/* HEADER BAR (DEEP NAVY BRAND THEME #0F2557) */}
+        <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-4 sm:px-6 py-3 flex items-center justify-between gap-3 shadow-md">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer"
+              className="lg:hidden p-2 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/20 transition-colors min-w-[38px] min-h-[38px] flex items-center justify-center cursor-pointer"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-base font-serif font-bold text-[#221D1D] flex items-center gap-2">
+              <h1 className="text-base font-bold text-white flex items-center gap-2">
                 <span>{NAV_ITEMS.find((n) => n.id === activeTab)?.label || "Dashboard"}</span>
               </h1>
-              <p className="text-[11px] text-[#77716E] leading-none mt-0.5">
+              <p className="text-[11px] text-[#DCE6FF] leading-none mt-0.5">
                 {activeCourse === "ca" ? "CA Foundation Paper 2: Business Laws" : "CSEET Paper 2: Business Law & Management"}
               </p>
             </div>
           </div>
 
-          {/* COURSE SWITCHER PILL */}
-          <div className="inline-flex p-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] shadow-xs shrink-0">
-            <button
-              type="button"
-              onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); setSelectedActFilter("all"); }}
-              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeCourse === "ca" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
-              }`}
-            >
-              {isCaUnlocked ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097]" />
-              ) : (
-                <Lock className="w-3.5 h-3.5 text-[#77716E]" />
-              )}
-              <span className="sm:hidden">CA</span>
-              <span className="hidden sm:inline">CA Foundation</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); setSelectedActFilter("all"); }}
-              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeCourse === "cs" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
-              }`}
-            >
-              {isCsUnlocked ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097]" />
-              ) : (
-                <Lock className="w-3.5 h-3.5 text-[#77716E]" />
-              )}
-              <span>CSEET</span>
-            </button>
+          <div className="flex items-center gap-2.5">
+            {/* If student has subscribed to BOTH streams, provide a smooth dual-stream switch */}
+            {isCaUnlocked && isCsUnlocked ? (
+              <div className="inline-flex p-1 rounded-full bg-[#173684]/90 border border-white/15 shadow-xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); setSelectedActFilter("all"); }}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeCourse === "ca" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span className="sm:hidden">CA</span>
+                  <span className="hidden sm:inline">CA Foundation</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); setSelectedActFilter("all"); }}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeCourse === "cs" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>CSEET</span>
+                </button>
+              </div>
+            ) : (
+              /* Single course subscriber badge - removes manual locked pills */
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#173684]/80 border border-white/15 text-xs text-white shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="font-semibold text-white/95">
+                  {activeCourse === "ca" ? "CA Foundation" : "CSEET"}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
+                  Subscribed
+                </span>
+              </div>
+            )}
           </div>
         </header>
 
         <div className={`p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
 
-          {/* COURSE ACCESS STATUS BANNER */}
-          {!hasActiveCourseAccess && activeCourse === "ca" && (
-            <div className="rounded-3xl bg-linear-to-r from-[#F4C5C0]/40 via-amber-50 to-[#AED7E9]/30 border border-[#F4C5C0] p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
-              <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#F4C5C0] text-[#C35F3B] flex items-center justify-center shrink-0 shadow-xs">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C35F3B] text-white">
-                      Locked Stream
-                    </span>
-                    <span className="text-xs font-bold text-[#221D1D]">
-                      Previewing {activeCourseName}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#4D433F] mt-1 leading-relaxed">
-                    You have not purchased access to <strong>{activeCourseName}</strong>. Codex notes, case study model answers, MCQ mock tests, and LDR revision flowcharts are locked. Unlock now to access everything!
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => handleBuyCourse(activeCourse)}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.02] transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#AED7E9]" />
-                  <span>Buy {activeCourse === "ca" ? "CA Foundation" : "CSEET"} • ₹99</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* CSEET POLISHED COMING SOON SHELL */}
-          {activeCourse === "cs" ? (
+          {/* CSEET COMING SOON SHELL ONLY IF NOT SUBSCRIBED */}
+          {activeCourse === "cs" && !isCsUnlocked ? (
             <CseetComingSoonShell
               onOpenSampleReader={(url, title) =>
                 handleOpenPdf(url, title, "CSEET Sample Unit", true, false, undefined, undefined, undefined, "cs")
@@ -2267,296 +2327,6 @@ export default function StudentDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB: CERTIFICATES (OFFICIAL CREDENTIALS & ACHIEVEMENTS)                   */}
-          {/* ========================================================================= */}
-          {activeTab === "certificates" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5FF] text-[#7E22CE] text-xs font-bold border border-[#DDD6FE] mb-2">
-                    <Award className="w-3.5 h-3.5 text-[#9333EA]" />
-                    <span>Official Verifiable Accreditations</span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
-                    <span>Academic Certificates &amp; Verifiable Credentials</span>
-                  </h2>
-                  <p className="text-xs text-[#77716E] mt-0.5">
-                    Official completion credentials issued by The Law Kaksha. Certificates are cryptographically generated ONLY upon 100% curriculum completion under an active paid subscription stream.
-                  </p>
-                </div>
-
-                {/* Simulation helper for testing in dev mode */}
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleSimulateCompletion(activeCourse)}
-                    className="px-3 py-1.5 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-[11px] font-semibold text-[#4D433F] transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                    title="Toggle 100% completion on active course to test certificate unlock"
-                  >
-                    <Sparkles className="w-3 h-3 text-[#9333EA]" />
-                    <span>
-                      {(activeCourse === "ca" ? caProgress : csProgress) === 100
-                        ? `Reset ${activeCourse.toUpperCase()} Progress`
-                        : `Test: Mark ${activeCourse.toUpperCase()} 100% Done`}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Strict Academic Verification Policy Callout */}
-              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <span className="font-bold block text-amber-950">100% Completion &amp; Paid Subscription Rule</span>
-                  <p className="text-[11.5px] text-amber-800 leading-relaxed">
-                    The Law Kaksha maintains strict academic integrity standards. The system will strictly <strong>NOT</strong> generate or permit downloading of certificates for partial progress (e.g. 50% or 85%) or un-enrolled preview streams. To earn your verifiable credential, you must hold an active subscription and complete 100% of all chapters, case studies, and mock tests.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Certificate 1: CA Foundation Business Laws */}
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      {isCaCertEligible ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Verified Credential (100% Complete)</span>
-                        </span>
-                      ) : !isCaUnlocked ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-[#C35F3B]" />
-                          <span>Subscription Required</span>
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-[#D97706]" />
-                          <span>Incomplete ({caProgress}%) • Locked</span>
-                        </span>
-                      )}
-                      <span className="text-xs font-mono text-[#77716E]">
-                        {isCaCertEligible ? "TLK-CA-2026-8942" : "TLK-CA-LOCKED"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
-                        CA Foundation Paper 2: Business Laws Master
-                      </h3>
-                      <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
-                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful 100% completion of the codified curriculum including Contract Act 1872, Sale of Goods 1930, Partnership 1932, Companies Act 2013, LLP Act 2008, and Negotiable Instruments Act.
-                      </p>
-                    </div>
-
-                    {/* Dynamic Status Box Based on Verification Rule */}
-                    {isCaCertEligible ? (
-                      <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 flex items-center justify-between font-medium">
-                        <span className="font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>100% Curriculum Mastered</span>
-                        </span>
-                        <span className="text-emerald-800">Issued &amp; Verifiable</span>
-                      </div>
-                    ) : !isCaUnlocked ? (
-                      <div className="p-3.5 bg-[#FAF5F4] rounded-2xl border border-[#F4C5C0] text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-[#C35F3B]">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Access Gated: Subscription Required</span>
-                        </div>
-                        <p className="text-[11px] text-[#7C3520] leading-relaxed">
-                          You do not currently have an active subscription for CA Foundation. Subscription is mandatory to unlock progress tracking and earn credentials.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="p-3.5 bg-[#FFFBEB] rounded-2xl border border-[#FDE68A] text-xs space-y-2">
-                        <div className="flex items-center justify-between font-bold text-[#92400E]">
-                          <span className="flex items-center gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
-                            <span>100% Completion Required</span>
-                          </span>
-                          <span>{caCompletedCount} / {caTotalUnits} Units ({caProgress}%)</span>
-                        </div>
-                        <p className="text-[11px] text-[#B45309] leading-relaxed">
-                          Certificate generation is locked until all units reach 100%. The system will not generate credentials for partial progress.
-                        </p>
-                        <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-[#FDE68A]">
-                          <div className="bg-[#D97706] h-full rounded-full transition-all duration-300" style={{ width: `${caProgress}%` }} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Dynamic Action Buttons */}
-                  <div className="pt-5 mt-5 border-t border-[#E7E4E7]">
-                    {isCaCertEligible ? (
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            setCertificateModal({
-                              open: true,
-                              courseKey: "ca",
-                              title: "CA Foundation Paper 2: Business Laws Master",
-                              code: "TLK-CA-2026-8942",
-                              studentName,
-                              issueDate: "October 2026",
-                            });
-                          }}
-                          className="flex-1 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs text-center flex items-center justify-center gap-1.5"
-                        >
-                          <Award className="w-3.5 h-3.5 text-[#221D1D]" />
-                          <span>View &amp; Download PDF</span>
-                        </button>
-                        <button
-                          onClick={() => alert("Certificate TLK-CA-2026-8942 verified cryptographically on The Law Kaksha ledger.")}
-                          className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Verify Credential
-                        </button>
-                      </div>
-                    ) : !isCaUnlocked ? (
-                      <button
-                        onClick={() => handleBuyCourse("ca")}
-                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                      >
-                        <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                        <span>Subscribe to Unlock Certificate Stream (₹99)</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { setActiveCourse("ca"); setActiveTab("chapters"); }}
-                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                      >
-                        <BookOpen className="w-3.5 h-3.5 text-[#AED7E9]" />
-                        <span>Complete Remaining Units ({100 - caProgress}% Left to Unlock)</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Certificate 2: CSEET Stream */}
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-2xs flex flex-col justify-between hover:border-[#221D1D] transition-all">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      {isCsCertEligible ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Verified Credential (100% Complete)</span>
-                        </span>
-                      ) : !isCsUnlocked ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-[#C35F3B]" />
-                          <span>Subscription Required</span>
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-[#D97706]" />
-                          <span>Incomplete ({csProgress}%) • Locked</span>
-                        </span>
-                      )}
-                      <span className="text-xs font-mono text-[#77716E]">
-                        {isCsCertEligible ? "TLK-CS-2026-4419" : "TLK-CS-LOCKED"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-serif font-bold text-[#221D1D]">
-                        CSEET Legal Aptitude &amp; General Management
-                      </h3>
-                      <p className="text-xs text-[#77716E] mt-1 leading-relaxed">
-                        Awarded to <strong className="text-[#221D1D]">{studentName}</strong> for successful 100% completion covering all 8 ICSI units including Company Law 2013, Negotiable Instruments 1881, and General Management Principles.
-                      </p>
-                    </div>
-
-                    {/* Dynamic Status Box Based on Verification Rule */}
-                    {isCsCertEligible ? (
-                      <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 flex items-center justify-between font-medium">
-                        <span className="font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>100% Curriculum Mastered</span>
-                        </span>
-                        <span className="text-emerald-800">Issued &amp; Verifiable</span>
-                      </div>
-                    ) : !isCsUnlocked ? (
-                      <div className="p-3.5 bg-[#FAF5F4] rounded-2xl border border-[#F4C5C0] text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-[#C35F3B]">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Access Gated: Subscription Required</span>
-                        </div>
-                        <p className="text-[11px] text-[#7C3520] leading-relaxed">
-                          You do not currently have an active subscription for CSEET. Complete subscription is required before certificate generation.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="p-3.5 bg-[#FFFBEB] rounded-2xl border border-[#FDE68A] text-xs space-y-2">
-                        <div className="flex items-center justify-between font-bold text-[#92400E]">
-                          <span className="flex items-center gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
-                            <span>100% Completion Required</span>
-                          </span>
-                          <span>{csCompletedCount} / {csTotalUnits} Units ({csProgress}%)</span>
-                        </div>
-                        <p className="text-[11px] text-[#B45309] leading-relaxed">
-                          Certificate generation is locked until all units reach 100%. The system will not generate credentials for partial progress.
-                        </p>
-                        <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-[#FDE68A]">
-                          <div className="bg-[#D97706] h-full rounded-full transition-all duration-300" style={{ width: `${csProgress}%` }} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Dynamic Action Buttons */}
-                  <div className="pt-5 mt-5 border-t border-[#E7E4E7]">
-                    {isCsCertEligible ? (
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            setCertificateModal({
-                              open: true,
-                              courseKey: "cs",
-                              title: "CSEET Legal Aptitude & General Management Master",
-                              code: "TLK-CS-2026-4419",
-                              studentName,
-                              issueDate: "October 2026",
-                            });
-                          }}
-                          className="flex-1 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs text-center flex items-center justify-center gap-1.5"
-                        >
-                          <Award className="w-3.5 h-3.5 text-[#221D1D]" />
-                          <span>View &amp; Download PDF</span>
-                        </button>
-                        <button
-                          onClick={() => alert("Certificate TLK-CS-2026-4419 verified cryptographically on The Law Kaksha ledger.")}
-                          className="px-4 py-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Verify Credential
-                        </button>
-                      </div>
-                    ) : !isCsUnlocked ? (
-                      <button
-                        onClick={() => handleBuyCourse("cs")}
-                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                      >
-                        <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                        <span>Subscribe to Unlock Certificate Stream (₹99)</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { setActiveCourse("cs"); setActiveTab("chapters"); }}
-                        className="w-full py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                      >
-                        <BookOpen className="w-3.5 h-3.5 text-[#AED7E9]" />
-                        <span>Complete Remaining Units ({100 - csProgress}% Left to Unlock)</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
           {/* TAB: REFER AND EARN (REWARD CODES & SCHOLARSHIPS)                         */}
           {/* ========================================================================= */}
           {activeTab === "refer" && (
@@ -2623,68 +2393,14 @@ export default function StudentDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB: PURCHASE HISTORY (TAX INVOICES & CODEX PASSES)                        */}
+          {/* TAB: YOUR SCHEDULE & CALENDAR (SVG PHONE 3 EXACT DESIGN SPEC)              */}
           {/* ========================================================================= */}
-          {activeTab === "purchases" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
-                <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D] flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-[#4B8097]" />
-                    <span>Purchase History &amp; Official Invoices</span>
-                  </h2>
-                  <p className="text-xs text-[#77716E] mt-0.5">
-                    Download GST tax receipts and review active curriculum subscriptions.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-2xs overflow-hidden">
-                <div className="divide-y divide-[#E7E4E7]">
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F7F7F5] transition-colors">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
-                          Active Pass
-                        </span>
-                        <span className="text-xs font-mono text-[#77716E]">INV-TLK-2026-1049</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-[#221D1D]">CA Foundation Business Laws Master Codex Pass</h4>
-                      <p className="text-xs text-[#77716E]">Subscribed on 16th Jul 2026 • Lifetime In-Web DRM Reader Access</p>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-sm font-bold text-[#221D1D]">₹99.00</span>
-                      <button
-                        onClick={() => alert("Downloading Tax Invoice PDF #INV-TLK-2026-1049...")}
-                        className="px-3.5 py-1.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-semibold transition-all cursor-pointer"
-                      >
-                        Download Invoice
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F7F7F5] transition-colors">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5]">
-                          Completed
-                        </span>
-                        <span className="text-xs font-mono text-[#77716E]">INV-TLK-2026-0812</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-[#221D1D]">All-Access Dual Codex Pass (CA Foundation + CSEET)</h4>
-                      <p className="text-xs text-[#77716E]">Subscribed on 15th Aug 2026 • Razorpay Transaction ID: pay_982Fhs9201</p>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-sm font-bold text-[#221D1D]">₹180.00</span>
-                      <button
-                        onClick={() => alert("Downloading Tax Invoice PDF #INV-TLK-2026-0812...")}
-                        className="px-3.5 py-1.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#221D1D] border border-[#E7E4E7] text-xs font-semibold transition-all cursor-pointer"
-                      >
-                        Download Invoice
-                      </button>
-                    </div>
-                  </div>
-                </div>
+          {activeTab === "calendar" && (
+            <div className="w-full max-w-xl mx-auto space-y-5 animate-in fade-in pb-12">
+              <div className="bg-white rounded-3xl p-5 border border-[#E7ECF7] shadow-xs">
+                <h2 className="text-xl font-bold text-[#13264F] mb-1">Your Schedule</h2>
+                <p className="text-xs text-[#6C7893] mb-4">View upcoming live lectures, mock tests &amp; study activities.</p>
+                <StudentSchedulePanel />
               </div>
             </div>
           )}
@@ -2694,35 +2410,25 @@ export default function StudentDashboardPage() {
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav
-        aria-label="Student Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E7E4E7] px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] safe-bottom"
-      >
-        {NAV_ITEMS.slice(0, 5).map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setSidebarOpen(false);
-              }}
-              className={`flex flex-col items-center justify-center flex-1 py-1 px-1 transition-all rounded-xl cursor-pointer ${
-                isActive ? "text-[#221D1D] font-bold" : "text-[#77716E] hover:text-[#221D1D]"
-              }`}
-            >
-              <div className={`p-1 rounded-xl transition-colors ${isActive ? "bg-[#AED7E9]/40 text-[#221D1D]" : ""}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] tracking-tight leading-none mt-0.5 truncate max-w-[62px]">
-                {item.id === "home" ? "Home" : item.id === "chapters" ? "Notes" : item.id === "mastery" ? "Mastery" : item.id === "cases" ? "Cases" : item.id === "mcqtest" ? "Tests" : item.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* MOBILE BOTTOM NAVIGATION BAR (MATCHING SVG SPEC: HOME / COURSES / CALENDAR / PROFILE) */}
+      <StudentMobileBottomNav
+        activeTab={
+          activeTab === "home"
+            ? "home"
+            : activeTab === "chapters"
+            ? "courses"
+            : activeTab === "calendar"
+            ? "calendar"
+            : "home"
+        }
+        onChangeTab={(tab) => {
+          if (tab === "home") setActiveTab("home");
+          else if (tab === "courses") setActiveTab("chapters");
+          else if (tab === "calendar") setActiveTab("calendar");
+          else if (tab === "profile") setProfileModalOpen(true);
+        }}
+        onOpenProfile={() => setProfileModalOpen(true)}
+      />
 
       {/* ========================================================================= */}
       {/* MODALS & OVERLAYS                                                         */}

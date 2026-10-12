@@ -629,5 +629,154 @@ router.get("/checkout-item/:itemType/:itemId", requireAuth, async (req, res) => 
     res.status(500).json({ success: false, message: "Error fetching item for direct checkout: " + err.message });
   }
 });
+/**
+ * GET /api/student/check-enrollment
+ * Verifies if an email or authenticated student has an active course purchase
+ */
+router.get("/check-enrollment", async (req, res) => {
+  try {
+    let email = req.query.email ? String(req.query.email).toLowerCase().trim() : null;
+    let studentId = req.query.studentId ? String(req.query.studentId).trim() : null;
+
+    // Check token if provided in header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const jwt = require("jsonwebtoken");
+        const { JWT_SECRET } = require("../middleware/authMiddleware");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded) {
+          if (!email && decoded.email) email = decoded.email.toLowerCase().trim();
+          if (!studentId && decoded.student_id) studentId = decoded.student_id;
+          if (decoded.role === "admin") {
+            return res.status(200).json({
+              success: true,
+              hasPurchasedCourse: true,
+              role: "admin",
+              message: "Administrator access granted.",
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!email && !studentId) {
+      return res.status(400).json({
+        success: false,
+        hasPurchasedCourse: false,
+        message: "Student email or Roll ID is required to verify enrollment.",
+      });
+    }
+
+    let hasPurchased = false;
+    let enrolledItems = [];
+
+    if (isConnected()) {
+      const Order = require("../models/Order");
+      const User = require("../models/User");
+      const Subscription = require("../models/Subscription");
+
+      const [user, sub, paidOrder] = await Promise.all([
+        User.findOne({
+          $or: [
+            ...(email ? [{ email }] : []),
+            ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ],
+        }).lean(),
+        Subscription.findOne({
+          $or: [
+            ...(email ? [{ email }] : []),
+            ...(studentId ? [{ studentRoll: studentId }] : []),
+          ],
+          accessStatus: "Active",
+        }).lean(),
+        Order.find({
+          $or: [
+            ...(email ? [{ "personal_details.email": email }, { userEmail: email }] : []),
+            ...(studentId ? [{ studentId }, { user_id: studentId }] : []),
+          ],
+          status: { $in: ["paid", "COMPLETED"] },
+        }).lean(),
+      ]);
+
+      if (user?.role === "admin" || sub || (paidOrder && (Array.isArray(paidOrder) ? paidOrder.length > 0 : true))) {
+        hasPurchased = true;
+      }
+      if (user?.unlockedItemIds && user.unlockedItemIds.length > 0) {
+        hasPurchased = true;
+        enrolledItems.push(...user.unlockedItemIds);
+      }
+      if (user?.enrolled_books && user.enrolled_books.length > 0) {
+        hasPurchased = true;
+        enrolledItems.push(...user.enrolled_books);
+      }
+      if (sub?.item) {
+        enrolledItems.push(sub.item);
+      }
+      if (paidOrder) {
+        const orderList = Array.isArray(paidOrder) ? paidOrder : [paidOrder];
+        orderList.forEach((o) => {
+          if (Array.isArray(o.items)) {
+            o.items.forEach((i) => {
+              if (i.id) enrolledItems.push(i.id);
+              if (i.itemId) enrolledItems.push(i.itemId);
+              if (i.title) enrolledItems.push(i.title);
+              if (i.category) enrolledItems.push(i.category);
+            });
+          }
+        });
+      }
+    } else {
+      const usersTable = Database.table("users");
+      const subsTable = Database.table("subscriptions");
+      const ordersTable = Database.table("orders");
+
+      const user = usersTable.findOne(
+        (u) => (email && u.email === email) || (studentId && (u.student_id === studentId || u.id === studentId))
+      );
+      const sub = subsTable.findOne(
+        (s) => ((email && s.email === email) || (studentId && s.studentRoll === studentId)) && s.accessStatus === "Active"
+      );
+      const paidOrders = ordersTable.find(
+        (o) =>
+          ((email && (o.userEmail === email || o.personal_details?.email === email)) ||
+            (studentId && (o.studentId === studentId || o.user_id === studentId))) &&
+          (o.status === "paid" || o.status === "COMPLETED")
+      ) || [];
+
+      if (user?.role === "admin" || sub || paidOrders.length > 0) {
+        hasPurchased = true;
+      }
+      if (user?.unlockedItemIds && user.unlockedItemIds.length > 0) {
+        hasPurchased = true;
+        enrolledItems.push(...user.unlockedItemIds);
+      }
+      if (paidOrders.length > 0) {
+        paidOrders.forEach((o) => {
+          if (Array.isArray(o.items)) {
+            o.items.forEach((i) => {
+              if (i.id) enrolledItems.push(i.id);
+              if (i.itemId) enrolledItems.push(i.itemId);
+              if (i.title) enrolledItems.push(i.title);
+            });
+          }
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      hasPurchasedCourse: hasPurchased,
+      enrolledItems: Array.from(new Set(enrolledItems)),
+      message: hasPurchased
+        ? "Active enrollment verified."
+        : "No active course purchase found for this account.",
+    });
+  } catch (err) {
+    console.error("[check-enrollment] Error:", err);
+    return res.status(500).json({ success: false, hasPurchasedCourse: false, message: "Error verifying enrollment." });
+  }
+});
 
 module.exports = router;

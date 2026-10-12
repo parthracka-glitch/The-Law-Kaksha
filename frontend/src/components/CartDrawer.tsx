@@ -228,14 +228,58 @@ export function CartDrawer() {
 
             const unlockedIds: string[] = [...serverUnlockedIds];
             items.forEach((item) => {
-              if (item.id === "ca-book-vol-1" || item.id === "book-vol-1" || item.id === "prod-vol1" || item.id === "course-ca-foundation-sub" || item.id === "ca-foundation-business-laws") {
-                unlockedIds.push("course-ca-foundation-sub", "ca-foundation-business-laws", "book-vol-1");
-              } else if (item.id === "ca-book-vol-2" || item.id === "book-vol-2" || item.id === "prod-vol2" || item.id === "course-cseet-sub" || item.id === "cseet-business-law") {
-                unlockedIds.push("course-cseet-sub", "cseet-business-law", "book-vol-2");
-              } else if (item.id === "prod-combo") {
-                unlockedIds.push("course-ca-foundation-sub", "course-cseet-sub", "book-vol-1", "book-vol-2");
-              } else {
-                unlockedIds.push(item.id);
+              unlockedIds.push(item.id);
+              if (
+                item.id === "ca-book-vol-1" ||
+                item.id === "book-vol-1" ||
+                item.id === "prod-vol1" ||
+                item.id === "course-ca-foundation-sub" ||
+                item.id === "ca-foundation-business-laws" ||
+                item.id.includes("ca-foundation")
+              ) {
+                unlockedIds.push(
+                  "course-ca-foundation-sub",
+                  "ca-foundation-business-laws",
+                  "ca-foundation",
+                  "book-vol-1",
+                  "prod-vol1"
+                );
+              } else if (
+                item.id === "ca-book-vol-2" ||
+                item.id === "book-vol-2" ||
+                item.id === "prod-vol2" ||
+                item.id === "course-cseet-sub" ||
+                item.id === "cseet-business-law" ||
+                item.id.includes("cseet")
+              ) {
+                unlockedIds.push(
+                  "course-cseet-sub",
+                  "cseet-business-law",
+                  "cseet-management",
+                  "cseet",
+                  "book-vol-2",
+                  "prod-vol2"
+                );
+              } else if (item.id === "prod-combo" || item.id === "all-access") {
+                unlockedIds.push(
+                  "course-ca-foundation-sub",
+                  "course-cseet-sub",
+                  "ca-foundation-business-laws",
+                  "cseet-business-law",
+                  "cseet-management",
+                  "ca-foundation",
+                  "cseet",
+                  "book-vol-1",
+                  "book-vol-2",
+                  "prod-vol1",
+                  "prod-vol2",
+                  "prod-combo",
+                  "all-access"
+                );
+              } else if (item.id === "prod-cases-vault") {
+                unlockedIds.push("prod-cases-vault", "book-ldr", "cases-course");
+              } else if (item.id === "prod-mcq-simulator") {
+                unlockedIds.push("prod-mcq-simulator", "book-mcq", "mcq-simulator-course");
               }
             });
 
@@ -304,6 +348,7 @@ export function CartDrawer() {
 
               localStorage.setItem("lawkaksha_student_session", JSON.stringify(studentSession));
               localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
+              localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(mergedUnlockedIds));
               if (verifiedToken) {
                 localStorage.setItem("lawkaksha_token", verifiedToken);
               }

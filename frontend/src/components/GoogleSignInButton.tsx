@@ -91,7 +91,7 @@ export function GoogleSignInButton({
         window.dispatchEvent(new Event("storage"));
         window.dispatchEvent(new Event("lawkaksha_student_updated"));
         if (onSuccess) onSuccess(res);
-        else window.location.href = "/student";
+        else window.location.href = "/";
       }
     } catch (err: any) {
       console.error("[Google Auth Error]", err);

@@ -61,6 +61,7 @@ import { AdminOffersTab } from "@/components/admin/AdminOffersTab";
 import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminExamCountdownAndQOTDTab } from "@/components/admin/AdminExamCountdownAndQOTDTab";
+import { AdminBroadcastTab } from "@/components/admin/AdminBroadcastTab";
 
 export interface AnnouncementSetting {
   enabled: boolean;
@@ -566,7 +567,8 @@ export default function AdminPortalPage() {
     | "settings"
     | "qotd"
     | "exam_countdown_qotd"
-    | "promo_banners";
+    | "promo_banners"
+    | "broadcast";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -954,6 +956,7 @@ export default function AdminPortalPage() {
     setIsSavingAnnouncement(true);
     try {
       localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(announcement));
+      window.dispatchEvent(new CustomEvent("lawkaksha_announcement_updated", { detail: announcement }));
       await adminFetch(`/api/admin/announcement`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -998,7 +1001,7 @@ export default function AdminPortalPage() {
 
   const MATERIALS_TABS: TabType[] = ["books_and_notes", "live_sessions", "cases", "mcq", "qotd"];
   const SALES_TABS: TabType[] = ["orders", "subscriptions", "coupons", "payments", "expenses"];
-  const WEBSITE_TABS: TabType[] = ["carousel", "promo_banners", "offers", "settings"];
+  const WEBSITE_TABS: TabType[] = ["broadcast", "carousel", "promo_banners", "settings", "offers"];
 
   type HubId = "overview" | "students" | "materials" | "sales" | "website";
 
@@ -1017,7 +1020,7 @@ export default function AdminPortalPage() {
     {
       id: "overview" as HubId,
       label: "Dashboard",
-      description: "Quick stats & announcements",
+      description: "Quick stats & revenue ledger",
       icon: LayoutDashboard,
       badge: undefined,
       defaultTab: "overview" as TabType,
@@ -1049,17 +1052,17 @@ export default function AdminPortalPage() {
     {
       id: "website" as HubId,
       label: "Website & Branding",
-      description: "Hero carousel & settings",
+      description: "Broadcast bar, hero & passes",
       icon: Settings,
-      badge: undefined,
-      defaultTab: "carousel" as TabType,
+      badge: announcement.enabled ? "LIVE" : undefined,
+      defaultTab: "broadcast" as TabType,
     },
   ];
 
   const HUB_HEADERS: Record<HubId, { title: string; subtitle: string }> = {
     overview: {
       title: "Dashboard Overview",
-      subtitle: "Welcome back! Here is your live platform summary and quick owner controls.",
+      subtitle: "Welcome back! Here is your live platform summary and quick revenue metrics.",
     },
     students: {
       title: "Students Directory",
@@ -1075,7 +1078,7 @@ export default function AdminPortalPage() {
     },
     website: {
       title: "Website & Brand Customization",
-      subtitle: "Homepage hero carousel, student dashboard promo cards, and system settings.",
+      subtitle: "Live broadcast announcement bar, homepage hero carousel, and student portal settings.",
     },
   };
 
@@ -1149,9 +1152,13 @@ export default function AdminPortalPage() {
                   <p className="truncate font-bold leading-tight">{nav.label}</p>
                   <p className="text-[10px] text-[#77716E] font-normal truncate mt-0.5">{nav.description}</p>
                 </div>
-                {nav.badge !== undefined && nav.badge > 0 && (
+                {nav.badge !== undefined && (typeof nav.badge === "number" ? nav.badge > 0 : Boolean(nav.badge)) && (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    isNavActive ? "bg-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
+                    nav.badge === "LIVE"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                      : isNavActive
+                      ? "bg-[#AED7E9] text-[#221D1D]"
+                      : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
                   }`}>
                     {nav.badge}
                   </span>
@@ -1373,6 +1380,21 @@ export default function AdminPortalPage() {
             <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
+                onClick={() => setActiveTab("broadcast")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "broadcast"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Live Broadcast Bar</span>
+                {announcement.enabled && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("carousel")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "carousel"
@@ -1385,18 +1407,6 @@ export default function AdminPortalPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab("exam_countdown_qotd")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  activeTab === "exam_countdown_qotd" || activeTab === "qotd"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>Exam Countdown &amp; Daily Quiz</span>
-              </button>
-              <button
-                type="button"
                 onClick={() => setActiveTab("promo_banners")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "promo_banners"
@@ -1404,20 +1414,8 @@ export default function AdminPortalPage() {
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
                 }`}
               >
-                <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
+                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
                 <span>Student Codex Passes</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("offers")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  activeTab === "offers"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
-                }`}
-              >
-                <Gift className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>Promotions & Offers</span>
               </button>
               <button
                 type="button"
@@ -1431,6 +1429,74 @@ export default function AdminPortalPage() {
                 <Settings className="w-3.5 h-3.5 text-[#4B8097]" />
                 <span>Platform Settings</span>
               </button>
+            </div>
+          )}
+
+          {/* COMPACT BROADCAST STATUS STRIP (VISIBLE ON OTHER WEBSITE SUB-TABS) */}
+          {activeHub === "website" && activeTab !== "broadcast" && (
+            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
+                    announcement.enabled
+                      ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]"
+                      : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E]"
+                  }`}
+                >
+                  <Megaphone className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <span className="font-bold text-[#221D1D] shrink-0">Live Broadcast Bar:</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                      announcement.enabled
+                        ? "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]"
+                        : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
+                    }`}
+                  >
+                    {announcement.enabled ? "● Live / Active" : "○ Hidden"}
+                  </span>
+                  <span className="text-[#77716E] truncate max-w-sm sm:max-w-md font-medium">
+                    {announcement.enabled
+                      ? (announcement.text || "Announcement active")
+                      : "No announcement currently showing on the website"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const updated = { ...announcement, enabled: !announcement.enabled };
+                    setAnnouncement(updated);
+                    localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(updated));
+                    window.dispatchEvent(
+                      new CustomEvent("lawkaksha_announcement_updated", { detail: updated })
+                    );
+                    try {
+                      await adminFetch(`/api/admin/announcement`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ announcement: updated }),
+                      });
+                      showToast(updated.enabled ? "Live broadcast turned ON!" : "Live broadcast turned OFF!");
+                    } catch (e) {
+                      showToast("Saved locally");
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] cursor-pointer transition-colors"
+                >
+                  {announcement.enabled ? "Quick Turn Off" : "Quick Turn On"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("broadcast")}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#AED7E9]/50 hover:bg-[#AED7E9] text-[#221D1D] flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs font-bold"
+                >
+                  <span>Edit Broadcast</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -1581,97 +1647,48 @@ export default function AdminPortalPage() {
                 </button>
               </div>
 
-              {/* BROADCAST ANNOUNCEMENT BANNER MANAGER */}
-              <div className="bg-white rounded-3xl p-6 border border-[#E7E4E7] shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#C4E1EC]/60 border border-[#AED7E9] flex items-center justify-center text-[#221D1D]">
-                      <Megaphone className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-[#221D1D]">Live Broadcast Announcement Bar</h3>
-                      <p className="text-[11px] text-[#77716E]">Display instant real-time alerts across the homepage and student portal.</p>
-                    </div>
+              {/* LIVE ANNOUNCEMENT STATUS SHORTCUT IN OVERVIEW */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E7E4E7] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+                      announcement.enabled
+                        ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]"
+                        : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E]"
+                    }`}
+                  >
+                    <Megaphone className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#4D433F] select-none">
-                      <span>Status:</span>
-                      <button
-                        type="button"
-                        onClick={() => setAnnouncement((prev: AnnouncementSetting) => ({ ...prev, enabled: !prev.enabled }))}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-[#221D1D]">Live Website Announcement Bar</h3>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           announcement.enabled
-                            ? "bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]"
-                            : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
+                            ? "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]"
+                            : "bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]"
                         }`}
                       >
-                        {announcement.enabled ? "● Live / Active" : "○ Hidden / Disabled"}
-                      </button>
-                    </label>
+                        {announcement.enabled ? "● Live on Website" : "○ Hidden"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#77716E] mt-0.5 truncate max-w-lg">
+                      {announcement.enabled
+                        ? `[${announcement.badge || "ALERT"}] ${announcement.text || "Active"}`
+                        : "No announcement currently showing on the website."}
+                    </p>
                   </div>
                 </div>
 
-                {/* LIVE PREVIEW STRIP */}
-                {announcement.enabled && (
-                  <div className="p-3.5 rounded-2xl bg-[#AED7E9] text-[#221D1D] border border-[#98C5D8] flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/60 text-[#221D1D] border border-[#AED7E9] uppercase tracking-wider shrink-0">
-                        {announcement.badge || "ANNOUNCEMENT"}
-                      </span>
-                      <p className="font-semibold truncate">{announcement.text || "No announcement text entered"}</p>
-                    </div>
-                    {announcement.link && (
-                      <span className="text-[10px] font-bold underline shrink-0 flex items-center gap-1 opacity-90 text-[#221D1D]">
-                        <span>View</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* EDIT FIELDS */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
-                  <div className="md:col-span-2">
-                    <label className="block font-semibold text-[#221D1D] mb-1">Badge Tag</label>
-                    <input
-                      type="text"
-                      value={announcement.badge}
-                      onChange={(e) => setAnnouncement({ ...announcement, badge: e.target.value.toUpperCase() })}
-                      placeholder="e.g. OFFER, LIVE, ALERT"
-                      className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs font-bold outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white uppercase text-[#221D1D]"
-                    />
-                  </div>
-                  <div className="md:col-span-6">
-                    <label className="block font-semibold text-[#221D1D] mb-1">Announcement Message *</label>
-                    <input
-                      type="text"
-                      value={announcement.text}
-                      onChange={(e) => setAnnouncement({ ...announcement, text: e.target.value })}
-                      placeholder="e.g. CA Foundation Business Laws Marathon session this Sunday!"
-                      className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block font-semibold text-[#221D1D] mb-1">Target Action Link (Optional)</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={announcement.link || ""}
-                        onChange={(e) => setAnnouncement({ ...announcement, link: e.target.value })}
-                        placeholder="e.g. /courses or /student"
-                        className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] text-xs outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                      />
-                      <button
-                        onClick={handleSaveAnnouncement}
-                        disabled={isSavingAnnouncement}
-                        className="px-4 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer disabled:opacity-50"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{isSavingAnnouncement ? "Saving..." : "Save"}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("broadcast")}
+                  className="px-4 py-2.5 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold shadow-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer"
+                >
+                  <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
+                  <span>Configure in Website & Branding</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#77716E]" />
+                </button>
               </div>
 
               {/* STUDENT DASHBOARD PROMO BANNERS QUICK SHORTCUT IN OVERVIEW */}
@@ -3358,6 +3375,17 @@ export default function AdminPortalPage() {
           {/* MODULE B1: ORDERS & BOOKINGS MANAGEMENT */}
           {activeTab === "orders" && (
             <AdminOrdersTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MODULE B3: LIVE BROADCAST ANNOUNCEMENT BAR */}
+          {activeTab === "broadcast" && (
+            <AdminBroadcastTab
+              announcement={announcement}
+              setAnnouncement={setAnnouncement}
+              handleSaveAnnouncement={handleSaveAnnouncement}
+              isSavingAnnouncement={isSavingAnnouncement}
+              showToast={showToast}
+            />
           )}
 
           {/* MODULE B4: CAROUSEL SLIDES EDITOR */}

@@ -30,7 +30,9 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams ? searchParams.get("redirect") : null;
-  const initialPortalParam = searchParams ? searchParams.get("portal") || searchParams.get("role") : null;
+  const initialPortalParam = searchParams
+    ? searchParams.get("portal") || searchParams.get("role")
+    : null;
 
   // Determine initial portal: default to admin if redirect contains admin or portal=admin
   const isDirectAdmin =
@@ -195,7 +197,7 @@ function LoginContent() {
           }
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
-          window.location.href = redirectPath || "/student";
+          window.location.href = redirectPath || "/";
         }
       } else {
         // Fallback check for seeded master admin if database has not synced yet
@@ -327,48 +329,54 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] flex flex-col justify-between p-4 sm:p-6 lg:p-8">
-      {/* Clean Minimal Top Header with Back Button, Logo, and Security Badge */}
-      <header className="max-w-6xl w-full mx-auto flex items-center justify-between py-2">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between selection:bg-[#005A9C]/10 selection:text-[#005A9C]">
+      {/* Ambient background glow for refined depth */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#005A9C]/6 to-transparent rounded-full blur-3xl opacity-70" />
+      </div>
+
+      {/* Top Header */}
+      <header className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#DBEAFE] bg-white hover:bg-[#F0F7FF] text-xs font-semibold text-[#0A192F] transition-all cursor-pointer min-h-[44px] shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white/80 hover:bg-white text-xs font-medium text-slate-700 shadow-2xs transition-all hover:border-slate-300 cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5 text-[#005A9C]" />
+          <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
           <span>Back to Home</span>
         </Link>
 
         <Link href="/" className="inline-block transition-opacity hover:opacity-90">
-          <div className="relative h-10 w-36 sm:h-11 sm:w-44 flex items-center">
+          <div className="relative h-9 w-36 sm:h-10 sm:w-40 flex items-center">
             <Image
               src="/assets/logo-transparent.png"
               alt="The Law Kaksha Logo"
               fill
+              sizes="(max-width: 640px) 144px, 160px"
               className="object-contain"
               priority
             />
           </div>
         </Link>
 
-        {/* Live Zero-Trust Security Node Status */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#DBEAFE] text-[11px] font-semibold text-[#0A192F] shadow-xs">
+        {/* Zero-Trust Badge */}
+        <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 text-[11px] font-medium text-slate-600 shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Zero-Trust Encrypted</span>
+          <span>SSL &amp; DRM Protected</span>
         </div>
       </header>
 
-      {/* Main Centered Login Section */}
-      <main className="flex-1 flex items-center justify-center py-6 sm:py-8">
-        <div className="max-w-md w-full space-y-5">
-          {/* Top Segmented Portal Switcher */}
-          <div className="flex p-1 bg-[#E2E8F0] rounded-2xl max-w-xs mx-auto border border-[#CBD5E1]">
+      {/* Main Centered Content */}
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div className="w-full max-w-[420px] space-y-6">
+          {/* Segmented Portal Toggle */}
+          <div className="p-1 bg-slate-200/80 rounded-xl flex items-center border border-slate-200/90 shadow-2xs">
             <button
               type="button"
               onClick={() => handlePortalSwitch("student")}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 portalMode === "student"
-                  ? "bg-[#005A9C] text-white shadow-xs"
-                  : "text-[#64748B] hover:text-[#0A192F]"
+                  ? "bg-white text-[#005A9C] font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <User className="w-3.5 h-3.5" />
@@ -377,56 +385,38 @@ function LoginContent() {
             <button
               type="button"
               onClick={() => handlePortalSwitch("admin")}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 portalMode === "admin"
-                  ? "bg-[#0A192F] text-white shadow-xs"
-                  : "text-[#64748B] hover:text-[#0A192F]"
+                  ? "bg-[#0A192F] text-white font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-sky-300" />
+              <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
               <span>Administrator</span>
             </button>
           </div>
 
-          {/* Header Title Section based on Portal Mode */}
-          <div className="text-center space-y-2">
-            {portalMode === "admin" ? (
-              <>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] text-xs font-bold tracking-wide">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
-                  <span>Administrative Console</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#0A192F] tracking-tight">
-                  Administrator Sign In
-                </h1>
-                <p className="text-xs sm:text-sm text-[#64748B] max-w-sm mx-auto leading-relaxed">
-                  Authorized executive access for curriculum governance, student DRM licensing, sales ledger, and platform operations.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] text-[#005A9C] border border-[#DBEAFE] text-xs font-semibold">
-                  <span>Academic Portal</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#0A192F] tracking-tight">
-                  Sign In to Your Account
-                </h1>
-                <p className="text-xs sm:text-sm text-[#64748B] max-w-sm mx-auto leading-relaxed">
-                  Access your CA Foundation &amp; CSEET study codices, weekly case studies, and exam tests.
-                </p>
-              </>
-            )}
+          {/* Heading Section */}
+          <div className="text-center space-y-1.5">
+            <h1 className="text-2xl sm:text-[28px] font-semibold text-[#0A192F] tracking-tight">
+              {portalMode === "admin" ? "Administrative Sign In" : "Welcome Back"}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
+              {portalMode === "admin"
+                ? "Authorized access for faculty, DRM management, and curriculum control."
+                : "Sign in to access your notes, lecture codices, and mock exams."}
+            </p>
           </div>
 
           {/* Main Card */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DBEAFE] p-5 sm:p-8 shadow-sm space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(10,25,47,0.06)] space-y-5">
             {/* Device Conflict Notification Modal/Banner */}
             {deviceConflictData && (
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-3 animate-in fade-in-50">
+              <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 space-y-3 animate-in fade-in-50">
                 <div className="flex items-start gap-2.5">
-                  <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-xs font-bold text-amber-900">
+                    <h4 className="text-xs font-semibold text-amber-900">
                       Active Session on Another Workstation
                     </h4>
                     <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
@@ -434,7 +424,7 @@ function LoginContent() {
                       <span className="font-semibold underline">
                         {deviceConflictData.activeDeviceName}
                       </span>
-                      . The Law Kaksha strictly enforces <strong>single-workstation policy</strong> for security and DRM integrity.
+                      . The Law Kaksha strictly enforces a <strong>single-workstation policy</strong> for DRM integrity.
                     </p>
                   </div>
                 </div>
@@ -444,14 +434,14 @@ function LoginContent() {
                     type="button"
                     disabled={loading}
                     onClick={() => handleLogin(undefined, true)}
-                    className="w-full py-2.5 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+                    className="w-full py-2.5 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white font-medium text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
                   >
                     {loading ? (
                       <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
                         <Laptop className="w-3.5 h-3.5" />
-                        <span>Transfer Session to This Workstation &amp; Sign In</span>
+                        <span>Transfer Session to This Device</span>
                       </>
                     )}
                   </button>
@@ -459,7 +449,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setDeviceConflictData(null)}
-                    className="w-full py-1.5 rounded-xl bg-transparent hover:bg-amber-100/50 text-amber-800 text-[11px] font-semibold transition cursor-pointer"
+                    className="w-full py-1.5 rounded-xl text-amber-800 hover:bg-amber-100/60 text-[11px] font-medium transition cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -467,26 +457,27 @@ function LoginContent() {
               </div>
             )}
 
+            {/* Error Message */}
             {errorMsg && (
-              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-600 flex items-center gap-2 font-medium">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{errorMsg}</span>
+              <div className="p-3 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700 flex items-center gap-2.5 font-medium animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span className="leading-snug">{errorMsg}</span>
               </div>
             )}
 
-            {/* In Admin Mode: Quick Credentials Assistant for Testing */}
+            {/* In Admin Mode: Quick Helper Assistant */}
             {portalMode === "admin" && (
-              <div className="p-3 rounded-2xl bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 min-w-0 text-[#64748B]">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2.5 text-xs">
+                <div className="flex items-center gap-2 min-w-0 text-slate-600">
                   <KeyRound className="w-3.5 h-3.5 text-[#005A9C] shrink-0" />
                   <span className="text-[11px] truncate">
-                    Master Admin: <strong className="font-mono text-[#0A192F]">admin@thelawkaksha.com</strong>
+                    Demo Admin: <span className="font-mono text-slate-900">admin@thelawkaksha.com</span>
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleAutoFillAdmin}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-[#DBEAFE] text-[11px] font-bold text-[#005A9C] hover:bg-[#DBEAFE] transition cursor-pointer shrink-0 flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[11px] font-semibold text-[#005A9C] hover:bg-slate-100 transition cursor-pointer shrink-0 flex items-center gap-1 shadow-2xs"
                 >
                   {autoFilled ? (
                     <>
@@ -503,18 +494,19 @@ function LoginContent() {
               </div>
             )}
 
+            {/* Form */}
             <form onSubmit={(e) => handleLogin(e, false)} autoComplete="off" className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#0A192F] mb-1.5">
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">
                   {portalMode === "admin"
-                    ? "Admin Work Email or Staff ID *"
-                    : "Email or Student Roll ID *"}
+                    ? "Administrator Email or Staff ID"
+                    : "Email or Student Roll ID"}
                 </label>
                 <div className="relative">
                   {portalMode === "admin" ? (
-                    <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+                    <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   ) : (
-                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   )}
                   <input
                     type="text"
@@ -524,18 +516,18 @@ function LoginContent() {
                     onChange={(e) => setIdentifier(e.target.value)}
                     placeholder={
                       portalMode === "admin"
-                        ? "admin@thelawkaksha.com or LK-ADM-000001"
-                        : "Enter your registered email or Roll ID (e.g. LRK-2026-CA1001)"
+                        ? "admin@thelawkaksha.com"
+                        : "student@example.com or Roll ID"
                     }
-                    className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#DBEAFE] focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-sm text-[#0A192F] placeholder:text-[#64748B] bg-[#F8FAFC] focus:bg-white transition-all min-h-[48px]"
+                    className="w-full pl-10 pr-3.5 h-11 rounded-xl border border-slate-200 focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/15 text-sm text-[#0A192F] placeholder:text-slate-400 bg-slate-50/50 focus:bg-white transition"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-[#0A192F]">
-                    {portalMode === "admin" ? "Master Password *" : "Password *"}
+                  <label className="block text-xs font-medium text-slate-700">
+                    Password
                   </label>
                   <button
                     type="button"
@@ -552,48 +544,44 @@ function LoginContent() {
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={
-                      portalMode === "admin"
-                        ? "Enter administrator password"
-                        : "Enter account password"
-                    }
-                    className="w-full pl-10 pr-11 py-3 rounded-2xl border border-[#DBEAFE] focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-sm text-[#0A192F] placeholder:text-[#64748B] bg-[#F8FAFC] focus:bg-white transition-all min-h-[48px]"
+                    placeholder="Enter your password"
+                    className="w-full pl-10 pr-10 h-11 rounded-xl border border-slate-200 focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/15 text-sm text-[#0A192F] placeholder:text-slate-400 bg-slate-50/50 focus:bg-white transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#0A192F] transition p-1 cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer p-0.5"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer active:scale-[0.98] min-h-[48px]"
+                  className="w-full h-11 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white text-sm font-semibold shadow-xs flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer active:scale-[0.99]"
                 >
                   {loading ? (
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : portalMode === "admin" ? (
                     <>
                       <ShieldCheck className="w-4 h-4" />
-                      <span>Authorize &amp; Enter Admin Console</span>
+                      <span>Authorize Administrator Access</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   ) : (
                     <>
-                      <span>Sign In</span>
+                      <span>Sign In to Student Portal</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -604,75 +592,71 @@ function LoginContent() {
             {/* Portal-Specific Footers */}
             {portalMode === "admin" ? (
               <div className="space-y-4 pt-1">
-                {/* Zero-Trust Security Callout */}
-                <div className="p-3.5 rounded-2xl bg-[#EBF4F8]/70 border border-[#C4E1EC] text-xs text-[#1E3A4B] space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#1E3A4B]">
-                    <Shield className="w-3.5 h-3.5 text-[#2B5B70] shrink-0" />
-                    <span>Restricted Staff Operations Node</span>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+                  <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+                    <Shield className="w-3.5 h-3.5 text-[#005A9C] shrink-0" />
+                    <span>Staff &amp; Governance Node</span>
                   </div>
-                  <p className="text-[11px] text-[#355B6E] leading-relaxed">
-                    Access is restricted to authorized faculty and platform administrators. All activity is logged and cryptographically authenticated.
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Access is restricted to authorized faculty and system administrators. All session events are cryptographically audited.
                   </p>
                 </div>
 
-                <div className="text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4 space-y-1.5">
+                <div className="text-center text-xs text-slate-500 border-t border-slate-100 pt-4 space-y-1.5">
                   <p>
                     Student or Candidate?{" "}
                     <button
                       type="button"
                       onClick={() => handlePortalSwitch("student")}
-                      className="font-bold text-[#221D1D] hover:underline underline-offset-4 cursor-pointer"
+                      className="font-medium text-[#005A9C] hover:underline underline-offset-4 cursor-pointer"
                     >
-                      Go to Student Portal Login →
+                      Switch to Student Portal →
                     </button>
-                  </p>
-                  <p className="text-[11px] text-[#77716E]">
-                    Need staff credential assistance? Contact{" "}
-                    <span className="font-semibold text-[#221D1D]">support@thelawkaksha.com</span>
                   </p>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Google OAuth Quick Sign-In for Students */}
-                <div className="relative my-4 flex items-center justify-center">
-                  <div className="border-t border-[#E7E4E7] w-full" />
-                  <span className="bg-white px-3 text-[11px] font-semibold text-[#77716E] uppercase tracking-wider shrink-0">
-                    Or Continue With
+                {/* Google OAuth Quick Sign-In */}
+                <div className="relative my-3 flex items-center justify-center">
+                  <div className="border-t border-slate-200 w-full" />
+                  <span className="bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider shrink-0">
+                    Or continue with
                   </span>
-                  <div className="border-t border-[#E7E4E7] w-full" />
+                  <div className="border-t border-slate-200 w-full" />
                 </div>
 
                 <GoogleSignInButton
                   text="signin_with"
                   onSuccess={(res) => {
-                    const role = res?.data?.role || res?.data?.user?.role || res?.data?.student?.role;
+                    const role =
+                      res?.data?.role || res?.data?.user?.role || res?.data?.student?.role;
                     if (role === "admin") {
                       window.location.href = "/admin";
                     } else {
-                      window.location.href = redirectPath || "/student";
+                      window.location.href = redirectPath || "/";
                     }
                   }}
                 />
 
-                <div className="text-center text-xs text-[#4D433F] border-t border-[#E7E4E7] pt-4 space-y-1.5">
+                <div className="text-center text-xs text-slate-500 border-t border-slate-100 pt-4 space-y-1.5">
                   <p>
-                    New student?{" "}
+                    Don&apos;t have an account yet?{" "}
                     <Link
                       href="/register"
-                      className="font-semibold text-[#221D1D] hover:underline underline-offset-4"
+                      className="font-semibold text-[#005A9C] hover:underline underline-offset-4"
                     >
-                      Create Free Account
+                      Create Student Account
                     </Link>
                   </p>
-                  <p className="text-[11px] text-[#77716E]">
+                  <p className="text-[11px] text-slate-400">
                     Administrator or Faculty?{" "}
                     <button
                       type="button"
                       onClick={() => handlePortalSwitch("admin")}
-                      className="font-semibold text-[#221D1D] hover:underline cursor-pointer"
+                      className="font-medium text-slate-600 hover:text-slate-900 underline cursor-pointer"
                     >
-                      Switch to Admin Console →
+                      Switch to Admin Console
                     </button>
                   </p>
                 </div>
@@ -682,48 +666,53 @@ function LoginContent() {
         </div>
       </main>
 
-      {/* Subtle Bottom Copyright */}
-      <footer className="text-center py-3 text-xs text-[#77716E]">
-        The Law कक्षा • Academic Learning Space &amp; Administration
+      {/* Subtle Minimal Footer */}
+      <footer className="text-center py-4 px-4 text-xs text-slate-400">
+        <p>The Law Kaksha • Legal &amp; Professional Academic Excellence</p>
       </footer>
 
       {/* Forgot / Reset Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-xl border border-slate-200 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-2xl bg-[#BFAFE5]/20 flex items-center justify-center text-[#221D1D]">
-                  <KeyRound className="w-5 h-5" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center text-[#005A9C]">
+                  <KeyRound className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-[#221D1D]">
-                  {portalMode === "admin"
-                    ? forgotStep === 1
-                      ? "Reset Admin Password"
-                      : "Set New Master Password"
-                    : forgotStep === 1
-                    ? "Reset Account Password"
-                    : "Enter New Password"}
-                </h3>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#0A192F]">
+                    {portalMode === "admin"
+                      ? forgotStep === 1
+                        ? "Reset Admin Password"
+                        : "Set Master Password"
+                      : forgotStep === 1
+                      ? "Reset Password"
+                      : "Set New Password"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {forgotStep === 1 ? "Step 1 of 2: Verification" : "Step 2 of 2: Create Password"}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                className="p-1 rounded-full hover:bg-neutral-100 text-neutral-500 cursor-pointer transition"
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer transition"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {forgotError && (
-              <div className="p-3 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
-                <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                 <span>{forgotError}</span>
               </div>
             )}
 
             {forgotMsg && (
-              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 font-medium">
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 font-medium">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{forgotMsg}</span>
               </div>
@@ -731,16 +720,16 @@ function LoginContent() {
 
             {forgotStep === 1 ? (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
-                <p className="text-xs text-[#77716E] leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   {portalMode === "admin"
-                    ? "Enter your registered administrative email address. A cryptographically verified reset token will be dispatched."
-                    : "Enter your registered Email address or Student Roll ID. We will generate secure reset credentials for you."}
+                    ? "Enter your registered administrative email. A verification reset token will be generated."
+                    : "Enter your registered Email address or Student Roll ID to receive reset credentials."}
                 </p>
                 <div>
-                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     {portalMode === "admin"
                       ? "Administrator Work Email"
-                      : "Registered Email or Student Roll ID"}
+                      : "Registered Email or Roll ID"}
                   </label>
                   <input
                     type="text"
@@ -750,23 +739,23 @@ function LoginContent() {
                     placeholder={
                       portalMode === "admin"
                         ? "admin@thelawkaksha.com"
-                        : "e.g. candidate@example.com or LRK-2026-..."
+                        : "e.g. student@example.com"
                     }
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px]"
+                    className="w-full px-3.5 h-11 rounded-xl border border-slate-200 focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/15 text-sm text-[#0A192F] bg-slate-50/50 focus:bg-white transition"
                   />
                 </div>
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(false)}
-                    className="px-4 py-2.5 rounded-full border border-[#E7E4E7] text-xs font-semibold text-[#4D433F] hover:bg-neutral-50 transition cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
                   >
                     {forgotLoading ? "Processing..." : "Continue"}
                   </button>
@@ -775,7 +764,7 @@ function LoginContent() {
             ) : (
               <form onSubmit={handleResetSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     Reset Token / Code
                   </label>
                   <input
@@ -783,13 +772,13 @@ function LoginContent() {
                     required
                     value={forgotToken}
                     onChange={(e) => setForgotToken(e.target.value)}
-                    placeholder="Paste reset token"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px] font-mono"
+                    placeholder="Enter reset token"
+                    className="w-full px-3.5 h-11 rounded-xl border border-slate-200 focus:outline-none focus:border-[#005A9C] text-xs text-[#0A192F] bg-slate-50/50 focus:bg-white transition font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
-                    New Secure Password (min. 8 characters)
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                    New Password (min. 8 characters)
                   </label>
                   <input
                     type="password"
@@ -798,21 +787,21 @@ function LoginContent() {
                     value={forgotNewPassword}
                     onChange={(e) => setForgotNewPassword(e.target.value)}
                     placeholder="Enter at least 8 characters"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white transition min-h-[48px]"
+                    className="w-full px-3.5 h-11 rounded-xl border border-slate-200 focus:outline-none focus:border-[#005A9C] text-sm text-[#0A192F] bg-slate-50/50 focus:bg-white transition"
                   />
                 </div>
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setForgotStep(1)}
-                    className="px-4 py-2.5 rounded-full border border-[#E7E4E7] text-xs font-semibold text-[#4D433F] hover:bg-neutral-50 transition cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
                   >
                     {forgotLoading ? "Saving..." : "Update Password"}
                   </button>
@@ -830,8 +819,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#005A9C] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

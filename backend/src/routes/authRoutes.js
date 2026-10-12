@@ -10,11 +10,49 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
+const Order = require("../models/Order");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// Helper to determine if a student has an active course purchase / enrollment
+async function checkUserHasPurchasedCourse(user, activeSub) {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  if (activeSub && activeSub.accessStatus === "Active") return true;
+  if (Array.isArray(user.unlockedItemIds) && user.unlockedItemIds.length > 0) return true;
+  if (Array.isArray(user.enrolled_books) && user.enrolled_books.length > 0) return true;
+
+  try {
+    if (isConnected()) {
+      const paidOrder = await Order.findOne({
+        $or: [
+          ...(user.id ? [{ user_id: user.id }] : []),
+          ...(user.email ? [{ "personal_details.email": user.email.toLowerCase().trim() }, { userEmail: user.email.toLowerCase().trim() }] : []),
+          ...(user.student_id ? [{ studentId: user.student_id }] : []),
+        ],
+        status: { $in: ["paid", "COMPLETED"] },
+      }).lean();
+      if (paidOrder) return true;
+    } else {
+      const ordersTable = Database.table("orders");
+      const paidOrder = ordersTable.findOne(
+        (o) =>
+          (o.user_id === user.id ||
+            o.userEmail === user.email ||
+            o.personal_details?.email === user.email) &&
+          (o.status === "paid" || o.status === "COMPLETED")
+      );
+      if (paidOrder) return true;
+    }
+  } catch (err) {
+    console.error("[checkUserHasPurchasedCourse] Error:", err.message);
+  }
+
+  return false;
+}
 
 // Generate unique student roll ID
 function generateStudentId(exam = "") {
@@ -265,6 +303,7 @@ router.post("/login", async (req, res) => {
       );
     }
 
+    const hasPurchasedCourse = await checkUserHasPurchasedCourse(user, activeSub);
     const { password_hash, ...safeUser } = user;
 
     return res.status(200).json({
@@ -276,6 +315,7 @@ router.post("/login", async (req, res) => {
         user: safeUser,
         role: user.role,
         subscription: activeSub || null,
+        hasPurchasedCourse,
         activeDeviceId: incomingDeviceId,
       },
     });
@@ -792,6 +832,7 @@ router.post("/google", async (req, res) => {
       );
     }
 
+    const hasPurchasedCourse = await checkUserHasPurchasedCourse(user, activeSub);
     const rawUser = user.toObject ? user.toObject() : user;
     const { password_hash, ...safeUser } = rawUser;
 
@@ -804,6 +845,7 @@ router.post("/google", async (req, res) => {
         user: safeUser,
         role: user.role,
         subscription: activeSub || null,
+        hasPurchasedCourse,
         activeDeviceId: incomingDeviceId,
       },
     });

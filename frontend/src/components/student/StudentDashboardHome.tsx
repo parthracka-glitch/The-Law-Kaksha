@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -34,6 +34,9 @@ import {
   Crown,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { StudentHeroCard } from "./StudentHeroCard";
+import { StudentMetricStats } from "./StudentMetricStats";
+import { StudentMyCoursesList, StudentCourseProgressItem } from "./StudentMyCoursesList";
 
 export interface ShowcaseResourceItem {
   id: string;
@@ -588,13 +591,17 @@ export function StudentDashboardHome({
   const [searchQuery, setSearchQuery] = useState("");
   const carouselRef = useRef<HTMLDivElement>(null);
   const promoCarouselRef = useRef<HTMLDivElement>(null);
+  const freeNotesCarouselRef = useRef<HTMLDivElement>(null);
   const quizSectionRef = useRef<HTMLDivElement>(null);
   const [promoSlideIndex, setPromoSlideIndex] = useState(0);
 
-  // Dynamic enrolled courses reflecting actual purchase state
+  // Dynamic enrolled courses strictly reflecting student's subscribed stream
   const dynamicCourses: EnrolledCourseItem[] = useMemo(() => {
-    return [
-      {
+    const list: EnrolledCourseItem[] = [];
+
+    // Show CA Foundation if student subscribed to CA or dual access, or active in CA
+    if (isCaUnlocked || (!isCsUnlocked && activeCourse === "ca")) {
+      list.push({
         id: "ca-foundation-course",
         courseType: "ca",
         title: "CA Foundation Business Laws Codex",
@@ -607,8 +614,12 @@ export function StudentDashboardHome({
         iconEmoji: "⚖️",
         isUnlocked: Boolean(isCaUnlocked),
         price: 99,
-      },
-      {
+      });
+    }
+
+    // Show CSEET if student subscribed to CSEET or dual access, or active in CS
+    if (isCsUnlocked || (!isCaUnlocked && activeCourse === "cs")) {
+      list.push({
         id: "cseet-course",
         courseType: "cs",
         title: "CSEET Legal Aptitude & Management",
@@ -621,37 +632,42 @@ export function StudentDashboardHome({
         iconEmoji: "📜",
         isUnlocked: Boolean(isCsUnlocked),
         price: 99,
-      },
-      {
-        id: "cases-course",
-        courseType: "shared",
-        title: "Landmark Case Laws & Solved Precedents",
-        category: "Weekly ICAI / ICSI Problem Vault",
-        enrolledDate: "Active 2026 Batch",
-        progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
-        pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-        iconBg: "from-[#3B0764] to-[#1E1B4B]",
-        iconType: "blue",
-        iconEmoji: "🏛️",
-        isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
-        price: 99,
-      },
-      {
-        id: "mcq-simulator-course",
-        courseType: "shared",
-        title: "Timed MCQ Mock Test Simulators",
-        category: "ICAI & ICSI Pattern Test Series",
-        enrolledDate: "Active 2026 Batch",
-        progress: (isCaUnlocked || isCsUnlocked) ? 35 : 0,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-        iconBg: "from-[#047857] to-[#064E3B]",
-        iconType: "emerald",
-        iconEmoji: "🎯",
-        isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
-        price: 49,
-      },
-    ];
-  }, [isCaUnlocked, isCsUnlocked, completedUnitsCount]);
+      });
+    }
+
+    // Shared Study Vaults
+    list.push({
+      id: "cases-course",
+      courseType: "shared",
+      title: "Landmark Case Laws & Solved Precedents",
+      category: activeCourse === "ca" ? "ICAI Problem Vault" : "ICSI Problem Vault",
+      enrolledDate: "Active 2026 Batch",
+      progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
+      pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+      iconBg: "from-[#3B0764] to-[#1E1B4B]",
+      iconType: "blue",
+      iconEmoji: "🏛️",
+      isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
+      price: 99,
+    });
+
+    list.push({
+      id: "mcq-simulator-course",
+      courseType: "shared",
+      title: "Timed MCQ Mock Test Simulators",
+      category: activeCourse === "ca" ? "ICAI Pattern Test Series" : "ICSI Pattern Test Series",
+      enrolledDate: "Active 2026 Batch",
+      progress: (isCaUnlocked || isCsUnlocked) ? 35 : 0,
+      pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+      iconBg: "from-[#047857] to-[#064E3B]",
+      iconType: "emerald",
+      iconEmoji: "🎯",
+      isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
+      price: 49,
+    });
+
+    return list;
+  }, [isCaUnlocked, isCsUnlocked, activeCourse, completedUnitsCount]);
 
   const [courses, setCourses] = useState<EnrolledCourseItem[]>(dynamicCourses);
 
@@ -659,33 +675,100 @@ export function StudentDashboardHome({
     setCourses(dynamicCourses);
   }, [dynamicCourses]);
 
-  // Sort resources so unowned products are prominently at the front of the marketing showcase
-  const sortedShowcaseResources = useMemo(() => {
-    return [...SHOWCASE_RESOURCES].sort((a, b) => {
-      const aOwned = Boolean(
-        (a.courseType === "ca" && isCaUnlocked) ||
-        (a.courseType === "cs" && isCsUnlocked) ||
-        (a.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
-        (a.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
-        (a.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
+  // Helper to determine if a course / codex / pass is already owned or subscribed to by the student
+  const isResourceOwned = useCallback(
+    (resource: ShowcaseResourceItem): boolean => {
+      if (isAllAccessUnlocked) return true;
+
+      if (resource.courseType === "all-access" || resource.id === "prod-combo") {
+        return Boolean(
+          (isCaUnlocked && isCsUnlocked) ||
+          purchasedBooks.includes("prod-combo") ||
+          purchasedBooks.includes("all-access")
+        );
+      }
+
+      if (resource.courseType === "ca" || resource.id === "course-ca-foundation-sub") {
+        return Boolean(
+          isCaUnlocked ||
+          purchasedBooks.includes("course-ca-foundation-sub") ||
+          purchasedBooks.includes("ca-foundation") ||
+          purchasedBooks.includes("ca-foundation-business-laws") ||
+          purchasedBooks.includes("prod-combo") ||
+          purchasedBooks.includes("all-access")
+        );
+      }
+
+      if (resource.courseType === "cs" || resource.id === "course-cseet-sub") {
+        return Boolean(
+          isCsUnlocked ||
+          purchasedBooks.includes("course-cseet-sub") ||
+          purchasedBooks.includes("cseet") ||
+          purchasedBooks.includes("cseet-business-law") ||
+          purchasedBooks.includes("cseet-management") ||
+          purchasedBooks.includes("prod-combo") ||
+          purchasedBooks.includes("all-access")
+        );
+      }
+
+      if (resource.id === "prod-vol1") {
+        return Boolean(
+          isCaUnlocked ||
+          purchasedBooks.includes("prod-vol1") ||
+          purchasedBooks.includes("book-vol-1") ||
+          purchasedBooks.includes("ca-book-vol-1") ||
+          purchasedBooks.includes("course-ca-foundation-sub") ||
+          purchasedBooks.includes("all-access")
+        );
+      }
+
+      if (resource.id === "prod-vol2") {
+        return Boolean(
+          isCsUnlocked ||
+          purchasedBooks.includes("prod-vol2") ||
+          purchasedBooks.includes("book-vol-2") ||
+          purchasedBooks.includes("ca-book-vol-2") ||
+          purchasedBooks.includes("course-cseet-sub") ||
+          purchasedBooks.includes("all-access")
+        );
+      }
+
+      if (resource.id === "prod-cases-vault") {
+        return Boolean(
+          purchasedBooks.includes("prod-cases-vault") ||
+          purchasedBooks.includes("book-ldr") ||
+          purchasedBooks.includes("cases-course") ||
+          (isCaUnlocked && isCsUnlocked)
+        );
+      }
+
+      if (resource.id === "prod-mcq-simulator") {
+        return Boolean(
+          purchasedBooks.includes("prod-mcq-simulator") ||
+          purchasedBooks.includes("book-mcq") ||
+          purchasedBooks.includes("mcq-simulator-course") ||
+          isCsUnlocked
+        );
+      }
+
+      return Boolean(
+        purchasedBooks.includes(resource.id) ||
+        (resource.cartPayload && purchasedBooks.includes(resource.cartPayload.id))
       );
-      const bOwned = Boolean(
-        (b.courseType === "ca" && isCaUnlocked) ||
-        (b.courseType === "cs" && isCsUnlocked) ||
-        (b.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
-        (b.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
-        (b.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
-      );
-      if (aOwned === bOwned) return 0;
-      return aOwned ? 1 : -1;
-    });
-  }, [isCaUnlocked, isCsUnlocked, isAllAccessUnlocked, purchasedBooks]);
+    },
+    [isCaUnlocked, isCsUnlocked, isAllAccessUnlocked, purchasedBooks]
+  );
+
+  // ONLY show courses/passes that the student HAS NOT subscribed to yet
+  const unsubscribedShowcaseResources = useMemo(() => {
+    return SHOWCASE_RESOURCES.filter((resource) => !isResourceOwned(resource));
+  }, [isResourceOwned]);
 
   const [isHovered, setIsHovered] = useState(false);
 
-  // Live Auto-Scroll timer (fast 2.0s auto-advance, paused on hover/touch)
+  // Live Auto-Scroll timer (fast 2.2s auto-advance, paused on hover/touch)
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || unsubscribedShowcaseResources.length <= 1) return;
 
     const interval = setInterval(() => {
       if (promoCarouselRef.current) {
@@ -706,13 +789,13 @@ export function StudentDashboardHome({
         } else {
           container.scrollTo({ left: nextScroll, behavior: "smooth" });
           const newIdx = Math.round(nextScroll / cardStep);
-          setPromoSlideIndex(Math.min(newIdx, sortedShowcaseResources.length - 1));
+          setPromoSlideIndex(Math.min(newIdx, unsubscribedShowcaseResources.length - 1));
         }
       }
-    }, 2000);
+    }, 2200);
 
     return () => clearInterval(interval);
-  }, [isHovered, sortedShowcaseResources.length]);
+  }, [isHovered, unsubscribedShowcaseResources.length]);
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -720,6 +803,14 @@ export function StudentDashboardHome({
       const firstCard = container.querySelector<HTMLElement>(":scope > div");
       const offset = (firstCard ? firstCard.offsetWidth + 16 : 300) * (direction === "left" ? -1 : 1);
       carouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    }
+  };
+
+  const scrollFreeNotes = (direction: "left" | "right") => {
+    if (freeNotesCarouselRef.current) {
+      const container = freeNotesCarouselRef.current;
+      const offset = 290 * (direction === "left" ? -1 : 1);
+      container.scrollBy({ left: offset, behavior: "smooth" });
     }
   };
 
@@ -762,32 +853,32 @@ export function StudentDashboardHome({
         ? 480
         : 300;
       const index = Math.round(scrollLeft / cardStep);
-      setPromoSlideIndex(Math.max(0, Math.min(index, sortedShowcaseResources.length - 1)));
+      setPromoSlideIndex(Math.max(0, Math.min(index, unsubscribedShowcaseResources.length - 1)));
     }
   };
 
+  // Direct In-Dashboard Buy Action: adds product to cart and immediately triggers instant checkout
   const handleBuyItem = (course: ShowcaseResourceItem) => {
-    if (course.courseType === "all-access" && onBuyCourse) {
-      onBuyCourse("all-access");
-    } else if (course.courseType === "ca" && onBuyCourse) {
-      onBuyCourse("ca");
-    } else if (course.courseType === "cs" && onBuyCourse) {
-      onBuyCourse("cs");
-    } else if (course.cartPayload) {
-      addToCart({
-        id: course.cartPayload.id,
-        title: course.cartPayload.title,
-        format: "pdf",
-        price: course.cartPayload.price,
-        originalPrice: course.cartPayload.originalPrice,
-        category: course.cartPayload.category,
-        badge: course.cartPayload.badge,
-      });
-      setIsCartOpen(true);
-      setCheckoutStep("details");
-    } else if (onBuyCourse) {
-      onBuyCourse("all-access");
-    }
+    const itemToBuy = course.cartPayload || {
+      id: course.id,
+      title: course.title,
+      price: course.price,
+      originalPrice: course.originalPrice,
+      category: course.category,
+      badge: course.badge,
+    };
+
+    addToCart({
+      id: itemToBuy.id,
+      title: itemToBuy.title,
+      format: "pdf",
+      price: itemToBuy.price,
+      originalPrice: itemToBuy.originalPrice,
+      category: itemToBuy.category,
+      badge: itemToBuy.badge,
+    });
+    setIsCartOpen(true);
+    setCheckoutStep("details");
   };
 
   const toggleFavorite = (id: string) => {
@@ -800,84 +891,283 @@ export function StudentDashboardHome({
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div className="space-y-5 sm:space-y-6 text-[#221D1D] select-none font-sans relative">
-      {/* ========================================================================= */}
-      {/* 1. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}
-      {/* ========================================================================= */}
-      <section
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onTouchStart={() => setIsHovered(true)}
-        onTouchEnd={() => setIsHovered(false)}
-        className="space-y-3 bg-gradient-to-b from-[#FAF5FF]/80 via-white to-white rounded-2xl sm:rounded-3xl border border-[#EDE9FE] p-3 sm:p-5 shadow-xs relative group/showcase"
-      >
-        {/* Header Row: Live Pulse Indicator, Title & Navigation Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-          <div className="space-y-0.5 sm:space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-ping" />
-                <span className="hidden xs:inline">Live Study Material &amp; Codex Showcase</span>
-                <span className="xs:hidden">Live Codex Showcase</span>
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-semibold text-[#6B7280]">
-                {isHovered ? "Paused" : "Auto-scrolling"}
-              </span>
-            </div>
-            <h2 className="text-base sm:text-xl font-black text-[#1F2937] tracking-tight">
-              Curriculum Codices &amp; Master Passes
-            </h2>
-            <p className="text-[11px] sm:text-xs text-[#6B7280] max-w-2xl leading-relaxed hidden xs:block">
-              Explore statutory codices, case study question banks &amp; timed mock test passes. Instant DRM reader access.
-            </p>
-          </div>
+  const studentCourseList: StudentCourseProgressItem[] = useMemo(() => {
+    if (activeCourse === "cs") {
+      return [
+        {
+          id: "cs-u1",
+          name: "Indian Contract Act, 1872",
+          code: "Unit 1",
+          weightage: "15 - 20 M",
+          description: "Essentials of Contract, Offer & Acceptance",
+          totalLessons: 4,
+          completedLessons: isCsUnlocked ? Math.min(4, Math.max(1, completedUnitsCount)) : 1,
+          progressPercent: isCsUnlocked ? 65 : 25,
+          pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+          isUnlocked: Boolean(isCsUnlocked),
+          category: "cs",
+        },
+        {
+          id: "cs-u2",
+          name: "Sale of Goods Act, 1930",
+          code: "Unit 2",
+          weightage: "10 - 15 M",
+          description: "Contract of Sale, Conditions & Warranties",
+          totalLessons: 3,
+          completedLessons: isCsUnlocked ? 2 : 1,
+          progressPercent: isCsUnlocked ? 50 : 20,
+          pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+          isUnlocked: Boolean(isCsUnlocked),
+          category: "cs",
+        },
+        {
+          id: "cs-u7",
+          name: "General Principles of Management",
+          code: "Unit 7",
+          weightage: "15 - 20 M",
+          description: "Henri Fayol 14 Principles, Scientific Management",
+          totalLessons: 8,
+          completedLessons: isCsUnlocked ? 6 : 2,
+          progressPercent: isCsUnlocked ? 75 : 25,
+          pdfUrl: "/notes/cseet-management-full.pdf",
+          isUnlocked: Boolean(isCsUnlocked),
+          category: "cs",
+        },
+      ];
+    }
 
-          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-            <Link
-              href="/courses"
-              className="hidden md:inline-flex items-center gap-1 text-xs font-bold text-[#7E22CE] hover:text-[#581C87] px-3 py-1.5 rounded-full hover:bg-[#F3E8FF]/60 transition-colors"
-            >
-              <span>Browse Catalog</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-            {/* Carousel Prev/Next Buttons */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => scrollPromoCarousel("left")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Previous Item"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                onClick={() => scrollPromoCarousel("right")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Next Item"
-              >
-                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
+    return [
+      {
+        id: "ca-ch2",
+        name: "The Indian Contract Act, 1872",
+        code: "Chapter 2",
+        weightage: "20 - 25 M",
+        description: "Nature of Contracts, Offer & Acceptance, Consideration",
+        totalLessons: 12,
+        completedLessons: isCaUnlocked ? 8 : 4,
+        progressPercent: isCaUnlocked ? 65 : 30,
+        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+        isUnlocked: Boolean(isCaUnlocked),
+        category: "ca",
+      },
+      {
+        id: "ca-ch6",
+        name: "The Companies Act, 2013",
+        code: "Chapter 6",
+        weightage: "15 - 20 M",
+        description: "Meaning & Characteristics, Corporate Veil, MOA & AOA",
+        totalLessons: 12,
+        completedLessons: isCaUnlocked ? 5 : 2,
+        progressPercent: isCaUnlocked ? 40 : 15,
+        pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+        isUnlocked: Boolean(isCaUnlocked),
+        category: "ca",
+      },
+      {
+        id: "ca-ch3",
+        name: "The Sale of Goods Act, 1930",
+        code: "Chapter 3",
+        weightage: "15 - 20 M",
+        description: "Formation of Contract of Sale, Conditions & Warranties",
+        totalLessons: 12,
+        completedLessons: isCaUnlocked ? 3 : 1,
+        progressPercent: isCaUnlocked ? 25 : 10,
+        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+        isUnlocked: true,
+        category: "ca",
+      },
+      {
+        id: "ca-ch4",
+        name: "The Indian Partnership Act, 1932",
+        code: "Chapter 4",
+        weightage: "15 - 20 M",
+        description: "General Nature, Relations of Partners, Registration & Dissolution",
+        totalLessons: 10,
+        completedLessons: isCaUnlocked ? 8 : 3,
+        progressPercent: isCaUnlocked ? 80 : 30,
+        pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+        isUnlocked: true,
+        category: "ca",
+      },
+    ];
+  }, [activeCourse, isCaUnlocked, isCsUnlocked, completedUnitsCount]);
+
+  const handleContinueLearning = () => {
+    const targetPdf = activeCourse === "ca" 
+      ? "/notes/sale-of-goods-unit-1.pdf" 
+      : "/notes/cseet-management-full.pdf";
+    const targetTitle = activeCourse === "ca"
+      ? "The Indian Contract Act, 1872"
+      : "CSEET Management & Corporate Governance";
+    onOpenPdf(targetPdf, targetTitle, "Unit 1: Formation of Contract", activeCourse, true);
+  };
+
+  const handleOpenStudentCourse = (courseItem: StudentCourseProgressItem) => {
+    if (courseItem.isUnlocked) {
+      onOpenPdf(courseItem.pdfUrl, courseItem.name, courseItem.code, courseItem.category, true);
+    } else {
+      if (onBuyCourse) {
+        onBuyCourse(courseItem.category);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-6 sm:space-y-7 text-[#13264F] select-none font-sans relative">
+      {/* ========================================================================= */}
+      {/* 1. HERO GREETING CARD (MATCHING SVG PHONE 1 EXACT THEME & VECTOR ART)     */}
+      {/* ========================================================================= */}
+      <StudentHeroCard
+        studentName={studentName}
+        lastReadTitle={activeCourse === "ca" ? "The Indian Contract Act, 1872" : "General Principles of Management"}
+        lastReadSubtitle={activeCourse === "ca" ? "Unit 1: Essentials of Valid Contract" : "Unit 7: Henri Fayol 14 Principles"}
+        onContinueLearning={handleContinueLearning}
+      />
+
+      {/* ========================================================================= */}
+      {/* 2. THREE STAT CARDS (COURSES, LESSONS, CERTIFICATES - SVG EXACT DESIGN)    */}
+      {/* ========================================================================= */}
+      <StudentMetricStats
+        coursesCount={activeCourse === "ca" ? 7 : 8}
+        lessonsCount={activeCourse === "ca" ? 15 : 12}
+        certificatesCount={2}
+        onViewCourses={() => onExploreCourse && onExploreCourse("ca-foundation")}
+        onViewLessons={() => onExploreCourse && onExploreCourse("ca-foundation")}
+        onViewCertificates={() => onExploreCourse && onExploreCourse("ca-foundation")}
+      />
+
+      {/* ========================================================================= */}
+      {/* 3. MY COURSES SECTION (SEARCH, FILTERS, PROGRESS BARS MATCHING SVG)        */}
+      {/* ========================================================================= */}
+      <section className="space-y-3.5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg sm:text-xl font-extrabold text-[#13264F] tracking-tight">
+            My Courses
+          </h3>
+          <button
+            onClick={() => onExploreCourse && onExploreCourse("ca-foundation")}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#3558E8] hover:underline cursor-pointer"
+          >
+            <span>View all</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
         </div>
 
-        {/* Smooth Horizontal Carousel Track */}
-        <div
-          ref={promoCarouselRef}
-          onScroll={handlePromoScroll}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {sortedShowcaseResources.map((resource) => {
-            const isOwned = Boolean(
-              (resource.courseType === "ca" && isCaUnlocked) ||
-              (resource.courseType === "cs" && isCsUnlocked) ||
-              (resource.courseType === "all-access" && (isCaUnlocked && isCsUnlocked)) ||
-              (resource.id === "prod-vol1" && (isAllAccessUnlocked || isCaUnlocked || purchasedBooks.includes("prod-vol1"))) ||
-              (resource.id === "prod-vol2" && (isAllAccessUnlocked || isCsUnlocked || purchasedBooks.includes("prod-vol2")))
-            );
+        <StudentMyCoursesList
+          courses={studentCourseList}
+          onOpenCourse={handleOpenStudentCourse}
+          showSearchAndFilters={true}
+        />
+      </section>
 
-            return (
+      {/* ========================================================================= */}
+      {/* 4. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}
+      {/* ========================================================================= */}
+      {unsubscribedShowcaseResources.length === 0 ? (
+        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#31104B] border border-[#A855F7]/30 p-4 sm:p-6 text-white shadow-md relative overflow-hidden group">
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#A855F7]/15 blur-3xl pointer-events-none" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-start gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#9333EA]/20 border border-[#C084FC]/40 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                🎓
+              </div>
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>All Curriculum Passes Unlocked</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                  You Have Full Access to All Master Codices &amp; Courses!
+                </h3>
+                <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                  All statutory bare act codices, CA Foundation &amp; CSEET curriculum materials, case study question banks, and timed mock simulators are active in your student dashboard.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (onOpenPdf) {
+                  onOpenPdf("/notes/sale-of-goods-unit-1.pdf", "Volume 1: Statutory Bare Act Codex", "Bare Act Codex", "ca", false);
+                } else if (onExploreCourse) {
+                  onExploreCourse("ca");
+                }
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md cursor-pointer active:scale-98"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Study In Codex Reader</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setIsHovered(false)}
+          className="space-y-3 bg-gradient-to-b from-[#FAF5FF]/80 via-white to-white rounded-2xl sm:rounded-3xl border border-[#EDE9FE] p-3 sm:p-5 shadow-xs relative group/showcase"
+        >
+          {/* Header Row: Live Pulse Indicator, Title & Navigation Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+            <div className="space-y-0.5 sm:space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#9333EA] animate-ping" />
+                  <span className="hidden xs:inline">Available Master Passes &amp; Codices</span>
+                  <span className="xs:hidden">Available Passes</span>
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-[#6B7280]">
+                  {isHovered ? "Paused" : "Auto-scrolling"}
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-[#7E22CE] bg-[#F3E8FF] px-2 py-0.5 rounded-full">
+                  {unsubscribedShowcaseResources.length} Unsubscribed
+                </span>
+              </div>
+              <h2 className="text-base sm:text-xl font-black text-[#1F2937] tracking-tight">
+                Curriculum Codices &amp; Master Passes
+              </h2>
+              <p className="text-[11px] sm:text-xs text-[#6B7280] max-w-2xl leading-relaxed hidden xs:block">
+                Directly unlock statutory codices, case study question banks &amp; timed mock test passes into your student dashboard.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <Link
+                href="/courses"
+                className="hidden md:inline-flex items-center gap-1 text-xs font-bold text-[#7E22CE] hover:text-[#581C87] px-3 py-1.5 rounded-full hover:bg-[#F3E8FF]/60 transition-colors"
+              >
+                <span>Browse Catalog</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+              {/* Carousel Prev/Next Buttons */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => scrollPromoCarousel("left")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  aria-label="Previous Item"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  onClick={() => scrollPromoCarousel("right")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#F3E8FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  aria-label="Next Item"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Smooth Horizontal Carousel Track: Unsubscribed Items Only */}
+          <div
+            ref={promoCarouselRef}
+            onScroll={handlePromoScroll}
+            className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 pt-0.5 scroll-smooth snap-x snap-mandatory no-scrollbar touch-pan-x"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {unsubscribedShowcaseResources.map((resource) => (
               <div
                 key={resource.id}
                 className={`w-[86vw] xs:w-[350px] sm:w-[460px] lg:w-[490px] max-w-[500px] shrink-0 snap-start flex flex-row items-stretch gap-2.5 xs:gap-3 sm:gap-4 justify-between rounded-2xl sm:rounded-3xl bg-gradient-to-br ${resource.bannerGradient} border ${resource.borderTheme} p-3 sm:p-4 text-white shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
@@ -892,11 +1182,9 @@ export function StudentDashboardHome({
                     <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 border border-amber-300/30">
                       {resource.discount}
                     </span>
-                    {isOwned && (
-                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500 text-white shadow-2xs">
-                        Owned
-                      </span>
-                    )}
+                    <span className="text-[8px] xs:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-400 text-amber-950 shadow-2xs">
+                      Unlock
+                    </span>
                   </div>
 
                   {/* 3D Book Cover Image */}
@@ -916,7 +1204,7 @@ export function StudentDashboardHome({
                   </span>
                 </div>
 
-                {/* Right Column: Resource Details, Pricing & Action CTA */}
+                {/* Right Column: Resource Details, Pricing & Direct Buy CTA */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between space-y-1.5 sm:space-y-3 relative z-10">
                   <div className="space-y-1 sm:space-y-1.5">
                     {/* Badge & Exam Category */}
@@ -939,7 +1227,7 @@ export function StudentDashboardHome({
                       </p>
                     </div>
 
-                    {/* Highlights bullet list (top 2 on mobile, 3 on larger) */}
+                    {/* Highlights bullet list */}
                     <div className="space-y-0.5 sm:space-y-1 pt-0.5">
                       {resource.highlights.slice(0, 3).map((h, i) => (
                         <div
@@ -953,7 +1241,7 @@ export function StudentDashboardHome({
                     </div>
                   </div>
 
-                  {/* Bottom: Price row & CTA */}
+                  {/* Bottom: Price row & Direct Buy CTA */}
                   <div className="space-y-1.5 sm:space-y-2 pt-1 sm:pt-2 border-t border-white/15">
                     <div className="flex items-baseline justify-between">
                       <div className="flex items-baseline gap-1 sm:gap-1.5">
@@ -972,40 +1260,24 @@ export function StudentDashboardHome({
                       </span>
                     </div>
 
-                    {/* Primary Button */}
+                    {/* Direct Buy Button: Instant In-Dashboard Checkout */}
                     <div className="space-y-1 sm:space-y-1.5">
-                      {isOwned ? (
-                        <button
-                          onClick={() => {
-                            if (resource.courseType === "all-access" || resource.courseType === "ca") {
-                              onExploreCourse("ca");
-                            } else {
-                              onExploreCourse("cs");
-                            }
-                          }}
-                          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 border border-white/30"
-                        >
-                          <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          <span className="truncate">Study In Reader ▶</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleBuyItem(resource)}
-                          className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl ${resource.buttonGradient} font-black text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
-                        >
-                          <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                          <span className="truncate">Unlock Pass • ₹{resource.price}</span>
-                          <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleBuyItem(resource)}
+                        className={`w-full py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl ${resource.buttonGradient} font-black text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
+                      >
+                        <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span className="truncate">Buy Now • ₹{resource.price}</span>
+                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                      </button>
 
                       <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-white/70 px-0.5">
                         <span className="flex items-center gap-1">
                           <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-300" />
-                          <span>Instant DRM</span>
+                          <span>Instant Auto-Unlock</span>
                         </span>
                         <button
-                          onClick={() => onExploreCourse(resource.courseType === "all-access" ? "all-access" : resource.courseType)}
+                          onClick={() => onExploreCourse && onExploreCourse(resource.courseType === "all-access" ? "all-access" : resource.courseType)}
                           className="hover:text-white underline underline-offset-2 transition-colors cursor-pointer"
                         >
                           Syllabus &rarr;
@@ -1015,184 +1287,31 @@ export function StudentDashboardHome({
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Dots Navigation Indicators with touch-friendly tap targets */}
-        <div className="flex items-center justify-center gap-0.5 sm:gap-1 pt-0.5">
-          {sortedShowcaseResources.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => scrollToPromoSlide(idx)}
-              className="p-1.5 sm:p-1 cursor-pointer flex items-center justify-center"
-              aria-label={`Slide ${idx + 1}`}
-            >
-              <span
-                className={`h-1.5 rounded-full transition-all duration-200 block ${
-                  promoSlideIndex === idx ? "w-5 sm:w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 2. ENROLLED COURSES (EXACT HEADER, SEARCH, ARROWS & CAROUSEL CARDS)        */}
-      {/* ========================================================================= */}
-      <div className="space-y-3">
-        {/* Header with Search and Navigation Arrows */}
-        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 sm:gap-3">
-          <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
-            Enrolled Courses
-          </h3>
-
-          <div className="flex items-center gap-2 justify-between xs:justify-end">
-            {/* Search courses input */}
-            <div className="relative flex-1 xs:flex-initial">
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full xs:w-44 sm:w-56 pl-3.5 pr-3 py-1.5 text-xs rounded-xl bg-white border border-[#E7E4E7] focus:outline-none focus:border-[#7E22CE] transition-all text-[#221D1D] shadow-2xs"
-              />
-            </div>
-
-            {/* Circular Carousel Prev & Next Buttons */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => scrollCarousel("left")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Previous"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                onClick={() => scrollCarousel("right")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Next"
-              >
-                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
+            ))}
           </div>
-        </div>
 
-        {/* Horizontal Carousel Row */}
-        <div
-          ref={carouselRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar touch-pan-x"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {filteredCourses.map((c) => (
-            <div
-              key={c.id}
-              className="w-[76vw] xs:w-[280px] sm:w-[315px] shrink-0 bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                {/* Course Header: Icon + Title + Star */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* App Icon matching screenshot aesthetics */}
-                    <div
-                      className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center text-white shrink-0 shadow-xs`}
-                    >
-                      <span className="text-xl">{c.iconEmoji}</span>
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-bold text-[#1F2937] truncate leading-snug">
-                        {c.title}
-                      </h4>
-                      <div className="flex items-center gap-1 text-[11px] text-[#6B7280] mt-0.5">
-                        <BookOpen className="w-3 h-3 text-[#7E22CE]" />
-                        <span className="font-semibold text-[#4B5563] truncate">{c.category}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => toggleFavorite(c.id)}
-                    className="text-[#9CA3AF] hover:text-[#F59E0B] p-1 cursor-pointer shrink-0 transition-colors"
-                    aria-label="Favorite"
-                  >
-                    <Star
-                      className={`w-4 h-4 ${
-                        c.isFavorite ? "fill-[#F59E0B] text-[#F59E0B]" : ""
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Enrollment Date */}
-                <p className="text-[11px] text-[#6B7280] font-medium flex items-center gap-1.5 pt-0.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#9CA3AF]" />
-                  <span>{c.enrolledDate}</span>
-                </p>
-
-                {/* Course Progress with Info Icon and % */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="w-full bg-[#E5E7EB] rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`${c.isUnlocked ? "bg-[#10B981]" : "bg-gray-300"} h-full rounded-full transition-all duration-500`}
-                      style={{ width: `${c.progress}%` }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
-                    <span className="flex items-center gap-1">
-                      <span className="w-3.5 h-3.5 rounded-full bg-[#7E22CE] text-white text-[9px] flex items-center justify-center font-bold">
-                        i
-                      </span>
-                      <span>Course Progress</span>
-                    </span>
-                    <span className="font-bold text-[#1F2937]">{c.progress}%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Full-Width Action Button: Vibrant Purple Resume ▶ */}
-              <div className="pt-4">
-                {c.isUnlocked ? (
-                  <button
-                    onClick={() => {
-                      onOpenPdf(
-                        c.pdfUrl,
-                        c.title,
-                        c.category,
-                        c.courseType === "shared" ? activeCourse : c.courseType
-                      );
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                  >
-                    <span>Resume</span>
-                    <Play className="w-3.5 h-3.5 fill-current text-white" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      if (onBuyCourse) {
-                        onBuyCourse(c.courseType === "shared" ? "all-access" : c.courseType);
-                      } else {
-                        onExploreCourse(c.courseType === "shared" ? "all-access" : c.courseType);
-                      }
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                  >
-                    <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                    <span>Unlock Pass • ₹{c.price || 99}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+          {/* Dots Navigation Indicators with touch-friendly tap targets */}
+          <div className="flex items-center justify-center gap-0.5 sm:gap-1 pt-0.5">
+            {unsubscribedShowcaseResources.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => scrollToPromoSlide(idx)}
+                className="p-1.5 sm:p-1 cursor-pointer flex items-center justify-center"
+                aria-label={`Slide ${idx + 1}`}
+              >
+                <span
+                  className={`h-1.5 rounded-full transition-all duration-200 block ${
+                    promoSlideIndex === idx ? "w-5 sm:w-6 bg-[#7E22CE]" : "w-1.5 bg-[#DDD6FE] hover:bg-[#C084FC]"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ========================================================================= */}
-      {/* 3. FREE STUDY RESOURCES & SAMPLE NOTES (100% UNLOCKED & DRM COMPLIANT)       */}
+      {/* 2. FREE STUDY RESOURCES & SAMPLE NOTES (HORIZONTAL SCROLLABLE CAROUSEL)    */}
       {/* ========================================================================= */}
       <section className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
@@ -1210,18 +1329,43 @@ export function StudentDashboardHome({
               Free Chapter Notes &amp; Statutory Samples
             </h3>
           </div>
-          <span className="text-xs text-[#6B7280] hidden sm:block">
-            Open &amp; read complete statutory sample notes instantly
-          </span>
+
+          <div className="flex items-center gap-2 self-end sm:self-center">
+            <span className="text-xs text-[#6B7280] hidden md:block">
+              Scroll to explore all 8 sample units
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollFreeNotes("left")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                aria-label="Previous note"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollFreeNotes("right")}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                aria-label="Next note"
+              >
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div
+          ref={freeNotesCarouselRef}
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar snap-x touch-pan-x"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {FREE_STUDY_RESOURCES.map((res) => (
             <div
               key={res.id}
-              className={`rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
+              className={`w-[260px] sm:w-[285px] shrink-0 snap-start rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
             >
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shadow-2xs ${res.accentBadge}`}>
                     {res.badge}
@@ -1235,7 +1379,7 @@ export function StudentDashboardHome({
                   <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
                     {res.actName}
                   </span>
-                  <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5">
+                  <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5 line-clamp-1">
                     {res.title}
                   </h4>
                   <p className="text-[11px] text-[#4B5563] mt-1 line-clamp-2 leading-relaxed">
@@ -1252,7 +1396,7 @@ export function StudentDashboardHome({
 
                 <button
                   onClick={() => onOpenPdf(res.pdfUrl, res.actName, res.title, res.courseType, true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  className="px-3 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>Read Note</span>
@@ -1264,7 +1408,7 @@ export function StudentDashboardHome({
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 CARDS AS IN SCREENSHOT)         */}
+      {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 COMPACT ROW)                    */}
       {/* ========================================================================= */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -1274,7 +1418,7 @@ export function StudentDashboardHome({
           <span className="text-[11px] sm:text-xs text-[#6B7280]">Curated Study Material</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-3.5">
           {RECOMMENDED_COURSES.map((item) => {
             const IconComponent = item.icon;
             const isItemUnlocked =
@@ -1310,34 +1454,34 @@ export function StudentDashboardHome({
                     }
                   }
                 }}
-                className="relative bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
+                className="relative bg-white rounded-2xl border border-[#E7E4E7] p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
               >
                 {/* Large Faint Watermark Number in Top-Right Corner */}
-                <span className="absolute top-2 right-4 text-4xl sm:text-5xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
+                <span className="absolute top-2 right-3 text-4xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
                   {item.num}
                 </span>
 
-                <div className="space-y-3 relative z-10 pr-6">
+                <div className="space-y-2 relative z-10 pr-4">
                   {/* Dark App Icon Square */}
                   <div
-                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
+                    className={`w-9 h-9 rounded-xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
                   >
-                    <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <IconComponent className="w-4 h-4" />
                   </div>
 
                   <div>
                     <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] group-hover:text-[#7E22CE] transition-colors leading-snug">
                       {item.title}
                     </h4>
-                    <p className="text-[11px] sm:text-xs text-[#6B7280] mt-1 leading-relaxed line-clamp-2">
+                    <p className="text-[11px] text-[#6B7280] mt-0.5 leading-relaxed line-clamp-2">
                       {item.subtitle}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
-                  <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#4B5563]">
-                    <BookOpen className="w-3.5 h-3.5 text-[#7E22CE]" />
+                <div className="pt-2.5 mt-2 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[#4B5563]">
+                    <BookOpen className="w-3 h-3 text-[#7E22CE]" />
                     <span>{item.duration}</span>
                   </span>
                   {isItemUnlocked || item.isFree ? (
