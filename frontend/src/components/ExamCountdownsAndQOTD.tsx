@@ -26,6 +26,8 @@ interface ExamTarget {
   targetDate: string;
   syllabusCoverage: number;
   totalHoursNeeded: number;
+  buttonText?: string;
+  buttonUrl?: string;
 }
 
 const EXAM_TARGETS: ExamTarget[] = [
@@ -36,6 +38,8 @@ const EXAM_TARGETS: ExamTarget[] = [
     targetDate: "2026-12-15T09:00:00",
     syllabusCoverage: 100,
     totalHoursNeeded: 120,
+    buttonText: "Open Student Learning Desk",
+    buttonUrl: "/student",
   },
   {
     id: "cseet",
@@ -44,6 +48,8 @@ const EXAM_TARGETS: ExamTarget[] = [
     targetDate: "2026-11-08T10:00:00",
     syllabusCoverage: 100,
     totalHoursNeeded: 80,
+    buttonText: "Open Student Learning Desk",
+    buttonUrl: "/student",
   },
 ];
 
@@ -332,13 +338,17 @@ export function ExamCountdownsAndQOTD() {
               targetDate: e.targetDate || (e.date ? (e.date.includes("T") ? e.date : `${e.date}T09:00:00`) : "2026-12-15T09:00:00"),
               syllabusCoverage: e.syllabusCoverage ?? 100,
               totalHoursNeeded: e.totalHoursNeeded ?? 120,
+              buttonText: e.buttonText || "Open Student Learning Desk",
+              buttonUrl: e.buttonUrl || "/student",
             }));
             setExamTargets(normalized);
             if (!normalized.some((e) => e.id === selectedExamId)) {
               setSelectedExamId(normalized[0].id);
             }
           }
-          if (data.qotd && data.qotd.question) {
+          if (Array.isArray(data.mcqPool) && data.mcqPool.length > 0) {
+            setMcqList(data.mcqPool);
+          } else if (data.qotd && data.qotd.question) {
             const formattedLiveQotd: MCQScenario = {
               id: "live-qotd",
               subject: data.qotd.subject || data.qotd.act || "Daily Legal Drill",
@@ -521,19 +531,22 @@ export function ExamCountdownsAndQOTD() {
               <div className="flex items-center justify-between text-xs text-[#4D433F]">
                 <span>Syllabus Coverage:</span>
                 <span className="font-bold text-[#221D1D]">
-                  100% Comprehensive
+                  {activeExam?.syllabusCoverage ?? 100}% Comprehensive
                 </span>
               </div>
               <div className="w-full h-1.5 rounded-full bg-[#F7F7F5] overflow-hidden">
-                <div className="h-full bg-[#AED7E9] rounded-full w-full" />
+                <div
+                  className="h-full bg-[#AED7E9] rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(activeExam?.syllabusCoverage ?? 100, 100)}%` }}
+                />
               </div>
 
               <div className="pt-2 flex items-center justify-between">
                 <Link
-                  href="/student"
+                  href={activeExam?.buttonUrl || "/student"}
                   className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs min-h-[44px]"
                 >
-                  <span>Open Student Learning Desk</span>
+                  <span>{activeExam?.buttonText || "Open Student Learning Desk"}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>

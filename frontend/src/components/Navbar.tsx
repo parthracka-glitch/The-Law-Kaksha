@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText, LogIn, LogOut, User } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText, LogIn, LogOut, User, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export function Navbar() {
@@ -147,6 +147,7 @@ export function Navbar() {
                 src="/assets/logo-transparent.png"
                 alt="The Law कक्षा - CA Foundation & CSEET Law Academy"
                 fill
+                sizes="(max-width: 640px) 144px, 176px"
                 className="object-contain object-left"
                 priority
               />
@@ -325,107 +326,96 @@ export function Navbar() {
             {/* Shopping Cart */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="p-2.5 rounded-full text-[#221D1D] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2.5 rounded-full text-[#0A192F] hover:text-[#005A9C] hover:bg-[#F0F7FF] transition-colors relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="View Cart"
             >
               <ShoppingBag className="w-5 h-5 stroke-[2]" />
               {totalItemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#BFAFE5] text-[#221D1D] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs border border-[#A08DC9]">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#005A9C] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
                   {totalItemCount}
                 </span>
               )}
             </button>
 
-            {/* AUTH BUTTONS: LOG IN (when logged out) VS PROFILE & DASHBOARD (when logged in) */}
+            {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT DASHBOARD & PROFILE (when logged in) */}
             {activeStudent ? (
               <div className="flex items-center gap-2">
-                {/* Quick Shortcut to Student Dashboard / Admin Panel */}
+                {/* 1-Click Visit Dashboard Button */}
                 <Link
                   href={activeStudent.role === "admin" ? "/admin" : "/student"}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-full bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE] text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap active:scale-95"
-                  title={activeStudent.role === "admin" ? "Open Admin Panel" : "Open Student Dashboard"}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-95"
+                  title="Visit Dashboard"
                 >
-                  <GraduationCap className="w-4 h-4 text-[#7E22CE]" />
-                  <span>{activeStudent.role === "admin" ? "Admin Panel" : "Dashboard"}</span>
+                  <GraduationCap className="w-4 h-4 text-white" />
+                  <span>Visit Dashboard</span>
                 </Link>
 
-                {/* Dedicated Profile Dropdown Button */}
+                {/* Simplified User Profile Button */}
                 <div className="relative" ref={profileDropdownRef}>
                   <button
                     onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap border border-[#A08DC9]/40 active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#0A192F] text-xs font-bold transition-all duration-200 border border-[#DBEAFE] cursor-pointer whitespace-nowrap active:scale-95 shadow-2xs"
                     aria-expanded={profileDropdownOpen}
                     aria-haspopup="true"
-                    title={`View profile for ${activeStudent.name}`}
+                    title={`Account settings for ${activeStudent.name}`}
                   >
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-[10px] shrink-0 shadow-2xs">
+                    <div className="w-6 h-6 rounded-full bg-[#005A9C] text-white flex items-center justify-center font-bold text-[10px] shrink-0 shadow-2xs">
                       {activeStudent.avatarInitials}
                     </div>
-                    <span className="max-w-[90px] truncate hidden xs:inline sm:inline">
+                    <span className="max-w-[85px] truncate hidden md:inline font-semibold">
                       {activeStudent.name.split(" ")[0]}
                     </span>
-                    <span className="hidden sm:inline text-[11px] font-semibold text-[#4D433F]">• Profile</span>
-                    <span className="xs:hidden sm:hidden">Profile</span>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-[#221D1D] transition-transform duration-200 ${
+                      className={`w-3.5 h-3.5 text-[#0A192F] transition-transform duration-200 ${
                         profileDropdownOpen ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
-                  {/* Rich Profile Dropdown Menu */}
+                  {/* Clean Simplified Dropdown Menu */}
                   {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2.5 w-72 rounded-2xl bg-white border border-[#E7E4E7] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-[#F3F4F6]">
-                      {/* User Card Header */}
-                      <div className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#BFAFE5] to-[#7E22CE] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                    <div className="absolute right-0 mt-2.5 w-64 rounded-2xl bg-white border border-[#DBEAFE] shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {/* User Header Card */}
+                      <div className="px-3 py-2.5 bg-[#F0F7FF] rounded-xl border border-[#DBEAFE]/80 mb-1.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-[#005A9C] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                             {activeStudent.avatarInitials}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-[#1F2937] truncate">{activeStudent.name}</p>
-                            <p className="text-xs text-[#6B7280] truncate">
-                              {activeStudent.email || (activeStudent.role === "admin" ? "Administrator" : "Verified Student")}
+                            <p className="text-xs font-bold text-[#0A192F] truncate">{activeStudent.name}</p>
+                            <p className="text-[11px] text-[#64748B] truncate">
+                              {activeStudent.email || "Verified Account"}
                             </p>
-                            <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
-                              {activeStudent.role === "admin" ? "⚡ Administrator" : "🎓 Law Student"}
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
+                              {activeStudent.role === "admin" ? "🛡️ Administrator" : "🎓 Enrolled Student"}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Navigation Links */}
-                      <div className="p-1.5 space-y-0.5">
+                      {/* Direct Quick-Access Navigation */}
+                      <div className="space-y-0.5">
                         <Link
                           href={activeStudent.role === "admin" ? "/admin" : "/student"}
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F3E8FF] hover:text-[#7E22CE] transition-colors"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors"
                         >
-                          <GraduationCap className="w-4 h-4 text-[#7E22CE]" />
-                          <span>{activeStudent.role === "admin" ? "Admin Control Center" : "Student Dashboard"}</span>
-                        </Link>
-
-                        <Link
-                          href="/student"
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F7F7F5] transition-colors"
-                        >
-                          <User className="w-4 h-4 text-[#4B8097]" />
-                          <span>My Profile &amp; Stats</span>
+                          <LayoutDashboard className="w-4 h-4 text-[#005A9C]" />
+                          <span>{activeStudent.role === "admin" ? "Admin Console" : "Student Dashboard"}</span>
                         </Link>
 
                         <Link
                           href="/courses"
                           onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#1F2937] hover:bg-[#F7F7F5] transition-colors"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors"
                         >
-                          <BookOpen className="w-4 h-4 text-[#F7892A]" />
-                          <span>Browse Notes &amp; Codices</span>
+                          <BookOpen className="w-4 h-4 text-[#005A9C]" />
+                          <span>Courses &amp; Notes</span>
                         </Link>
                       </div>
 
                       {/* Sign Out Action */}
-                      <div className="p-1.5">
+                      <div className="pt-1.5 mt-1.5 border-t border-[#F0F7FF]">
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
@@ -441,10 +431,10 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-bold transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer whitespace-nowrap active:scale-95"
                 title="Log In to Student Account"
               >
-                <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#221D1D]" />
+                <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                 <span>Log In</span>
               </Link>
             )}
@@ -594,28 +584,31 @@ export function Navbar() {
               </div>
 
               {/* Drawer Footer Auth CTA */}
-              <div className="px-4 py-4 border-t border-[#E7E4E7] safe-bottom space-y-2.5">
+              <div className="px-4 py-4 border-t border-[#DBEAFE] safe-bottom space-y-2.5">
                 {activeStudent ? (
                   <>
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
-                      <div className="w-10 h-10 rounded-full bg-[#221D1D] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F0F7FF] border border-[#DBEAFE]">
+                      <div className="w-10 h-10 rounded-full bg-[#005A9C] text-white flex items-center justify-center font-bold text-sm shrink-0">
                         {activeStudent.avatarInitials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-[#1F2937] truncate">{activeStudent.name}</p>
-                        <p className="text-xs text-[#6B7280] truncate">
-                          {activeStudent.role === "admin" ? "Administrator" : "Student Account"}
+                        <p className="text-sm font-bold text-[#0A192F] truncate">{activeStudent.name}</p>
+                        <p className="text-xs text-[#64748B] truncate">
+                          {activeStudent.email || "Verified Account"}
                         </p>
+                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
+                          {activeStudent.role === "admin" ? "🛡️ Administrator" : "🎓 Enrolled Student"}
+                        </span>
                       </div>
                     </div>
 
                     <Link
                       href={activeStudent.role === "admin" ? "/admin" : "/student"}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[44px]"
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px]"
                     >
-                      <GraduationCap className="w-4 h-4 text-[#221D1D]" />
-                      <span>{activeStudent.role === "admin" ? "Admin Control Panel" : "🎓 Student Dashboard"}</span>
+                      <LayoutDashboard className="w-4 h-4 text-white" />
+                      <span>{activeStudent.role === "admin" ? "Admin Console" : "Visit Dashboard"}</span>
                     </Link>
 
                     <button
@@ -633,9 +626,9 @@ export function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-sm font-bold shadow-xs hover:bg-[#A08DC9] transition min-h-[48px]"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[48px]"
                   >
-                    <LogIn className="w-4 h-4 text-[#221D1D]" />
+                    <LogIn className="w-4 h-4 text-white" />
                     <span>Log In to Account</span>
                   </Link>
                 )}

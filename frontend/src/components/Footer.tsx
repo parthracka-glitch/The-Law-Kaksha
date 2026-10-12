@@ -139,30 +139,31 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#AED7E9] text-[#221D1D] pt-12 pb-10 border-t border-[#98C5D8]">
+    <footer className="bg-[#0A192F] text-white pt-12 pb-10 border-t border-[#005A9C]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Navigation Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-[#221D1D]/15">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-white/10">
           
           {/* Column 1: Brand & Contact */}
           <div className="md:col-span-6 lg:col-span-6 space-y-3">
             <Link href="/" className="inline-block transition-opacity hover:opacity-90">
-              <div className="relative h-14 w-52 sm:h-16 sm:w-60 flex items-center bg-white rounded-2xl px-3 py-1 shadow-xs border border-[#E7E4E7]">
+              <div className="relative h-11 w-48 sm:h-12 sm:w-52 flex items-center">
                 <Image
-                  src="/assets/logo-transparent.png"
+                  src="/assets/logo-footer-brand.png"
                   alt="The Law Kaksha Logo"
                   fill
-                  className="object-contain object-left p-1"
+                  sizes="(max-width: 640px) 192px, 208px"
+                  className="object-contain object-left"
                 />
               </div>
             </Link>
 
-            <p className="text-xs text-[#4D433F] max-w-sm leading-relaxed font-medium">
+            <p className="text-xs text-[#94A3B8] max-w-sm leading-relaxed font-medium">
               Simplified notes, practical resources and exam-focused preparation for CA Foundation &amp; CSEET students across India.
             </p>
 
-            <div className="pt-1 text-[11px] text-[#4D433F] space-y-0.5 font-semibold">
+            <div className="pt-1 text-[11px] text-[#94A3B8] space-y-0.5 font-semibold">
               <p>Academic Desk: support@thelawkaksha.com</p>
               <p>Launch Subscription: ₹99/month</p>
             </div>
@@ -170,17 +171,17 @@ export function Footer() {
 
           {/* Column 2: Courses */}
           <div className="md:col-span-3 lg:col-span-3 space-y-2.5">
-            <h5 className="text-[11px] font-bold uppercase tracking-wider text-[#221D1D]">
+            <h5 className="text-[11px] font-bold uppercase tracking-wider text-white">
               Courses
             </h5>
-            <ul className="space-y-2 text-xs text-[#4D433F] font-semibold">
+            <ul className="space-y-2 text-xs text-[#94A3B8] font-semibold">
               <li>
-                <Link href="/product/course-ca-foundation-sub" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/product/course-ca-foundation-sub" className="hover:text-white transition-colors block">
                   CA Foundation (Paper 2)
                 </Link>
               </li>
               <li>
-                <Link href="/product/course-cseet-sub" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/product/course-cseet-sub" className="hover:text-white transition-colors block">
                   CSEET Business Law &amp; Mgt
                 </Link>
               </li>
@@ -189,27 +190,27 @@ export function Footer() {
 
           {/* Column 3: Navigation */}
           <div className="md:col-span-3 lg:col-span-3 space-y-2.5">
-            <h5 className="text-[11px] font-bold uppercase tracking-wider text-[#221D1D]">
+            <h5 className="text-[11px] font-bold uppercase tracking-wider text-white">
               Navigation
             </h5>
-            <ul className="space-y-2 text-xs text-[#4D433F] font-semibold">
+            <ul className="space-y-2 text-xs text-[#94A3B8] font-semibold">
               <li>
-                <Link href="/" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/" className="hover:text-white transition-colors block">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/courses" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/courses" className="hover:text-white transition-colors block">
                   Courses &amp; Notes
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/about" className="hover:text-white transition-colors block">
                   About Academy
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-[#221D1D] transition-colors block">
+                <Link href="/contact" className="hover:text-white transition-colors block">
                   Contact Support
                 </Link>
               </li>
@@ -219,7 +220,7 @@ export function Footer() {
         </div>
 
         {/* Copyright, Policies & Back to top */}
-        <div className="pt-4 flex flex-col items-center justify-between gap-3 text-[11px] text-[#4D433F] sm:flex-row font-medium">
+        <div className="pt-4 flex flex-col items-center justify-between gap-3 text-[11px] text-[#94A3B8] sm:flex-row font-medium">
           <p>
             &copy; 2026 The Law Kaksha. All rights reserved.
           </p>
@@ -227,35 +228,35 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
             <Link
               href="/privacy"
-              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+              className="hover:text-white transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Privacy Policy
             </Link>
             <span>&bull;</span>
             <Link
               href="/terms"
-              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+              className="hover:text-white transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Terms of Service
             </Link>
             <span>&bull;</span>
             <Link
               href="/refund"
-              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+              className="hover:text-white transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Refund Policy
             </Link>
             <span>&bull;</span>
             <Link
               href="/cookies"
-              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+              className="hover:text-white transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Cookie Policy
             </Link>
             <span>&bull;</span>
             <button
               onClick={() => setActivePolicyModal("disclaimer")}
-              className="hover:text-[#221D1D] transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
+              className="hover:text-white transition-colors cursor-pointer py-1 min-h-[44px] flex items-center"
             >
               Examination Disclaimer
             </button>
@@ -263,7 +264,7 @@ export function Footer() {
 
           <button
             onClick={scrollToTop}
-            className="text-[11px] text-[#221D1D] hover:text-[#4D433F] flex items-center gap-1 transition-colors cursor-pointer py-1 min-h-[44px] font-bold"
+            className="text-[11px] text-white hover:text-[#94A3B8] flex items-center gap-1 transition-colors cursor-pointer py-1 min-h-[44px] font-bold"
           >
             <span>Back to top</span>
             <ArrowUp className="w-3 h-3" />

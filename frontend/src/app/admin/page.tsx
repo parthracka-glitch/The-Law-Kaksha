@@ -60,6 +60,7 @@ import { AdminExpensesTab } from "@/components/admin/AdminExpensesTab";
 import { AdminOffersTab } from "@/components/admin/AdminOffersTab";
 import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
+import { AdminExamCountdownAndQOTDTab } from "@/components/admin/AdminExamCountdownAndQOTDTab";
 
 export interface AnnouncementSetting {
   enabled: boolean;
@@ -564,6 +565,7 @@ export default function AdminPortalPage() {
     | "payments"
     | "settings"
     | "qotd"
+    | "exam_countdown_qotd"
     | "promo_banners";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1281,15 +1283,15 @@ export default function AdminPortalPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab("qotd")}
+                onClick={() => setActiveTab("exam_countdown_qotd")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  activeTab === "qotd"
+                  activeTab === "exam_countdown_qotd" || activeTab === "qotd"
                     ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
                     : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>Exam Dates & QOTD</span>
+                <span>Exam Dates &amp; QOTD</span>
               </button>
             </div>
           )}
@@ -1380,6 +1382,18 @@ export default function AdminPortalPage() {
               >
                 <Layers className="w-3.5 h-3.5 text-[#4B8097]" />
                 <span>Homepage Hero Carousel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("exam_countdown_qotd")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "exam_countdown_qotd" || activeTab === "qotd"
+                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
+                <span>Exam Countdown &amp; Daily Quiz</span>
               </button>
               <button
                 type="button"
@@ -3336,110 +3350,9 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 8: EXAM DATES & QOTD */}
-          {activeTab === "qotd" && (
-            <div className="space-y-6">
-              {/* EXAM COUNTDOWN SETTINGS */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-serif font-bold text-[#221D1D]">Exam Countdown Dates</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {examSettings.map((ex, idx) => (
-                    <div key={ex.id || idx} className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-2">
-                      <p className="text-xs font-bold text-[#221D1D]">{ex.exam}</p>
-                      <p className="text-[11px] text-[#77716E]">{ex.session}</p>
-                      <div className="pt-1">
-                        <input
-                          type="date"
-                          value={ex.date}
-                          onChange={async (e) => {
-                            const next = [...examSettings];
-                            next[idx].date = e.target.value;
-                            setExamSettings(next);
-                            try {
-                              await adminFetch(`/api/admin/exam-settings`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ examSettings: next }),
-                              });
-                              showToast("Updated exam date!");
-                            } catch (err) {}
-                          }}
-                          className="px-3 py-1.5 rounded-xl border border-[#E7E4E7] bg-white text-xs font-semibold text-[#221D1D] outline-none focus:border-[#BFAFE5]"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* QUESTION OF THE DAY EDIT */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-6 space-y-4">
-                <h3 className="text-sm font-serif font-bold text-[#221D1D]">Question of the Day (QOTD)</h3>
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <label className="block font-semibold text-[#4D433F] mb-1">Question Text</label>
-                    <textarea
-                      rows={2}
-                      value={qotd.question}
-                      onChange={(e) => setQotd({ ...qotd, question: e.target.value })}
-                      className="w-full p-3 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#4D433F] mb-1">Act / Subject</label>
-                      <input
-                        type="text"
-                        value={qotd.act}
-                        onChange={(e) => setQotd({ ...qotd, act: e.target.value })}
-                        className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#4D433F] mb-1">Section</label>
-                      <input
-                        type="text"
-                        value={qotd.section}
-                        onChange={(e) => setQotd({ ...qotd, section: e.target.value })}
-                        className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#4D433F] mb-1">Explanation</label>
-                    <textarea
-                      rows={2}
-                      value={qotd.explanation}
-                      onChange={(e) => setQotd({ ...qotd, explanation: e.target.value })}
-                      className="w-full p-3 rounded-2xl border border-[#E7E4E7] text-xs text-[#221D1D] outline-none focus:border-[#BFAFE5] bg-[#F7F7F5]"
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      onClick={async () => {
-                        showToast("Saving QOTD to MongoDB Atlas...");
-                        try {
-                          await adminFetch(`/api/admin/qotd`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ qotd }),
-                          });
-                          showToast("Question of the Day updated!");
-                        } catch (err) {
-                          showToast("Saved locally (offline mode)");
-                        }
-                      }}
-                      className="px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer"
-                    >
-                      Save Question of the Day
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* WEBSITE EDIT: EXAM COUNTDOWN & DAILY MCQ CHALLENGE */}
+          {(activeTab === "exam_countdown_qotd" || activeTab === "qotd") && (
+            <AdminExamCountdownAndQOTDTab adminFetch={adminFetch} showToast={showToast} />
           )}
 
           {/* MODULE B1: ORDERS & BOOKINGS MANAGEMENT */}

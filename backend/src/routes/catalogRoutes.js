@@ -65,6 +65,7 @@ router.get("/public/site-data", async (req, res) => {
     let products = [];
     let examSettings = [];
     let qotd = null;
+    let mcqPool = null;
 
     if (isConnected()) {
       products = await Product.find({ status: "Active" }).sort({ createdAt: -1 }).lean();
@@ -72,6 +73,8 @@ router.get("/public/site-data", async (req, res) => {
       if (examDoc) examSettings = examDoc.value;
       const qotdDoc = await SiteSetting.findOne({ key: "qotd" }).lean();
       if (qotdDoc) qotd = qotdDoc.value;
+      const mcqDoc = await SiteSetting.findOne({ key: "mcq_pool" }).lean();
+      if (mcqDoc) mcqPool = mcqDoc.value;
     } else {
       products = Database.table("products").find((p) => p.status === "Active");
     }
@@ -82,6 +85,7 @@ router.get("/public/site-data", async (req, res) => {
       products,
       examSettings,
       qotd,
+      mcqPool,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching site data." });

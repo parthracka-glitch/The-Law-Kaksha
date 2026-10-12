@@ -30,15 +30,15 @@ export function FaqSection() {
   };
 
   return (
-    <section id="faqs" className="py-12 sm:py-16 bg-white text-[#221D1D]">
+    <section id="faqs" className="py-12 sm:py-16 bg-white text-[#0A192F]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center mb-8">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#4B8097] block mb-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#005A9C] block mb-2">
             Answers &amp; Clarity
           </span>
-          <h2 className="text-2xl sm:text-4xl font-semibold text-[#221D1D] tracking-tight font-serif">
+          <h2 className="text-2xl sm:text-4xl font-semibold text-[#0A192F] tracking-tight font-serif">
             Frequently Asked Questions
           </h2>
         </div>
@@ -52,25 +52,25 @@ export function FaqSection() {
                 key={idx}
                 className={`rounded-2xl border transition-all duration-200 ${
                   isOpen
-                    ? "border-[#AED7E9] bg-[#F7F7F5] shadow-xs"
-                    : "border-[#E7E4E7] bg-white hover:border-[#AED7E9]"
+                    ? "border-[#005A9C] bg-[#F0F7FF] shadow-xs"
+                    : "border-[#DBEAFE] bg-white hover:border-[#005A9C]"
                 }`}
               >
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full flex items-center justify-between gap-4 p-5 text-left font-semibold text-sm text-[#221D1D] cursor-pointer min-h-[52px]"
+                  className="w-full flex items-center justify-between gap-4 p-5 text-left font-semibold text-sm text-[#0A192F] cursor-pointer min-h-[52px]"
                   aria-expanded={isOpen}
                 >
                   <span className="leading-snug">{faq.q}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#77716E] shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-[#4B8097]" : ""
+                    className={`w-4 h-4 text-[#64748B] shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-[#005A9C]" : ""
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs text-[#4D433F] leading-relaxed border-t border-[#E7E4E7] animate-in fade-in duration-200">
+                  <div className="px-5 pb-5 pt-1 text-xs text-[#64748B] leading-relaxed border-t border-[#DBEAFE] animate-in fade-in duration-200">
                     <p>{faq.a}</p>
                   </div>
                 )}

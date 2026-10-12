@@ -677,9 +677,15 @@ router.post("/google", async (req, res) => {
     const incomingDeviceId = deviceId ? String(deviceId).trim() : "";
     const incomingDeviceName = deviceName ? String(deviceName).trim() : "Current Web Browser";
 
+    const adminEmails = (process.env.ADMIN_EMAILS || "admin@thelawkaksha.com,admin@lawkaksha.in")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    const isDesignatedAdmin = adminEmails.includes(cleanEmail);
+
     if (!user) {
-      // Create new student registered via Google
-      const studentId = generateStudentId(course);
+      // Create new user registered via Google
+      const studentId = isDesignatedAdmin ? "ADMIN-01" : generateStudentId(course);
       const userId = `usr-g-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const randomPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
 
@@ -693,7 +699,7 @@ router.post("/google", async (req, res) => {
         picture: googlePicture,
         phone: "",
         password_hash: randomPasswordHash,
-        role: "student",
+        role: isDesignatedAdmin ? "admin" : "student",
         selectedCourse: course,
         target_exam: course,
         is_active: true,
@@ -747,6 +753,9 @@ router.post("/google", async (req, res) => {
         activeDeviceName: incomingDeviceName || user.activeDeviceName,
         lastActiveAt: new Date().toISOString(),
       };
+      if (isDesignatedAdmin) {
+        updateFields.role = "admin";
+      }
 
       if (isConnected() && user.save) {
         Object.assign(user, updateFields);

@@ -734,6 +734,37 @@ router.post("/admin/qotd", async (req, res) => {
   }
 });
 
+// GET /admin/mcq-pool - Get all Daily High-Yield Case Challenge MCQs
+router.get("/admin/mcq-pool", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const setting = await SiteSetting.findOne({ key: "mcq_pool" });
+      if (setting && Array.isArray(setting.value) && setting.value.length > 0) {
+        return res.status(200).json({ success: true, mcqPool: setting.value });
+      }
+    }
+    // Return empty or default pool indicator
+    res.status(200).json({ success: true, mcqPool: null });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching MCQ pool." });
+  }
+});
+
+// POST /admin/mcq-pool - Save all Daily High-Yield Case Challenge MCQs to MongoDB
+router.post("/admin/mcq-pool", async (req, res) => {
+  try {
+    const mcqPool = req.body.mcqPool;
+    if (isConnected()) {
+      await SiteSetting.findOneAndUpdate({ key: "mcq_pool" }, { value: mcqPool }, { upsert: true });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", mcqPool });
+    }
+    res.status(200).json({ success: true, mcqPool });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error saving MCQ pool." });
+  }
+});
+
+
 // -----------------------------------------------------------------------------
 // 9. FILE UPLOAD TO CLOUDINARY / SECURE STORAGE
 // -----------------------------------------------------------------------------

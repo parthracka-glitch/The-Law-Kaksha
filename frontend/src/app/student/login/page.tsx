@@ -98,14 +98,14 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between p-4 sm:p-6 lg:p-8 text-[#221D1D] selection:bg-[#BFAFE5]/40 selection:text-[#221D1D]">
+    <div className="min-h-screen bg-[#F0F7FF] flex flex-col justify-between p-4 sm:p-6 lg:p-8 text-[#0A192F] selection:bg-[#DBEAFE] selection:text-[#005A9C]">
       {/* Top Header */}
       <header className="max-w-6xl w-full mx-auto flex items-center justify-between py-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] text-xs font-semibold text-[#221D1D] transition-all cursor-pointer min-h-[44px] shadow-xs"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#DBEAFE] bg-white hover:bg-[#F0F7FF] text-xs font-semibold text-[#0A192F] transition-all cursor-pointer min-h-[44px] shadow-xs"
         >
-          <ArrowLeft className="w-3.5 h-3.5 text-[#4D433F]" />
+          <ArrowLeft className="w-3.5 h-3.5 text-[#005A9C]" />
           <span>Back to Home</span>
         </Link>
 
@@ -123,9 +123,9 @@ export default function StudentLoginPage() {
 
         <Link
           href="/login"
-          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#4D433F] hover:text-[#221D1D] px-4 py-2 rounded-full border border-[#E7E4E7] bg-white hover:bg-[#F7F7F5] transition min-h-[44px]"
+          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#005A9C] hover:text-[#004F8A] px-4 py-2 rounded-full border border-[#DBEAFE] bg-white hover:bg-[#F0F7FF] transition min-h-[44px]"
         >
-          <span>Website Login</span>
+          <span>Main Portal Login</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </header>
@@ -135,8 +135,8 @@ export default function StudentLoginPage() {
         <div className="max-w-md w-full space-y-6">
           {/* GATED STATE SCREEN */}
           {isGated ? (
-            <div className="bg-white rounded-3xl border border-[#E7E4E7] p-8 sm:p-10 shadow-[0_10px_40px_rgba(34,29,29,0.06)] text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-[#C4E1EC]/40 border border-[#AED7E9] text-[#2B5B70] flex items-center justify-center mx-auto shadow-xs">
+            <div className="bg-white rounded-3xl border border-[#DBEAFE] p-8 sm:p-10 shadow-[0_10px_40px_rgba(0,90,156,0.06)] text-center space-y-6">
+              <div className="w-16 h-16 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] flex items-center justify-center mx-auto shadow-xs">
                 <Lock className="w-8 h-8" />
               </div>
 
@@ -192,22 +192,22 @@ export default function StudentLoginPage() {
             /* NORMAL STUDENT LOGIN FORM */
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/70 text-[#221D1D] text-xs font-bold border border-[#AED7E9] mb-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#2B5B70]" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] text-[#005A9C] text-xs font-bold border border-[#DBEAFE] mb-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
                   <span>Candidate Workspace</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#221D1D] tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F] tracking-tight">
                   Student Sign In
                 </h1>
-                <p className="text-xs sm:text-sm text-[#4D433F]">
+                <p className="text-xs sm:text-sm text-[#64748B]">
                   Access your encrypted DRM codices, live Google Meet sessions, and study streaks.
                 </p>
               </div>
 
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 sm:p-8 shadow-[0_10px_40px_rgba(34,29,29,0.06)] space-y-5">
+              <div className="bg-white rounded-3xl border border-[#DBEAFE] p-6 sm:p-8 shadow-[0_10px_40px_rgba(0,90,156,0.06)] space-y-5">
                 {error && (
-                  <div className="p-3.5 rounded-2xl bg-[#F4C5C0]/40 border border-[#F4C5C0] text-xs text-[#C35F3B] flex items-center gap-2 font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-[#C35F3B]" />
+                  <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-600 flex items-center gap-2 font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{error}</span>
                   </div>
                 )}
@@ -215,68 +215,68 @@ export default function StudentLoginPage() {
                 {/* Login Form */}
                 <form onSubmit={handleEmailLogin} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                    <label className="block text-xs font-semibold text-[#0A192F] mb-1.5">
                       Registered Student Email *
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="student@example.com"
                         required
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] placeholder:text-[#77716E] bg-[#F7F7F5] focus:bg-white transition-all min-h-[48px]"
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#DBEAFE] focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-sm text-[#0A192F] placeholder:text-[#64748B] bg-[#F8FAFC] focus:bg-white transition-all min-h-[48px]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#221D1D] mb-1.5">
+                    <label className="block text-xs font-semibold text-[#0A192F] mb-1.5">
                       Password *
                     </label>
                     <div className="relative">
-                      <Key className="w-4 h-4 text-[#77716E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Key className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         required
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E7E4E7] focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 text-sm text-[#221D1D] placeholder:text-[#77716E] bg-[#F7F7F5] focus:bg-white transition-all min-h-[48px]"
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#DBEAFE] focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-sm text-[#0A192F] placeholder:text-[#64748B] bg-[#F8FAFC] focus:bg-white transition-all min-h-[48px]"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-[#77716E] pt-1">
+                  <div className="flex items-center justify-between text-xs text-[#64748B] pt-1">
                     <span>Hardware DRM session will be locked</span>
-                    <Link href="/login" className="text-[#221D1D] font-semibold hover:underline">
-                      Website Login &rarr;
+                    <Link href="/login" className="text-[#005A9C] font-semibold hover:underline">
+                      Main Login &rarr;
                     </Link>
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2 cursor-pointer active:scale-[0.98] min-h-[48px]"
+                    className="w-full py-3.5 px-6 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-[0_2px_8px_rgba(0,90,156,0.35)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2 cursor-pointer active:scale-[0.98] min-h-[48px]"
                   >
                     {loading ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-[#221D1D]" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
                         <span>Verifying Entitlement...</span>
                       </>
                     ) : (
                       <>
                         <span>Enter Candidate Portal</span>
-                        <ArrowRight className="w-4 h-4 text-[#221D1D]" />
+                        <ArrowRight className="w-4 h-4 text-white" />
                       </>
                     )}
                   </button>
                 </form>
 
                 {/* Security Footnote */}
-                <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-center gap-2 text-[11px] text-[#77716E]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#2B5B70]" />
+                <div className="pt-4 border-t border-[#DBEAFE] flex items-center justify-center gap-2 text-[11px] text-[#64748B]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
                   <span>Protected by DPDP &amp; Single-Device Hardware Security</span>
                 </div>
               </div>

@@ -14,119 +14,121 @@ import {
   Star,
   Award,
   Zap,
+  Flame,
+  CheckCircle2,
+  Lock,
 } from "lucide-react";
-import { apiRequest } from "@/lib/api";
+import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 
-export interface CarouselSlideData {
+export interface FeaturedCourseData {
   id: string;
-  placement: string;
+  categoryTag: string;
+  tagColor: string;
   title: string;
   subtitle: string;
+  price: number;
+  mrp: number;
+  discount: string;
   image: string;
-  cta_label: string;
-  cta_link?: string;
-  subscription_id?: string;
-  badge?: string;
-  is_active: boolean;
-  order: number;
-  rating?: string;
-  glowGradient?: string;
-  badgeColor?: string;
+  bookId: "ca-foundation" | "cseet";
+  sampleTitle: string;
+  rating: string;
+  studentCount: string;
+  features: string[];
+  ctaLink: string;
+  isBestseller?: boolean;
+  isNew?: boolean;
 }
 
-const FALLBACK_SLIDES: CarouselSlideData[] = [
+const FEATURED_COURSES: FeaturedCourseData[] = [
   {
-    id: "slide-1",
-    placement: "homepage_top",
-    title: "Master CA Foundation Business Laws",
-    subtitle: "Complete codified ICAI syllabus notes, high-yield visual flowcharts & daily exam-calibrated case studies.",
-    image: "/images/hero_ca_foundation.jpg",
-    cta_label: "Explore CA Foundation Pass",
-    cta_link: "/courses",
-    badge: "MOST POPULAR • PAPER 2",
-    badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]",
-    is_active: true,
-    order: 1,
-    rating: "4.9/5 Rating (1,200+ Candidates)",
-    glowGradient: "radial-gradient(ellipse at 80% 35%, rgba(191,175,229,0.35) 0%, rgba(254,240,138,0.2) 45%, transparent 75%)",
+    id: "ca-foundation",
+    categoryTag: "🔥 #1 BESTSELLER • ICAI NEW SCHEME",
+    tagColor: "bg-amber-50 text-amber-800 border-amber-200",
+    title: "CA Foundation Business Laws Master Codex",
+    subtitle:
+      "Complete 7 Acts codified notes, high-yield visual flowcharts, landmark case laws, and ICAI Section 16(1) model answers.",
+    price: 99,
+    mrp: 299,
+    discount: "67% OFF",
+    image: "/assets/crop_ca_foundation_book.png",
+    bookId: "ca-foundation",
+    sampleTitle: "CA Foundation Business Laws Master Codex",
+    rating: "4.9 / 5.0",
+    studentCount: "1,240+ Enrolled",
+    features: [
+      "All 7 CA Foundation Acts Fully Codified",
+      "45+ Landmark Case Studies with Model Answers",
+      "Unit-wise Practice Tests & Chapter Mindmaps",
+      "Single-Device Watermarked DRM Security",
+      "Weekly Live Google Meet Doubt Clearing",
+    ],
+    ctaLink: "/product/course-ca-foundation-sub",
+    isBestseller: true,
   },
   {
-    id: "slide-2",
-    placement: "homepage_top",
+    id: "cseet-law",
+    categoryTag: "✨ NEW COURSE RELEASE • 2026 ICSI SYLLABUS",
+    tagColor: "bg-blue-50 text-[#005A9C] border-blue-200",
     title: "CSEET Legal Aptitude & Management",
-    subtitle: "Interactive 3D digital codices, ICSI unit MCQs, and weekly live Google Meet doubt clearing sessions.",
-    image: "/images/hero_cseet_law.jpg",
-    cta_label: "Explore CSEET Pass",
-    cta_link: "/courses",
-    badge: "ICSI SYLLABUS • 8 UNITS",
-    badgeColor: "bg-[#AED7E9]/50 text-[#221D1D] border-[#AED7E9]",
-    is_active: true,
-    order: 2,
-    rating: "100% ICSI Exam Aligned",
-    glowGradient: "radial-gradient(ellipse at 80% 35%, rgba(174,215,233,0.45) 0%, rgba(196,225,236,0.25) 45%, transparent 75%)",
+    subtitle:
+      "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
+    price: 99,
+    mrp: 299,
+    discount: "67% OFF",
+    image: "/assets/bookcover.png",
+    bookId: "cseet",
+    sampleTitle: "CSEET Business Law & Management Codex",
+    rating: "4.9 / 5.0",
+    studentCount: "Just Released",
+    features: [
+      "Full 8 Units Legal Aptitude & Business Mgt",
+      "High-Yield Timed MCQ Drills with Analytics",
+      "Statutory Definitions & Judicial Precedents",
+      "Interactive 3D Digital Codex Reader",
+      "Live Strategy Sessions & Doubt Support",
+    ],
+    ctaLink: "/product/course-cseet-sub",
+    isNew: true,
   },
   {
-    id: "slide-3",
-    placement: "homepage_top",
-    title: "Dual Foundation + CSEET All-Access Pass",
-    subtitle: "One unified pass for comprehensive commerce law mastery. Complete statutory library at special launch pricing.",
-    image: "/images/hero_dual_combo.jpg",
-    cta_label: "Get Dual All-Access Pass @ ₹180",
-    cta_link: "/courses",
-    badge: "BEST VALUE • LAUNCH SPECIAL",
-    badgeColor: "bg-[#FEF08A]/70 text-[#854D0E] border-[#FDE047]",
-    is_active: true,
-    order: 3,
-    rating: "Dual Course Master Bundle",
-    glowGradient: "radial-gradient(ellipse at 80% 35%, rgba(216,180,254,0.4) 0%, rgba(253,224,71,0.25) 45%, transparent 75%)",
+    id: "ca-cs-combo",
+    categoryTag: "⚡ BEST VALUE • ALL-ACCESS COMMERCE PASS",
+    tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    title: "CA Foundation + CSEET Dual Pass",
+    subtitle:
+      "One unified pass for comprehensive commerce law mastery. Unlocks both CA Foundation & CSEET portals simultaneously.",
+    price: 179,
+    mrp: 598,
+    discount: "70% OFF",
+    image: "/assets/ca-cs-hero-books-sharp.png",
+    bookId: "ca-foundation",
+    sampleTitle: "Dual Master Commerce Law Codex",
+    rating: "5.0 / 5.0",
+    studentCount: "Limited Launch Offer",
+    features: [
+      "Includes BOTH CA Foundation & CSEET Codices",
+      "Full 15 Subjects & Statutory Acts Access",
+      "Unlimited Mock Exams & Evaluation",
+      "Priority Google Meet Q&A Sessions",
+      "Personalized Study Streak Tracking",
+    ],
+    ctaLink: "/courses",
   },
 ];
 
 export function SubscriptionCarousel() {
-  const [slides, setSlides] = useState<CarouselSlideData[]>(FALLBACK_SLIDES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch live slides from backend, falling back gracefully
-  useEffect(() => {
-    let isMounted = true;
-    async function loadSlides() {
-      try {
-        const res = await apiRequest<any>("/api/carousel-slides");
-        const rawSlides = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray((res.data as any)?.slides)
-          ? (res.data as any).slides
-          : Array.isArray((res.data as any)?.data)
-          ? (res.data as any).data
-          : [];
+  // Sample Chapter Reader Modal state
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
+  const [modalBookId, setModalBookId] = useState<"ca-foundation" | "cseet">("ca-foundation");
+  const [modalTitle, setModalTitle] = useState("");
 
-        if (rawSlides.length > 0 && isMounted) {
-          // Merge with local fallback styling / images if remote image is placeholder
-          const enhanced = rawSlides.map((item: any, idx: number) => ({
-            ...item,
-            image:
-              item.image && (item.image.startsWith("/images/") || item.image.startsWith("http"))
-                ? item.image
-                : FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].image,
-            glowGradient: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].glowGradient,
-            badgeColor: FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].badgeColor,
-            rating: item.rating || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].rating,
-          }));
-          setSlides(enhanced);
-        }
-      } catch (e) {
-        // Fallback remains
-      }
-    }
-    loadSlides();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const total = slides.length;
+  const total = FEATURED_COURSES.length;
+  const current = FEATURED_COURSES[currentIndex];
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % total);
@@ -136,246 +138,249 @@ export function SubscriptionCarousel() {
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const minSwipeDistance = 45;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    if (isLeftSwipe) {
-      nextSlide();
-    } else if (isRightSwipe) {
-      prevSlide();
-    }
-  };
-
-  // Auto-rotation every 5 seconds (pauses on hover)
+  // Auto-play timer (6 seconds, pauses on hover)
   useEffect(() => {
-    if (isPaused || total <= 1) return;
+    if (isPaused) return;
     timerRef.current = setInterval(() => {
       nextSlide();
-    }, 5000);
+    }, 6000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPaused, total, nextSlide]);
+  }, [isPaused, nextSlide]);
 
-  if (total === 0) return null;
-  const current = slides[currentIndex];
+  const handleOpenSample = (bookId: "ca-foundation" | "cseet", title: string) => {
+    setModalBookId(bookId);
+    setModalTitle(title);
+    setSampleModalOpen(true);
+  };
 
   return (
-    <section
-      className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 my-4 sm:my-6 select-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      aria-label="Subscription Highlights Carousel"
-    >
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] bg-white border border-[#E7E4E7] text-[#221D1D] shadow-[0_15px_50px_rgba(34,29,29,0.08)] min-h-[390px] sm:min-h-[460px] flex items-center transition-all duration-500">
-        
-        {/* Dynamic ambient radiant aura */}
-        <div
-          className="absolute inset-0 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] pointer-events-none transition-all duration-700 blur-3xl opacity-60"
-          style={{
-            background:
-              current.glowGradient ||
-              "radial-gradient(ellipse at 80% 35%, rgba(191,175,229,0.35) 0%, rgba(174,215,233,0.3) 45%, transparent 75%)",
-          }}
-        />
-
-        {/* Subtle mesh background grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(#221D1D_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.025] pointer-events-none" />
-
-        {/* Slide Content Grid */}
-        <div
-          key={current.id || currentIndex}
-          className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-12 items-center px-4 sm:px-12 md:px-14 lg:px-16 py-6 sm:py-12 w-full animate-in fade-in duration-500"
-        >
-          {/* Left Text Column (safe margin ensures chevron arrows never overlap) */}
-          <div className="md:col-span-7 lg:col-span-7 space-y-4 sm:space-y-5 text-center md:text-left">
-            {current.badge && (
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase border shadow-2xs ${
-                    current.badgeColor || "bg-[#C4E1EC] text-[#221D1D] border-[#AED7E9]"
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{current.badge}</span>
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-[#77716E]">
-                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                  <span>4.9 / 5 Rated</span>
-                </span>
-              </div>
-            )}
-
-            <h2 className="text-2xl sm:text-4xl lg:text-[2.75rem] font-serif font-black text-[#221D1D] tracking-tight leading-[1.18]">
-              {current.title}
+    <>
+      <section
+        className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6 sm:my-10 select-none"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        aria-label="Featured Academy Courses Showcase"
+      >
+        {/* Section Header with Category Switcher Tabs */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#005A9C] border border-[#DBEAFE] mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
+              <span>Official 2026 Curriculum</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F]">
+              Featured &amp; Best-Selling Codices
             </h2>
-
-            <p className="text-sm sm:text-base lg:text-lg text-[#4D433F] max-w-xl leading-relaxed mx-auto md:mx-0">
-              {current.subtitle}
-            </p>
-
-            {/* Feature Pills */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-2.5 pt-1 text-xs text-[#221D1D]">
-              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] hover:bg-white border border-[#E7E4E7] px-3 sm:px-3.5 py-1.5 rounded-full font-semibold transition-colors shadow-2xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>Watermarked DRM</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] hover:bg-white border border-[#E7E4E7] px-3 sm:px-3.5 py-1.5 rounded-full font-semibold transition-colors shadow-2xs">
-                <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>30 Days Full Access</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-[#F7F7F5] hover:bg-white border border-[#E7E4E7] px-3 sm:px-3.5 py-1.5 rounded-full font-semibold transition-colors shadow-2xs">
-                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>ICAI / ICSI Aligned</span>
-              </span>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="pt-2 sm:pt-3 flex flex-wrap justify-center md:justify-start items-center gap-3 sm:gap-4">
-              <Link
-                href={current.cta_link || (current.subscription_id ? `/subscriptions/${current.subscription_id}` : "/courses")}
-                className="inline-flex items-center justify-center gap-2 px-7 sm:px-8 py-3.5 rounded-full font-bold text-sm sm:text-base bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_4px_14px_rgba(191,175,229,0.45)] hover:shadow-[0_6px_20px_rgba(191,175,229,0.6)] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
-              >
-                <span>{current.cta_label || "Explore Subscription"}</span>
-                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-              </Link>
-
-              <Link
-                href="/student/login"
-                className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-full font-bold text-sm sm:text-base bg-white border border-[#221D1D] text-[#221D1D] hover:bg-[#F7F7F5] shadow-2xs transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
-              >
-                <span>Student Portal</span>
-              </Link>
-            </div>
           </div>
 
-          {/* Right Column: 3D Showcase Presentation Graphic */}
-          <div className="md:col-span-5 lg:col-span-5 flex justify-center items-center">
-            <div className="relative w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[370px] aspect-square rounded-[2.25rem] p-3 bg-gradient-to-br from-white via-white/80 to-[#F7F7F5] border-2 border-white shadow-[0_20px_50px_rgba(34,29,29,0.12)] backdrop-blur-md group transition-all duration-500">
-              
-              {/* Backlight Glow Behind Book Container */}
-              <div className="absolute inset-0 rounded-[2.25rem] bg-gradient-to-tr from-[#AED7E9]/40 via-[#BFAFE5]/30 to-amber-200/20 blur-xl -z-10 group-hover:scale-110 transition-transform duration-700" />
+          {/* Course Switcher Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            {FEATURED_COURSES.map((course, idx) => {
+              const isActive = idx === currentIndex;
+              return (
+                <button
+                  key={course.id}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shadow-2xs ${
+                    isActive
+                      ? "bg-[#005A9C] text-white shadow-sm scale-102"
+                      : "bg-white text-[#64748B] hover:text-[#0A192F] border border-[#DBEAFE] hover:bg-[#F0F7FF]"
+                  }`}
+                >
+                  {course.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
+                  {course.isNew && <Sparkles className="w-3.5 h-3.5 text-sky-400" />}
+                  <span>{course.id === "ca-foundation" ? "Best Seller (CA)" : course.id === "cseet-law" ? "New Course (CSEET)" : "Dual Pass Combo"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-              {/* High-Definition 3D Image */}
-              <div className="relative w-full h-full rounded-[1.85rem] overflow-hidden shadow-inner bg-[#1A1614]">
-                <Image
-                  src={current.image || "/images/hero_ca_foundation.jpg"}
-                  alt={current.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 380px"
-                  className="object-cover object-center group-hover:scale-106 transition-transform duration-700 ease-out"
-                  priority
-                />
+        {/* Main Spotlight Card */}
+        <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-white border-2 border-[#DBEAFE] text-[#0A192F] shadow-[0_15px_50px_rgba(0,90,156,0.08)] transition-all duration-500">
+          {/* Radiant Background Aura */}
+          <div
+            className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none blur-3xl opacity-40 transition-all duration-700"
+            style={{
+              background: "radial-gradient(circle, rgba(0,90,156,0.25) 0%, rgba(174,215,233,0.15) 50%, transparent 70%)",
+            }}
+          />
 
-                {/* Subtle Glass Reflection Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-white/15 pointer-events-none" />
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-6 sm:p-10 lg:p-12">
+            
+            {/* Left Column: Course Details & CTAs */}
+            <div className="lg:col-span-7 space-y-5 text-left order-2 lg:order-1">
+              {/* Category Status & Live Rating */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase border shadow-2xs ${current.tagColor}`}
+                >
+                  {current.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                  {current.isNew && <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />}
+                  <span>{current.categoryTag}</span>
+                </span>
 
-                {/* Floating Top Pill */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/92 backdrop-blur-md border border-white/60 text-[#221D1D] text-[10px] sm:text-[11px] font-bold shadow-md">
-                    <Sparkles className="w-3 h-3 text-[#BFAFE5]" />
-                    <span>{current.rating || "Official 2026 Edition"}</span>
+                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F0F7FF] border border-[#DBEAFE] text-xs font-bold text-[#0A192F]">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{current.rating}</span>
+                  <span className="w-1 h-1 rounded-full bg-[#CBD5E1] mx-0.5" />
+                  <span className="text-[#64748B] font-medium">{current.studentCount}</span>
+                </div>
+              </div>
+
+              {/* Course Title */}
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#0A192F] tracking-tight leading-tight">
+                {current.title}
+              </h3>
+
+              {/* Subtitle */}
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                {current.subtitle}
+              </p>
+
+              {/* Key Features Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                {current.features.map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-[#0A192F] font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-[#005A9C] shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Price Tag Callout */}
+              <div className="flex items-baseline gap-3 pt-2">
+                <span className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
+                  ₹{current.price}
+                </span>
+                <span className="text-xs text-[#64748B]">/ month</span>
+                <span className="text-base text-[#94A3B8] line-through">₹{current.mrp}</span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {current.discount}
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <Link
+                  href={current.ctaLink}
+                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                >
+                  <span>Enroll in Course</span>
+                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenSample(current.bookId, current.sampleTitle)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-white border border-[#005A9C] text-[#005A9C] hover:bg-[#EFF6FF] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                >
+                  <BookOpen className="w-4 h-4 text-[#005A9C]" />
+                  <span>Preview Free Chapter</span>
+                </button>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] text-[#64748B]">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
+                  <span>Single-Device Watermarked DRM</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Instant Portal Activation</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Right Column: 3D Hardbound Book Showcase Card */}
+            <div className="lg:col-span-5 flex justify-center items-center order-1 lg:order-2">
+              <div
+                onClick={() => handleOpenSample(current.bookId, current.sampleTitle)}
+                className="relative w-full max-w-[340px] aspect-[1/1.1] rounded-3xl p-6 bg-gradient-to-b from-[#F0F7FF] via-white to-[#F0F7FF] border border-[#DBEAFE] shadow-[0_15px_40px_rgba(0,90,156,0.10)] flex flex-col items-center justify-center cursor-pointer group hover:border-[#005A9C] transition-all duration-300"
+              >
+                {/* Floating Top Badge */}
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-[#005A9C] border border-[#DBEAFE] shadow-2xs">
+                    {current.isBestseller ? "🔥 #1 Best Seller" : current.isNew ? "✨ New 2026 Edition" : "⭐ Dual All-Access"}
                   </span>
-                  <span className="px-2.5 py-1 rounded-full bg-[#221D1D]/85 backdrop-blur-md border border-white/20 text-[#AED7E9] text-[10px] font-mono font-bold shadow-md">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0A192F] text-white">
                     DRM-PROTECTED
                   </span>
                 </div>
 
-                {/* Floating Bottom Status Pill */}
-                <div className="absolute bottom-3 left-3 right-3 pointer-events-none">
-                  <div className="px-3.5 py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-white/80 shadow-lg flex items-center justify-between text-[#221D1D]">
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                      </span>
-                      <span className="text-[11px] font-bold">In-Browser Instant Access</span>
+                {/* 3D Book Graphic */}
+                <div className="relative w-full h-[78%] my-auto flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src={current.image}
+                    alt={current.title}
+                    fill
+                    className="object-contain drop-shadow-[0_15px_20px_rgba(10,25,47,0.18)]"
+                    sizes="340px"
+                    priority
+                  />
+                </div>
+
+                {/* Floating Bottom Status */}
+                <div className="absolute bottom-4 left-4 right-4 z-20 pointer-events-none">
+                  <div className="px-3.5 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#DBEAFE] shadow-xs flex items-center justify-between text-xs font-bold text-[#0A192F]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[11px]">Click Book to Read Sample</span>
                     </div>
-                    <span className="text-[10px] font-extrabold text-[#4B8097] uppercase tracking-wider">
-                      Live
-                    </span>
+                    <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
-        </div>
 
-        {/* Side Navigation Chevrons (Positioned cleanly on large screens with ample clearance) */}
-        {total > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              aria-label="Previous slide"
-              className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-white border border-[#E7E4E7] text-[#221D1D] shadow-md items-center justify-center backdrop-blur-md transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={nextSlide}
-              aria-label="Next slide"
-              className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-white border border-[#E7E4E7] text-[#221D1D] shadow-md items-center justify-center backdrop-blur-md transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </>
-        )}
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevSlide}
+            aria-label="Previous course"
+            className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white border border-[#DBEAFE] text-[#0A192F] hover:text-[#005A9C] shadow-md items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={nextSlide}
+            aria-label="Next course"
+            className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white border border-[#DBEAFE] text-[#0A192F] hover:text-[#005A9C] shadow-md items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
 
-        {/* Docked Bottom Control Pill: Prev, Live Progress Pills, Next */}
-        {total > 1 && (
-          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#E7E4E7] shadow-sm">
-            <button
-              onClick={prevSlide}
-              aria-label="Previous slide"
-              className="w-6 h-6 rounded-full hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-
-            {/* Interactive Animated Auto-Play Indicators */}
-            <div className="flex items-center gap-1.5">
-              {slides.map((slide, idx) => (
-                <button
-                  key={slide.id || idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  aria-label={`Go to slide ${idx + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer overflow-hidden ${
-                    idx === currentIndex
-                      ? "w-8 bg-[#221D1D]"
-                      : "w-2.5 bg-[#AED7E9]/70 hover:bg-[#AED7E9]"
+          {/* Auto-Rotation Progress Bar */}
+          <div className="h-1 w-full bg-[#EFF6FF] flex">
+            {FEATURED_COURSES.map((_, idx) => (
+              <div
+                key={idx}
+                className="flex-1 h-full cursor-pointer relative"
+                onClick={() => setCurrentIndex(idx)}
+              >
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    idx === currentIndex ? "bg-[#005A9C]" : "bg-transparent"
                   }`}
                 />
-              ))}
-            </div>
-
-            <button
-              onClick={nextSlide}
-              aria-label="Next slide"
-              className="w-6 h-6 rounded-full hover:bg-[#F7F7F5] text-[#221D1D] flex items-center justify-center transition cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      </section>
+
+      {/* Interactive Sample Chapter Modal */}
+      <EnhancedSampleChapterModal
+        isOpen={sampleModalOpen}
+        onClose={() => setSampleModalOpen(false)}
+        bookTitle={modalTitle}
+        bookId={modalBookId}
+        bookPrice={99}
+      />
+    </>
   );
 }

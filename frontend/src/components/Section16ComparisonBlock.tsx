@@ -73,52 +73,52 @@ export function Section16ComparisonBlock() {
   }, [API_URL]);
 
   return (
-    <section className="py-16 sm:py-20 bg-[#AED7E9] text-[#221D1D] relative overflow-hidden">
+    <section className="py-16 sm:py-20 bg-[#F0F7FF] text-[#0A192F] relative overflow-hidden border-t border-b border-[#DBEAFE]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Header Badge & Title */}
         <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#98C5D8] text-[#221D1D] text-xs font-semibold tracking-wide uppercase shadow-xs">
-            <Scale className="w-3.5 h-3.5 text-[#4B8097]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#DBEAFE] text-[#005A9C] text-xs font-semibold tracking-wide uppercase shadow-xs">
+            <Scale className="w-3.5 h-3.5 text-[#005A9C]" />
             <span>ICAI Answer Writing Diagnostic</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#221D1D] font-serif">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#0A192F] font-serif">
             Why 82% of CA Foundation Aspirants <br className="hidden sm:inline" />
             Lose Marks in Descriptive Law
           </h2>
 
-          <p className="text-sm sm:text-base text-[#4D433F] leading-relaxed font-sans">
+          <p className="text-sm sm:text-base text-[#64748B] leading-relaxed font-sans">
             Legal evaluation is not based on general paragraphs. See the exact difference between an average answer and{" "}
-            <span className="underline decoration-[#BFAFE5] decoration-2 underline-offset-4 font-bold text-[#221D1D]">The Law कक्षा 6/6 structured answer</span> under Section 16(1).
+            <span className="underline decoration-[#005A9C] decoration-2 underline-offset-4 font-bold text-[#005A9C]">The Law कक्षा 6/6 structured answer</span> under Section 16(1).
           </p>
         </div>
 
         {/* Practical Question Prompt Banner */}
-        <div className="mb-8 p-5 sm:p-6 rounded-3xl bg-white text-[#221D1D] border border-[#E7E4E7] shadow-sm">
+        <div className="mb-8 p-5 sm:p-6 rounded-3xl bg-white text-[#0A192F] border border-[#DBEAFE] shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] text-xs font-semibold border border-[#AED7E9]">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#EFF6FF] text-[#005A9C] text-xs font-semibold border border-[#DBEAFE]">
                 {comparisonData.act}
               </span>
-              <span className="text-xs font-mono font-bold text-[#2B5B70] bg-[#AED7E9]/40 border border-[#AED7E9] px-2 py-0.5 rounded-full">{comparisonData.section}</span>
+              <span className="text-xs font-mono font-bold text-[#005A9C] bg-[#EFF6FF] border border-[#DBEAFE] px-2 py-0.5 rounded-full">{comparisonData.section}</span>
             </div>
-            <span className="text-xs font-semibold text-[#77716E]">{comparisonData.marks}</span>
+            <span className="text-xs font-semibold text-[#64748B]">{comparisonData.marks}</span>
           </div>
 
-          <p className="text-sm sm:text-base font-semibold text-[#221D1D] leading-relaxed">
-            <span className="text-[#C35F3B] font-bold mr-1">ICAI Past Exam Problem:</span> {comparisonData.question}
+          <p className="text-sm sm:text-base font-semibold text-[#0A192F] leading-relaxed">
+            <span className="text-[#005A9C] font-bold mr-1">ICAI Past Exam Problem:</span> {comparisonData.question}
           </p>
         </div>
 
         {/* Toggle between Side-by-Side and Marking Rubric */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex max-w-full overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-2xl bg-white/60 border border-[#98C5D8] shadow-xs">
+          <div className="inline-flex max-w-full overflow-x-auto no-scrollbar scrollbar-none p-1 rounded-2xl bg-white border border-[#DBEAFE] shadow-xs">
             <button
               onClick={() => setActiveTab("side_by_side")}
               className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 activeTab === "side_by_side"
-                  ? "bg-white text-[#221D1D] shadow-xs"
-                  : "text-[#4D433F] hover:text-[#221D1D]"
+                  ? "bg-[#005A9C] text-white shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
               }`}
             >
               <span className="hidden sm:inline">Side-by-Side </span>Comparison
@@ -127,8 +127,8 @@ export function Section16ComparisonBlock() {
               onClick={() => setActiveTab("rubric")}
               className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 activeTab === "rubric"
-                  ? "bg-white text-[#221D1D] shadow-xs"
-                  : "text-[#4D433F] hover:text-[#221D1D]"
+                  ? "bg-[#005A9C] text-white shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
               }`}
             >
               <span className="hidden sm:inline">ICAI Step </span>Mark Rubric
@@ -140,32 +140,32 @@ export function Section16ComparisonBlock() {
         {activeTab === "side_by_side" ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             {/* LEFT: 2/6 MARKS ASPIRANT ANSWER */}
-            <div className="rounded-3xl bg-[#F7F7F5] border border-[#F4C5C0] p-6 flex flex-col justify-between relative text-[#221D1D] shadow-sm">
+            <div className="rounded-3xl bg-white border border-rose-200 p-6 flex flex-col justify-between relative text-[#0A192F] shadow-sm">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E7E4E7] pb-3">
+                <div className="flex items-center justify-between border-b border-[#DBEAFE] pb-3">
                   <div>
-                    <span className="text-[11px] font-semibold text-[#C35F3B] uppercase tracking-wider">Common Trap</span>
-                    <h3 className="text-base font-bold text-[#221D1D]">{comparisonData.aspirantTitle}</h3>
+                    <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">Common Trap</span>
+                    <h3 className="text-base font-bold text-[#0A192F]">{comparisonData.aspirantTitle}</h3>
                   </div>
-                  <div className="px-3 py-1 rounded-xl bg-[#F4C5C0]/60 border border-[#F4C5C0] text-[#C35F3B] font-extrabold text-sm flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-[#C35F3B]" />
+                  <div className="px-3 py-1 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-sm flex items-center gap-1.5">
+                    <XCircle className="w-4 h-4 text-rose-600" />
                     <span>{comparisonData.aspirantScore}</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white border border-[#E7E4E7] text-[#4D433F] text-xs sm:text-sm italic leading-relaxed">
+                <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] text-xs sm:text-sm italic leading-relaxed">
                   {comparisonData.aspirantAnswer}
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#C35F3B] flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#C35F3B]" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
                     <span>Why Evaluator Cuts 4 Marks:</span>
                   </p>
                   <ul className="space-y-2">
                     {comparisonData.aspirantIssues.map((issue, idx) => (
-                      <li key={idx} className="text-xs text-[#4D433F] flex items-start gap-2">
-                        <XCircle className="w-3.5 h-3.5 text-[#C35F3B] shrink-0 mt-0.5" />
+                      <li key={idx} className="text-xs text-[#64748B] flex items-start gap-2">
+                        <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
                         <span>{issue}</span>
                       </li>
                     ))}
@@ -173,39 +173,39 @@ export function Section16ComparisonBlock() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#E7E4E7] text-center">
-                <span className="text-[11px] text-[#77716E]">
+              <div className="mt-6 pt-4 border-t border-[#E2E8F0] text-center">
+                <span className="text-[11px] text-[#64748B]">
                   Result: Concept known, but 0 statutory structuring = Low aggregate in Paper 2.
                 </span>
               </div>
             </div>
 
             {/* RIGHT: 6/6 MARKS THE LAW KAKSHA ANSWER */}
-            <div className="rounded-3xl bg-white border-2 border-[#AED7E9] p-6 flex flex-col justify-between relative shadow-md text-[#221D1D]">
+            <div className="rounded-3xl bg-white border-2 border-[#005A9C] p-6 flex flex-col justify-between relative shadow-md text-[#0A192F]">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E7E4E7] pb-3">
+                <div className="flex items-center justify-between border-b border-[#DBEAFE] pb-3">
                   <div>
-                    <span className="text-[11px] font-bold text-[#4B8097] uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#4B8097]" />
+                    <span className="text-[11px] font-bold text-[#005A9C] uppercase tracking-wider flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#005A9C]" />
                       <span>ICAI Suggested Model Standard</span>
                     </span>
-                    <h3 className="text-base font-bold text-[#221D1D]">{comparisonData.modelTitle}</h3>
+                    <h3 className="text-base font-bold text-[#0A192F]">{comparisonData.modelTitle}</h3>
                   </div>
-                  <div className="px-3 py-1 rounded-xl bg-[#AED7E9]/40 border border-[#AED7E9] text-[#221D1D] font-extrabold text-sm flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
+                  <div className="px-3 py-1 rounded-xl bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] font-extrabold text-sm flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#005A9C]" />
                     <span>{comparisonData.modelScore}</span>
                   </div>
                 </div>
 
-                <div className="space-y-3.5 text-xs sm:text-sm text-[#4D433F]">
+                <div className="space-y-3.5 text-xs sm:text-sm text-[#64748B]">
                   {comparisonData.modelAnswerSections.map((sec, idx) => (
                     <div key={idx} className="space-y-1">
-                      <p className="font-bold text-[#221D1D] text-xs">{sec.heading}</p>
-                      {sec.text && <p className="text-[#4D433F] text-xs leading-relaxed">{sec.text}</p>}
+                      <p className="font-bold text-[#0A192F] text-xs">{sec.heading}</p>
+                      {sec.text && <p className="text-[#64748B] text-xs leading-relaxed">{sec.text}</p>}
                       {sec.bullets && (
-                        <div className="space-y-1 pl-2 border-l-2 border-[#AED7E9] my-1">
+                        <div className="space-y-1 pl-2 border-l-2 border-[#005A9C] my-1">
                           {sec.bullets.map((b, bIdx) => (
-                            <p key={bIdx} className="text-xs text-[#4D433F] leading-snug">
+                            <p key={bIdx} className="text-xs text-[#64748B] leading-snug">
                               {b}
                             </p>
                           ))}
@@ -216,14 +216,14 @@ export function Section16ComparisonBlock() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3 flex-wrap">
-                <span className="text-[11px] text-[#4B8097] font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+              <div className="mt-6 pt-4 border-t border-[#DBEAFE] flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-[11px] text-[#005A9C] font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#005A9C]" />
                   <span>Exact statutory phrasing taught across all 7 Acts</span>
                 </span>
                 <a
                   href="/student"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-semibold transition-colors shadow-xs"
                 >
                   <span>Practice Case Studies</span>
                   <ArrowRight className="w-3 h-3" />
@@ -233,23 +233,23 @@ export function Section16ComparisonBlock() {
           </div>
         ) : (
           /* RUBRIC TAB */
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-6 space-y-4 text-[#221D1D] shadow-md">
-            <h3 className="text-base font-bold text-[#221D1D] mb-2">ICAI 6-Marks Step-Wise Marking Rubric (Sec 16(1))</h3>
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DBEAFE] p-4 sm:p-6 space-y-4 text-[#0A192F] shadow-md">
+            <h3 className="text-base font-bold text-[#0A192F] mb-2">ICAI 6-Marks Step-Wise Marking Rubric (Sec 16(1))</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm min-w-[520px]">
                 <thead>
-                  <tr className="border-b border-[#E7E4E7] text-[#77716E]">
+                  <tr className="border-b border-[#DBEAFE] text-[#64748B]">
                     <th className="py-2.5 px-3 font-semibold">Answer Component</th>
                     <th className="py-2.5 px-3 font-semibold">ICAI Weightage</th>
                     <th className="py-2.5 px-3 font-semibold">Evaluator Expectation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E4E7]">
+                <tbody className="divide-y divide-[#DBEAFE]">
                   {comparisonData.rubricPoints.map((rubric, idx) => (
-                    <tr key={idx} className="hover:bg-[#F7F7F5]">
-                      <td className="py-3 px-3 font-semibold text-[#221D1D]">{rubric.component}</td>
-                      <td className="py-3 px-3 font-bold text-[#4B8097] font-mono">{rubric.marks}</td>
-                      <td className="py-3 px-3 text-[#4D433F] text-xs">{rubric.desc}</td>
+                    <tr key={idx} className="hover:bg-[#F0F7FF]">
+                      <td className="py-3 px-3 font-semibold text-[#0A192F]">{rubric.component}</td>
+                      <td className="py-3 px-3 font-bold text-[#005A9C] font-mono">{rubric.marks}</td>
+                      <td className="py-3 px-3 text-[#64748B] text-xs">{rubric.desc}</td>
                     </tr>
                   ))}
                 </tbody>

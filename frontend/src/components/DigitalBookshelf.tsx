@@ -181,20 +181,20 @@ export function DigitalBookshelf() {
   };
 
   return (
-    <section id="bookshelf" className="py-12 sm:py-16 overflow-hidden" style={{ background: "linear-gradient(180deg, #FAFAF9 0%, #F3F0ED 100%)" }}>
+    <section id="bookshelf" className="py-12 sm:py-16 overflow-hidden bg-white border-t border-b border-[#DBEAFE]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BFAFE5]/30 border border-[#BFAFE5] text-[#221D1D] text-[11px] font-bold tracking-wider uppercase">
-            <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] text-[11px] font-bold tracking-wider uppercase">
+            <Sparkles className="w-3 h-3 text-[#005A9C]" />
             <span>Your Study Arsenal</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#221D1D] tracking-tight font-serif leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0A192F] tracking-tight font-serif leading-tight">
             Every Act. Every Chapter.<br className="hidden sm:block" />
-            <span className="text-[#4B8097]"> All in One Place.</span>
+            <span className="text-[#005A9C]"> All in One Place.</span>
           </h2>
-          <p className="text-sm text-[#4D433F] leading-relaxed">
+          <p className="text-sm text-[#64748B] leading-relaxed">
             The complete statutory library for CA Foundation & CSEET — chapter-wise notes, case studies, and question banks. Tap any book to read a free sample.
           </p>
         </div>
@@ -208,12 +208,12 @@ export function DigitalBookshelf() {
             { label: "DRM Protected", value: "Exam-Safe", icon: Lock },
           ].map((stat) => (
             <div key={stat.label} className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-[#AED7E9]/30 border border-[#AED7E9] flex items-center justify-center">
-                <stat.icon className="w-3.5 h-3.5 text-[#4B8097]" />
+              <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center">
+                <stat.icon className="w-3.5 h-3.5 text-[#005A9C]" />
               </div>
               <div>
-                <div className="text-sm font-bold text-[#221D1D]">{stat.value}</div>
-                <div className="text-[10px] text-[#77716E] font-medium">{stat.label}</div>
+                <div className="text-sm font-bold text-[#0A192F]">{stat.value}</div>
+                <div className="text-[10px] text-[#64748B] font-medium">{stat.label}</div>
               </div>
             </div>
           ))}
@@ -351,7 +351,7 @@ export function DigitalBookshelf() {
               <div className="flex gap-2">
                 <Link
                   href="/courses"
-                  className="px-5 py-2.5 rounded-full bg-[#AED7E9] hover:bg-[#98C5D8] text-[#221D1D] text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  className="px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 >
                   <span>Explore All Notes</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -376,7 +376,7 @@ export function DigitalBookshelf() {
             "🔒 DRM-Protected Reader",
             "📱 Mobile Friendly",
           ].map((chip) => (
-            <span key={chip} className="px-3 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[11px] font-medium text-[#4D433F] shadow-xs">
+            <span key={chip} className="px-3 py-1.5 rounded-full bg-white border border-[#DBEAFE] text-[11px] font-medium text-[#64748B] shadow-xs">
               {chip}
             </span>
           ))}

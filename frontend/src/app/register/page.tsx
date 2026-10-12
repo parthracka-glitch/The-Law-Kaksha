@@ -217,8 +217,13 @@ function RegisterForm() {
       <GoogleSignInButton
         text="signup_with"
         selectedCourse={formData.targetCourse}
-        onSuccess={() => {
-          window.location.href = "/student";
+        onSuccess={(res) => {
+          const role = res?.data?.role || res?.data?.user?.role || res?.data?.student?.role;
+          if (role === "admin") {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/student";
+          }
         }}
       />
 

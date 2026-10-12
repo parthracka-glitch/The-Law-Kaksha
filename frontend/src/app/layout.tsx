@@ -26,7 +26,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://thelawkaksha.com"),
+  metadataBase: new URL("https://lawkaksha.in"),
   title: "The Law Kaksha | CA Foundation Business Law Smart Question Bank",
   description:
     "The Law Kaksha is a dedicated CA Foundation Business Law platform offering Part 1 & Part 2 Smart Revision Question Banks in instant soft copy PDF format, covering all 7 legislative units under the latest ICAI New Scheme.",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     title: "The Law Kaksha | CA Foundation Business Law Smart Question Bank",
     description:
       "Part 1 & Part 2 Smart Revision Question Banks in instant soft copy PDF format for CA Foundation Paper 2: Business Laws.",
-    url: "https://thelawkaksha.com",
+    url: "https://lawkaksha.in",
     siteName: "The Law Kaksha",
     images: [
       {
@@ -83,10 +83,10 @@ const jsonLdData = {
   "@graph": [
     {
       "@type": "EducationalOrganization",
-      "@id": "https://thelawkaksha.com/#organization",
+      "@id": "https://lawkaksha.in/#organization",
       "name": "The Law Kaksha",
-      "url": "https://thelawkaksha.com",
-      "logo": "https://thelawkaksha.com/logo.png",
+      "url": "https://lawkaksha.in",
+      "logo": "https://lawkaksha.in/logo.png",
       "description":
         "Dedicated educational learning platform for CA Foundation Business Law examinations in India.",
       "address": {
@@ -99,7 +99,7 @@ const jsonLdData = {
     },
     {
       "@type": "Course",
-      "@id": "https://thelawkaksha.com/#ca-foundation-course",
+      "@id": "https://lawkaksha.in/#ca-foundation-course",
       "name": "CA Foundation Business Law Smart Question Bank",
       "description":
         "Complete 7 statutory acts syllabus for CA Foundation Paper 2 with chapter-wise questions, past papers, RTPs & ICAI model answer framework.",
@@ -130,7 +130,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
         />
       </head>
-      <body className="min-h-screen bg-white text-slate-900 antialiased overflow-x-hidden">
+      <body className="min-h-screen bg-white text-[#0A192F] antialiased overflow-x-hidden selection:bg-[#DBEAFE] selection:text-[#0A192F]">
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <Providers>{children}</Providers>
