@@ -1333,6 +1333,7 @@ export default function StudentDashboardPage() {
                   isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
                   onBuyCourse={(courseType) => handleBuyCourse(courseType)}
                   purchasedBooks={purchasedBooks}
+                  availableProducts={availableProducts}
                 />
               </div>
 

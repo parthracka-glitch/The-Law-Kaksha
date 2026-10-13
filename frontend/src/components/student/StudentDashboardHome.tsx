@@ -342,6 +342,7 @@ interface StudentDashboardHomeProps {
   isAllAccessUnlocked?: boolean;
   onBuyCourse?: (courseType: "ca" | "cs" | "all-access") => void;
   purchasedBooks?: string[];
+  availableProducts?: any[];
 }
 
 interface RecommendedCourseItem {
@@ -420,6 +421,7 @@ export function StudentDashboardHome({
   isAllAccessUnlocked = false,
   onBuyCourse,
   purchasedBooks = [],
+  availableProducts = [],
 }: StudentDashboardHomeProps) {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
@@ -499,8 +501,45 @@ export function StudentDashboardHome({
       price: 49,
     });
 
+    // Also include custom purchased products from Admin catalog
+    if (Array.isArray(availableProducts)) {
+      availableProducts.forEach((prod) => {
+        const prodId = String(prod.id || prod._id || "");
+        const prodTitle = String(prod.title || "").toLowerCase();
+        const isOwned =
+          isAllAccessUnlocked ||
+          Boolean(prod.isUnlocked) ||
+          purchasedBooks.some((b) => {
+            if (!b) return false;
+            const strB = String(b).toLowerCase();
+            return (
+              strB === prodId.toLowerCase() ||
+              (prodTitle && (strB === prodTitle || prodTitle.includes(strB) || strB.includes(prodTitle)))
+            );
+          });
+
+        if (isOwned) {
+          const isCS = prod.category?.toLowerCase().includes("cs") || prod.title?.toLowerCase().includes("cseet");
+          list.unshift({
+            id: prodId,
+            courseType: isCS ? "cs" : "ca",
+            title: prod.title || "Custom Study Codex",
+            category: `${prod.category || "Study Codex"} • DRM Active`,
+            enrolledDate: "Purchased Codex",
+            progress: 100,
+            pdfUrl: prod.pdfUrl || "",
+            iconBg: "from-[#7C3AED] via-[#6D28D9] to-[#5B21B6]",
+            iconType: "dark",
+            iconEmoji: "📚",
+            isUnlocked: true,
+            price: prod.price || 99,
+          });
+        }
+      });
+    }
+
     return list;
-  }, [isCaUnlocked, isCsUnlocked, activeCourse, completedUnitsCount]);
+  }, [isCaUnlocked, isCsUnlocked, activeCourse, completedUnitsCount, availableProducts, purchasedBooks, isAllAccessUnlocked]);
 
   const [courses, setCourses] = useState<EnrolledCourseItem[]>(dynamicCourses);
 

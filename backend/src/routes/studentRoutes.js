@@ -105,6 +105,9 @@ router.get("/dashboard", requireAuth, async (req, res) => {
     if (student?.unlockedItemIds) {
       student.unlockedItemIds.forEach((id) => unlockedSet.add(id));
     }
+    if (student?.enrolled_books && Array.isArray(student.enrolled_books)) {
+      student.enrolled_books.forEach((b) => unlockedSet.add(b));
+    }
 
     // From active subscriptions
     subscriptions.forEach((sub) => {
@@ -688,7 +691,7 @@ router.get("/check-enrollment", async (req, res) => {
         }).lean(),
         Order.find({
           $or: [
-            ...(email ? [{ "personal_details.email": email }, { userEmail: email }] : []),
+            ...(email ? [{ "personal_details.email": email }, { userEmail: email }, { customer_email: email }] : []),
             ...(studentId ? [{ studentId }, { user_id: studentId }] : []),
           ],
           status: { $in: ["paid", "COMPLETED"] },
@@ -735,7 +738,7 @@ router.get("/check-enrollment", async (req, res) => {
       );
       const paidOrders = ordersTable.find(
         (o) =>
-          ((email && (o.userEmail === email || o.personal_details?.email === email)) ||
+          ((email && (o.userEmail === email || o.personal_details?.email === email || o.customer_email === email)) ||
             (studentId && (o.studentId === studentId || o.user_id === studentId))) &&
           (o.status === "paid" || o.status === "COMPLETED")
       ) || [];

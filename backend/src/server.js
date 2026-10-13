@@ -8,6 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
+const fs = require("fs");
 const dotenv = require("dotenv");
 
 // Load environment variables reliably relative to backend directory
@@ -173,6 +174,14 @@ const orderRateLimiter = (req, res, next) => {
 app.use("/api/orders", orderRateLimiter);
 app.use("/api/create-order", orderRateLimiter);
 app.use("/api/verify-payment", orderRateLimiter);
+
+// Serve PDF and File Uploads
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/api/pdf", express.static(uploadsDir));
+app.use("/uploads", express.static(uploadsDir));
 
 // Mount API Routes
 app.use("/api/auth", authRoutes);
