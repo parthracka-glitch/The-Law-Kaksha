@@ -161,12 +161,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       lawXp: student?.lawXp || 150,
       streakDays: student?.streakDays || 1,
       completedUnits: student?.completedUnits || ["ca-ch1-u1", "ca-ch4-u1"],
-      lastRead: student?.lastRead || {
-        title: "Indian Partnership Act, 1932 (Unit 1)",
-        url: "/notes/unit-1-general-nature-of-partnership.pdf",
-        date: "Today",
-        progress: 50,
-      },
+      lastRead: student?.lastRead || null,
       bookmarks: student?.bookmarks || [],
     });
   } catch (err) {

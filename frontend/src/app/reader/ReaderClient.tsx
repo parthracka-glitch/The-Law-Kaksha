@@ -13,7 +13,7 @@ export default function ReaderClient() {
   const queryTitle = searchParams.get("title");
 
   // Compute canonical PDF url
-  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "/api/pdf/sale-of-goods-unit-1.pdf");
+  const pdfUrl = rawPdf || (file ? `/api/pdf/${file}` : "");
 
   // Clean title
   const title =
@@ -125,6 +125,23 @@ export default function ReaderClient() {
   const handleBuy = () => {
     router.push("/courses");
   };
+
+  if (!pdfUrl) {
+    return (
+      <main className="w-full h-screen bg-[#111418] flex flex-col items-center justify-center text-white p-6 text-center">
+        <h1 className="text-xl font-bold font-serif mb-2">No Document Selected</h1>
+        <p className="text-sm text-neutral-400 max-w-md mb-6">
+          Please select a study material or chapter notes from your student dashboard to open in the secure DRM reader.
+        </p>
+        <button
+          onClick={handleClose}
+          className="px-6 py-2.5 rounded-full bg-[#BFAFE5] text-[#221D1D] font-bold text-sm cursor-pointer hover:bg-[#a591d5] transition-all"
+        >
+          Return to Dashboard
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main className="w-full h-screen bg-[#111418] overflow-hidden select-none">

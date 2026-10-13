@@ -63,18 +63,11 @@ export function CseetComingSoonShell({ onOpenSampleReader, onPreOrder }: CseetCo
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             <button
-              onClick={() => onOpenSampleReader("/notes/unit-1-general-nature-of-partnership.pdf", "Indian Partnership Act — Unit 1 (Sample)")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#AED7E9] hover:bg-[#9BC9DD] text-[#221D1D] text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Read Sample</span>
-            </button>
-            <button
               onClick={onPreOrder}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#AED7E9] hover:bg-[#9BC9DD] text-[#221D1D] text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-xs"
             >
-              <span>₹99/Month</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>Get Master Pass (₹99/Month)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

@@ -113,7 +113,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     paymentType: "one-time",
     accentColor: "from-[#F4C5C0] to-[#E8A09A]",
     iconEmoji: "📚",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
+    pdfUrl: "",
     highlights: [
       "Chapter 2 — Indian Contract Act, 1872: 200+ MCQs & 40 descriptive problems",
       "Chapter 3 — Sale of Goods Act, 1930: 150+ MCQs including Caveat Emptor sets",
@@ -138,7 +138,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     paymentType: "one-time",
     accentColor: "from-[#B8DDCA] to-[#7EBB9E]",
     iconEmoji: "📖",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    pdfUrl: "",
     highlights: [
       "Chapter 5 — LLP Act, 2008: 120+ MCQs covering formation & designated partners",
       "Chapter 6 — Companies Act, 2013: 220+ MCQs including Corporate Veil & MOA/AOA",
@@ -194,11 +194,15 @@ function CoursesCatalogContent() {
   }, []);
 
   const filteredProducts = products.filter((p) => {
+    const cat = (p.category || "").toLowerCase();
+    const id = (p.id || "").toLowerCase();
+    const isBoth = cat.includes("both");
     const matchesCourse =
       selectedCourse === "all" ||
       p.courseId === selectedCourse ||
-      (selectedCourse === "course-ca-foundation" && (p.category.includes("CA") || p.id.includes("ca"))) ||
-      (selectedCourse === "course-cseet" && (p.category.includes("CSEET") || p.id.includes("cseet")));
+      isBoth ||
+      (selectedCourse === "course-ca-foundation" && (cat.includes("ca") || id.includes("ca"))) ||
+      (selectedCourse === "course-cseet" && (cat.includes("cs") || id.includes("cs")));
 
     const matchesSearch =
       search.trim() === "" ||
@@ -211,13 +215,14 @@ function CoursesCatalogContent() {
   });
 
   const handleOpenPreview = (product: Product) => {
-    const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
-      ? "/notes/cseet-management-full.pdf"
-      : "/notes/sale-of-goods-unit-1.pdf";
+    if (!product.pdfUrl) {
+      alert("Sample preview will be available soon.");
+      return;
+    }
     setPreviewState({
       open: true,
       title: product.title,
-      pdfUrl: product.pdfUrl || defaultPdf,
+      pdfUrl: product.pdfUrl,
       previewLimit: product.previewPagesLimit || 5,
       price: product.price,
       product,

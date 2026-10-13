@@ -33,52 +33,7 @@ interface EntitledResource {
   expiry_date?: string;
 }
 
-const FALLBACK_RESOURCES: EntitledResource[] = [
-  {
-    id: "res-ca-soga-1",
-    title: "Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale",
-    type: "notes",
-    course_title: "CA Foundation Business Laws",
-    subscription_title: "CA Foundation Monthly Pass",
-    file_or_url: "/notes/sale-of-goods-unit-1.pdf",
-    pages: "18 Pages",
-    description: "Sale vs Agreement to Sell, Ascertained Goods, Formalities & Statutory Rules.",
-    expiry_date: "2026-11-06",
-  },
-  {
-    id: "res-ca-soga-2",
-    title: "Sale of Goods Act, 1930 — Unit 2: Conditions and Warranties (Sec 11-17)",
-    type: "notes",
-    course_title: "CA Foundation Business Laws",
-    subscription_title: "CA Foundation Monthly Pass",
-    file_or_url: "/notes/sale-of-goods-unit-2.pdf",
-    pages: "16 Pages",
-    description: "Implied conditions of fitness, Caveat Emptor, and landmark English precedents.",
-    expiry_date: "2026-11-06",
-  },
-  {
-    id: "res-ca-contract-infographic",
-    title: "Indian Contract Act — Visual Architecture & Memory Mindmaps",
-    type: "flowchart",
-    course_title: "CA Foundation Business Laws",
-    subscription_title: "CA Foundation Monthly Pass",
-    file_or_url: "/notes/sale-of-goods-unit-1.pdf",
-    pages: "12 Infographic Sheets",
-    description: "Visual logic pathways for Offer, Acceptance, Coercion, Fraud and Breach damages.",
-    expiry_date: "2026-11-06",
-  },
-  {
-    id: "res-ca-qbank",
-    title: "Smart Revision Question Bank (Part 1) — With ICAI Model Solutions",
-    type: "practice",
-    course_title: "CA Foundation Business Laws",
-    subscription_title: "CA Foundation Monthly Pass",
-    file_or_url: "/notes/sale-of-goods-unit-2.pdf",
-    pages: "65+ Pages",
-    description: "Exhaustive application scenarios, case-based questions & past exam problem sets.",
-    expiry_date: "2026-11-06",
-  },
-];
+const FALLBACK_RESOURCES: EntitledResource[] = [];
 
 export default function StudentResourcesPage() {
   const router = useRouter();
@@ -246,13 +201,14 @@ export default function StudentResourcesPage() {
                   </div>
 
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      if (!item.file_or_url) return;
                       setReaderState({
                         open: true,
-                        url: item.file_or_url || "/notes/sale-of-goods-unit-1.pdf",
+                        url: item.file_or_url,
                         title: item.title,
-                      })
-                    }
+                      });
+                    }}
                     className="w-full py-2.5 px-4 rounded-full font-bold text-xs bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-colors flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer"
                   >
                     <Eye className="w-4 h-4 text-[#221D1D]" />

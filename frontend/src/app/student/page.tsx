@@ -16,7 +16,6 @@ import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { StudentProfileModal, StudentProfileData } from "@/components/StudentProfileModal";
-import { StreakCalendarModal } from "@/components/StreakCalendarModal";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
 import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
@@ -84,7 +83,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 4,
     peerReaders: 94,
     units: [
-      { unitNumber: 1, title: "Overview of Indian Legal System & Hierarchy of Courts", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Structure of Legislative, Executive & Judiciary in India.", pages: "18 Pages" }
+      { unitNumber: 1, title: "Overview of Indian Legal System & Hierarchy of Courts", pdfUrl: "", summary: "Structure of Legislative, Executive & Judiciary in India.", pages: "18 Pages" }
     ]
   },
   {
@@ -97,9 +96,9 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 18,
     peerReaders: 186,
     units: [
-      { unitNumber: 1, title: "Nature & Essentials of Valid Contract (Sec 1-10)", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Offer, Acceptance, Intention to create Legal Relationship.", pages: "34 Pages" },
-      { unitNumber: 2, title: "Consideration & Capacity to Contract (Sec 11-25)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Minor's agreements, Doctrine of Privity of Contract.", pages: "28 Pages" },
-      { unitNumber: 3, title: "Free Consent, Performance & Breach of Contract", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Coercion, Undue Influence, Fraud, Damages under Section 73.", pages: "42 Pages" }
+      { unitNumber: 1, title: "Nature & Essentials of Valid Contract (Sec 1-10)", pdfUrl: "", summary: "Offer, Acceptance, Intention to create Legal Relationship.", pages: "34 Pages" },
+      { unitNumber: 2, title: "Consideration & Capacity to Contract (Sec 11-25)", pdfUrl: "", summary: "Minor's agreements, Doctrine of Privity of Contract.", pages: "28 Pages" },
+      { unitNumber: 3, title: "Free Consent, Performance & Breach of Contract", pdfUrl: "", summary: "Coercion, Undue Influence, Fraud, Damages under Section 73.", pages: "42 Pages" }
     ]
   },
   {
@@ -112,9 +111,9 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 12,
     peerReaders: 142,
     units: [
-      { unitNumber: 1, title: "Unit 1: Formation of Contract of Sale & Subject Matter", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities.", pages: "12 Pages (Free Sample PDF)", isSample: true },
-      { unitNumber: 2, title: "Unit 2: Conditions and Warranties (Sec 11-17)", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Implied conditions of fitness, Caveat Emptor & Landmark Case Priest v. Last.", pages: "10 Pages (Free Sample PDF)", isSample: true },
-      { unitNumber: 3, title: "Unit 3: Transfer of Property & Rights of Unpaid Seller", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
+      { unitNumber: 1, title: "Unit 1: Formation of Contract of Sale & Subject Matter", pdfUrl: "", summary: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities.", pages: "12 Pages" },
+      { unitNumber: 2, title: "Unit 2: Conditions and Warranties (Sec 11-17)", pdfUrl: "", summary: "Implied conditions of fitness, Caveat Emptor & Landmark Case Priest v. Last.", pages: "10 Pages" },
+      { unitNumber: 3, title: "Unit 3: Transfer of Property & Rights of Unpaid Seller", pdfUrl: "", summary: "Nemo dat quod non habet, Lien & Stoppage in Transit.", pages: "30 Pages" }
     ]
   },
   {
@@ -127,66 +126,9 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 14,
     peerReaders: 158,
     units: [
-      { unitNumber: 1, title: "Unit 1: General Nature of Partnership", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman).", pages: "24 Pages (Full Sample PDF)", isSample: true },
-      { unitNumber: 2, title: "Unit 2: Relations of Partners", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.", pages: "28 Pages (Full Sample PDF)", isSample: true },
-      { unitNumber: 3, title: "Unit 3: Registration and Dissolution of Firm", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Effect of Non-Registration, Modes of Dissolution, Settlement of Accounts.", pages: "32 Pages (Full Sample PDF)", isSample: true }
-    ],
-    supplementaryResources: [
-      {
-        id: "res-ca-partnership-ldr",
-        type: "ldr",
-        title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
-        description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
-        pdfUrl: "/notes/partnership-ldr-charts.pdf",
-        pages: "18 Pages (LDR Revision Charts)",
-        badge: "LDR Flowcharts",
-        badgeColor: "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]",
-        isSample: true,
-      },
-      {
-        id: "res-ca-partnership-infographics",
-        type: "infographic",
-        title: "Partnership Act — Visual Infographics & Concept Mind Maps",
-        description: "High-retention visual posters on Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
-        pdfUrl: "/notes/partnership-infographics.pdf",
-        pages: "12 Infographic Sheets",
-        badge: "Visual Infographics",
-        badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]",
-        isSample: true,
-      },
-      {
-        id: "res-ca-partnership-practice",
-        type: "practice",
-        title: "Indian Partnership Act — Practice Questions & Case Problems",
-        description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
-        pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-        pages: "25 Pages",
-        badge: "Practice Questions",
-        badgeColor: "bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/40",
-        isSample: true,
-      },
-      {
-        id: "res-ca-qbank-part1",
-        type: "practice",
-        title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
-        description: "Exhaustive application scenarios, case-based questions & model test papers for CA Foundation.",
-        pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-        pages: "65+ Pages",
-        badge: "Smart Question Bank",
-        badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]",
-        isSample: true,
-      },
-      {
-        id: "res-ca-paper-analysis-sep2026",
-        type: "pyq",
-        title: "September 2026 Paper Analysis & Detailed Model Answers",
-        description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
-        pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-        pages: "16 Pages",
-        badge: "Past Paper Analysis",
-        badgeColor: "bg-[#B8DDCA]/40 text-[#221D1D] border-[#B8DDCA]",
-        isSample: true,
-      },
+      { unitNumber: 1, title: "Unit 1: General Nature of Partnership", pdfUrl: "", summary: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman).", pages: "24 Pages" },
+      { unitNumber: 2, title: "Unit 2: Relations of Partners", pdfUrl: "", summary: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.", pages: "28 Pages" },
+      { unitNumber: 3, title: "Unit 3: Registration and Dissolution of Firm", pdfUrl: "", summary: "Effect of Non-Registration, Modes of Dissolution, Settlement of Accounts.", pages: "32 Pages" }
     ]
   },
   {
@@ -199,7 +141,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 6,
     peerReaders: 82,
     units: [
-      { unitNumber: 1, title: "LLP Architecture & Comparison with Traditional Firm", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Separate legal identity, perpetual succession, Designated Partners compliance.", pages: "20 Pages" }
+      { unitNumber: 1, title: "LLP Architecture & Comparison with Traditional Firm", pdfUrl: "", summary: "Separate legal identity, perpetual succession, Designated Partners compliance.", pages: "20 Pages" }
     ]
   },
   {
@@ -212,8 +154,8 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 15,
     peerReaders: 175,
     units: [
-      { unitNumber: 1, title: "Essential Characteristics & Lifting of Corporate Veil", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Salomon v. Salomon, Private vs Public vs One Person Company.", pages: "36 Pages" },
-      { unitNumber: 2, title: "Memorandum & Articles of Association (MOA / AOA)", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Doctrine of Ultra Vires, Constructive Notice & Indoor Management.", pages: "30 Pages" }
+      { unitNumber: 1, title: "Essential Characteristics & Lifting of Corporate Veil", pdfUrl: "", summary: "Salomon v. Salomon, Private vs Public vs One Person Company.", pages: "36 Pages" },
+      { unitNumber: 2, title: "Memorandum & Articles of Association (MOA / AOA)", pdfUrl: "", summary: "Doctrine of Ultra Vires, Constructive Notice & Indoor Management.", pages: "30 Pages" }
     ]
   },
   {
@@ -226,7 +168,7 @@ const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
     caseCount: 8,
     peerReaders: 110,
     units: [
-      { unitNumber: 1, title: "Promissory Notes, Bills of Exchange & Cheques", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Holder in Due Course, Section 138 Dishonour penalties.", pages: "26 Pages" }
+      { unitNumber: 1, title: "Promissory Notes, Bills of Exchange & Cheques", pdfUrl: "", summary: "Holder in Due Course, Section 138 Dishonour penalties.", pages: "26 Pages" }
     ]
   },
 ];
@@ -241,7 +183,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 45,
     caseCount: 6,
     peerReaders: 130,
-    units: [{ unitNumber: 1, title: "Contract Essentials & Types of Contracts", pdfUrl: "/notes/sale-of-goods-unit-1.pdf", summary: "Core concept notes with 40 objective questions.", pages: "24 Pages" }]
+    units: [{ unitNumber: 1, title: "Contract Essentials & Types of Contracts", pdfUrl: "", summary: "Core concept notes with 40 objective questions.", pages: "24 Pages" }]
   },
   {
     id: "cs-u2",
@@ -252,7 +194,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 35,
     caseCount: 4,
     peerReaders: 88,
-    units: [{ unitNumber: 1, title: "Sale of Goods Principles & Caveat Emptor", pdfUrl: "/notes/sale-of-goods-unit-2.pdf", summary: "Essential rules, Section 16 exceptions, unpaid seller.", pages: "20 Pages" }]
+    units: [{ unitNumber: 1, title: "Sale of Goods Principles & Caveat Emptor", pdfUrl: "", summary: "Essential rules, Section 16 exceptions, unpaid seller.", pages: "20 Pages" }]
   },
   {
     id: "cs-u3",
@@ -263,7 +205,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 35,
     caseCount: 4,
     peerReaders: 104,
-    units: [{ unitNumber: 1, title: "General Nature, Relations & Dissolution of Firm", pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf", summary: "Mutual agency, holding out, minor's status, effects of non-registration.", pages: "24 Pages (Sample PDF)", isSample: true }]
+    units: [{ unitNumber: 1, title: "General Nature, Relations & Dissolution of Firm", pdfUrl: "", summary: "Mutual agency, holding out, minor's status, effects of non-registration.", pages: "24 Pages" }]
   },
   {
     id: "cs-u4",
@@ -274,7 +216,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 25,
     caseCount: 3,
     peerReaders: 76,
-    units: [{ unitNumber: 1, title: "LLP Framework & Key Distinctions", pdfUrl: "/notes/unit-2-relations-of-partners.pdf", summary: "Comparison between LLP, Company and Traditional Partnership.", pages: "16 Pages" }]
+    units: [{ unitNumber: 1, title: "LLP Framework & Key Distinctions", pdfUrl: "", summary: "Comparison between LLP, Company and Traditional Partnership.", pages: "16 Pages" }]
   },
   {
     id: "cs-u5",
@@ -285,7 +227,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 50,
     caseCount: 8,
     peerReaders: 145,
-    units: [{ unitNumber: 1, title: "Company Formation & Constitutional Documents", pdfUrl: "/notes/cseet-business-law-full.pdf", summary: "Private vs Public Company, Section 8, Corporate Veil cases.", pages: "30 Pages" }]
+    units: [{ unitNumber: 1, title: "Company Formation & Constitutional Documents", pdfUrl: "", summary: "Private vs Public Company, Section 8, Corporate Veil cases.", pages: "30 Pages" }]
   },
   {
     id: "cs-u6",
@@ -296,7 +238,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 30,
     caseCount: 4,
     peerReaders: 82,
-    units: [{ unitNumber: 1, title: "Negotiable Instruments Core Concepts", pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", summary: "Instruments, Parties, Crossing of Cheques, Bouncing liabilities.", pages: "22 Pages" }]
+    units: [{ unitNumber: 1, title: "Negotiable Instruments Core Concepts", pdfUrl: "", summary: "Instruments, Parties, Crossing of Cheques, Bouncing liabilities.", pages: "22 Pages" }]
   },
   {
     id: "cs-u7",
@@ -307,7 +249,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 50,
     caseCount: 6,
     peerReaders: 160,
-    units: [{ unitNumber: 1, title: "Management Principles, Functions & Theories", pdfUrl: "/notes/cseet-management-full.pdf", summary: "Henry Fayol vs FW Taylor, Strategic Planning, Motivation Theories.", pages: "28 Pages (Sample PDF)", isSample: true }]
+    units: [{ unitNumber: 1, title: "Management Principles, Functions & Theories", pdfUrl: "", summary: "Henry Fayol vs FW Taylor, Strategic Planning, Motivation Theories.", pages: "28 Pages" }]
   },
   {
     id: "cs-u8",
@@ -318,7 +260,7 @@ const CSEET_UNITS: ChapterItem[] = [
     mcqCount: 30,
     caseCount: 4,
     peerReaders: 95,
-    units: [{ unitNumber: 1, title: "Business Environment & Corporate Governance", pdfUrl: "/notes/cseet-management-full.pdf", summary: "Macro/Micro factors, Ethical decision-making in business.", pages: "18 Pages" }]
+    units: [{ unitNumber: 1, title: "Business Environment & Corporate Governance", pdfUrl: "", summary: "Macro/Micro factors, Ethical decision-making in business.", pages: "18 Pages" }]
   },
 ];
 
@@ -391,7 +333,7 @@ const CA_FOUNDATION_BOOKS = [
     coverImage: "/covers/vol1-codex.png",
     coverGradient: "from-amber-600 to-orange-700",
     tagBg: "bg-amber-50 text-amber-700 border-amber-100",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    pdfUrl: "",
     totalPages: "250+ Pages",
     peerCount: 340,
   },
@@ -502,7 +444,6 @@ export default function StudentDashboardPage() {
   const [sampleBookTitle, setSampleBookTitle] = useState<string>("The Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale");
   const [sampleBookId, setSampleBookId] = useState<string>("ca-foundation");
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
-  const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
   const [badgesModalOpen, setBadgesModalOpen] = useState<boolean>(false);
   const [pdfViewer, setPdfViewer] = useState<{
     open: boolean;
@@ -546,13 +487,7 @@ export default function StudentDashboardPage() {
     pdfUrl: string;
     progress: number;
     date: string;
-  }>({
-    title: "The Sale of Goods Act, 1930",
-    subtitle: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    progress: 0,
-    date: "Available Now",
-  });
+  } | null>(null);
 
   // Daily QOTD Interactive State
   const [qotdSelected, setQotdSelected] = useState<number | null>(null);
@@ -776,6 +711,15 @@ export default function StudentDashboardPage() {
     onBuy?: () => void,
     courseType?: "ca" | "cs" | "shared"
   ) => {
+    if (!url || !url.trim()) {
+      setXpToast({
+        show: true,
+        msg: "Digital notes and study materials will be uploaded here soon.",
+        xp: 0,
+      });
+      return;
+    }
+
     // Gate: require active course purchase (unless sample / admin bypass)
     const stream = courseType && courseType !== "shared" ? courseType : activeCourse;
     const isUnlocked =
@@ -1236,7 +1180,7 @@ export default function StudentDashboardPage() {
       />
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 min-w-0 overflow-auto">
+      <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         {/* HEADER BAR (DEEP NAVY BRAND THEME #0F2557) */}
         <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-4 sm:px-6 py-3 flex items-center justify-between gap-3 shadow-md">
           <div className="flex items-center gap-3">
@@ -1299,7 +1243,7 @@ export default function StudentDashboardPage() {
           </div>
         </header>
 
-        <div className={`p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12 space-y-6">
 
           {/* CSEET COMING SOON SHELL ONLY IF NOT SUBSCRIBED */}
           {activeCourse === "cs" && !isCsUnlocked ? (
@@ -1326,7 +1270,6 @@ export default function StudentDashboardPage() {
                   lawXp={lawXp}
                   levelInfo={levelInfo}
                   awardXp={awardXp}
-                  onOpenStreakLog={() => setStreakModalOpen(true)}
                   onOpenBadgesModal={() => setBadgesModalOpen(true)}
                   onOpenPdf={(url, title, subtitle, courseType, isFreeSample) => {
                     const isSample = Boolean(
@@ -1394,14 +1337,13 @@ export default function StudentDashboardPage() {
               </div>
 
               {/* RIGHT COLUMN: STREAK CARDS, INTERACTIVE CALENDAR & LIVE LEADERBOARD */}
-              <div className="w-full lg:w-[310px] xl:w-[330px] 2xl:w-[350px] shrink-0 max-w-md mx-auto lg:mx-0">
+              <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0 max-w-md mx-auto lg:mx-0 sticky top-20 self-start space-y-4">
                 <StudentRightSidebar
                   streak={streak}
                   longestStreak={Math.max(streak, 4)}
                   studentName={studentName}
                   studyHours={Math.max(10, Math.round(lawXp / 25))}
                   userRank={57479}
-                  onOpenStreakLog={() => setStreakModalOpen(true)}
                 />
               </div>
             </div>
@@ -2209,7 +2151,7 @@ export default function StudentDashboardPage() {
                     act: "partnership",
                     title: "Indian Partnership Act — Section 6 True Test & Agency Flowchart",
                     desc: "High-speed visual recall flowcharts covering Section 4 essentials, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights (Sec 30), and Section 69 Non-Registration disabilities.",
-                    url: "/notes/partnership-ldr-charts.pdf",
+                    url: "",
                     label: "Open Flowcharts",
                     badge: "Partnership Act • Flowchart",
                     badgeColor: "bg-[#FAF5FF] text-[#7E22CE] border-[#DDD6FE]"
@@ -2218,7 +2160,7 @@ export default function StudentDashboardPage() {
                     act: "partnership",
                     title: "Indian Partnership Act — Visual Infographics & Dissolution Tree",
                     desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures under Sections 39-44.",
-                    url: "/notes/partnership-infographics.pdf",
+                    url: "",
                     label: "Open Infographics",
                     badge: "Partnership Act • Infographics",
                     badgeColor: "bg-amber-50 text-amber-800 border-amber-200"
@@ -2227,7 +2169,7 @@ export default function StudentDashboardPage() {
                     act: "companies",
                     title: "The Companies Act — Corporate Veil & Indoor Management Decision Tree",
                     desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires, and Turquand's Rule indoor management exception diagram.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "",
                     label: "Open Decision Tree",
                     badge: "Companies Act • Decision Tree",
                     badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
@@ -2236,7 +2178,7 @@ export default function StudentDashboardPage() {
                     act: "soga",
                     title: "The Sale of Goods Act — Section 16 Condition & Warranty Flowchart",
                     desc: "Caveat Emptor baseline rule, Priest v. Last fitness exception tree, merchantable quality, and Section 54 Unpaid Seller Resale rules.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "",
                     label: "Open Flowchart",
                     badge: "Sale of Goods • Flowchart",
                     badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
@@ -2245,7 +2187,7 @@ export default function StudentDashboardPage() {
                     act: "contract",
                     title: "The Indian Contract Act — Offer, Acceptance & Consideration Matrix",
                     desc: "Postal communication timeline, Section 25 exceptions (natural love & affection), lawful consideration flowchart, and Chinnaya v. Ramayya privity tree.",
-                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    url: "",
                     label: "Open Checklist & Tree",
                     badge: "Contract Act • Flowchart",
                     badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
@@ -2254,7 +2196,7 @@ export default function StudentDashboardPage() {
                     act: "llp",
                     title: "The Limited Liability Partnership Act — Incorporation & Partner Flowchart",
                     desc: "Statutory flow diagram for LLP incorporation, DPIN requirements, Section 31 whistleblowing protection, and partner cessation rules.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "",
                     label: "Open Flowchart",
                     badge: "LLP Act • Flowchart",
                     badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
@@ -2263,7 +2205,7 @@ export default function StudentDashboardPage() {
                     act: "llp",
                     title: "The Negotiable Instruments Act — Cheque Bounce & Dishonour Flowchart",
                     desc: "Promissory Note vs Bill vs Cheque matrix, Section 9 Holder in Due Course privileges, and Section 138 cheque bounce statutory timeline flowchart.",
-                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    url: "",
                     label: "Open Flowchart",
                     badge: "NI Act • Flowchart",
                     badgeColor: "bg-cyan-50 text-cyan-800 border-cyan-200"
@@ -2272,7 +2214,7 @@ export default function StudentDashboardPage() {
                     act: "trends",
                     title: "Smart Revision Question Bank — High-Yield Decision Charts",
                     desc: "Fact-pattern to statutory provision identifier charts. Step-by-step problem solving framework for ICAI examination questions.",
-                    url: "/notes/smart-revision-question-bank-part-1.pdf",
+                    url: "",
                     label: "Open Case Maps",
                     badge: "Case Maps • Step Marking",
                     badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
@@ -2281,7 +2223,7 @@ export default function StudentDashboardPage() {
                     act: "trends",
                     title: "September 2026 Examination Trend Blueprint & Marking Scheme",
                     desc: "In-depth chapter weightage trends, recurring question patterns, and 1.5-day revision timetable allocation for Paper 2.",
-                    url: "/notes/september-2026-paper-analysis.pdf",
+                    url: "",
                     label: "Open Exam Blueprint",
                     badge: "PYQ Trend Blueprint",
                     badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
@@ -2525,13 +2467,6 @@ export default function StudentDashboardPage() {
           setStudentProfile(updated);
         }}
         streak={streak}
-      />
-
-      <StreakCalendarModal
-        isOpen={streakModalOpen}
-        onClose={() => setStreakModalOpen(false)}
-        streak={streak}
-        onStreakUpdate={(newStreak) => setStreak(newStreak)}
       />
 
       {/* 5. GOOGLE FORM IN-PORTAL TEST TAKING MODAL */}

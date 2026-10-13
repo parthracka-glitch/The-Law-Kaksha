@@ -203,7 +203,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     originalPrice: 299,
     pages: "250+ Pages",
     status: "Active",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    pdfUrl: "",
     description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes for all 7 Acts, practice questions, and model solutions.",
     units: ["Indian Regulatory Framework", "Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
   },
@@ -217,249 +217,13 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     originalPrice: 299,
     pages: "300+ Pages",
     status: "Active",
-    pdfUrl: "/notes/cseet-management-full.pdf",
+    pdfUrl: "",
     description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with explanations, and timed mock drills.",
     units: ["Indian Contract Act", "Sale of Goods Act", "Partnership Act", "LLP Act", "Company Law", "Negotiable Instruments", "Principles of Management", "Business Environment & Ethics"],
   },
 ];
 
-const INITIAL_RESOURCES: ResourceItem[] = [
-  {
-    id: "res-ca-soga-1",
-    course: "ca-foundation",
-    actName: "The Sale of Goods Act, 1930",
-    chapterNumber: 3,
-    type: "notes",
-    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    description: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities & Statutory Rules.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    samplePdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "12 Pages (Free Sample PDF)",
-  },
-  {
-    id: "res-ca-3",
-    course: "ca-foundation",
-    actName: "The Sale of Goods Act, 1930",
-    chapterNumber: 3,
-    type: "notes",
-    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-    description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Caveat Emptor.",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    samplePdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isSample: true,
-    status: "Published",
-    order: 2,
-    pages: "10 Pages (Free Sample PDF)",
-  },
-  {
-    id: "res-ca-1",
-    course: "ca-foundation",
-    actName: "Indian Regulatory Framework",
-    chapterNumber: 1,
-    type: "notes",
-    title: "Overview of Indian Legal System & Hierarchy of Courts",
-    description: "Structure of Legislative, Executive & Judiciary in India with constitutional jurisdiction.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "18 Pages",
-  },
-  {
-    id: "res-ca-2",
-    course: "ca-foundation",
-    actName: "The Indian Contract Act, 1872",
-    chapterNumber: 2,
-    type: "notes",
-    title: "Nature & Essentials of Valid Contract (Sec 1-10)",
-    description: "Offer, Acceptance, Intention to create Legal Relationship with landmark English & Indian precedents.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "34 Pages",
-  },
-  {
-    id: "res-ca-4",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 1: General Nature of Partnership",
-    description: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman) & Partnership vs Co-ownership.",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    samplePdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "24 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-5",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 2: Relations of Partners",
-    description: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    samplePdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    isSample: true,
-    status: "Published",
-    order: 2,
-    pages: "28 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-6",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 3: Registration and Dissolution of Firm",
-    description: "Effect of Non-Registration (Sec 69), Modes of Dissolution, Settlement of Accounts (Sec 48).",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    samplePdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    isSample: true,
-    status: "Published",
-    order: 3,
-    pages: "32 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-partnership-ldr",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "ldr",
-    title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
-    description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
-    pdfUrl: "/notes/partnership-ldr-charts.pdf",
-    samplePdfUrl: "/notes/partnership-ldr-charts.pdf",
-    isSample: true,
-    status: "Published",
-    order: 4,
-    pages: "18 Pages (LDR Revision Charts)",
-  },
-  {
-    id: "res-ca-partnership-infographics",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "infographic",
-    title: "Partnership Act — Visual Infographics & Concept Mind Maps",
-    description: "High-retention infographics breaking down Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
-    pdfUrl: "/notes/partnership-infographics.pdf",
-    samplePdfUrl: "/notes/partnership-infographics.pdf",
-    isSample: true,
-    status: "Published",
-    order: 5,
-    pages: "12 Infographic Sheets",
-  },
-  {
-    id: "res-ca-partnership-practice",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "practice",
-    title: "Indian Partnership Act — Practice Questions & Case Problems",
-    description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
-    pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    samplePdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    isSample: true,
-    status: "Published",
-    order: 6,
-    pages: "25 Pages (Practice Problems)",
-  },
-  {
-    id: "res-ca-qbank-part1",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "practice",
-    title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
-    description: "Turn understanding into exam-ready practice: Chapter-wise questions, application scenarios, case-based questions & model test papers for CA Foundation.",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    samplePdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    isSample: true,
-    status: "Published",
-    order: 7,
-    pages: "65+ Pages (Question Bank)",
-  },
-  {
-    id: "res-ca-paper-analysis-sep2026",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "pyq",
-    title: "September 2026 Paper Analysis & Detailed Model Answers",
-    description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
-    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    samplePdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    isSample: true,
-    status: "Published",
-    order: 8,
-    pages: "16 Pages (Exam Paper Analysis)",
-  },
-  {
-    id: "res-ca-7",
-    course: "ca-foundation",
-    actName: "The Limited Liability Partnership Act, 2008",
-    chapterNumber: 5,
-    type: "notes",
-    title: "LLP Architecture & Comparison with Traditional Firm",
-    description: "Separate legal identity, perpetual succession, Designated Partners compliance & Amendment Act 2021.",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "20 Pages",
-  },
-  {
-    id: "res-ca-8",
-    course: "ca-foundation",
-    actName: "The Companies Act, 2013",
-    chapterNumber: 6,
-    type: "notes",
-    title: "Essential Characteristics & Lifting of Corporate Veil",
-    description: "Salomon v. Salomon, Private vs Public vs One Person Company, Section 8 Non-profit companies.",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "36 Pages",
-  },
-  {
-    id: "res-ca-9",
-    course: "ca-foundation",
-    actName: "The Negotiable Instruments Act, 1881",
-    chapterNumber: 7,
-    type: "notes",
-    title: "Promissory Notes, Bills of Exchange & Cheques",
-    description: "Holder in Due Course, Section 138 Dishonour penalties, statutory notice timeline & defences.",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "26 Pages",
-  },
-  {
-    id: "res-cs-1",
-    course: "cseet",
-    actName: "General Principles of Management",
-    chapterNumber: 7,
-    type: "notes",
-    title: "Management Principles, Functions & Theories",
-    description: "Henry Fayol 14 Principles vs FW Taylor Scientific Management, PESTLE Analysis & Corporate Governance.",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    samplePdfUrl: "/notes/cseet-management-full.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "120+ Pages",
-  },
-];
+const INITIAL_RESOURCES: ResourceItem[] = [];
 
 const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
@@ -3519,7 +3283,7 @@ export default function AdminPortalPage() {
                     type="text"
                     value={resourceModal.data.pdfUrl || ""}
                     onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, pdfUrl: e.target.value } })}
-                    placeholder="/notes/sale-of-goods-unit-1.pdf"
+                    placeholder="https://... or upload PDF file"
                     className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
                   />
                   <input
@@ -3548,47 +3312,6 @@ export default function AdminPortalPage() {
                     <UploadCloud className="w-3.5 h-3.5" />
                     <span>{isUploadingFile ? "Uploading..." : "Upload PDF"}</span>
                   </button>
-                </div>
-
-                {/* Quick PDF presets */}
-                <div className="mt-2 pt-1 border-t border-[#F3F4F6] space-y-1">
-                  <p className="text-[10px] font-semibold text-[#77716E]">Quick Select Standard PDF:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {[
-                      { label: "Partnership LDR Charts", url: "/notes/partnership-ldr-charts.pdf", type: "ldr", title: "Partnership Act — Last Day Revision (LDR) Flowcharts", pages: "18 Pages (LDR Revision Charts)" },
-                      { label: "Partnership Infographics", url: "/notes/partnership-infographics.pdf", type: "infographic", title: "Partnership Act — Visual Infographics & Concept Mind Maps", pages: "12 Infographic Sheets" },
-                      { label: "Partnership Practice Questions", url: "/notes/indian-partnership-act-practice-questions.pdf", type: "practice", title: "Indian Partnership Act — Practice Questions & Case Problems", pages: "25 Pages" },
-                      { label: "Smart Revision Question Bank (Part 1)", url: "/notes/smart-revision-question-bank-part-1.pdf", type: "practice", title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions", pages: "65+ Pages" },
-                      { label: "September 2026 Paper Analysis", url: "/notes/september-2026-paper-analysis.pdf", type: "pyq", title: "September 2026 Paper Analysis & Detailed Model Answers", pages: "16 Pages" },
-                      { label: "Partnership Unit 1 Notes", url: "/notes/unit-1-general-nature-of-partnership.pdf", type: "notes", title: "Unit 1: General Nature of Partnership", pages: "24 Pages" },
-                      { label: "Partnership Unit 2 Notes", url: "/notes/unit-2-relations-of-partners.pdf", type: "notes", title: "Unit 2: Relations of Partners", pages: "28 Pages" },
-                      { label: "Partnership Unit 3 Notes", url: "/notes/unit-3-registration-and-dissolution-of-firm.pdf", type: "notes", title: "Unit 3: Registration and Dissolution of Firm", pages: "32 Pages" },
-                    ].map((preset, pIdx) => (
-                      <button
-                        key={pIdx}
-                        type="button"
-                        onClick={() => {
-                          setResourceModal((prev) => ({
-                            ...prev,
-                            data: {
-                              ...prev.data,
-                              pdfUrl: preset.url,
-                              samplePdfUrl: preset.url,
-                              isSample: true,
-                              type: (preset.type as any) || prev.data.type,
-                              title: prev.data.title || preset.title,
-                              pages: preset.pages || prev.data.pages,
-                              actName: "The Indian Partnership Act, 1932",
-                              chapterNumber: 4,
-                            },
-                          }));
-                        }}
-                        className="px-2 py-0.5 rounded-lg text-[10px] bg-[#F7F7F5] hover:bg-[#C4E1EC]/60 border border-[#E7E4E7] text-[#221D1D] transition-colors cursor-pointer"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
 
@@ -3639,7 +3362,7 @@ export default function AdminPortalPage() {
                     type: resourceModal.data.type || "notes",
                     title: resourceModal.data.title || "Chapter Notes",
                     description: resourceModal.data.description || "",
-                    pdfUrl: resourceModal.data.pdfUrl || "/notes/unit-1-general-nature-of-partnership.pdf",
+                    pdfUrl: resourceModal.data.pdfUrl || "",
                     samplePdfUrl: resourceModal.data.samplePdfUrl || "",
                     isSample: Boolean(resourceModal.data.isSample),
                     status: resourceModal.data.status || "Published",

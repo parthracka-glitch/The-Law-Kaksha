@@ -41,21 +41,21 @@ const FALLBACK_COURSE: CourseDetail = {
       id: "ch-1",
       title: "Indian Regulatory Framework",
       description: "Overview of Indian Legal System & Hierarchy of Courts.",
-      pdf_url: "/notes/sale-of-goods-unit-1.pdf",
+      pdf_url: "",
       pages: "18 Pages",
     },
     {
       id: "ch-2",
       title: "The Indian Contract Act, 1872",
       description: "Essentials of valid contract, offer, acceptance, consideration, void agreements, and remedies for breach.",
-      pdf_url: "/notes/sale-of-goods-unit-2.pdf",
+      pdf_url: "",
       pages: "42 Pages",
     },
     {
       id: "ch-3",
       title: "The Sale of Goods Act, 1930",
       description: "Conditions & warranties, caveat emptor exceptions, and unpaid seller rights against goods.",
-      pdf_url: "/notes/sale-of-goods-unit-1.pdf",
+      pdf_url: "",
       pages: "34 Pages",
     },
   ],
@@ -153,13 +153,14 @@ export default function StudentCourseDetailPage() {
                 </div>
 
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    if (!chap.pdf_url) return;
                     setReader({
                       open: true,
                       url: chap.pdf_url,
                       title: chap.title,
-                    })
-                  }
+                    });
+                  }}
                   className="px-5 py-2.5 rounded-full font-bold text-xs bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] transition-colors flex items-center gap-2 shrink-0 shadow-[0_2px_8px_rgba(191,175,229,0.35)] cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 text-[#221D1D]" />

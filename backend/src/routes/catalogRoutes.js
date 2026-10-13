@@ -59,30 +59,39 @@ const DEFAULT_COURSES = [
   },
 ];
 
-// GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
+// GET /api/public/site-data — Public site sync data (products, countdowns, QOTD, resources, announcement)
 router.get("/public/site-data", async (req, res) => {
   try {
     let products = [];
+    let resources = [];
     let examSettings = [];
     let qotd = null;
     let mcqPool = null;
+    let announcement = null;
 
     if (isConnected()) {
       products = await Product.find({ status: "Active" }).sort({ createdAt: -1 }).lean();
+      resources = await Resource.find({ status: "Published" }).sort({ createdAt: -1 }).lean();
       const examDoc = await SiteSetting.findOne({ key: "exam_countdown" }).lean();
       if (examDoc) examSettings = examDoc.value;
       const qotdDoc = await SiteSetting.findOne({ key: "qotd" }).lean();
       if (qotdDoc) qotd = qotdDoc.value;
       const mcqDoc = await SiteSetting.findOne({ key: "mcq_pool" }).lean();
       if (mcqDoc) mcqPool = mcqDoc.value;
+      const annDoc = await SiteSetting.findOne({ key: "announcement" }).lean();
+      if (annDoc) announcement = annDoc.value;
     } else {
       products = Database.table("products").find((p) => p.status === "Active");
+      resources = Database.table("resources").find();
     }
 
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
       products,
+      resources,
+      announcement,
+      latestBook: products.length > 0 ? products[0] : null,
       examSettings,
       qotd,
       mcqPool,
@@ -105,8 +114,15 @@ router.get("/catalog", async (req, res) => {
     // Adapt DB products into catalog format
     const formattedDbProducts = dbProducts.map((p) => ({
       ...p,
-      original_price: p.originalPrice || 499,
-      badge: `₹${p.price}`,
+      pages_or_duration: p.pages_or_duration || p.pages || "Digital Codex",
+      original_price: p.originalPrice || p.original_price || 499,
+      badge: p.badge || `₹${p.price}`,
+      examBody: p.examBody || (p.category?.includes("CS") ? "ICSI" : "ICAI"),
+      accentColor: p.accentColor || (p.category?.includes("CS") ? "from-[#BFAFE5] to-[#A08DC9]" : "from-[#AED7E9] to-[#7BB8CE]"),
+      iconEmoji: p.iconEmoji || "📚",
+      highlights: Array.isArray(p.highlights) && p.highlights.length > 0
+        ? p.highlights
+        : ["In-Web DRM Protected Reading", "Statutory Sections & Flowcharts", "Model Answers & Practice Sets"],
     }));
 
     let allProducts = [...DEFAULT_COURSES, ...formattedDbProducts];
@@ -165,6 +181,17 @@ router.get("/catalog/:id", async (req, res) => {
       product: {
         ...product,
         original_price: product.originalPrice || product.original_price || 499,
+        badge: product.badge || `₹${product.price}`,
+        pages_or_duration: product.pages_or_duration || product.pages || "Digital Codex",
+        examBody: product.examBody || (product.category?.includes("CS") ? "ICSI" : "ICAI"),
+        syllabus: Array.isArray(product.syllabus) && product.syllabus.length > 0
+          ? product.syllabus
+          : Array.isArray(product.units) && product.units.length > 0
+          ? product.units.map((u, i) => ({ chapter: `Unit ${i + 1}`, title: u }))
+          : [{ chapter: "Full Book", title: "Statutory Law Codex & Practice Notes" }],
+        highlights: Array.isArray(product.highlights) && product.highlights.length > 0
+          ? product.highlights
+          : ["In-Web DRM Protected Reading", "Statutory Sections & Flowcharts", "Model Answers & Practice Sets"],
       },
       item: product,
     });

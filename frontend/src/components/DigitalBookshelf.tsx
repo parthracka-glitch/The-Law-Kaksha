@@ -38,7 +38,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-white",
     accentColor: "#AED7E9",
     heightPx: 180,
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -55,7 +55,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     accentColor: "#BFAFE5",
     heightPx: 210,
     isFeatured: true,
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -71,8 +71,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     accentColor: "#4B8097",
     heightPx: 190,
-    isSample: true,
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -88,8 +87,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     accentColor: "#8B5CF6",
     heightPx: 200,
-    isSample: true,
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -105,7 +103,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     accentColor: "#4B8097",
     heightPx: 170,
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -122,7 +120,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     accentColor: "#F4C5C0",
     heightPx: 220,
     isFeatured: true,
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -138,7 +136,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-white",
     accentColor: "#AED7E9",
     heightPx: 185,
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -154,7 +152,7 @@ const STATUTORY_BOOKS: BookSpine[] = [
     textColor: "text-[#221D1D]",
     accentColor: "#2D7A5A",
     heightPx: 195,
-    pdfUrl: "/notes/cseet-management-full.pdf",
+    pdfUrl: "",
     previewPagesLimit: 5,
     price: 99,
   },
@@ -170,6 +168,7 @@ export function DigitalBookshelf() {
   }>({ open: false, title: "", pdfUrl: "", previewLimit: 5, price: 99, bookId: "" });
 
   const handleOpenBook = (book: BookSpine) => {
+    if (!book.pdfUrl) return;
     setReaderState({
       open: true,
       title: book.actName,
@@ -195,7 +194,7 @@ export function DigitalBookshelf() {
             <span className="text-[#005A9C]"> All in One Place.</span>
           </h2>
           <p className="text-sm text-[#64748B] leading-relaxed">
-            The complete statutory library for CA Foundation & CSEET — chapter-wise notes, case studies, and question banks. Tap any book to read a free sample.
+            The complete statutory library for CA Foundation & CSEET — chapter-wise notes, case studies, and question banks.
           </p>
         </div>
 
@@ -204,7 +203,7 @@ export function DigitalBookshelf() {
           {[
             { label: "Active Students", value: "1,200+", icon: Users },
             { label: "Acts Covered", value: "8 Acts", icon: BookOpen },
-            { label: "Free Samples", value: "3 Units Free", icon: Eye },
+            { label: "Curated Modules", value: "8 Modules", icon: Eye },
             { label: "DRM Protected", value: "Exam-Safe", icon: Lock },
           ].map((stat) => (
             <div key={stat.label} className="flex items-center gap-2">

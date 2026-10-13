@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { SubscriptionCarousel } from "@/components/SubscriptionCarousel";
 import { SubscriptionOverview } from "@/components/SubscriptionOverview";
+import { BooksAndNotesShowcase } from "@/components/BooksAndNotesShowcase";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
 import { Section16ComparisonBlock } from "@/components/Section16ComparisonBlock";
 import { FaqSection } from "@/components/FaqSection";
@@ -24,7 +25,10 @@ export default function Home() {
       {/* 4. Live Subscription Passes Overview (A2) */}
       <SubscriptionOverview />
 
-      {/* 5. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
+      {/* 5. Live Books & PDF Notes Library Showcase */}
+      <BooksAndNotesShowcase />
+
+      {/* 6. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
       <ExamCountdownsAndQOTD />
 
       {/* 6. Case Studies & Offers Highlight Banner */}

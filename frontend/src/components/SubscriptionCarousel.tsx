@@ -9,14 +9,11 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Clock,
   BookOpen,
   Star,
-  Award,
   Zap,
   Flame,
   CheckCircle2,
-  Lock,
 } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 
@@ -118,6 +115,7 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
 ];
 
 export function SubscriptionCarousel() {
+  const [courses, setCourses] = useState<FeaturedCourseData[]>(FEATURED_COURSES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -127,8 +125,58 @@ export function SubscriptionCarousel() {
   const [modalBookId, setModalBookId] = useState<"ca-foundation" | "cseet">("ca-foundation");
   const [modalTitle, setModalTitle] = useState("");
 
-  const total = FEATURED_COURSES.length;
-  const current = FEATURED_COURSES[currentIndex];
+  // Fetch live books & products from backend
+  useEffect(() => {
+    fetch("/api/public/site-data")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.products) && data.products.length > 0) {
+          const dynamicList: FeaturedCourseData[] = data.products.map((prod: any) => {
+            const isCS =
+              prod.category?.toLowerCase().includes("cs") ||
+              prod.title?.toLowerCase().includes("cseet");
+            const disc =
+              prod.originalPrice && prod.price && prod.originalPrice > prod.price
+                ? `${Math.round(((prod.originalPrice - prod.price) / prod.originalPrice) * 100)}% OFF`
+                : "SPECIAL LAUNCH PRICE";
+
+            return {
+              id: prod.id,
+              categoryTag: "✨ NEW CONTENT • 2026 EDITION",
+              tagColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
+              title: prod.title,
+              subtitle: prod.subtitle || prod.description || "Statutory Law Codex with In-Web DRM Reader Access.",
+              price: prod.price || 99,
+              mrp: prod.originalPrice || 299,
+              discount: disc,
+              image: prod.cover_image || "/assets/ca-cs-hero-books-v2.png",
+              bookId: (isCS ? "cseet" : "ca-foundation") as "ca-foundation" | "cseet",
+              sampleTitle: prod.title,
+              rating: "4.9 / 5.0",
+              studentCount: "New Content Live",
+              features:
+                Array.isArray(prod.highlights) && prod.highlights.length > 0
+                  ? prod.highlights
+                  : [
+                      `Included Chapters: ${Array.isArray(prod.units) ? prod.units.join(", ") : "Statutory Modules"}`,
+                      "Single-Device In-Web DRM Security",
+                      "Statutory Definitions & Judicial Precedents",
+                      "ICAI & ICSI Exam Oriented Question Bank",
+                    ],
+              ctaLink: `/product/${prod.id}`,
+              isNew: true,
+            };
+          });
+
+          // Prepend newly added books so they appear first in the carousel
+          setCourses([...dynamicList, ...FEATURED_COURSES]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const total = courses.length;
+  const current = courses[currentIndex] || courses[0] || FEATURED_COURSES[0];
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % total);
@@ -177,7 +225,7 @@ export function SubscriptionCarousel() {
 
           {/* Course Switcher Pills */}
           <div className="flex flex-wrap items-center gap-2">
-            {FEATURED_COURSES.map((course, idx) => {
+            {courses.map((course, idx) => {
               const isActive = idx === currentIndex;
               return (
                 <button
@@ -190,8 +238,16 @@ export function SubscriptionCarousel() {
                   }`}
                 >
                   {course.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
-                  {course.isNew && <Sparkles className="w-3.5 h-3.5 text-sky-400" />}
-                  <span>{course.id === "ca-foundation" ? "Best Seller (CA)" : course.id === "cseet-law" ? "New Course (CSEET)" : "Dual Pass Combo"}</span>
+                  {course.isNew && <Sparkles className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span className="max-w-[130px] truncate sm:max-w-none">
+                    {course.isNew
+                      ? `New: ${course.title}`
+                      : course.id === "ca-foundation"
+                      ? "Best Seller (CA)"
+                      : course.id === "cseet-law"
+                      ? "New Course (CSEET)"
+                      : "Dual Pass Combo"}
+                  </span>
                 </button>
               );
             })}
@@ -218,7 +274,7 @@ export function SubscriptionCarousel() {
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase border shadow-2xs ${current.tagColor}`}
                 >
                   {current.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
-                  {current.isNew && <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />}
+                  {current.isNew && <Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
                   <span>{current.categoryTag}</span>
                 </span>
 
@@ -250,32 +306,36 @@ export function SubscriptionCarousel() {
                 ))}
               </div>
 
-              {/* Price Tag Callout */}
-              <div className="flex items-baseline gap-3 pt-2">
-                <span className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
+              {/* Pricing & CTA Row */}
+              <div className="flex flex-wrap items-baseline gap-3 pt-2">
+                <div className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
                   ₹{current.price}
-                </span>
-                <span className="text-xs text-[#64748B]">/ month</span>
-                <span className="text-base text-[#94A3B8] line-through">₹{current.mrp}</span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                </div>
+                <div className="text-base sm:text-lg text-[#94A3B8] line-through font-medium">
+                  ₹{current.mrp}
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {current.discount}
+                </span>
+                <span className="text-xs text-[#64748B]">
+                  • In-Browser DRM Protected
                 </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   href={current.ctaLink}
-                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-bold bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-95"
                 >
-                  <span>Enroll in Course</span>
+                  <span>{current.isNew ? "Explore & Get Codex" : "Get Access Pass"}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </Link>
 
                 <button
                   type="button"
                   onClick={() => handleOpenSample(current.bookId, current.sampleTitle)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-white border border-[#005A9C] text-[#005A9C] hover:bg-[#EFF6FF] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-bold bg-[#F0F7FF] hover:bg-[#E0F0FE] text-[#005A9C] border border-[#DBEAFE] transition-all duration-200 cursor-pointer active:scale-95"
                 >
                   <BookOpen className="w-4 h-4 text-[#005A9C]" />
                   <span>Preview Free Chapter</span>
@@ -290,7 +350,7 @@ export function SubscriptionCarousel() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Instant Portal Activation</span>
+                  <span>Instant In-Web Activation</span>
                 </span>
               </div>
             </div>
@@ -304,7 +364,11 @@ export function SubscriptionCarousel() {
                 {/* Floating Top Badge */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-[#005A9C] border border-[#DBEAFE] shadow-2xs">
-                    {current.isBestseller ? "🔥 #1 Best Seller" : current.isNew ? "✨ New 2026 Edition" : "⭐ Dual All-Access"}
+                    {current.isBestseller
+                      ? "🔥 #1 Best Seller"
+                      : current.isNew
+                      ? "✨ New 2026 Release"
+                      : "⭐ Dual All-Access"}
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0A192F] text-white">
                     DRM-PROTECTED
@@ -354,32 +418,31 @@ export function SubscriptionCarousel() {
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Auto-Rotation Progress Bar */}
-          <div className="h-1 w-full bg-[#EFF6FF] flex">
-            {FEATURED_COURSES.map((_, idx) => (
-              <div
+          {/* Bottom Dot Indicators */}
+          <div className="flex justify-center items-center gap-2 pb-6 pt-2">
+            {courses.map((_, idx) => (
+              <button
                 key={idx}
-                className="flex-1 h-full cursor-pointer relative"
                 onClick={() => setCurrentIndex(idx)}
-              >
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    idx === currentIndex ? "bg-[#005A9C]" : "bg-transparent"
-                  }`}
-                />
-              </div>
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  idx === currentIndex
+                    ? "w-8 h-2 bg-[#005A9C]"
+                    : "w-2 h-2 bg-[#CBD5E1] hover:bg-[#94A3B8]"
+                }`}
+              />
             ))}
           </div>
+
         </div>
       </section>
 
-      {/* Interactive Sample Chapter Modal */}
+      {/* Sample Chapter Modal */}
       <EnhancedSampleChapterModal
         isOpen={sampleModalOpen}
         onClose={() => setSampleModalOpen(false)}
-        bookTitle={modalTitle}
         bookId={modalBookId}
-        bookPrice={99}
+        bookTitle={modalTitle}
       />
     </>
   );

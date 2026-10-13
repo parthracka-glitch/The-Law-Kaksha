@@ -10,7 +10,6 @@ interface StudentRightSidebarProps {
   studentName?: string;
   studyHours?: number;
   userRank?: number;
-  onOpenStreakLog?: () => void;
 }
 
 export function StudentRightSidebar({
@@ -19,27 +18,16 @@ export function StudentRightSidebar({
   studentName = "Parth Racka",
   studyHours = 11,
   userRank = 57479,
-  onOpenStreakLog,
 }: StudentRightSidebarProps) {
   return (
     <aside className="w-full space-y-4 text-[#221D1D] select-none font-sans">
       {/* ========================================================================= */}
-      {/* 1. TOP STREAK CARDS (SIMPLE TWO BOXES - CLICK TO OPEN STREAK CALENDAR)     */}
+      {/* 1. TOP STREAK CARDS (SIMPLE INFORMATIVE BOXES)                             */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-2 gap-3">
         {/* Learning Streak Card */}
         <div
-          onClick={onOpenStreakLog}
-          className="relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] via-white to-[#FEF3C7]/40 rounded-3xl p-4 border border-[#FDE68A] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group"
-          title="Click to view daily learning streak details"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onOpenStreakLog?.();
-            }
-          }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] via-white to-[#FEF3C7]/40 rounded-3xl p-4 border border-[#FDE68A] shadow-xs flex flex-col justify-between cursor-default"
         >
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-[#92400E]">
@@ -65,17 +53,7 @@ export function StudentRightSidebar({
 
         {/* Longest Streak Card */}
         <div
-          onClick={onOpenStreakLog}
-          className="relative overflow-hidden bg-gradient-to-br from-[#FAF5FF] via-white to-[#EDE9FE]/50 rounded-3xl p-4 border border-[#E9D5FF] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group"
-          title="Click to view personal best streak"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onOpenStreakLog?.();
-            }
-          }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#FAF5FF] via-white to-[#EDE9FE]/50 rounded-3xl p-4 border border-[#E9D5FF] shadow-xs flex flex-col justify-between cursor-default"
         >
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-[#7E22CE]">

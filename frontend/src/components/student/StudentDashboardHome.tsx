@@ -326,7 +326,6 @@ interface StudentDashboardHomeProps {
   lawXp?: number;
   levelInfo?: LevelInfo;
   awardXp?: (amount: number, reason: string) => void;
-  onOpenStreakLog?: () => void;
   onOpenBadgesModal?: () => void;
   onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs", isFreeSample?: boolean) => void;
   onExploreCourse: (courseId: string) => void;
@@ -345,164 +344,6 @@ interface StudentDashboardHomeProps {
   purchasedBooks?: string[];
 }
 
-export interface FreeResourceItem {
-  id: string;
-  actName: string;
-  unitNumber: number;
-  title: string;
-  subtitle: string;
-  badge: string;
-  pages: string;
-  pdfUrl: string;
-  courseType: "ca" | "cs";
-  gradient: string;
-  borderTheme: string;
-  accentBadge: string;
-}
-
-export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
-  {
-    id: "free-soga-1",
-    actName: "The Sale of Goods Act, 1930",
-    unitNumber: 1,
-    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    subtitle: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods & Formalities",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "12 Pages",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-  {
-    id: "free-soga-2",
-    actName: "The Sale of Goods Act, 1930",
-    unitNumber: 2,
-    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-    subtitle: "Stipulations, Implied Conditions of Fitness & Landmark Case Priest v. Last",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "10 Pages",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDFA] via-white to-white",
-    borderTheme: "border-[#99F6E4] hover:border-[#0D9488]",
-    accentBadge: "bg-[#CCFBF1] text-[#0F766E] border-[#5EEAD4]",
-  },
-  {
-    id: "free-partner-1",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 1,
-    title: "Unit 1: General Nature of Partnership",
-    subtitle: "Definition, Mutual Agency, True Test of Partnership (Cox v. Hickman)",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "24 Pages",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    courseType: "ca",
-    gradient: "from-[#FFFBEB] via-white to-white",
-    borderTheme: "border-[#FDE68A] hover:border-[#D97706]",
-    accentBadge: "bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]",
-  },
-  {
-    id: "free-partner-2",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 2,
-    title: "Unit 2: Relations of Partners",
-    subtitle: "Rights, Duties, Implied Authority, Holding Out & Minor as Beneficiary",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "28 Pages",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    courseType: "ca",
-    gradient: "from-[#FAF5FF] via-white to-white",
-    borderTheme: "border-[#E9D5FF] hover:border-[#7E22CE]",
-    accentBadge: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-  },
-  {
-    id: "free-partner-3",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 3,
-    title: "Unit 3: Registration & Dissolution of Firm",
-    subtitle: "Section 69 Disabilities, Modes of Dissolution (Sec 40-44) & Account Settlement",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "32 Pages",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-  {
-    id: "free-partner-ldr",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 4,
-    title: "Partnership Act: LDR Revision Flowcharts & Matrix",
-    subtitle: "High-speed visual recall aids for the final 36 hours before your examination",
-    badge: "🗺️ LDR FLOWCHARTS",
-    pages: "18 Pages",
-    pdfUrl: "/notes/partnership-ldr-charts.pdf",
-    courseType: "ca",
-    gradient: "from-[#EFF6FF] via-white to-white",
-    borderTheme: "border-[#BFDBFE] hover:border-[#2563EB]",
-    accentBadge: "bg-[#DBEAFE] text-[#1D4ED8] border-[#93C5FD]",
-  },
-  {
-    id: "free-partner-infographics",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 5,
-    title: "Partnership Act: Visual Infographics Deck",
-    subtitle: "High-retention infographics on Mutual Agency, Minor Beneficiary & Dissolution",
-    badge: "🎨 VISUAL INFOGRAPHICS",
-    pages: "12 Posters",
-    pdfUrl: "/notes/partnership-infographics.pdf",
-    courseType: "ca",
-    gradient: "from-[#FAF5FF] via-white to-white",
-    borderTheme: "border-[#E9D5FF] hover:border-[#9333EA]",
-    accentBadge: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-  },
-  {
-    id: "free-partner-practice",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 6,
-    title: "Partnership Act: Practice Questions & Problem Drills",
-    subtitle: "ICAI pattern chapter-wise questions with step-by-step model legal answers",
-    badge: "📝 PRACTICE QUESTIONS",
-    pages: "25 Pages",
-    pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    courseType: "ca",
-    gradient: "from-[#FFF7ED] via-white to-white",
-    borderTheme: "border-[#FFEDD5] hover:border-[#EA580C]",
-    accentBadge: "bg-[#FFEDD5] text-[#C2410C] border-[#FDBA74]",
-  },
-  {
-    id: "free-partner-qbank",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 7,
-    title: "Smart Revision Question Bank (Part 1)",
-    subtitle: "Exhaustive application scenarios, case-based questions & model test papers",
-    badge: "📚 QUESTION BANK",
-    pages: "65+ Pages",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    courseType: "ca",
-    gradient: "from-[#FEF2F2] via-white to-white",
-    borderTheme: "border-[#FECACA] hover:border-[#DC2626]",
-    accentBadge: "bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]",
-  },
-  {
-    id: "free-partner-paper-analysis",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 8,
-    title: "September 2026 Examination Paper Analysis",
-    subtitle: "Provision mapping, examiner keyword checklist & suggested solutions",
-    badge: "📊 EXAM PAPER ANALYSIS",
-    pages: "16 Pages",
-    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#DCFCE7] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-];
-
 interface RecommendedCourseItem {
   num: string;
   courseType: "ca" | "cs" | "shared";
@@ -512,7 +353,7 @@ interface RecommendedCourseItem {
   streamLabel: string;
   icon: any;
   iconBg: string;
-  pdfUrl: string;
+  pdfUrl?: string;
   isFree?: boolean;
 }
 
@@ -520,38 +361,32 @@ const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
   {
     num: "1",
     courseType: "ca",
-    title: "The Sale of Goods Act, 1930 Masterclass",
-    subtitle: "Formation of contract of sale, goods classification, conditions & warranties",
-    duration: "2 Units • 22 Pages",
-    streamLabel: "ICAI CA Foundation",
+    title: "Contract Act, 1872 Masterclass",
+    subtitle: "Simple bare-act rules with landmark legal precedents",
+    duration: "35h 48m",
+    streamLabel: "CA Foundation",
     icon: Scale,
     iconBg: "bg-[#7E22CE]",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isFree: true,
   },
   {
     num: "2",
-    courseType: "ca",
-    title: "Conditions & Warranties Codex (Sec 11-17)",
-    subtitle: "Implied conditions of fitness, Priest v. Last, Caveat Emptor & landmark case law",
-    duration: "Unit 2 • 10 Pages",
-    streamLabel: "ICAI CA Foundation",
+    courseType: "shared",
+    title: "System Design & Corporate Veil",
+    subtitle: "Salomon v. Salomon & ultra-vires doctrines",
+    duration: "28h 31m",
+    streamLabel: "CA & CS Shared",
     icon: Landmark,
     iconBg: "bg-[#0F172A]",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isFree: true,
   },
   {
     num: "3",
     courseType: "cs",
-    title: "CSEET Management & Corporate Governance",
-    subtitle: "Henri Fayol's 14 principles, Taylor's scientific management & CSR ethics framework",
-    duration: "8 Units • 120 Pages",
-    streamLabel: "ICSI CSEET",
+    title: "Company Law & Legal Aptitude",
+    subtitle: "Essential test series & objective mock drill",
+    duration: "19h 15m",
+    streamLabel: "CSEET Paper 2",
     icon: GraduationCap,
     iconBg: "bg-[#0284C7]",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    isFree: false,
   },
 ];
 
@@ -569,7 +404,6 @@ export function StudentDashboardHome({
     progress: 45,
   },
   awardXp,
-  onOpenStreakLog,
   onOpenBadgesModal,
   onOpenPdf,
   activeCourse = "ca",
@@ -591,7 +425,6 @@ export function StudentDashboardHome({
   const [searchQuery, setSearchQuery] = useState("");
   const carouselRef = useRef<HTMLDivElement>(null);
   const promoCarouselRef = useRef<HTMLDivElement>(null);
-  const freeNotesCarouselRef = useRef<HTMLDivElement>(null);
   const quizSectionRef = useRef<HTMLDivElement>(null);
   const [promoSlideIndex, setPromoSlideIndex] = useState(0);
 
@@ -608,7 +441,7 @@ export function StudentDashboardHome({
         category: "ICAI Paper 2 • 7 Chapters",
         enrolledDate: "Active 2026 Batch • ICAI",
         progress: isCaUnlocked ? Math.min(100, Math.max(6, completedUnitsCount * 14)) : 0,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+        pdfUrl: "",
         iconBg: "from-[#F59E0B] via-[#D97706] to-[#B45309]",
         iconType: "yellow",
         iconEmoji: "⚖️",
@@ -626,7 +459,7 @@ export function StudentDashboardHome({
         category: "ICSI Paper 2 • 8 Units",
         enrolledDate: "Active 2026 Batch • ICSI",
         progress: isCsUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 12)) : 0,
-        pdfUrl: "/notes/cseet-management-full.pdf",
+        pdfUrl: "",
         iconBg: "from-[#1E293B] to-[#0F172A]",
         iconType: "dark",
         iconEmoji: "📜",
@@ -643,7 +476,7 @@ export function StudentDashboardHome({
       category: activeCourse === "ca" ? "ICAI Problem Vault" : "ICSI Problem Vault",
       enrolledDate: "Active 2026 Batch",
       progress: (isCaUnlocked || isCsUnlocked) ? 45 : 0,
-      pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+      pdfUrl: "",
       iconBg: "from-[#3B0764] to-[#1E1B4B]",
       iconType: "blue",
       iconEmoji: "🏛️",
@@ -658,7 +491,7 @@ export function StudentDashboardHome({
       category: activeCourse === "ca" ? "ICAI Pattern Test Series" : "ICSI Pattern Test Series",
       enrolledDate: "Active 2026 Batch",
       progress: (isCaUnlocked || isCsUnlocked) ? 35 : 0,
-      pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+      pdfUrl: "",
       iconBg: "from-[#047857] to-[#064E3B]",
       iconType: "emerald",
       iconEmoji: "🎯",
@@ -806,14 +639,6 @@ export function StudentDashboardHome({
     }
   };
 
-  const scrollFreeNotes = (direction: "left" | "right") => {
-    if (freeNotesCarouselRef.current) {
-      const container = freeNotesCarouselRef.current;
-      const offset = 290 * (direction === "left" ? -1 : 1);
-      container.scrollBy({ left: offset, behavior: "smooth" });
-    }
-  };
-
   const scrollPromoCarousel = (direction: "left" | "right") => {
     if (promoCarouselRef.current) {
       const container = promoCarouselRef.current;
@@ -903,7 +728,7 @@ export function StudentDashboardHome({
           totalLessons: 4,
           completedLessons: isCsUnlocked ? Math.min(4, Math.max(1, completedUnitsCount)) : 1,
           progressPercent: isCsUnlocked ? 65 : 25,
-          pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+          pdfUrl: "",
           isUnlocked: Boolean(isCsUnlocked),
           category: "cs",
         },
@@ -916,7 +741,7 @@ export function StudentDashboardHome({
           totalLessons: 3,
           completedLessons: isCsUnlocked ? 2 : 1,
           progressPercent: isCsUnlocked ? 50 : 20,
-          pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+          pdfUrl: "",
           isUnlocked: Boolean(isCsUnlocked),
           category: "cs",
         },
@@ -929,7 +754,7 @@ export function StudentDashboardHome({
           totalLessons: 8,
           completedLessons: isCsUnlocked ? 6 : 2,
           progressPercent: isCsUnlocked ? 75 : 25,
-          pdfUrl: "/notes/cseet-management-full.pdf",
+          pdfUrl: "",
           isUnlocked: Boolean(isCsUnlocked),
           category: "cs",
         },
@@ -946,7 +771,7 @@ export function StudentDashboardHome({
         totalLessons: 12,
         completedLessons: isCaUnlocked ? 8 : 4,
         progressPercent: isCaUnlocked ? 65 : 30,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+        pdfUrl: "",
         isUnlocked: Boolean(isCaUnlocked),
         category: "ca",
       },
@@ -959,7 +784,7 @@ export function StudentDashboardHome({
         totalLessons: 12,
         completedLessons: isCaUnlocked ? 5 : 2,
         progressPercent: isCaUnlocked ? 40 : 15,
-        pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
+        pdfUrl: "",
         isUnlocked: Boolean(isCaUnlocked),
         category: "ca",
       },
@@ -972,7 +797,7 @@ export function StudentDashboardHome({
         totalLessons: 12,
         completedLessons: isCaUnlocked ? 3 : 1,
         progressPercent: isCaUnlocked ? 25 : 10,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+        pdfUrl: "",
         isUnlocked: true,
         category: "ca",
       },
@@ -985,7 +810,7 @@ export function StudentDashboardHome({
         totalLessons: 10,
         completedLessons: isCaUnlocked ? 8 : 3,
         progressPercent: isCaUnlocked ? 80 : 30,
-        pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+        pdfUrl: "",
         isUnlocked: true,
         category: "ca",
       },
@@ -993,18 +818,18 @@ export function StudentDashboardHome({
   }, [activeCourse, isCaUnlocked, isCsUnlocked, completedUnitsCount]);
 
   const handleContinueLearning = () => {
-    const targetPdf = activeCourse === "ca" 
-      ? "/notes/sale-of-goods-unit-1.pdf" 
-      : "/notes/cseet-management-full.pdf";
-    const targetTitle = activeCourse === "ca"
-      ? "The Indian Contract Act, 1872"
-      : "CSEET Management & Corporate Governance";
-    onOpenPdf(targetPdf, targetTitle, "Unit 1: Formation of Contract", activeCourse, true);
+    if (onExploreCourse) {
+      onExploreCourse(activeCourse);
+    }
   };
 
   const handleOpenStudentCourse = (courseItem: StudentCourseProgressItem) => {
     if (courseItem.isUnlocked) {
-      onOpenPdf(courseItem.pdfUrl, courseItem.name, courseItem.code, courseItem.category, true);
+      if (courseItem.pdfUrl) {
+        onOpenPdf(courseItem.pdfUrl, courseItem.name, courseItem.code, courseItem.category, true);
+      } else if (onExploreCourse) {
+        onExploreCourse(courseItem.category);
+      }
     } else {
       if (onBuyCourse) {
         onBuyCourse(courseItem.category);
@@ -1086,16 +911,14 @@ export function StudentDashboardHome({
             </div>
             <button
               onClick={() => {
-                if (onOpenPdf) {
-                  onOpenPdf("/notes/sale-of-goods-unit-1.pdf", "Volume 1: Statutory Bare Act Codex", "Bare Act Codex", "ca", false);
-                } else if (onExploreCourse) {
+                if (onExploreCourse) {
                   onExploreCourse("ca");
                 }
               }}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md cursor-pointer active:scale-98"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Study In Codex Reader</span>
+              <span>Explore Curriculum</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1311,104 +1134,7 @@ export function StudentDashboardHome({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. FREE STUDY RESOURCES & SAMPLE NOTES (HORIZONTAL SCROLLABLE CAROUSEL)    */}
-      {/* ========================================================================= */}
-      <section className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                <Gift className="w-3 h-3 text-emerald-700" />
-                <span>Free Study Resources</span>
-              </span>
-              <span className="text-[11px] font-semibold text-[#6B7280]">
-                100% Free • Direct In-Web DRM Reader
-              </span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
-              Free Chapter Notes &amp; Statutory Samples
-            </h3>
-          </div>
-
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <span className="text-xs text-[#6B7280] hidden md:block">
-              Scroll to explore all 8 sample units
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollFreeNotes("left")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Previous note"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollFreeNotes("right")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Next note"
-              >
-                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          ref={freeNotesCarouselRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar snap-x touch-pan-x"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {FREE_STUDY_RESOURCES.map((res) => (
-            <div
-              key={res.id}
-              className={`w-[260px] sm:w-[285px] shrink-0 snap-start rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shadow-2xs ${res.accentBadge}`}>
-                    {res.badge}
-                  </span>
-                  <span className="text-[10px] font-semibold text-[#6B7280] bg-white/80 px-2 py-0.5 rounded-md border border-gray-200">
-                    {res.pages}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
-                    {res.actName}
-                  </span>
-                  <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5 line-clamp-1">
-                    {res.title}
-                  </h4>
-                  <p className="text-[11px] text-[#4B5563] mt-1 line-clamp-2 leading-relaxed">
-                    {res.subtitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-emerald-600" />
-                  <span>Free Full PDF</span>
-                </span>
-
-                <button
-                  onClick={() => onOpenPdf(res.pdfUrl, res.actName, res.title, res.courseType, true)}
-                  className="px-3 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Read Note</span>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 COMPACT ROW)                    */}
+      {/* 2. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 COMPACT ROW)                    */}
       {/* ========================================================================= */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -1432,25 +1158,20 @@ export function StudentDashboardHome({
               <div
                 key={item.num}
                 onClick={() => {
-                  if (isItemUnlocked || item.isFree) {
+                  if (item.pdfUrl) {
                     onOpenPdf(
                       item.pdfUrl,
                       item.title,
                       item.subtitle,
-                      item.courseType === "shared" ? activeCourse : item.courseType,
-                      item.isFree
+                      item.courseType === "shared" ? activeCourse : item.courseType
                     );
+                  } else if (isItemUnlocked) {
+                    if (onExploreCourse) {
+                      onExploreCourse(item.courseType === "shared" ? activeCourse : item.courseType);
+                    }
                   } else {
                     if (onBuyCourse) {
                       onBuyCourse(item.courseType === "shared" ? "all-access" : item.courseType);
-                    } else {
-                      onOpenPdf(
-                        item.pdfUrl,
-                        item.title,
-                        item.subtitle,
-                        item.courseType === "shared" ? activeCourse : item.courseType,
-                        false
-                      );
                     }
                   }
                 }}
@@ -1484,9 +1205,9 @@ export function StudentDashboardHome({
                     <BookOpen className="w-3 h-3 text-[#7E22CE]" />
                     <span>{item.duration}</span>
                   </span>
-                  {isItemUnlocked || item.isFree ? (
+                  {isItemUnlocked ? (
                     <span className="text-[#7E22CE] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                      <span>{item.isFree ? "Free Read" : "Open"}</span>
+                      <span>Study</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   ) : (
