@@ -71,6 +71,8 @@ const FALLBACK_PRODUCTS: Product[] = [
       "DRM-protected study PDFs in secure 3D reader",
       "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
     ],
+    pdfUrl: "/notes/soga-unit-1.pdf",
+    previewPagesLimit: 6,
   },
   {
     id: "course-cseet-sub",
@@ -113,7 +115,8 @@ const FALLBACK_PRODUCTS: Product[] = [
     paymentType: "one-time",
     accentColor: "from-[#F4C5C0] to-[#E8A09A]",
     iconEmoji: "📚",
-    pdfUrl: "",
+    pdfUrl: "/notes/qbank-part1-sample.pdf",
+    previewPagesLimit: 8,
     highlights: [
       "Chapter 2 — Indian Contract Act, 1872: 200+ MCQs & 40 descriptive problems",
       "Chapter 3 — Sale of Goods Act, 1930: 150+ MCQs including Caveat Emptor sets",
@@ -138,7 +141,8 @@ const FALLBACK_PRODUCTS: Product[] = [
     paymentType: "one-time",
     accentColor: "from-[#B8DDCA] to-[#7EBB9E]",
     iconEmoji: "📖",
-    pdfUrl: "",
+    pdfUrl: "/notes/qbank-part2-sample.pdf",
+    previewPagesLimit: 8,
     highlights: [
       "Chapter 5 — LLP Act, 2008: 120+ MCQs covering formation & designated partners",
       "Chapter 6 — Companies Act, 2013: 220+ MCQs including Corporate Veil & MOA/AOA",

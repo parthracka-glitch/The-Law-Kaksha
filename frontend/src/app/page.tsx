@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
+import { CourseChoiceHero } from "@/components/CourseChoiceHero";
+import { CAFoundationActsGrid } from "@/components/CAFoundationActsGrid";
 import { SubscriptionCarousel } from "@/components/SubscriptionCarousel";
 import { SubscriptionOverview } from "@/components/SubscriptionOverview";
 import { BooksAndNotesShowcase } from "@/components/BooksAndNotesShowcase";
@@ -18,6 +20,12 @@ export default function Home() {
 
       {/* 2. Hero Section with 3D Interactive Books & Quick Sample Reader */}
       <HeroSection />
+
+      {/* 2.1 Course Choice Hero — Split CA Foundation (LIVE) vs CSEET (COMING SOON) */}
+      <CourseChoiceHero />
+
+      {/* 2.2 CA Foundation 6 Acts Grid */}
+      <CAFoundationActsGrid />
 
       {/* 3. Top Highlights Carousel (A1) */}
       <SubscriptionCarousel />

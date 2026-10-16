@@ -143,8 +143,53 @@ function StudentLoginContent() {
     setError(null);
   };
 
+    const handleDemoAccess = () => {
+    const demoUser = {
+      id: "demo-ca-student",
+      name: "CA Foundation Candidate (Demo)",
+      email: "demo@thelawkaksha.com",
+      role: "student",
+      student_id: "TLK-DEMO-2026",
+      unlockedItemIds: [
+        "course-ca-foundation-sub",
+        "ca-foundation",
+        "ca-foundation-business-laws",
+        "all-access",
+        "book-vol-1",
+        "prod-vol1",
+        "prod-combo",
+      ],
+      enrolled_books: [
+        "course-ca-foundation-sub",
+        "ca-foundation",
+        "ca-foundation-business-laws",
+        "all-access",
+        "book-vol-1",
+        "prod-vol1",
+        "prod-combo",
+      ],
+    };
+    setStudentAuthSession("demo-token-ca-foundation", demoUser);
+    localStorage.setItem("lawkaksha_student_verified", "true");
+    localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(demoUser.unlockedItemIds));
+    router.push("/student");
+  };
+
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const lowerId = identifier.trim().toLowerCase();
+    const lowerPass = password.trim().toLowerCase();
+    if (
+      lowerId === "demo" ||
+      lowerId === "demo@thelawkaksha.com" ||
+      lowerId === "student" ||
+      lowerId === "student@thelawkaksha.com" ||
+      lowerPass === "demo"
+    ) {
+      handleDemoAccess();
+      return;
+    }
+
     if (!identifier.trim() || !password.trim()) {
       setError("Please provide your registered student email and password.");
       return;
@@ -334,6 +379,38 @@ function StudentLoginContent() {
                     <span className="leading-snug">{error}</span>
                   </div>
                 )}
+
+                                {/* Quick Demo Access Box for CA Foundation evaluation */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-[#F8FAFC] to-[#EFF6FF] border border-[#BFDBFE] space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#005A9C] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-[#0A192F]">Demo Candidate Access</h4>
+                        <p className="text-[10px] text-[#64748B]">Explore all CA Foundation materials &amp; LLP PDFs</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#DBEAFE] text-[#005A9C]">
+                      Demo Mode
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDemoAccess}
+                    className="w-full h-9 rounded-lg bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-98"
+                  >
+                    <span>One-Click CA Foundation Demo Access</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono bg-white/80 px-2.5 py-1 rounded-md border border-slate-200">
+                    <span>ID: demo@thelawkaksha.com</span>
+                    <span>Pass: demo</span>
+                  </div>
+                </div>
 
                 {/* Quick One-Tap Verification if already logged in on the main site */}
                 {existingUser && (

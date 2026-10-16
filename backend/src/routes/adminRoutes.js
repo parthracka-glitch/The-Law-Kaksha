@@ -812,8 +812,17 @@ router.get("/admin/resources", async (req, res) => {
     if (type) filter.type = type;
 
     if (isConnected()) {
-      const resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
-      return res.status(200).json({ success: true, source: "mongodb_atlas", resources });
+      let resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
+      if (!resources || resources.length === 0) {
+        const local = Database.table("resources").find();
+        if (local && local.length > 0) {
+          try {
+            await Resource.insertMany(local, { ordered: false });
+          } catch (e) {}
+          resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
+        }
+      }
+      return res.status(200).json({ success: true, source: "mongodb_atlas", resources: resources || [] });
     }
 
     const resourcesTable = Database.table("resources");

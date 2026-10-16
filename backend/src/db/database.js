@@ -74,8 +74,9 @@ function saveToDisk() {
 function loadFromDisk() {
   if (fs.existsSync(DB_FILE)) {
     try {
-      const data = fs.readFileSync(DB_FILE, "utf8");
-      db = JSON.parse(data);
+      const rawData = fs.readFileSync(DB_FILE, "utf8");
+      const data = rawData.replace(/^\uFEFF/, "").trim();
+      db = data ? JSON.parse(data) : {};
       console.log("[Database] Loaded existing database from disk.");
     } catch (err) {
       console.error("[Database] CRITICAL: Error parsing database file:", err);

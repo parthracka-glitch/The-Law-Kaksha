@@ -37,6 +37,7 @@ import { useCart } from "@/context/CartContext";
 import { StudentHeroCard } from "./StudentHeroCard";
 import { StudentMetricStats } from "./StudentMetricStats";
 import { StudentMyCoursesList, StudentCourseProgressItem } from "./StudentMyCoursesList";
+import { StudentPreparationJourney } from "./StudentPreparationJourney";
 
 export interface ShowcaseResourceItem {
   id: string;
@@ -899,6 +900,19 @@ export function StudentDashboardHome({
         onViewLessons={() => onExploreCourse && onExploreCourse("ca-foundation")}
         onViewCertificates={() => onExploreCourse && onExploreCourse("ca-foundation")}
       />
+
+      {/* ========================================================================= */}
+      {/* 2.5 CA FOUNDATION PREPARATION JOURNEY & 6 ACT CARDS (MATCHING REFERENCE)   */}
+      {/* ========================================================================= */}
+      {activeCourse === "ca" && (
+        <section className="space-y-4">
+          <StudentPreparationJourney
+            isCaUnlocked={isCaUnlocked}
+            onOpenPdf={onOpenPdf}
+            onBuyCourse={onBuyCourse}
+          />
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 3. MY COURSES SECTION (SEARCH, FILTERS, PROGRESS BARS MATCHING SVG)        */}

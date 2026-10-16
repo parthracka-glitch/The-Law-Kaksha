@@ -166,13 +166,9 @@ async function seedMongo() {
       console.log("[MongoDB Atlas Seeder] Products seeded successfully.");
     }
 
-    // 2. Cases
-    const caseCount = await WeeklyCase.countDocuments();
-    if (caseCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding weekly case studies...");
-      await WeeklyCase.insertMany(INITIAL_CASES);
-      console.log("[MongoDB Atlas Seeder] Cases seeded successfully.");
-    }
+    // 2. Cases — cleared. Real case studies will be added via Admin Panel.
+    await WeeklyCase.deleteMany({}).catch(() => {});
+    console.log("[MongoDB Atlas Seeder] Case studies table ready (no dummy data seeded).");
 
     // 3. MCQs
     const mcqCount = await McqQuestion.countDocuments();
@@ -247,10 +243,16 @@ async function seedMongo() {
       });
     }
 
-    // 7. Act-Wise Statutory Resources (Empty initial resources until admin uploads notes)
-    const resourceCount = await Resource.countDocuments();
-    if (resourceCount === 0) {
-      console.log("[MongoDB Atlas Seeder] No pre-seeded dummy resources to load.");
+    // 7. Act-Wise Statutory Resources — Synchronize real study resources with Atlas
+    const localResources = Database.table("resources").find();
+    if (localResources && localResources.length > 0) {
+      console.log(`[MongoDB Atlas Seeder] Synchronizing ${localResources.length} real study resources to Atlas...`);
+      for (const item of localResources) {
+        const cleanItem = { ...item };
+        delete cleanItem._id;
+        await Resource.findOneAndUpdate({ id: item.id }, cleanItem, { upsert: true, returnDocument: 'after' }).catch(() => {});
+      }
+      console.log(`[MongoDB Atlas Seeder] Synced ${localResources.length} real resources successfully.`);
     }
 
     console.log("[MongoDB Atlas Seeder] Synchronization completed successfully.");

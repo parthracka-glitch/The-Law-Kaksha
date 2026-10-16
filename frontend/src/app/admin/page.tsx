@@ -126,7 +126,8 @@ export interface SubscriptionRecord {
 }
 
 export interface StudentRecord {
-  id: string;
+  id?: string;
+  _id?: string;
   student_id: string;
   name: string;
   email: string;
@@ -223,7 +224,319 @@ const INITIAL_PRODUCTS: ProductItem[] = [
   },
 ];
 
-const INITIAL_RESOURCES: ResourceItem[] = [];
+const INITIAL_RESOURCES: ResourceItem[] = [
+  // SOGA (Chapter 3)
+  {
+    id: "res-soga-unit1",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "SOGA Unit 1: Formation of Contract of Sale",
+    description: "Definition of Sale, Agreement to Sell, Essential Elements, Formalities, Subject Matter of Contract (Ascertained vs Unascertained Goods).",
+    pdfUrl: "/notes/soga-unit-1.pdf",
+    samplePdfUrl: "/notes/soga-unit-1.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "22 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-soga-unit2",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "SOGA Unit 2: Conditions & Warranties",
+    description: "Express & Implied Conditions, Implied Warranties, Caveat Emptor Principle and its Statutory Exceptions.",
+    pdfUrl: "/notes/soga-unit-2.pdf",
+    samplePdfUrl: "/notes/soga-unit-2.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "26 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-soga-unit3",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "SOGA Unit 3: Transfer of Property & Performance",
+    description: "Passing of Risk with Property, Sale by Non-Owners (Nemo Dat Quod Non Habet), Rules regarding Delivery of Goods.",
+    pdfUrl: "/notes/soga-unit-3.pdf",
+    samplePdfUrl: "/notes/soga-unit-3.pdf",
+    isSample: true,
+    status: "Published",
+    order: 3,
+    pages: "24 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-soga-unit4",
+    course: "ca-foundation",
+    actName: "The Sale of Goods Act, 1930",
+    chapterNumber: 3,
+    type: "notes",
+    title: "SOGA Unit 4: Rights of Unpaid Seller",
+    description: "Rights against Goods (Lien, Stoppage in Transit, Resale) & Rights against Buyer personally (Suit for Price, Damages).",
+    pdfUrl: "/notes/soga-unit-4.pdf",
+    samplePdfUrl: "/notes/soga-unit-4.pdf",
+    isSample: true,
+    status: "Published",
+    order: 4,
+    pages: "20 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+
+  // IPA (Chapter 4)
+  {
+    id: "res-ipa-unit1",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "IPA Unit 1: General Nature of Partnership",
+    description: "Definition of Partnership, Mutual Agency Cardinal Test (Cox v. Hickman), Partnership vs Co-ownership vs Joint Hindu Family.",
+    pdfUrl: "/notes/ipa-unit-1.pdf",
+    samplePdfUrl: "/notes/ipa-unit-1.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "24 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-unit2",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "IPA Unit 2: Relations of Partners",
+    description: "Rights, Duties, Implied Authority of Partner (Sec 19), Doctrine of Holding Out (Sec 28), Minor as Beneficiary.",
+    pdfUrl: "/notes/ipa-unit-2.pdf",
+    samplePdfUrl: "/notes/ipa-unit-2.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "28 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-unit3",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "notes",
+    title: "IPA Unit 3: Registration & Dissolution of Firm",
+    description: "Consequences of Non-Registration (Sec 69), Modes of Dissolution of Firm, Settlement of Partnership Accounts (Sec 48).",
+    pdfUrl: "/notes/ipa-unit-3.pdf",
+    samplePdfUrl: "/notes/ipa-unit-3.pdf",
+    isSample: true,
+    status: "Published",
+    order: 3,
+    pages: "30 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-ldr",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "ldr",
+    title: "Partnership Act — Last Day Revision (LDR) Charts",
+    description: "Comprehensive visual recap charts for rapid pre-exam recall: Sec 4, Sec 6, Sec 19, Sec 28 & Sec 48.",
+    pdfUrl: "/notes/ipa-ldr-charts.pdf",
+    samplePdfUrl: "/notes/ipa-ldr-charts.pdf",
+    isSample: true,
+    status: "Published",
+    order: 4,
+    pages: "18 Pages • LDR Flowcharts",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-infographics",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "infographic",
+    title: "Partnership Act — Visual Infographics",
+    description: "High-retention infographics breaking down Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution.",
+    pdfUrl: "/notes/ipa-infographics.pdf",
+    samplePdfUrl: "/notes/ipa-infographics.pdf",
+    isSample: true,
+    status: "Published",
+    order: 5,
+    pages: "12 Infographic Sheets",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-practice",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "practice",
+    title: "Partnership Act — Practice Questions (Law Kaksha)",
+    description: "Curated chapter-wise practice problems with step-by-step model solutions covering application-based scenarios.",
+    pdfUrl: "/notes/ipa-practice-questions.pdf",
+    samplePdfUrl: "/notes/ipa-practice-questions.pdf",
+    isSample: true,
+    status: "Published",
+    order: 6,
+    pages: "25 Pages • Practice Questions",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-ipa-pyq",
+    course: "ca-foundation",
+    actName: "The Indian Partnership Act, 1932",
+    chapterNumber: 4,
+    type: "pyq",
+    title: "Partnership Act — RTP, MTP & PYP Practice Questions",
+    description: "Compilation of recent RTPs, MTPs and Previous Year Exam Questions with statutory analysis.",
+    pdfUrl: "/notes/ipa-rtp-mtp-pyp.pdf",
+    samplePdfUrl: "/notes/ipa-rtp-mtp-pyp.pdf",
+    isSample: true,
+    status: "Published",
+    order: 7,
+    pages: "22 Pages • Exam PYQs",
+    previewPagesLimit: 5,
+  },
+
+  // LLP (Chapter 5)
+  {
+    id: "res-llp-notes",
+    course: "ca-foundation",
+    actName: "The Limited Liability Partnership Act, 2008",
+    chapterNumber: 5,
+    type: "notes",
+    title: "LLP Act, 2008 — Complete Study Notes",
+    description: "Nature of LLP, Designated Partners, Incorporation Document, Partners & their Relations, Conversion into LLP.",
+    pdfUrl: "/notes/llp-notes.pdf",
+    samplePdfUrl: "/notes/llp-notes.pdf",
+    isSample: true,
+    status: "Published",
+    order: 1,
+    pages: "36 Pages • Study Notes",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-llp-infographics",
+    course: "ca-foundation",
+    actName: "The Limited Liability Partnership Act, 2008",
+    chapterNumber: 5,
+    type: "infographic",
+    title: "LLP Act — Visual Infographics",
+    description: "Visual concept mind-maps illustrating LLP characteristics, incorporation workflow and financial compliances.",
+    pdfUrl: "/notes/llp-infographics.pdf",
+    samplePdfUrl: "/notes/llp-infographics.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "10 Infographic Sheets",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-llp-practice",
+    course: "ca-foundation",
+    actName: "The Limited Liability Partnership Act, 2008",
+    chapterNumber: 5,
+    type: "practice",
+    title: "LLP Act — Practice Question Set",
+    description: "ICAI pattern scenario problems on Designated Partner disqualification, Whistle Blower immunity & partner liability.",
+    pdfUrl: "/notes/llp-practice-questions.pdf",
+    samplePdfUrl: "/notes/llp-practice-questions.pdf",
+    isSample: true,
+    status: "Published",
+    order: 3,
+    pages: "18 Pages • Practice Problems",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-llp-ldr",
+    course: "ca-foundation",
+    actName: "The Limited Liability Partnership Act, 2008",
+    chapterNumber: 5,
+    type: "ldr",
+    title: "LLP Act — LDR Flowchart Book",
+    description: "Concise summary diagrams for rapid revision of all sections and penalties under the LLP Act 2008.",
+    pdfUrl: "/notes/llp-ldr-flowcharts.pdf",
+    samplePdfUrl: "/notes/llp-ldr-flowcharts.pdf",
+    isSample: true,
+    status: "Published",
+    order: 4,
+    pages: "14 Pages • LDR Flowcharts",
+    previewPagesLimit: 5,
+  },
+
+  // QUESTION BANK — Part 1 & Part 2
+  {
+    id: "res-qbank-p1-final",
+    course: "ca-foundation",
+    actName: "CA Foundation Question Bank",
+    chapterNumber: 0,
+    type: "practice",
+    title: "Master Question Bank — Part 1 (Final Copy)",
+    description: "Exhaustive exam preparation question bank covering Contract Act, SOGA, and Partnership with model answers.",
+    pdfUrl: "/notes/qbank-part1-final.pdf",
+    samplePdfUrl: "/notes/qbank-part1-final.pdf",
+    isSample: false,
+    status: "Published",
+    order: 1,
+    pages: "110 Pages • Question Bank",
+    previewPagesLimit: 10,
+  },
+  {
+    id: "res-qbank-p1-sample",
+    course: "ca-foundation",
+    actName: "CA Foundation Question Bank",
+    chapterNumber: 0,
+    type: "practice",
+    title: "Question Bank Part 1 — Sample Preview",
+    description: "Official evaluation sample showing chapter-wise question breakdowns, difficulty tags and answer structures.",
+    pdfUrl: "/notes/qbank-part1-sample.pdf",
+    samplePdfUrl: "/notes/qbank-part1-sample.pdf",
+    isSample: true,
+    status: "Published",
+    order: 2,
+    pages: "20 Pages • Sample Preview",
+    previewPagesLimit: 5,
+  },
+  {
+    id: "res-qbank-p2-final",
+    course: "ca-foundation",
+    actName: "CA Foundation Question Bank",
+    chapterNumber: 0,
+    type: "practice",
+    title: "Master Question Bank — Part 2 (Final Copy)",
+    description: "Master question bank covering LLP Act 2008, Companies Act 2013 and Negotiable Instruments Act 1881.",
+    pdfUrl: "/notes/qbank-part2-final.pdf",
+    samplePdfUrl: "/notes/qbank-part2-final.pdf",
+    isSample: false,
+    status: "Published",
+    order: 3,
+    pages: "125 Pages • Question Bank",
+    previewPagesLimit: 10,
+  },
+  {
+    id: "res-qbank-p2-sample",
+    course: "ca-foundation",
+    actName: "CA Foundation Question Bank",
+    chapterNumber: 0,
+    type: "practice",
+    title: "Question Bank Part 2 — Sample Preview",
+    description: "Official evaluation sample for Question Bank Part 2 containing sample case problems and answers.",
+    pdfUrl: "/notes/qbank-part2-sample.pdf",
+    samplePdfUrl: "/notes/qbank-part2-sample.pdf",
+    isSample: true,
+    status: "Published",
+    order: 4,
+    pages: "22 Pages • Sample Preview",
+    previewPagesLimit: 5,
+  },
+];
 
 const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
@@ -694,7 +1007,7 @@ export default function AdminPortalPage() {
   const handleExportStudents = () => {
     const headers = ["Student ID", "Name", "Email", "Phone", "Target Exam", "Joined Date", "DRM Access", "Active Status", "Enrolled Books"];
     const rows = students.map((s) => [
-      s.student_id || s.id,
+      s.student_id || s.id || s._id || "",
       s.name,
       s.email,
       s.phone,
@@ -2117,10 +2430,11 @@ export default function AdminPortalPage() {
                           s.studentRoll.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           s.email.toLowerCase().includes(searchQuery.toLowerCase())
                         )
-                        .map((sub) => {
+                        .map((sub, idx) => {
                           const isExpiring = sub.accessStatus === "Active" && sub.daysRemaining !== undefined && sub.daysRemaining <= 5;
+                          const subKey = sub.id || (sub as any)._id || `sub-${idx}`;
                           return (
-                            <tr key={sub.id} className="hover:bg-[#F7F7F5]/60 transition-colors">
+                            <tr key={subKey} className="hover:bg-[#F7F7F5]/60 transition-colors">
                               <td className="py-3.5 px-4">
                                 <p className="font-mono font-bold text-[#221D1D]">{sub.id}</p>
                                 <p className="text-[10px] text-[#77716E]">{sub.date}</p>
@@ -2374,8 +2688,8 @@ export default function AdminPortalPage() {
                         if (selectedCourseFilter === "cseet") return p.category.includes("CSEET");
                         return true;
                       })
-                      .map((prod) => (
-                        <div key={prod.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                      .map((prod, idx) => (
+                        <div key={prod.id || (prod as any)._id || `prod-${idx}`} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
@@ -2485,8 +2799,8 @@ export default function AdminPortalPage() {
                     {resources
                       .filter((r) => selectedCourseFilter === "all" || r.course === selectedCourseFilter)
                       .filter((r) => selectedTypeFilter === "all" || r.type === selectedTypeFilter)
-                      .map((res) => (
-                        <div key={res.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                      .map((res, idx) => (
+                        <div key={res.id || (res as any)._id || `res-${idx}`} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
                           <div className="space-y-2.5">
                             <div className="flex items-center justify-between gap-2">
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
@@ -2732,8 +3046,10 @@ export default function AdminPortalPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#E7E4E7]">
-                          {filteredStudents.map((std) => (
-                            <tr key={std.id} className="hover:bg-[#F7F7F5]/50 transition-colors">
+                          {filteredStudents.map((std, idx) => {
+                            const stdKey = std.id || std._id || std.student_id || `std-${idx}`;
+                            return (
+                            <tr key={stdKey} className="hover:bg-[#F7F7F5]/50 transition-colors">
                               <td className="py-3.5 px-4">
                                 <p className="font-bold text-[#221D1D]">{std.name}</p>
                                 <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-[#AED7E9]/30 text-[#4B8097] text-[10px] font-mono border border-[#AED7E9]/50">
@@ -2796,11 +3112,12 @@ export default function AdminPortalPage() {
                                   <button
                                     onClick={async () => {
                                       if (confirm(`Delete student ${std.name}?`)) {
-                                        const next = students.filter((s) => s.id !== std.id);
+                                        const targetId = std.id || std._id || std.student_id;
+                                        const next = students.filter((s) => (s.id || s._id || s.student_id) !== targetId);
                                         setStudents(next);
                                         localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                                         try {
-                                          await adminFetch(`/api/admin/students/${std.id}`, { method: "DELETE" });
+                                          await adminFetch(`/api/admin/students/${targetId}`, { method: "DELETE" });
                                         } catch (e) {}
                                         showToast("Student deleted.");
                                       }
@@ -2813,7 +3130,8 @@ export default function AdminPortalPage() {
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -2841,8 +3159,8 @@ export default function AdminPortalPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {cases.map((cs) => (
-                  <div key={cs.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+                {cases.map((cs, idx) => (
+                  <div key={cs.id || (cs as any)._id || `cs-${idx}`} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#4B8097] uppercase">{cs.day}</span>
@@ -2939,9 +3257,9 @@ export default function AdminPortalPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {mcqTests.map((test) => (
+                  {mcqTests.map((test, idx) => (
                     <div
-                      key={test.id}
+                      key={test.id || (test as any)._id || `test-${idx}`}
                       className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 flex flex-col justify-between hover:shadow-md transition-all space-y-4"
                     >
                       <div className="space-y-3">
@@ -3087,8 +3405,8 @@ export default function AdminPortalPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {coupons.map((cp) => (
-                  <div key={cp.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 space-y-3">
+                {coupons.map((cp, idx) => (
+                  <div key={cp.id || (cp as any)._id || `cp-${idx}`} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-base font-extrabold font-mono text-[#221D1D] bg-[#BFAFE5]/40 px-3 py-1 rounded-xl border border-[#BFAFE5]">
                         {cp.code}

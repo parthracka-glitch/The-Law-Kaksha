@@ -695,10 +695,134 @@ async function seed() {
     console.log("[Seeder] Administrator seeded successfully.");
   }
 
-  // 7. Seed Resources for Admin Portal & Student Learning Journey
+  // 7. Seed Resources for Admin Portal & Student Learning Journey — Real PDF Assets
   const resourcesTable = Database.table("resources");
   if (resourcesTable.count() === 0) {
-    console.log("[Seeder] No pre-seeded dummy resources to load.");
+    console.log("[Seeder] Seeding real study resources from drive download...");
+
+    // ───── SALE OF GOODS ACT (SOGA) — 4 Unit Notes ─────
+    resourcesTable.insert({
+      id: "res-soga-unit1", title: "SOGA Unit 1: Formation of Contract of Sale",
+      actName: "The Sale of Goods Act, 1930", chapterNumber: 3, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/soga-unit-1.pdf", fileUrl: "/notes/soga-unit-1.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 1,
+    });
+    resourcesTable.insert({
+      id: "res-soga-unit2", title: "SOGA Unit 2: Conditions & Warranties",
+      actName: "The Sale of Goods Act, 1930", chapterNumber: 3, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/soga-unit-2.pdf", fileUrl: "/notes/soga-unit-2.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 2,
+    });
+    resourcesTable.insert({
+      id: "res-soga-unit3", title: "SOGA Unit 3: Transfer of Property & Performance",
+      actName: "The Sale of Goods Act, 1930", chapterNumber: 3, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/soga-unit-3.pdf", fileUrl: "/notes/soga-unit-3.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 3,
+    });
+    resourcesTable.insert({
+      id: "res-soga-unit4", title: "SOGA Unit 4: Rights of Unpaid Seller",
+      actName: "The Sale of Goods Act, 1930", chapterNumber: 3, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/soga-unit-4.pdf", fileUrl: "/notes/soga-unit-4.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 4,
+    });
+
+    // ───── INDIAN PARTNERSHIP ACT (IPA) — 3 Units + Supplementary ─────
+    resourcesTable.insert({
+      id: "res-ipa-unit1", title: "IPA Unit 1: General Nature of Partnership",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/ipa-unit-1.pdf", fileUrl: "/notes/ipa-unit-1.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 1,
+    });
+    resourcesTable.insert({
+      id: "res-ipa-unit2", title: "IPA Unit 2: Relations of Partners",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/ipa-unit-2.pdf", fileUrl: "/notes/ipa-unit-2.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 2,
+    });
+    resourcesTable.insert({
+      id: "res-ipa-unit3", title: "IPA Unit 3: Registration & Dissolution of Firm",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/ipa-unit-3.pdf", fileUrl: "/notes/ipa-unit-3.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 3,
+    });
+    resourcesTable.insert({
+      id: "res-ipa-ldr", title: "Partnership Act — Last Day Revision (LDR) Charts",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "ldr", file_or_url: "/api/pdf/ipa-ldr-charts.pdf", fileUrl: "/notes/ipa-ldr-charts.pdf",
+      status: "active", pages: "LDR Flowcharts",
+    });
+    resourcesTable.insert({
+      id: "res-ipa-infographics", title: "Partnership Act — Visual Infographics",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "flowchart", file_or_url: "/api/pdf/ipa-infographics.pdf", fileUrl: "/notes/ipa-infographics.pdf",
+      status: "active", pages: "Infographics",
+    });
+    resourcesTable.insert({
+      id: "res-ipa-practice", title: "Partnership Act — Practice Questions (Law Kaksha)",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/ipa-practice-questions.pdf", fileUrl: "/notes/ipa-practice-questions.pdf",
+      status: "active", pages: "Practice Questions",
+    });
+    resourcesTable.insert({
+      id: "res-ipa-pyq", title: "Partnership Act — RTP, MTP & PYP Practice Questions",
+      actName: "The Indian Partnership Act, 1932", chapterNumber: 4, course_id: "course-ca-foundation",
+      type: "pyq", file_or_url: "/api/pdf/ipa-rtp-mtp-pyp.pdf", fileUrl: "/notes/ipa-rtp-mtp-pyp.pdf",
+      status: "active", pages: "Previous Year Questions",
+    });
+
+    // ───── LIMITED LIABILITY PARTNERSHIP ACT (LLP) — Notes + Supplementary ─────
+    resourcesTable.insert({
+      id: "res-llp-notes", title: "LLP Act, 2008 — Complete Study Notes",
+      actName: "The Limited Liability Partnership Act, 2008", chapterNumber: 5, course_id: "course-ca-foundation",
+      type: "notes", file_or_url: "/api/pdf/llp-notes.pdf", fileUrl: "/notes/llp-notes.pdf",
+      status: "active", pages: "Study Notes", unitNumber: 1,
+    });
+    resourcesTable.insert({
+      id: "res-llp-infographics", title: "LLP Act — Visual Infographics",
+      actName: "The Limited Liability Partnership Act, 2008", chapterNumber: 5, course_id: "course-ca-foundation",
+      type: "flowchart", file_or_url: "/api/pdf/llp-infographics.pdf", fileUrl: "/notes/llp-infographics.pdf",
+      status: "active", pages: "Infographics",
+    });
+    resourcesTable.insert({
+      id: "res-llp-practice", title: "LLP Act — Practice Question Set",
+      actName: "The Limited Liability Partnership Act, 2008", chapterNumber: 5, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/llp-practice-questions.pdf", fileUrl: "/notes/llp-practice-questions.pdf",
+      status: "active", pages: "Practice Questions",
+    });
+    resourcesTable.insert({
+      id: "res-llp-ldr", title: "LLP Act — LDR Flowchart Book",
+      actName: "The Limited Liability Partnership Act, 2008", chapterNumber: 5, course_id: "course-ca-foundation",
+      type: "ldr", file_or_url: "/api/pdf/llp-ldr-flowcharts.pdf", fileUrl: "/notes/llp-ldr-flowcharts.pdf",
+      status: "active", pages: "LDR Flowcharts",
+    });
+
+    // ───── QUESTION BANK — Part 1 & Part 2 (Final + Sample) ─────
+    resourcesTable.insert({
+      id: "res-qbank-p1-final", title: "Master Question Bank — Part 1 (Final Copy)",
+      actName: "CA Foundation Question Bank", chapterNumber: 0, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/qbank-part1-final.pdf", fileUrl: "/notes/qbank-part1-final.pdf",
+      status: "active", pages: "Question Bank Part 1",
+    });
+    resourcesTable.insert({
+      id: "res-qbank-p1-sample", title: "Question Bank Part 1 — Sample Preview",
+      actName: "CA Foundation Question Bank", chapterNumber: 0, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/qbank-part1-sample.pdf", fileUrl: "/notes/qbank-part1-sample.pdf",
+      status: "active", pages: "Sample Preview", isSample: true,
+    });
+    resourcesTable.insert({
+      id: "res-qbank-p2-final", title: "Master Question Bank — Part 2 (Final Copy)",
+      actName: "CA Foundation Question Bank", chapterNumber: 0, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/qbank-part2-final.pdf", fileUrl: "/notes/qbank-part2-final.pdf",
+      status: "active", pages: "Question Bank Part 2",
+    });
+    resourcesTable.insert({
+      id: "res-qbank-p2-sample", title: "Question Bank Part 2 — Sample Preview",
+      actName: "CA Foundation Question Bank", chapterNumber: 0, course_id: "course-ca-foundation",
+      type: "practice", file_or_url: "/api/pdf/qbank-part2-sample.pdf", fileUrl: "/notes/qbank-part2-sample.pdf",
+      status: "active", pages: "Sample Preview", isSample: true,
+    });
+
+    console.log("[Seeder] 19 real study resources seeded successfully.");
   }
 
   // 3. Seed Default Admin User if missing
@@ -928,55 +1052,9 @@ async function seed() {
     console.log("[Seeder] Promotional offers seeded.");
   }
 
-  // 8. Seed Case Studies (per §5 & B8)
-  const caseStudiesTable = Database.table("case_studies");
-  if (caseStudiesTable.count() === 0) {
-    console.log("[Seeder] Seeding legal case studies...");
-    caseStudiesTable.insert({
-      id: "case-sec16",
-      title: "Section 16(1) Caveat Emptor & Fitness for Purpose",
-      slug: "section-16-caveat-emptor",
-      summary: "Timber trader dispute revolving around implied condition as to quality or fitness under the Sale of Goods Act, 1930.",
-      content: `# Section 16(1) Sale of Goods Act, 1930
-
-## Fact Scenario
-Buyer orders timber for a specific overseas railway project. Seller claims Caveat Emptor applies because the goods conformed to general descriptions.
-
-## Legal Basis
-Under Section 16(1), when the buyer expressly makes known the particular purpose for which goods are required, and relies on the seller's skill or judgment, an implied condition arises that the goods shall be reasonably fit for such purpose.
-
-## Analysis & Conclusion
-The seller was liable because the buyer expressly communicated the particular purpose and relied upon the seller's trade expertise.`,
-      cover_image: "/assets/ca-cs-hero-books-v2.png",
-      act_name: "The Sale of Goods Act, 1930",
-      marks_weight: 6,
-      show_on_website: true,
-      show_on_dashboard: true,
-      is_published: true,
-    });
-    caseStudiesTable.insert({
-      id: "case-turquand",
-      title: "Doctrine of Indoor Management: Royal British Bank v. Turquand",
-      slug: "royal-british-bank-turquand",
-      summary: "Protection of outsiders dealing with registered companies against internal irregularities.",
-      content: `# Doctrine of Indoor Management
-
-## The Rule
-Persons contracting with a company and dealing in good faith may assume that acts within the company's constitution and powers have been properly and duly performed and are not bound to inquire whether acts of internal management have been regular.
-
-## Exceptions
-1. Knowledge of irregularity
-2. Suspicion of irregularity
-3. Forgery`,
-      cover_image: "/assets/ca-cs-hero-books-v2.png",
-      act_name: "The Companies Act, 2013",
-      marks_weight: 6,
-      show_on_website: true,
-      show_on_dashboard: true,
-      is_published: true,
-    });
-    console.log("[Seeder] Legal case studies seeded.");
-  }
+  // 8. Case Studies — cleared. Real case studies will be added via Admin Panel when content is ready.
+  // The case_studies table schema is preserved for future use.
+  console.log("[Seeder] Case studies table ready (no dummy data seeded).");
 
   // 9. Seed Coupons (per §5 & B9)
   const couponsTable = Database.table("coupons");
