@@ -1284,10 +1284,38 @@ router.get("/support-tickets", requireAuth, async (req, res) => {
   }
 });
 
+// Rate Limiter: Support Ticket Spam Protection (Max 20 tickets per 10 minutes per IP/student)
+const ticketRateLimitMap = new Map();
+const TICKET_WINDOW_MS = 10 * 60 * 1000;
+const MAX_TICKETS = process.env.NODE_ENV === "test" ? 500 : 20;
+
+function ticketRateLimiter(req, res, next) {
+  const key = (req.user && (req.user.student_id || req.user.id)) || req.ip || "global";
+  const now = Date.now();
+  const entry = ticketRateLimitMap.get(key) || { count: 0, resetAt: now + TICKET_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + TICKET_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  ticketRateLimitMap.set(key, entry);
+
+  if (entry.count > MAX_TICKETS) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many support tickets submitted. Please allow our academic team time to respond.",
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+}
+
 /**
  * POST /api/student/support-tickets
  */
-router.post("/support-tickets", requireAuth, async (req, res) => {
+router.post("/support-tickets", requireAuth, ticketRateLimiter, async (req, res) => {
   try {
     const { subject, message, category, priority } = req.body;
     if (!subject || !message) {

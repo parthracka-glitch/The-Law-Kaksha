@@ -499,8 +499,36 @@ router.get("/settings/public", async (req, res) => {
   }
 });
 
+// Rate Limiter: Coupon Brute-Force Protection (Max 30 attempts per minute per IP)
+const couponRateLimitMap = new Map();
+const COUPON_WINDOW_MS = 60 * 1000;
+const MAX_COUPON_ATTEMPTS = process.env.NODE_ENV === "test" ? 500 : 30;
+
+function couponRateLimiter(req, res, next) {
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "global";
+  const now = Date.now();
+  const entry = couponRateLimitMap.get(ip) || { count: 0, resetAt: now + COUPON_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + COUPON_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  couponRateLimitMap.set(ip, entry);
+
+  if (entry.count > MAX_COUPON_ATTEMPTS) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many coupon validation attempts. Please slow down and try again in 1 minute.",
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+}
+
 // POST /api/coupons/validate — Server-side coupon validator (§10.1)
-router.post("/coupons/validate", async (req, res) => {
+router.post("/coupons/validate", couponRateLimiter, async (req, res) => {
   try {
     const { code, subtotal } = req.body;
     if (!code) {
