@@ -27,7 +27,7 @@ const DEFAULT_COURSES = [
     category: "CA Foundation",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
@@ -49,7 +49,7 @@ const DEFAULT_COURSES = [
     category: "CSEET",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Comprehensive notes for all 8 Business Law and Management units",
       "Chapter-wise practice MCQs with explanations for each option",

@@ -283,7 +283,7 @@ export function SubscriptionOverview() {
             </div>
           </div>
           <Link
-            href="/student/login"
+            href="/login"
             className="text-xs font-bold text-[#221D1D] hover:text-[#221D1D] bg-[#F7F7F5] hover:bg-[#AED7E9]/40 px-5 py-2.5 rounded-full border border-[#E7E4E7] transition-all cursor-pointer whitespace-nowrap"
           >
             Already enrolled? Sign in to Portal &rarr;

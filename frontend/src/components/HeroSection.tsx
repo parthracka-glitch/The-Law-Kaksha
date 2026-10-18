@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Flame } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
-import { Interactive3DBooks } from "./Interactive3DBooks";
 
 export function HeroSection() {
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
@@ -69,9 +68,52 @@ export function HeroSection() {
           </div>
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Interactive 3D Animated Books Visual */}
+            {/* Left Column: Hero Books Visual */}
             <div className="lg:col-span-6 flex justify-center lg:justify-start order-2 lg:order-1">
-              <Interactive3DBooks onOpenPreview={handleOpenPreview} />
+              <div
+                onClick={() => handleOpenPreview("ca-foundation")}
+                className="relative w-full max-w-[500px] aspect-[1/0.95] flex items-center justify-center select-none cursor-pointer group"
+                title="Click to preview free sample chapter"
+              >
+                {/* Soft Ambient Studio Lighting Glow */}
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none -z-20 blur-3xl opacity-35"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 50% 50%, rgba(0, 90, 156, 0.22) 0%, rgba(174, 215, 233, 0.15) 50%, transparent 75%)",
+                  }}
+                />
+
+                {/* Ground Shadow */}
+                <div
+                  className="absolute bottom-3 w-[82%] h-14 rounded-[100%] pointer-events-none -z-10 blur-xl opacity-40"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at 50% 50%, rgba(10, 25, 47, 0.6) 0%, rgba(0, 90, 156, 0.2) 50%, transparent 80%)",
+                  }}
+                />
+
+                {/* Books Image */}
+                <div className="relative w-[92%] h-[92%] select-none transition-transform duration-300 group-hover:scale-102">
+                  <Image
+                    src="/assets/ca-cs-hero-books-sharp.png"
+                    alt="The Law Kaksha CA Foundation & CSEET Study Codices"
+                    fill
+                    className="object-contain drop-shadow-[0_22px_28px_rgba(10,25,47,0.18)]"
+                    priority
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
+                  />
+                </div>
+
+                {/* Popular Resource Badge */}
+                <div className="absolute top-6 left-0 sm:left-2 z-20 pointer-events-none">
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-[#DBEAFE] text-[#005A9C] text-xs font-bold shadow-[0_6px_16px_rgba(0,90,156,0.12)]">
+                    <Flame className="w-3.5 h-3.5 text-[#005A9C] fill-[#005A9C]" />
+                    <span>Popular Resource</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Typography, Subtitle, CTAs */}

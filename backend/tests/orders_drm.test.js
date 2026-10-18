@@ -73,8 +73,8 @@ describe("Order Verification & DRM License Pass Tests", () => {
     assert.ok(Array.isArray(data.unlockedItemIds));
   });
 
-  test("POST /api/verify-payment rejects tampered payment signature with 400", async () => {
-    const res = await fetch(`${API_URL}/api/verify-payment`, {
+  test("POST /api/orders/verify rejects tampered payment signature with 400", async () => {
+    const res = await fetch(`${API_URL}/api/orders/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -90,8 +90,8 @@ describe("Order Verification & DRM License Pass Tests", () => {
     assert.match(data.message, /mismatch/i);
   });
 
-  test("POST /api/create-order validates minimum amount >= 100 paise", async () => {
-    const res = await fetch(`${API_URL}/api/create-order`, {
+  test("POST /api/orders/create validates minimum amount >= 100 paise", async () => {
+    const res = await fetch(`${API_URL}/api/orders/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

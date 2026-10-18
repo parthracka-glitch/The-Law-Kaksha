@@ -122,11 +122,11 @@ describe("Production Security Hardening & Zero-Trust Access Control Tests", () =
     assert.strictEqual(data.success, false);
   });
 
-  test("SEC-01 Quiz Admin Guard: GET /api/quizzes/admin/attempts rejects student token with 403", async () => {
-    const res = await fetch(`${API_URL}/api/quizzes/admin/attempts`, {
+  test("P1 Removal: GET /api/quizzes returns 404 since native quiz routes are removed", async () => {
+    const res = await fetch(`${API_URL}/api/quizzes`, {
       headers: { Authorization: `Bearer ${studentToken}` },
     });
-    assert.ok(res.status === 401 || res.status === 403);
+    assert.strictEqual(res.status, 404);
   });
 
   test("SEC-07 Admin 404 Guard: PUT /api/admin/subscriptions/:id returns 404 on missing ID", async () => {

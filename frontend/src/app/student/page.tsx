@@ -469,17 +469,17 @@ const DAILY_QOTD_DATA = {
   xpReward: 15,
 };
 
-type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr" | "refer" | "calendar";
+const SHOW_MCQ_TAB = false;
+
+type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr";
 
 const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
   { id: "home", label: "Student Dashboard", icon: LayoutDashboard },
   { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-  { id: "calendar", label: "Your Schedule", icon: Calendar },
   { id: "cases", label: "Case Studies", icon: Flame },
-  { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
+  ...(SHOW_MCQ_TAB ? [{ id: "mcqtest" as TabType, label: "Practice Tests", icon: Sparkles }] : []),
   { id: "ldr", label: "Revision Flowcharts", icon: Workflow, badge: "LDR" },
   { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
-  { id: "refer", label: "Refer and Earn", icon: Share2 },
 ];
 
 export default function StudentDashboardPage() {
@@ -832,7 +832,7 @@ export default function StudentDashboardPage() {
       if (!studentToken && !studentUser && !studentSession && !adminSession) {
         setIsAuthorized(false);
         setIsCheckingAuth(false);
-        router.push("/student/login");
+        router.push("/login");
         return;
       }
       setIsAuthorized(true);
@@ -899,7 +899,7 @@ export default function StudentDashboardPage() {
       if (!isVerifiedStudent) {
         setIsAuthorized(false);
         setIsCheckingAuth(false);
-        router.push("/student/login?error=no_purchase");
+        router.push("/login?error=no_purchase");
         return;
       }
 
@@ -1076,7 +1076,7 @@ export default function StudentDashboardPage() {
       localStorage.removeItem("lawkaksha_student_user");
       localStorage.removeItem("lawkaksha_token");
       window.dispatchEvent(new Event("storage"));
-      router.push("/student/login");
+      router.push("/login");
     }
   };
 
@@ -1215,20 +1215,7 @@ export default function StudentDashboardPage() {
         }
       `}</style>
 
-      {/* FLOATING LAW-XP CELEBRATION TOAST */}
-      {xpToast && (
-        <div className="fixed top-5 right-5 z-50 animate-bounce bg-[#221D1D] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-white/20">
-          <div className="w-8 h-8 rounded-full bg-[#BFAFE5] text-[#221D1D] flex items-center justify-center font-bold text-xs shadow-xs">
-            +{xpToast.xp}
-          </div>
-          <div>
-            <p className="text-xs font-bold leading-tight flex items-center gap-1">
-              <span>LawXP Gained!</span> <Sparkles className="w-3 h-3 text-[#F7892A]" />
-            </p>
-            <p className="text-[11px] text-[#E7E4E7]">{xpToast.msg}</p>
-          </div>
-        </div>
-      )}
+      {/* FLOATING LAW-XP CELEBRATION TOAST HIDDEN IN UI */}
 
       {/* TUTEDUDE STYLE PREMIUM STUDENT SIDEBAR */}
       <StudentSidebar
@@ -1863,9 +1850,16 @@ export default function StudentDashboardPage() {
                   <h2 className="text-2xl font-serif font-bold text-[#221D1D]">
                     {activeCourse === "ca" ? "CA Foundation Law Mastery" : "CSEET Law & Management Mastery"}
                   </h2>
-                  <p className="text-xs text-[#4D433F] max-w-md">
-                    Track your preparation journey across statutory notes, case study practice, and timed MCQ drills.
-                  </p>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setStreakModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Study Streak Calendar</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0 bg-[#F7F7F5] p-4 rounded-2xl border border-[#E7E4E7]">
@@ -2333,105 +2327,28 @@ export default function StudentDashboardPage() {
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB: REFER AND EARN (REWARD CODES & SCHOLARSHIPS)                         */}
-          {/* ========================================================================= */}
-          {activeTab === "refer" && (
-            <div className="space-y-6">
-              <div className="rounded-3xl bg-gradient-to-br from-[#AED7E9]/25 via-white to-[#AED7E9]/15 p-6 sm:p-8 border border-[#AED7E9] text-[#221D1D] shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2 max-w-lg">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#221D1D] text-[#AED7E9] shadow-xs">
-                    Peer Scholarship Program
-                  </span>
-                  <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D]">
-                    Invite Peers. Earn 1 Month Free All-Access Pass!
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed">
-                    When your study group joins with your unique code, they receive a 20% scholarship discount on any Master Codex Pass, and you receive ₹100 learning credits or a 1-month free extension!
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#AED7E9] space-y-3 shrink-0 sm:w-72">
-                  <p className="text-[11px] font-bold text-[#77716E] uppercase tracking-wider">Your Referral Code</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 bg-[#F7F7F5] border border-[#E7E4E7] rounded-xl font-mono text-sm font-bold text-[#221D1D] text-center select-all">
-                      LAWKAKSHA-{initials}
-                    </code>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`LAWKAKSHA-${initials}`);
-                        alert("Referral code copied to clipboard!");
-                      }}
-                      className="px-3.5 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3 Step Process */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
-                  <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center font-bold text-sm mb-3">
-                    1
-                  </div>
-                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Share your link or code</h4>
-                  <p className="text-xs text-[#77716E] mt-1">Send your invite code to classmates preparing for CA Foundation or CSEET.</p>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
-                  <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5] flex items-center justify-center font-bold text-sm mb-3">
-                    2
-                  </div>
-                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Peer Gets 20% Off</h4>
-                  <p className="text-xs text-[#77716E] mt-1">They immediately get 20% off when subscribing to any curriculum codex.</p>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs">
-                  <div className="w-10 h-10 rounded-2xl bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0] flex items-center justify-center font-bold text-sm mb-3">
-                    3
-                  </div>
-                  <h4 className="text-sm font-serif font-bold text-[#221D1D]">Unlock Free Learning Month</h4>
-                  <p className="text-xs text-[#77716E] mt-1">You automatically earn 1 free month access and ₹100 wallet credits.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB: YOUR SCHEDULE & CALENDAR (SVG PHONE 3 EXACT DESIGN SPEC)              */}
-          {/* ========================================================================= */}
-          {activeTab === "calendar" && (
-            <div className="w-full max-w-xl mx-auto space-y-5 animate-in fade-in pb-12">
-              <div className="bg-white rounded-3xl p-5 border border-[#E7ECF7] shadow-xs">
-                <h2 className="text-xl font-bold text-[#13264F] mb-1">Your Schedule</h2>
-                <p className="text-xs text-[#6C7893] mb-4">View upcoming live lectures, mock tests &amp; study activities.</p>
-                <StudentSchedulePanel />
-              </div>
-            </div>
-          )}
             </>
           )}
 
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (MATCHING SVG SPEC: HOME / COURSES / CALENDAR / PROFILE) */}
+      {/* MOBILE BOTTOM NAVIGATION BAR (MATCHING SVG SPEC: HOME / COURSES / STREAK / PROFILE) */}
       <StudentMobileBottomNav
         activeTab={
           activeTab === "home"
             ? "home"
             : activeTab === "chapters"
             ? "courses"
-            : activeTab === "calendar"
-            ? "calendar"
             : "home"
         }
         onChangeTab={(tab) => {
           if (tab === "home") setActiveTab("home");
           else if (tab === "courses") setActiveTab("chapters");
-          else if (tab === "calendar") setActiveTab("calendar");
+          else if (tab === "calendar") {
+            setActiveTab("mastery");
+            setStreakModalOpen(true);
+          }
           else if (tab === "profile") setProfileModalOpen(true);
         }}
         onOpenProfile={() => setProfileModalOpen(true)}
@@ -2441,8 +2358,8 @@ export default function StudentDashboardPage() {
       {/* MODALS & OVERLAYS                                                         */}
       {/* ========================================================================= */}
 
-      {/* 1. BADGES & XP PROGRESSION MODAL */}
-      {badgesModalOpen && (
+      {/* 1. BADGES & XP PROGRESSION MODAL (HIDDEN IN UI) */}
+      {false && badgesModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/50 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 border border-[#E7E4E7]">
             <div className="flex items-center justify-between border-b border-[#E7E4E7] pb-3">

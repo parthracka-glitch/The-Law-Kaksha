@@ -134,7 +134,7 @@ router.post("/admin/products", async (req, res) => {
       description: req.body.description || "",
       units: Array.isArray(req.body.units) ? req.body.units : ["Unit 1", "Unit 2"],
       highlights: Array.isArray(req.body.highlights) ? req.body.highlights : ["In-Web DRM Reading"],
-      cover_image: req.body.cover_image || "/assets/ca-cs-hero-books-v2.png",
+      cover_image: req.body.cover_image || "/assets/ca-cs-hero-books-sharp.png",
       isSample: Boolean(req.body.isSample),
       previewPagesLimit: Number(req.body.previewPagesLimit) > 0 ? Number(req.body.previewPagesLimit) : 5,
       samplePagesRange: req.body.samplePagesRange || "1-5",
@@ -1328,7 +1328,7 @@ router.post("/admin/subscriptions", async (req, res) => {
       price: Number(price),
       mrp: Number(mrp || price * 2),
       duration_days: Number(duration_days || 30),
-      thumbnail: thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      thumbnail: thumbnail || "/assets/ca-cs-hero-books-sharp.png",
       features: Array.isArray(features) ? features : [],
       course_ids: Array.isArray(course_ids) ? course_ids : [],
       display_order: Number(display_order || 0),
@@ -1362,7 +1362,7 @@ router.post("/admin/courses", async (req, res) => {
       id: `course-${Date.now()}`,
       title,
       description: description || "",
-      thumbnail: thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      thumbnail: thumbnail || "/assets/ca-cs-hero-books-sharp.png",
       kind: kind === "extra" ? "extra" : "core",
       price: Number(price || 0),
       mrp: Number(mrp || 0),
@@ -1417,7 +1417,7 @@ router.post("/admin/extra-courses", async (req, res) => {
       id: `course-extra-${Date.now()}`,
       title: req.body.title,
       description: req.body.description || "",
-      thumbnail: req.body.thumbnail || "/assets/ca-cs-hero-books-v2.png",
+      thumbnail: req.body.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
       kind: "extra",
       price: Number(req.body.price || 49),
       mrp: Number(req.body.mrp || 149),
@@ -1640,63 +1640,6 @@ router.delete("/admin/carousel/:id", async (req, res) => {
   }
 });
 
-// B5: LIVE SESSIONS (GOOGLE MEET LINKS) CRUD (§8 B5)
-router.get("/admin/live-sessions", async (req, res) => {
-  try {
-    const liveSessionsTable = Database.table("live_sessions");
-    const sessions = liveSessionsTable.find().sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
-    res.status(200).json({ success: true, count: sessions.length, sessions });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-router.post("/admin/live-sessions", async (req, res) => {
-  try {
-    const { title, subscription_id, course_id, starts_at, ends_at, meet_link, notes } = req.body;
-    if (!title || !meet_link || !starts_at) {
-      return res.status(400).json({ success: false, message: "Title, Meet link, and start time are required." });
-    }
-
-    const liveSessionsTable = Database.table("live_sessions");
-    const newSession = liveSessionsTable.insert({
-      id: `live-${Date.now()}`,
-      title,
-      subscription_id: subscription_id || null,
-      course_id: course_id || null,
-      starts_at: new Date(starts_at).toISOString(),
-      ends_at: ends_at ? new Date(ends_at).toISOString() : new Date(new Date(starts_at).getTime() + 90 * 60 * 1000).toISOString(),
-      meet_link,
-      notes: notes || "",
-      is_active: true,
-    });
-
-    res.status(201).json({ success: true, session: newSession });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-router.put("/admin/live-sessions/:id", async (req, res) => {
-  try {
-    const liveSessionsTable = Database.table("live_sessions");
-    const updated = liveSessionsTable.update(req.params.id, req.body);
-    if (!updated) return res.status(404).json({ success: false, message: "Live session not found." });
-    res.status(200).json({ success: true, session: updated });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-router.delete("/admin/live-sessions/:id", async (req, res) => {
-  try {
-    const liveSessionsTable = Database.table("live_sessions");
-    liveSessionsTable.delete(req.params.id);
-    res.status(200).json({ success: true, message: "Live session deleted." });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
 
 // B6: EXPENSE TRACKER CRUD & SUMMARY (§8 B6)
 router.get("/admin/expenses", async (req, res) => {
@@ -1805,7 +1748,7 @@ router.post("/admin/offers", async (req, res) => {
       id: `offer-${Date.now()}`,
       title,
       description: description || "",
-      banner: banner || "/assets/ca-cs-hero-books-v2.png",
+      banner: banner || "/assets/ca-cs-hero-books-sharp.png",
       coupon_id: coupon_id || null,
       coupon_code: coupon_code || "",
       valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
@@ -1866,7 +1809,7 @@ router.post("/admin/case-studies", async (req, res) => {
       slug: generatedSlug,
       summary: summary || "",
       content,
-      cover_image: cover_image || "/assets/ca-cs-hero-books-v2.png",
+      cover_image: cover_image || "/assets/ca-cs-hero-books-sharp.png",
       act_name: act_name || "Contract Act",
       marks_weight: Number(marks_weight || 6),
       show_on_website: show_on_website !== false,

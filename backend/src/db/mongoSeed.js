@@ -28,7 +28,7 @@ const INITIAL_PRODUCTS = [
     description: "Full statutory codex covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, Limited Liability Partnership Act 2008, and Companies Act 2013.",
     units: ["Indian Contract Act", "Sale of Goods Act", "Indian Partnership Act", "LLP Act", "Companies Act"],
     highlights: ["In-Web DRM Protected Reading", "Section Flowcharts & Landmark Rulings", "Weekly Case Study Alignment", "Exam Drafting Answer Templates"],
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
   },
   {
     id: "prod-vol2",
@@ -44,7 +44,7 @@ const INITIAL_PRODUCTS = [
     description: "In-depth study codex for General Principles of Management (Henri Fayol & FW Taylor) and Business Environment & Corporate Ethics (PESTLE & CSR).",
     units: ["General Principles of Management", "Business Environment & Ethics"],
     highlights: ["Complete Fayol & Taylor Principles", "Corporate Governance Frameworks", "Chapter-Wise Conceptual MCQs", "Memory Maps for Rapid Revision"],
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
   },
   {
     id: "prod-combo",
@@ -60,7 +60,7 @@ const INITIAL_PRODUCTS = [
     description: "All 8 statutory law acts + management theories + case studies & MCQ evaluation tests with instant in-web reader access.",
     units: ["All 8 Units • CA Foundation & CSEET"],
     highlights: ["Full DRM Reading Access for Both Volumes", "Weekly Real Case Study Vault Access", "CSEET 30-Question Live MCQ Simulator", "Direct Mentor Answer Evaluation Support"],
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
   },
 ];
 

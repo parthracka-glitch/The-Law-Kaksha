@@ -236,7 +236,7 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
     category: "Exam Scoring Bank",
     examBody: "ICAI Exam Standard",
     subtitle: "250+ application-based practical cases with step-by-step model answers and ICAI marking rubrics.",
-    coverImage: "/assets/ca-cs-hero-books-v2.png",
+    coverImage: "/assets/ca-cs-hero-books-sharp.png",
     price: 79,
     originalPrice: 199,
     discount: "60% OFF",

@@ -11,7 +11,7 @@ const SubscriptionSchema = new mongoose.Schema(
     price: { type: Number, default: 99 },
     mrp: { type: Number, default: 299 },
     duration_days: { type: Number, default: 30 },
-    thumbnail: { type: String, default: "/assets/ca-cs-hero-books-v2.png" },
+    thumbnail: { type: String, default: "/assets/ca-cs-hero-books-sharp.png" },
     features: [{ type: String }],
     course_ids: [{ type: String }],
     display_order: { type: Number, default: 0 },

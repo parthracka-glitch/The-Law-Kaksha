@@ -7,7 +7,7 @@ const CaseStudySchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, index: true },
     summary: { type: String, default: "" },
     content: { type: String, default: "" },
-    cover_image: { type: String, default: "/assets/ca-cs-hero-books-v2.png" },
+    cover_image: { type: String, default: "/assets/ca-cs-hero-books-sharp.png" },
     act_name: { type: String, default: "Contract Act" },
     marks_weight: { type: Number, default: 6 },
     show_on_website: { type: Boolean, default: true, index: true },

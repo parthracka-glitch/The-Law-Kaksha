@@ -34,7 +34,6 @@ connectMongo().then(() => {
 const authRoutes = require("./routes/authRoutes");
 const catalogRoutes = require("./routes/catalogRoutes");
 const contentRoutes = require("./routes/contentRoutes");
-const quizRoutes = require("./routes/quizRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const studentRoutes = require("./routes/studentRoutes");
@@ -171,8 +170,6 @@ const orderRateLimiter = (req, res, next) => {
   next();
 };
 app.use("/api/orders", orderRateLimiter);
-app.use("/api/create-order", orderRateLimiter);
-app.use("/api/verify-payment", orderRateLimiter);
 
 // Low-End Device & Network Optimization: Cache-Control for Public Catalog Endpoints
 app.use(["/api/products", "/api/resources", "/api/announcement", "/api/target-exams"], (req, res, next) => {
@@ -186,7 +183,6 @@ app.use(["/api/products", "/api/resources", "/api/announcement", "/api/target-ex
 app.use("/api/auth", authRoutes);
 app.use("/api", catalogRoutes);
 app.use("/api", contentRoutes);
-app.use("/api", quizRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/student", studentRoutes);

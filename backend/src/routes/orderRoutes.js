@@ -491,13 +491,11 @@ async function handleVerifyPayment(req, res) {
   }
 }
 
-// 1. Order Creation endpoints
+// 1. Order Creation endpoint
 router.post("/orders/create", handleCreateOrder);
-router.post("/create-order", handleCreateOrder);
 
-// 2. Payment Verification endpoints
+// 2. Payment Verification endpoint
 router.post("/orders/verify", handleVerifyPayment);
-router.post("/verify-payment", handleVerifyPayment);
 
 
 /**

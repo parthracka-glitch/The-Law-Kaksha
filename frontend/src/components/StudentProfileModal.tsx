@@ -16,6 +16,10 @@ import {
   MapPin,
   Clock,
   Flame,
+  Share2,
+  Copy,
+  Gift,
+  Check,
 } from "lucide-react";
 
 export interface StudentProfileData {
@@ -67,7 +71,8 @@ export function StudentProfileModal({
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "academic" | "stats">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "academic" | "stats" | "referral">("general");
+  const [copiedReferral, setCopiedReferral] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && isOpen) {
@@ -169,11 +174,12 @@ export function StudentProfileModal({
           </div>
 
           {/* TABS */}
-          <div className="flex items-center gap-2 mt-5 pt-3 border-t border-[#98C5D8]">
+          <div className="flex items-center gap-2 mt-5 pt-3 border-t border-[#98C5D8] overflow-x-auto">
             {[
               { id: "general" as const, label: "Personal Details", icon: User },
               { id: "academic" as const, label: "Exam & Goals", icon: BookOpen },
               { id: "stats" as const, label: "Study Stats", icon: Award },
+              { id: "referral" as const, label: "Refer & Earn", icon: Share2 },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -182,7 +188,7 @@ export function StudentProfileModal({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
                       ? "bg-white text-[#221D1D] shadow-xs font-semibold"
                       : "text-[#4D433F] hover:bg-white/40 hover:text-[#221D1D]"
@@ -392,6 +398,71 @@ export function StudentProfileModal({
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-[#221D1D]">Digital DRM:</span>
                     <span className="text-[#4B8097] font-semibold">Active In-Web Codex Protection</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "referral" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-gradient-to-br from-[#AED7E9]/30 via-white to-[#AED7E9]/15 p-5 border border-[#AED7E9] text-[#221D1D] shadow-2xs space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-[#221D1D] text-[#AED7E9]">
+                      <Gift className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#221D1D]">Peer Scholarship & Referral</h4>
+                      <p className="text-[11px] text-[#4D433F]">Invite peers to earn 1 month free extension</p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[#4D433F] leading-relaxed">
+                    Share your unique referral code with friends and study groups. When they enroll using your code, they receive a special scholarship discount, and you earn platform credits toward your next pass!
+                  </p>
+
+                  <div className="pt-2">
+                    <label className="block text-[11px] font-semibold text-[#4D433F] mb-1">Your Referral Code</label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#AED7E9] bg-white font-mono font-bold text-sm text-[#221D1D] tracking-wider">
+                        {formData.student_id ? formData.student_id.toUpperCase() : "LAWKAKSHA2026"}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const code = formData.student_id ? formData.student_id.toUpperCase() : "LAWKAKSHA2026";
+                          if (typeof navigator !== "undefined" && navigator.clipboard) {
+                            navigator.clipboard.writeText(code);
+                            setCopiedReferral(true);
+                            setTimeout(() => setCopiedReferral(false), 2000);
+                          }
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+                      >
+                        {copiedReferral ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedReferral ? "Copied!" : "Copy Code"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] space-y-1">
+                    <p className="font-bold text-[#221D1D] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" />
+                      <span>For Your Peer</span>
+                    </p>
+                    <p className="text-[11px] text-[#77716E]">
+                      Instant discount applied during checkout on CA Foundation or CSEET passes.
+                    </p>
+                  </div>
+                  <div className="p-3.5 rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] space-y-1">
+                    <p className="font-bold text-[#221D1D] flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5 text-[#4B8097]" />
+                      <span>For You</span>
+                    </p>
+                    <p className="text-[11px] text-[#77716E]">
+                      Free pass extension credited automatically upon your peer's successful enrollment.
+                    </p>
                   </div>
                 </div>
               </div>

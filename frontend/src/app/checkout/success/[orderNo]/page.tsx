@@ -123,7 +123,7 @@ export default function OrderSuccessPage() {
           {/* CTAs */}
           <div className="space-y-3 pt-2">
             <Link
-              href="/student/login"
+              href="/student"
               className="w-full py-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-sm sm:text-base shadow-[0_2px_8px_rgba(191,175,229,0.35)] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
             >
               <BookOpen className="w-4 h-4 text-[#221D1D]" />

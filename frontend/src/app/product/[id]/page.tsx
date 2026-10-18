@@ -37,7 +37,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CA Foundation Paper 2",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
@@ -68,7 +68,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CA Foundation Paper 2",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
@@ -99,7 +99,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CA Foundation Paper 2",
     examBody: "ICAI",
     pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
@@ -130,7 +130,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CSEET Paper 2",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Comprehensive notes for all 8 Business Law and Management units",
       "Chapter-wise practice MCQs with explanations for each option",
@@ -162,7 +162,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CSEET Paper 2",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Comprehensive notes for all 8 Business Law and Management units",
       "Chapter-wise practice MCQs with explanations for each option",
@@ -194,7 +194,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     category: "CSEET Paper 2",
     examBody: "ICSI",
     pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-v2.png",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Comprehensive notes for all 8 Business Law and Management units",
       "Chapter-wise practice MCQs with explanations for each option",
@@ -317,7 +317,7 @@ export default function ProductDetailPage() {
             <div className="w-full rounded-3xl bg-[#F7F7F5] border border-[#E7E4E7] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
               <div className="relative group/book rounded-2xl overflow-hidden shadow-md border border-[#E7E4E7] bg-white max-w-[240px] sm:max-w-[280px] transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <Image
-                  src={product.cover_image || "/assets/ca-cs-hero-books-v2.png"}
+                  src={product.cover_image || "/assets/ca-cs-hero-books-sharp.png"}
                   alt={product.title}
                   width={340}
                   height={510}

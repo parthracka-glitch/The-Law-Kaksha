@@ -28,6 +28,8 @@ interface StudentSidebarProps {
   onCloseSidebar: () => void;
 }
 
+export const SHOW_MCQ_TAB = false;
+
 export function StudentSidebar({
   activeTab,
   onSelectTab,
@@ -39,20 +41,17 @@ export function StudentSidebar({
   onCloseSidebar,
 }: StudentSidebarProps) {
   // Study Materials & Notes come FIRST right below Dashboard
-  const STUDY_MATERIALS_MENU = [
+  const baseMenu = [
     { id: "home", label: "Student Dashboard", icon: LayoutDashboard },
     { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-    { id: "calendar", label: "Your Schedule", icon: Calendar },
     { id: "cases", label: "Case Studies", icon: Flame },
-    { id: "mcqtest", label: "Practice Tests", icon: Sparkles },
+    ...(SHOW_MCQ_TAB ? [{ id: "mcqtest", label: "Practice Tests", icon: Sparkles }] : []),
     { id: "ldr", label: "Revision Flowcharts", icon: Workflow },
     { id: "mastery", label: "My Progress", icon: CheckSquare },
   ];
 
-  // Only Refer and Earn kept (Certificates & Purchase History removed)
-  const EXTRAS_MENU = [
-    { id: "refer", label: "Refer and Earn", icon: Share2 },
-  ];
+  const STUDY_MATERIALS_MENU = baseMenu;
+  const EXTRAS_MENU: { id: string; label: string; icon: any }[] = [];
 
   return (
     <>
@@ -137,39 +136,7 @@ export function StudentSidebar({
               );
             })}
 
-            {/* REFER & EARN SECTION */}
-            <div className="pt-3 pb-1 px-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">
-                Rewards &amp; Account
-              </span>
-            </div>
 
-            {EXTRAS_MENU.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onSelectTab(item.id);
-                    onCloseSidebar();
-                  }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer text-left ${
-                    isActive
-                      ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-2xs border border-[#DBEAFE]"
-                      : "text-[#64748B] hover:bg-[#F0F7FF] hover:text-[#0A192F]"
-                  }`}
-                >
-                  <Icon
-                    className={`w-4 h-4 shrink-0 ${
-                      isActive ? "text-[#005A9C]" : "text-[#64748B]"
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
 
             {/* IMMEDIATELY BELOW REFER AND EARN: PROFILE & LOGOUT BUTTONS */}
             <div className="pt-1.5 space-y-1 border-t border-[#F0F4F8] mt-1.5">

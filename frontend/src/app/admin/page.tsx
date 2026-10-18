@@ -61,6 +61,8 @@ import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminExamCountdownAndQOTDTab } from "@/components/admin/AdminExamCountdownAndQOTDTab";
 import { AdminBroadcastTab } from "@/components/admin/AdminBroadcastTab";
 
+const SHOW_MCQ_TAB = false;
+
 export interface AnnouncementSetting {
   enabled: boolean;
   text: string;
@@ -1265,21 +1267,23 @@ export default function AdminPortalPage() {
                   {cases.length}
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("mcq")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  activeTab === "mcq"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" />
-                <span>MCQ Tests</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
-                  {mcqTests.length}
-                </span>
-              </button>
+              {SHOW_MCQ_TAB && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("mcq")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    activeTab === "mcq"
+                      ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
+                      : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" />
+                  <span>MCQ Tests</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                    {mcqTests.length}
+                  </span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setActiveTab("exam_countdown_qotd")}
@@ -3122,8 +3126,8 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* TAB 6: GOOGLE FORM MCQ TESTS */}
-          {activeTab === "mcq" && (
+          {/* TAB 6: GOOGLE FORM MCQ TESTS (DORMANT BEHIND FEATURE FLAG) */}
+          {SHOW_MCQ_TAB && activeTab === "mcq" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -3922,7 +3926,7 @@ export default function AdminPortalPage() {
                     type="text"
                     value={productModal.data.cover_image || ""}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, cover_image: e.target.value } })}
-                    placeholder="/assets/ca-cs-hero-books-v2.png"
+                    placeholder="/assets/ca-cs-hero-books-sharp.png"
                     className="flex-1 p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs font-mono text-[#221D1D]"
                   />
                   <input
@@ -4079,7 +4083,7 @@ export default function AdminPortalPage() {
                     pages: productModal.data.pages || "150+ Pages",
                     status: productModal.data.status || "Active",
                     pdfUrl: productModal.data.pdfUrl || "/notes/sale-of-goods-unit-1.pdf",
-                    cover_image: productModal.data.cover_image || "/assets/ca-cs-hero-books-v2.png",
+                    cover_image: productModal.data.cover_image || "/assets/ca-cs-hero-books-sharp.png",
                     description: productModal.data.description || "",
                     units: Array.isArray(productModal.data.units)
                       ? productModal.data.units

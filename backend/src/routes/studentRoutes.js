@@ -375,8 +375,7 @@ router.get("/calendar", requireAuth, async (req, res) => {
     const userId = req.user.id;
     const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
 
-    const liveSessionsTable = Database.table("live_sessions");
-    const sessions = liveSessionsTable.find((s) => s.is_active !== false);
+    const sessions = [];
 
     const entitlementsTable = Database.table("entitlements");
     const expiries = entitlementsTable

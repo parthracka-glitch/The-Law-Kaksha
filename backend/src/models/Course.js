@@ -6,7 +6,7 @@ const CourseSchema = new mongoose.Schema(
     title: { type: String, required: true },
     slug: { type: String, default: "" },
     description: { type: String, default: "" },
-    thumbnail: { type: String, default: "/assets/ca-cs-hero-books-v2.png" },
+    thumbnail: { type: String, default: "/assets/ca-cs-hero-books-sharp.png" },
     kind: { type: String, enum: ["core", "extra"], default: "core", index: true },
     price: { type: Number, default: 0 },
     mrp: { type: Number, default: 0 },
