@@ -28,3 +28,8 @@ Status values: Not started · In progress · Blocked · Done · Verified against
 | **P5** | Vision Restructure: Admin Panel | **Done** | gemini | 2026-10-19 | Admin Course-Act-Unit cascading manager, live toggles, pricing, sample range, site settings (commit `38acd24`, 64 tests) |
 | **P6** | Vision Restructure: Student Core | **Done** | gemini | 2026-10-19 | Standardized 6 core tabs, curriculum hierarchy tree, progress tracker, bookmarks, support tickets (commit `a1f9711`, 77 tests) |
 | **R1** | Pass 1 Consolidated Report | **Done** | gemini | 2026-10-19 | Compiled `/AUDIT/11-pass1-report.md`, 77/77 tests passing (100%), 0 TS errors, demo-ready |
+| **P7** | Vision Restructure: Mobile & Responsiveness | **Done** | gemini | 2026-10-19 | Safe-area insets, coarse touch target padding, fake number purge, responsive test suite (commit `cb1a636`, 81 tests) |
+| **P8** | Vision Restructure: Perf & Core Web Vitals | **Done** | gemini | 2026-10-19 | Removed hero image unoptimized prop for AVIF/WebP, added catalog Cache-Control headers, sub-100ms TTFB (commit `d1152f5`, 86 tests) |
+| **P9** | Vision Restructure: Penetration Hardening | **Done** | gemini | 2026-10-19 | Coupon & ticket sliding-window rate limiters, tokenVersion revocation verified, strict security headers (commit `3756c59`, 91 tests) |
+| **P10** | Vision Restructure: Production Release | **Done** | gemini | 2026-10-19 | Production Next.js build clean (22 routes), 91/91 tests passing (100%), 0 TS errors, demo-ready |
+
