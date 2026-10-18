@@ -10,6 +10,7 @@ const Resource = require("../models/Resource");
 const SiteSetting = require("../models/SiteSetting");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
+const { serializeProduct, serializeCourse, serializeResource } = require("../utils/responseSerializer");
 
 // Base courses
 const DEFAULT_COURSES = [
@@ -85,7 +86,7 @@ router.get("/public/site-data", async (req, res) => {
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
-      products,
+      products: products.map(serializeProduct),
       examSettings,
       qotd,
       mcqPool,
@@ -132,12 +133,14 @@ router.get("/catalog", async (req, res) => {
       );
     }
 
+    const serializedProducts = allProducts.map(serializeProduct);
+
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
-      count: allProducts.length,
-      products: allProducts,
-      items: allProducts,
+      count: serializedProducts.length,
+      products: serializedProducts,
+      items: serializedProducts,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching catalog." });
@@ -163,13 +166,12 @@ router.get("/catalog/:id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found in catalog." });
     }
 
+    const cleanProduct = serializeProduct(product);
+
     res.status(200).json({
       success: true,
-      product: {
-        ...product,
-        original_price: product.originalPrice || product.original_price || 499,
-      },
-      item: product,
+      product: cleanProduct,
+      item: cleanProduct,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching product details." });
@@ -180,7 +182,7 @@ router.get("/catalog/:id", async (req, res) => {
 router.get("/courses", (req, res) => {
   const coursesTable = Database.table("courses");
   const courses = coursesTable.find();
-  res.status(200).json({ success: true, courses });
+  res.status(200).json({ success: true, courses: courses.map(serializeCourse) });
 });
 
 // GET /api/courses/:courseId — Get a specific course
@@ -190,7 +192,7 @@ router.get("/courses/:courseId", (req, res) => {
   if (!course) {
     return res.status(404).json({ success: false, message: "Course not found" });
   }
-  res.status(200).json({ success: true, course });
+  res.status(200).json({ success: true, course: serializeCourse(course) });
 });
 
 // GET /api/courses/:courseId/acts — Get acts/units for a course
@@ -241,7 +243,7 @@ router.get("/resources", async (req, res) => {
 
     if (isConnected()) {
       const resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
-      return res.status(200).json({ success: true, source: "mongodb_atlas", resources });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", resources: resources.map((r) => serializeResource(r)) });
     }
 
     const resourcesTable = Database.table("resources");
@@ -251,7 +253,7 @@ router.get("/resources", async (req, res) => {
     if (type) resources = resources.filter((r) => r.type === type);
     if (sampleOnly === "true") resources = resources.filter((r) => r.isSample === true);
 
-    res.status(200).json({ success: true, source: "local_cache", resources });
+    res.status(200).json({ success: true, source: "local_cache", resources: resources.map((r) => serializeResource(r)) });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching resources: " + err.message });
   }

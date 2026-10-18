@@ -193,6 +193,86 @@ async function seed() {
     }
   }
 
+  // 2.5 Seed ContentItems for Units
+  const initialContentItems = [
+    {
+      id: "item-ca-contract-1",
+      unitId: "unit-ca-contract-1",
+      type: "notes",
+      title: "Unit 1: Nature & Essentials of Valid Contract (Sec 1-10)",
+      cloudinaryPublicId: "",
+      samplePublicId: "",
+      isSample: false,
+      sampleFromPage: 1,
+      sampleToPage: 5,
+      isPublished: true,
+      order: 1,
+      fileName: "sale-of-goods-unit-1.pdf",
+    },
+    {
+      id: "item-ca-soga-1",
+      unitId: "unit-ca-soga-1",
+      type: "notes",
+      title: "Unit 1: Formation of Contract of Sale & Subject Matter",
+      cloudinaryPublicId: "",
+      samplePublicId: "",
+      isSample: false,
+      sampleFromPage: 1,
+      sampleToPage: 5,
+      isPublished: true,
+      order: 1,
+      fileName: "sale-of-goods-unit-1.pdf",
+    },
+    {
+      id: "item-ca-soga-sample",
+      unitId: "unit-ca-soga-1",
+      type: "notes",
+      title: "Unit 1: Formation of Contract of Sale (Free Sample Preview)",
+      cloudinaryPublicId: "",
+      samplePublicId: "",
+      isSample: true,
+      sampleFromPage: 1,
+      sampleToPage: 5,
+      isPublished: true,
+      order: 2,
+      fileName: "sale-of-goods-unit-1.pdf",
+    },
+    {
+      id: "item-ca-partnership-1",
+      unitId: "unit-ca-partnership-1",
+      type: "notes",
+      title: "Unit 1: General Nature of Partnership",
+      cloudinaryPublicId: "",
+      samplePublicId: "",
+      isSample: false,
+      sampleFromPage: 1,
+      sampleToPage: 5,
+      isPublished: true,
+      order: 1,
+      fileName: "unit-1-general-nature-of-partnership.pdf",
+    },
+    {
+      id: "item-ca-companies-1",
+      unitId: "unit-ca-companies-1",
+      type: "notes",
+      title: "Unit 1: Essential Characteristics & Lifting of Corporate Veil",
+      cloudinaryPublicId: "",
+      samplePublicId: "",
+      isSample: false,
+      isPublished: true,
+      order: 1,
+    },
+  ];
+
+  for (const item of initialContentItems) {
+    const existing = contentItemsTable.findOne((c) => c.id === item.id);
+    if (!existing) {
+      contentItemsTable.insert(item);
+    } else {
+      contentItemsTable.update(existing.id, item);
+    }
+  }
+
   // 3. Admin Account Seeding (Env vars or Test mode only)
   const envAdminEmail = process.env.INITIAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || (process.env.NODE_ENV === "test" ? "admin@thelawkaksha.com" : null);
   const envAdminPass = process.env.INITIAL_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === "test" ? "AdminSecurePassword2026!" : null);

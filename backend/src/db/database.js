@@ -141,7 +141,7 @@ const Database = {
       },
 
       findById(id) {
-        return db[name].find((item) => item.id === id) || null;
+        return db[name].find((item) => item.id === id || item.student_id === id || item.email === id) || null;
       },
 
       insert(record) {
@@ -157,7 +157,7 @@ const Database = {
       },
 
       update(id, updates) {
-        const index = db[name].findIndex((item) => item.id === id);
+        const index = db[name].findIndex((item) => item.id === id || item.student_id === id || item.email === id);
         if (index === -1) return null;
 
         const updatedRecord = {

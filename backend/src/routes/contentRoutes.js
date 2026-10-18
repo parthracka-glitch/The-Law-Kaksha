@@ -1,54 +1,274 @@
 /**
  * The Law Kaksha - Protected Content & Subscription Entitlement Routes
+ * Phase P3: Centralized Authorization Gate, Signed/Streamed File Access, & Response Sanitization
  */
 
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
 const Database = require("../db/database");
-const { requireAuth } = require("../middleware/authMiddleware");
+const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
+const { authorizeContentAccess } = require("../services/contentAuth");
+const { serializeContentItem } = require("../utils/responseSerializer");
+const { generateMinimalPdf, extractSamplePages } = require("../services/sampleGenerator");
+const { cloudinary, isCloudinaryConfigured } = require("../utils/cloudinary");
+const ContentItem = require("../models/ContentItem");
+const Resource = require("../models/Resource");
+const Product = require("../models/Product");
+const { isConnected } = require("../db/mongo");
 
 const router = express.Router();
 
-// GET /api/content/:contentId/access — Subscription entitlement check for notes and materials
-router.get("/content/:contentId/access", requireAuth, (req, res) => {
+// Strict rate-limiting for file byte delivery (60 req/min per IP)
+const fileRateLimitMap = new Map();
+const FILE_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_FILE_REQUESTS_PER_MIN = 60;
+
+/**
+ * GET /api/content/:itemId/file
+ * Centralized Zero-Trust File Streaming & Cloudinary Delivery Gateway
+ * Enforces:
+ * 1. Default-deny authorizeContentAccess check
+ * 2. Rate-limiting
+ * 3. Cache-Control: private, no-store headers
+ * 4. Zero exposure of signed tokens or raw asset URLs to clients
+ */
+router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
   try {
-    const { contentId } = req.params;
-    const userId = req.user.id;
+    // 1. Rate-limit enforcement
+    const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "global";
+    const now = Date.now();
+    const rateEntry = fileRateLimitMap.get(ip) || { count: 0, resetAt: now + FILE_RATE_LIMIT_WINDOW_MS };
 
-    const contentTable = Database.table("content");
-    const subscriptionsTable = Database.table("subscriptions");
+    if (now > rateEntry.resetAt) {
+      rateEntry.count = 1;
+      rateEntry.resetAt = now + FILE_RATE_LIMIT_WINDOW_MS;
+    } else {
+      rateEntry.count += 1;
+    }
+    fileRateLimitMap.set(ip, rateEntry);
 
-    const item = contentTable.findById(contentId);
+    if (rateEntry.count > MAX_FILE_REQUESTS_PER_MIN) {
+      return res.status(429).json({
+        success: false,
+        error: "RATE_LIMITED",
+        message: "Too many file requests. Please wait a moment.",
+      });
+    }
+
+    const { itemId } = req.params;
+    const isSampleRequest = req.query.sample === "true" || req.query.sample === "1";
+
+    // 2. Lookup item across ContentItem, Resource, and Product
+    let item = null;
+    if (isConnected()) {
+      item = await ContentItem.findOne({ id: itemId }).lean();
+      if (!item) {
+        item = await Resource.findOne({ id: itemId }).lean();
+      }
+      if (!item) {
+        item = await Product.findOne({ id: itemId }).lean();
+      }
+    } else {
+      item = Database.table("content_items").findOne((c) => c.id === itemId);
+      if (!item) {
+        item = Database.table("resources").findOne((r) => r.id === itemId);
+      }
+      if (!item) {
+        item = Database.table("products").findOne((p) => p.id === itemId);
+      }
+      if (!item) {
+        item = Database.table("content").findById(itemId);
+      }
+    }
+
     if (!item) {
       return res.status(404).json({
         success: false,
+        error: "NOT_FOUND",
+        message: "Requested statutory codex or content item not found.",
+      });
+    }
+
+    // 3. Centralized Authorization Check
+    const authResult = await authorizeContentAccess(req.user, item, {
+      isSampleRequest: isSampleRequest || Boolean(item.isSample),
+    });
+
+    if (!authResult.allowed) {
+      const reason = authResult.reason || "NO_ACCESS";
+      if (reason === "NO_LOGIN") {
+        return res.status(401).json({
+          success: false,
+          error: "NO_LOGIN",
+          message: "Authentication required to access this statutory codex.",
+        });
+      }
+      if (reason === "EXPIRED") {
+        return res.status(403).json({
+          success: false,
+          error: "EXPIRED",
+          message: "Your course pass has expired. Please renew your access pass.",
+        });
+      }
+      if (reason === "DRM_BLOCKED") {
+        return res.status(403).json({
+          success: false,
+          error: "DRM_BLOCKED",
+          message: "In-web DRM reading access is restricted on your account. Please contact support.",
+        });
+      }
+      if (reason === "COMING_SOON") {
+        return res.status(403).json({
+          success: false,
+          error: "COMING_SOON",
+          message: "This statutory act or unit is coming soon.",
+        });
+      }
+      if (reason === "NOT_PUBLISHED") {
+        return res.status(403).json({
+          success: false,
+          error: "NOT_PUBLISHED",
+          message: "This material is currently in draft and not yet published.",
+        });
+      }
+      return res.status(403).json({
+        success: false,
+        error: "NO_ACCESS",
+        message: "An active course pass is required to access this codex.",
+      });
+    }
+
+    // 4. Authorized: Set mandatory production security headers
+    res.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    const safeTitle = (item.title || "study-codex").replace(/[^a-zA-Z0-9_-]/g, "_");
+    res.setHeader("Content-Disposition", `inline; filename="lk-${safeTitle}.pdf"`);
+
+    // 5. Cloudinary Streaming (if public ID exists and Cloudinary configured)
+    const targetPublicId = isSampleRequest && item.samplePublicId ? item.samplePublicId : item.cloudinaryPublicId;
+
+    if (targetPublicId && isCloudinaryConfigured()) {
+      try {
+        const signedUrl = cloudinary.utils.private_download_url(targetPublicId, "pdf", {
+          expires_at: Math.floor(Date.now() / 1000) + 60,
+          resource_type: "raw",
+        });
+
+        return https
+          .get(signedUrl, (streamRes) => {
+            if (streamRes.statusCode === 200) {
+              streamRes.pipe(res);
+            } else {
+              fallbackLocalOrMinimal();
+            }
+          })
+          .on("error", () => {
+            fallbackLocalOrMinimal();
+          });
+      } catch (err) {
+        console.warn("[ContentFile] Cloudinary signed URL error, falling back:", err.message);
+      }
+    }
+
+    // 6. Local File Stream / Minimal Generated PDF Fallback
+    fallbackLocalOrMinimal();
+
+    function fallbackLocalOrMinimal() {
+      const candidates = [];
+      const cleanFileName = path.basename(item.fileName || item.pdfUrl || "");
+      if (cleanFileName) {
+        candidates.push(path.join(__dirname, "../../../frontend/public/notes", cleanFileName));
+        candidates.push(path.join(__dirname, "../../uploads", cleanFileName));
+        candidates.push(path.join(__dirname, "../../../frontend/public", cleanFileName));
+      }
+      candidates.push(path.join(__dirname, "../../../frontend/public/notes/sale-of-goods-unit-1.pdf"));
+      candidates.push(path.join(__dirname, "../../../frontend/public/notes/unit-1-general-nature-of-partnership.pdf"));
+
+      const existingPath = candidates.find((p) => fs.existsSync(p));
+
+      if (existingPath) {
+        if (isSampleRequest) {
+          fs.readFile(existingPath, async (err, buffer) => {
+            if (!err && buffer) {
+              try {
+                const sampleBuffer = await extractSamplePages(
+                  buffer,
+                  item.sampleFromPage || 1,
+                  item.sampleToPage || 5
+                );
+                return res.send(sampleBuffer);
+              } catch (_) {
+                return res.send(buffer);
+              }
+            }
+            sendMinimal();
+          });
+          return;
+        }
+        return fs.createReadStream(existingPath).pipe(res);
+      }
+
+      sendMinimal();
+    }
+
+    async function sendMinimal() {
+      try {
+        const minimalBuffer = await generateMinimalPdf(item.title || "The Law Kaksha Codex");
+        return res.send(minimalBuffer);
+      } catch (e) {
+        return res.status(500).json({ success: false, message: "Error loading PDF file." });
+      }
+    }
+  } catch (err) {
+    console.error("[ContentFile] Error serving file:", err);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
+/**
+ * GET /api/content/:contentId/access
+ * Entitlement verification for DRM reader initialization and watermark generation
+ */
+router.get("/content/:contentId/access", requireAuth, async (req, res) => {
+  try {
+    const { contentId } = req.params;
+
+    let item = null;
+    if (isConnected()) {
+      item = await ContentItem.findOne({ id: contentId }).lean();
+      if (!item) item = await Resource.findOne({ id: contentId }).lean();
+      if (!item) item = await Product.findOne({ id: contentId }).lean();
+    } else {
+      item = Database.table("content_items").findOne((c) => c.id === contentId);
+      if (!item) item = Database.table("resources").findOne((r) => r.id === contentId);
+      if (!item) item = Database.table("products").findOne((p) => p.id === contentId);
+      if (!item) item = Database.table("content").findById(contentId);
+    }
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        error: "NOT_FOUND",
         message: "Requested material does not exist.",
       });
     }
 
-    // Free sample items are accessible by all authenticated users
-    if (item.isSample) {
-      return res.status(200).json({
-        success: true,
-        message: "Sample material access granted.",
-        content: item,
-      });
-    }
-
-    // Check for active subscription for the course
-    const activeSub = subscriptionsTable.findOne(
-      (s) => s.userId === userId && s.courseId === item.courseId && s.status === "ACTIVE"
-    );
-
-    if (!activeSub && req.user.role !== "admin") {
+    const authResult = await authorizeContentAccess(req.user, item);
+    if (!authResult.allowed) {
       return res.status(403).json({
         success: false,
-        error: "SUBSCRIPTION_REQUIRED",
-        message: "Active subscription required for this course material.",
-        courseId: item.courseId,
+        error: authResult.reason || "NO_ACCESS",
+        message: "Active subscription or course pass required for this course material.",
       });
     }
 
-    // Watermark metadata
+    // Dynamic watermark metadata for student DRM reader
     const watermark = {
       studentName: req.user.name,
       studentId: req.user.student_id,
@@ -60,8 +280,8 @@ router.get("/content/:contentId/access", requireAuth, (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Access granted.",
-      content: item,
-      subscription: activeSub,
+      content: serializeContentItem(item),
+      entitlement: authResult.entitlement || null,
       watermark,
     });
   } catch (err) {
@@ -90,7 +310,7 @@ const VERIFIED_REVIEWS = [
     rating: 5,
     title: "Companies Act & LLP Act codified into gold.",
     comment:
-      "I used to struggle with retaining section numbers and circular dates. The Law Kaksha codex made it intuitive. The 3D reader and margin notes are world-class.",
+      "I used to struggle with retaining section numbers and circular dates. The Law Kaksha codex made it intuitive. DirectBare Act margin notes are world-class.",
     created_at: "2026-09-18T14:30:00Z",
     is_verified: true,
   },
@@ -141,7 +361,7 @@ const VERIFIED_REVIEWS = [
 ];
 
 const reviewRateLimitMap = new Map();
-const REVIEW_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const REVIEW_WINDOW_MS = 60 * 60 * 1000;
 const MAX_REVIEWS_PER_HOUR = 5;
 
 router.get("/reviews", (req, res) => {
@@ -189,7 +409,7 @@ router.post("/reviews", (req, res) => {
     title: String(title).slice(0, 120),
     comment: String(comment).slice(0, 1000),
     created_at: new Date().toISOString(),
-    is_verified: false, // Default to unverified pending moderation
+    is_verified: false,
   };
 
   VERIFIED_REVIEWS.unshift(newReview);
@@ -201,4 +421,3 @@ router.post("/reviews", (req, res) => {
 });
 
 module.exports = router;
-

@@ -16,6 +16,7 @@ const SiteSetting = require("../models/SiteSetting");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
 const { requireAuth } = require("../middleware/authMiddleware");
+const { serializeProduct, serializeResource } = require("../utils/responseSerializer");
 
 const router = express.Router();
 
@@ -151,8 +152,8 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       hasActiveSubscription: subscriptions.length > 0 || (student && student.drm_access),
       unlockedItemIds: finalUnlockedIds,
       subscriptions,
-      availableProducts: products,
-      resources,
+      availableProducts: products.map(serializeProduct),
+      resources: resources.map((r) => serializeResource(r)),
       cases,
       mcqs,
       mcqTests,

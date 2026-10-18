@@ -102,15 +102,23 @@ async function requireAdmin(req, res, next) {
  * Optional authentication: extracts user if token exists, but proceeds anyway
  */
 async function optionalAuth(req, res, next) {
+  let token = null;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else if (req.query && req.query.token) {
+    token = req.query.token;
+  } else if (req.cookies && (req.cookies.lawkaksha_token || req.cookies.token)) {
+    token = req.cookies.lawkaksha_token || req.cookies.token;
+  }
+
+  if (!token) {
     req.user = null;
     return next();
   }
 
-  const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET || "the_law_kaksha_secure_jwt_secret_key_2026");
     let user = null;
 
     if (isConnected()) {

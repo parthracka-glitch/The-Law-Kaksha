@@ -13,7 +13,7 @@ const server = app.listen(0, "127.0.0.1", () => {
 
   const testProcess = spawn(
     process.execPath,
-    ["--test", "tests/admin_security.test.js", "tests/auth_device.test.js", "tests/catalog.test.js", "tests/orders_drm.test.js", "tests/security_hardening.test.js"],
+    ["--test", "tests/admin_security.test.js", "tests/auth_device.test.js", "tests/catalog.test.js", "tests/orders_drm.test.js", "tests/security_hardening.test.js", "tests/content_auth_p3.test.js"],
     {
       cwd: __dirname + "/..",
       env: { ...process.env, NODE_ENV: "test", API_URL: testApiUrl, PORT: String(port) },
