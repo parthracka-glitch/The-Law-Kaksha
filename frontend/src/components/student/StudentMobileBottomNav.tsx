@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Home, BookOpen, Calendar, User } from "lucide-react";
+import { Home, BookOpen, CheckSquare, User } from "lucide-react";
 
-export type StudentMobileNavTab = "home" | "courses" | "calendar" | "profile";
+export type StudentMobileNavTab = "home" | "courses" | "progress" | "profile";
 
 interface StudentMobileBottomNavProps {
   activeTab: StudentMobileNavTab;
@@ -53,21 +53,21 @@ export function StudentMobileBottomNav({
           <span className="text-[10.5px] font-semibold leading-none">Courses</span>
         </button>
 
-        {/* 3. Calendar */}
+        {/* 3. Progress */}
         <button
-          onClick={() => onChangeTab("calendar")}
+          onClick={() => onChangeTab("progress")}
           className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            activeTab === "calendar" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
+            activeTab === "progress" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
           }`}
-          aria-label="Calendar"
+          aria-label="Progress"
         >
           <div className="relative">
-            <Calendar className="w-5 h-5" />
-            {activeTab === "calendar" && (
+            <CheckSquare className="w-5 h-5" />
+            {activeTab === "progress" && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#2F55E0]" />
             )}
           </div>
-          <span className="text-[10.5px] font-semibold leading-none">Calendar</span>
+          <span className="text-[10.5px] font-semibold leading-none">Progress</span>
         </button>
 
         {/* 4. Profile */}

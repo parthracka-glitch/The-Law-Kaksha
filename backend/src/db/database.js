@@ -42,6 +42,7 @@ let db = {
   referrals: [],
   site_settings: [],
   audit_logs: [],
+  support_tickets: [],
   // Core Course-Act-Unit-ContentItem tables
   acts: [],
   units: [],

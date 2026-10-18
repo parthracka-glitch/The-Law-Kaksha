@@ -5,15 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   LayoutDashboard,
-  Share2,
   BookOpen,
-  Flame,
-  Sparkles,
-  LogOut,
-  User,
+  Bookmark,
   CheckSquare,
-  Workflow,
-  Calendar,
+  User,
+  HelpCircle,
+  LogOut,
   X,
 } from "lucide-react";
 
@@ -28,30 +25,24 @@ interface StudentSidebarProps {
   onCloseSidebar: () => void;
 }
 
-export const SHOW_MCQ_TAB = false;
-
 export function StudentSidebar({
   activeTab,
   onSelectTab,
-  studentName = "Parth Racka",
-  initials = "PR",
+  studentName = "Student",
+  initials = "ST",
   onOpenProfile,
   onLogout,
   sidebarOpen,
   onCloseSidebar,
 }: StudentSidebarProps) {
-  // Study Materials & Notes come FIRST right below Dashboard
-  const baseMenu = [
-    { id: "home", label: "Student Dashboard", icon: LayoutDashboard },
-    { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-    { id: "cases", label: "Case Studies", icon: Flame },
-    ...(SHOW_MCQ_TAB ? [{ id: "mcqtest", label: "Practice Tests", icon: Sparkles }] : []),
-    { id: "ldr", label: "Revision Flowcharts", icon: Workflow },
-    { id: "mastery", label: "My Progress", icon: CheckSquare },
+  const MENU_ITEMS = [
+    { id: "home", label: "Dashboard", icon: LayoutDashboard },
+    { id: "courses", label: "My Courses", icon: BookOpen },
+    { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
+    { id: "progress", label: "My Progress", icon: CheckSquare },
+    { id: "profile", label: "Profile", icon: User },
+    { id: "support", label: "Help & Support", icon: HelpCircle },
   ];
-
-  const STUDY_MATERIALS_MENU = baseMenu;
-  const EXTRAS_MENU: { id: string; label: string; icon: any }[] = [];
 
   return (
     <>
@@ -101,15 +92,15 @@ export function StudentSidebar({
             </button>
           </div>
 
-          {/* MAIN MENU ITEMS (NOTES & STUDY MATERIAL FIRST) */}
+          {/* MAIN MENU ITEMS (STANDARDIZED 6 CORE TABS) */}
           <nav className="px-3 py-3 space-y-1">
             <div className="pb-1 px-3">
               <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">
-                Study Material
+                Navigation
               </span>
             </div>
 
-            {STUDY_MATERIALS_MENU.map((item) => {
+            {MENU_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
 
@@ -117,6 +108,9 @@ export function StudentSidebar({
                 <button
                   key={item.id}
                   onClick={() => {
+                    if (item.id === "profile") {
+                      onOpenProfile();
+                    }
                     onSelectTab(item.id);
                     onCloseSidebar();
                   }}
@@ -136,22 +130,8 @@ export function StudentSidebar({
               );
             })}
 
-
-
-            {/* IMMEDIATELY BELOW REFER AND EARN: PROFILE & LOGOUT BUTTONS */}
-            <div className="pt-1.5 space-y-1 border-t border-[#F0F4F8] mt-1.5">
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenProfile();
-                  onCloseSidebar();
-                }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#0A192F] hover:bg-[#EFF6FF] hover:text-[#005A9C] transition-all cursor-pointer text-left group"
-              >
-                <User className="w-4 h-4 shrink-0 text-[#005A9C] group-hover:scale-110 transition-transform" />
-                <span>Profile</span>
-              </button>
-
+            {/* LOGOUT BUTTON */}
+            <div className="pt-2 space-y-1 border-t border-[#F0F4F8] mt-2">
               <button
                 type="button"
                 onClick={() => {

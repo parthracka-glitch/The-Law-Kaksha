@@ -23,6 +23,10 @@ import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
 import { StudentMobileBottomNav } from "@/components/student/StudentMobileBottomNav";
 import { StudentSchedulePanel } from "@/components/student/StudentSchedulePanel";
 import { CseetComingSoonShell } from "@/components/student/CseetComingSoonShell";
+import { StudentCoursesHierarchyTab } from "@/components/student/StudentCoursesHierarchyTab";
+import { StudentBookmarksTab, StudentBookmarkItem } from "@/components/student/StudentBookmarksTab";
+import { StudentProgressTab } from "@/components/student/StudentProgressTab";
+import { StudentHelpSupportTab } from "@/components/student/StudentHelpSupportTab";
 import { getApiBaseUrl } from "@/lib/api";
 
 interface ChapterUnit {
@@ -471,15 +475,26 @@ const DAILY_QOTD_DATA = {
 
 const SHOW_MCQ_TAB = false;
 
-type TabType = "home" | "chapters" | "mastery" | "cases" | "mcqtest" | "ldr";
+type TabType =
+  | "home"
+  | "courses"
+  | "bookmarks"
+  | "progress"
+  | "profile"
+  | "support"
+  | "chapters"
+  | "mastery"
+  | "cases"
+  | "mcqtest"
+  | "ldr";
 
 const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
-  { id: "home", label: "Student Dashboard", icon: LayoutDashboard },
-  { id: "chapters", label: "Chapter Notes", icon: BookOpen },
-  { id: "cases", label: "Case Studies", icon: Flame },
-  ...(SHOW_MCQ_TAB ? [{ id: "mcqtest" as TabType, label: "Practice Tests", icon: Sparkles }] : []),
-  { id: "ldr", label: "Revision Flowcharts", icon: Workflow, badge: "LDR" },
-  { id: "mastery", label: "My Progress", icon: CheckSquare, badge: "Progress" },
+  { id: "home", label: "Dashboard", icon: LayoutDashboard },
+  { id: "courses", label: "My Courses", icon: BookOpen },
+  { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
+  { id: "progress", label: "My Progress", icon: CheckSquare },
+  { id: "profile", label: "Profile", icon: User },
+  { id: "support", label: "Help & Support", icon: HelpCircle },
 ];
 
 export default function StudentDashboardPage() {
@@ -745,7 +760,9 @@ export default function StudentDashboardPage() {
     setTimeout(() => setXpToast(null), 4000);
   };
 
-  // Toggle Unit Completion
+  const [bookmarksList, setBookmarksList] = useState<StudentBookmarkItem[]>([]);
+
+  // Toggle Unit Completion with API sync
   const toggleUnitCompleted = (unitId: string, unitTitle: string) => {
     const isDone = completedUnits.includes(unitId);
     let updated: string[];
@@ -758,17 +775,63 @@ export default function StudentDashboardPage() {
     setCompletedUnits(updated);
     try {
       localStorage.setItem("lawkaksha_completed_units", JSON.stringify(updated));
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      fetch(`${API_URL}/api/student/toggle-unit-complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ unitId, completed: !isDone }),
+      }).catch(() => {});
     } catch (e) {}
   };
 
-  // Toggle Bookmark
+  // Toggle Bookmark item with API sync
+  const handleToggleBookmark = (item: any) => {
+    const itemId = item.id;
+    const isBookmarked = bookmarksList.some((b) => b.id === itemId);
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    if (isBookmarked) {
+      const updatedList = bookmarksList.filter((b) => b.id !== itemId);
+      setBookmarksList(updatedList);
+      setBookmarkedUnits(updatedList.map((b) => b.id));
+      try {
+        localStorage.setItem("lawkaksha_bookmarks", JSON.stringify(updatedList.map((b) => b.id)));
+        fetch(`${API_URL}/api/student/bookmarks/${itemId}`, {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }).catch(() => {});
+      } catch (e) {}
+    } else {
+      const newItem: StudentBookmarkItem = {
+        id: itemId,
+        title: item.title || "Study Note",
+        type: item.contentType || item.type || "notes",
+        url: item.fileUrl || item.url || `/api/content/${itemId}/file`,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedList = [newItem, ...bookmarksList];
+      setBookmarksList(updatedList);
+      setBookmarkedUnits(updatedList.map((b) => b.id));
+      try {
+        localStorage.setItem("lawkaksha_bookmarks", JSON.stringify(updatedList.map((b) => b.id)));
+        fetch(`${API_URL}/api/student/bookmarks`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(newItem),
+        }).catch(() => {});
+      } catch (e) {}
+    }
+  };
+
+  // Legacy Toggle Bookmark compatibility
   const toggleBookmark = (unitId: string) => {
-    const isBookmarked = bookmarkedUnits.includes(unitId);
-    const updated = isBookmarked ? bookmarkedUnits.filter((id) => id !== unitId) : [...bookmarkedUnits, unitId];
-    setBookmarkedUnits(updated);
-    try {
-      localStorage.setItem("lawkaksha_bookmarks", JSON.stringify(updated));
-    } catch (e) {}
+    handleToggleBookmark({ id: unitId, title: `Unit: ${unitId}` });
   };
 
   // Open PDF & track Last Read (with purchase-based access control and custom preview page limits)
@@ -1401,10 +1464,58 @@ export default function StudentDashboardPage() {
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB 2: CHAPTER NOTES & STUDY BOOKS (SIMPLIFIED & MINIMAL)                 */}
-          {/* ========================================================================= */}
-          {activeTab === "chapters" && (
+          {(activeTab === "courses" || activeTab === "chapters") && (
+            <StudentCoursesHierarchyTab
+              onOpenReader={(url, title, isPurchased, previewPagesLimit) => {
+                handleOpenPdf(url, title, "Curriculum Codex", isPurchased, Boolean(previewPagesLimit), previewPagesLimit);
+              }}
+              completedUnits={completedUnits}
+              onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
+              bookmarks={bookmarksList}
+              onToggleBookmark={(item) => handleToggleBookmark(item)}
+              onExploreMore={() => setActiveTab("courses")}
+            />
+          )}
+
+          {activeTab === "bookmarks" && (
+            <StudentBookmarksTab
+              bookmarks={bookmarksList}
+              onOpenReader={(url, title) => handleOpenPdf(url, title, "Bookmarked Resource", true)}
+              onRemoveBookmark={(id) => handleToggleBookmark({ id })}
+              onExploreCourses={() => setActiveTab("courses")}
+            />
+          )}
+
+          {(activeTab === "progress" || activeTab === "mastery") && (
+            <StudentProgressTab
+              totalUnitsCompleted={completedUnits.length}
+              streakDays={streak}
+              lawXp={lawXp}
+              completedUnits={completedUnits}
+              onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
+              onOpenStreakCalendar={() => setStreakModalOpen(true)}
+            />
+          )}
+
+          {activeTab === "support" && (
+            <StudentHelpSupportTab />
+          )}
+
+          {activeTab === "profile" && (
+            <div className="bg-white rounded-2xl border border-[#E7ECF7] p-6 shadow-2xs space-y-4">
+              <h2 className="text-xl font-bold text-[#0F2557]">Candidate Profile</h2>
+              <p className="text-sm text-[#64748B]">Manage your academic credentials, enrolled streams, and session settings.</p>
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-[#0F2557] text-white text-xs font-bold hover:bg-[#1E3A8A] transition-colors cursor-pointer"
+              >
+                Open Full Profile Settings
+              </button>
+            </div>
+          )}
+
+          {/* Legacy Chapters View */}
+          {false && activeTab === "chapters" && (
             <div className="space-y-5 text-[#221D1D] select-none font-sans">
               {/* 1. TOP HEADER & SEARCH BAR */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
@@ -1842,7 +1953,7 @@ export default function StudentDashboardPage() {
           {/* ========================================================================= */}
           {/* TAB 3: SYLLABUS MASTERY RADAR (CHECKLIST & PROGRESS %)                   */}
           {/* ========================================================================= */}
-          {activeTab === "mastery" && (
+          {false && activeTab === "mastery" && (
             <div className="space-y-6">
               <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="space-y-1.5 text-center sm:text-left">
@@ -2338,17 +2449,16 @@ export default function StudentDashboardPage() {
         activeTab={
           activeTab === "home"
             ? "home"
-            : activeTab === "chapters"
+            : activeTab === "courses" || activeTab === "chapters"
             ? "courses"
+            : activeTab === "progress" || activeTab === "mastery"
+            ? "progress"
             : "home"
         }
         onChangeTab={(tab) => {
           if (tab === "home") setActiveTab("home");
-          else if (tab === "courses") setActiveTab("chapters");
-          else if (tab === "calendar") {
-            setActiveTab("mastery");
-            setStreakModalOpen(true);
-          }
+          else if (tab === "courses") setActiveTab("courses");
+          else if (tab === "progress") setActiveTab("progress");
           else if (tab === "profile") setProfileModalOpen(true);
         }}
         onOpenProfile={() => setProfileModalOpen(true)}

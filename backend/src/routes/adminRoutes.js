@@ -36,6 +36,7 @@ const Course = require("../models/Course");
 const Act = require("../models/Act");
 const Unit = require("../models/Unit");
 const ContentItem = require("../models/ContentItem");
+const SupportTicket = require("../models/SupportTicket");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
@@ -2392,6 +2393,63 @@ router.post("/admin/settings", async (req, res) => {
     res.status(200).json({ success: true, setting: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/admin/support-tickets
+router.get("/admin/support-tickets", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const tickets = await SupportTicket.find().sort({ createdAt: -1 }).lean();
+      return res.status(200).json({ success: true, tickets });
+    }
+    const tickets = Database.table("support_tickets").find();
+    tickets.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    res.status(200).json({ success: true, tickets });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching tickets: " + err.message });
+  }
+});
+
+// PUT /api/admin/support-tickets/:id/reply
+router.put("/admin/support-tickets/:id/reply", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reply, status } = req.body;
+    if (!reply) return res.status(400).json({ success: false, message: "Reply message is required." });
+
+    const newStatus = status || "resolved";
+    const now = new Date();
+    const adminId = req.user?.id || req.user?.student_id || "admin";
+
+    if (isConnected()) {
+      const ticket = await SupportTicket.findOneAndUpdate(
+        { id },
+        {
+          admin_reply: String(reply).trim(),
+          admin_replied_at: now,
+          admin_id: adminId,
+          status: newStatus,
+        },
+        { new: true }
+      ).lean();
+      if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found." });
+      return res.status(200).json({ success: true, ticket });
+    }
+
+    const ticketsTable = Database.table("support_tickets");
+    const existing = ticketsTable.findOne((t) => t.id === id);
+    if (!existing) return res.status(404).json({ success: false, message: "Ticket not found." });
+
+    const updated = ticketsTable.update(existing.id, {
+      admin_reply: String(reply).trim(),
+      admin_replied_at: now,
+      admin_id: adminId,
+      status: newStatus,
+    });
+    res.status(200).json({ success: true, ticket: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error replying to ticket: " + err.message });
   }
 });
 

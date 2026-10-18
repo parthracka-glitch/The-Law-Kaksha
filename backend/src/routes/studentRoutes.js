@@ -13,6 +13,12 @@ const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
 const McqTest = require("../models/McqTest");
 const SiteSetting = require("../models/SiteSetting");
+const Course = require("../models/Course");
+const Act = require("../models/Act");
+const Unit = require("../models/Unit");
+const ContentItem = require("../models/ContentItem");
+const Entitlement = require("../models/Entitlement");
+const SupportTicket = require("../models/SupportTicket");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -776,6 +782,547 @@ router.get("/check-enrollment", async (req, res) => {
   } catch (err) {
     console.error("[check-enrollment] Error:", err);
     return res.status(500).json({ success: false, hasPurchasedCourse: false, message: "Error verifying enrollment." });
+  }
+});
+
+/**
+ * GET /api/student/my-courses
+ * Returns the student's enrolled courses with hierarchical Course -> Act -> Unit -> ContentItem.
+ * Coming-soon acts are flagged with isComingSoon: true so they can be badged and locked in the UI.
+ */
+router.get("/my-courses", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id || req.user.student_id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const isAdmin = req.user.role === "admin";
+
+    let activeCourseIds = new Set();
+    if (isAdmin) {
+      activeCourseIds.add("*"); // Admin has access to all courses
+    }
+
+    if (isConnected()) {
+      // Find active entitlements
+      const entitlements = await Entitlement.find({
+        $or: [
+          ...(userId ? [{ user_id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }] : []),
+        ],
+        status: "active",
+        expires_at: { $gt: new Date() },
+      }).lean();
+
+      entitlements.forEach((e) => activeCourseIds.add(e.course_id));
+
+      // Also check subscriptions
+      const subs = await Subscription.find({
+        $or: [
+          ...(email ? [{ email }] : []),
+          ...(studentId ? [{ studentRoll: studentId }] : []),
+        ],
+        accessStatus: "Active",
+      }).lean();
+
+      subs.forEach((s) => {
+        if (s.productId) activeCourseIds.add(s.productId);
+        if (s.itemId) activeCourseIds.add(s.itemId);
+        const title = (s.item || "").toLowerCase();
+        if (title.includes("ca foundation") || title.includes("vol 1")) {
+          activeCourseIds.add("ca-foundation");
+        }
+        if (title.includes("cseet") || title.includes("vol 2")) {
+          activeCourseIds.add("cseet-business-communication");
+        }
+      });
+
+      // Fetch all courses
+      const allCourses = await Course.find({ isLive: true }).sort({ order: 1 }).lean();
+      const allActs = await Act.find().sort({ order: 1 }).lean();
+      const allUnits = await Unit.find().sort({ order: 1 }).lean();
+      const allItems = await ContentItem.find({ status: "Published" }).sort({ order: 1 }).lean();
+
+      const enrolledCourses = allCourses
+        .map((course) => {
+          const isEnrolled = activeCourseIds.has("*") || activeCourseIds.has(course.id) || activeCourseIds.has(String(course._id));
+          const acts = allActs
+            .filter((a) => a.courseId === course.id)
+            .map((act) => {
+              const units = allUnits
+                .filter((u) => u.actId === act.id)
+                .map((unit) => {
+                  const contentItems = allItems
+                    .filter((item) => item.unitId === unit.id)
+                    .map((item) => ({
+                      id: item.id,
+                      title: item.title,
+                      contentType: item.contentType,
+                      description: item.description,
+                      duration: item.duration,
+                      pages: item.pages,
+                      isFreeSample: Boolean(item.isFreeSample),
+                      samplePagesRange: item.samplePagesRange || "",
+                      order: item.order,
+                    }));
+                  return {
+                    id: unit.id,
+                    title: unit.title,
+                    order: unit.order,
+                    contentItems,
+                  };
+                });
+              return {
+                id: act.id,
+                title: act.title,
+                order: act.order,
+                isComingSoon: Boolean(act.isComingSoon || act.availability === "coming_soon"),
+                units,
+              };
+            });
+          return {
+            id: course.id,
+            title: course.title,
+            description: course.description,
+            price: course.price,
+            accessDays: course.accessDays,
+            isEnrolled,
+            acts,
+          };
+        });
+
+      return res.status(200).json({ success: true, courses: enrolledCourses });
+    }
+
+    // Local JSON DB fallback
+    const entitlementsTable = Database.table("entitlements");
+    const entitlements = entitlementsTable.find(
+      (e) => (userId && e.user_id === userId) || (studentId && e.student_id === studentId)
+    );
+    entitlements.forEach((e) => {
+      if (e.status === "active" && (!e.expires_at || new Date(e.expires_at) > new Date())) {
+        activeCourseIds.add(e.course_id);
+      }
+    });
+
+    const subs = Database.table("subscriptions").find(
+      (s) => ((email && s.email === email) || (studentId && s.studentRoll === studentId)) && s.accessStatus === "Active"
+    );
+    subs.forEach((s) => {
+      if (s.productId) activeCourseIds.add(s.productId);
+      if (s.itemId) activeCourseIds.add(s.itemId);
+      const title = (s.item || "").toLowerCase();
+      if (title.includes("ca foundation") || title.includes("vol 1")) {
+        activeCourseIds.add("ca-foundation");
+      }
+      if (title.includes("cseet") || title.includes("vol 2")) {
+        activeCourseIds.add("cseet-business-communication");
+      }
+    });
+
+    const coursesTable = Database.table("courses");
+    const actsTable = Database.table("acts");
+    const unitsTable = Database.table("units");
+    const itemsTable = Database.table("content_items");
+
+    const allCourses = coursesTable.find((c) => c.isLive !== false);
+    const allActs = actsTable.find();
+    const allUnits = unitsTable.find();
+    const allItems = itemsTable.find((i) => i.status !== "Draft");
+
+    const enrolledCourses = allCourses
+      .map((course) => {
+        const isEnrolled = activeCourseIds.has("*") || activeCourseIds.has(course.id);
+        const acts = allActs
+          .filter((a) => a.courseId === course.id)
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map((act) => {
+            const units = allUnits
+              .filter((u) => u.actId === act.id)
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((unit) => {
+                const contentItems = allItems
+                  .filter((item) => item.unitId === unit.id)
+                  .sort((a, b) => (a.order || 0) - (b.order || 0))
+                  .map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    contentType: item.contentType,
+                    description: item.description,
+                    duration: item.duration,
+                    pages: item.pages,
+                    isFreeSample: Boolean(item.isFreeSample),
+                    samplePagesRange: item.samplePagesRange || "",
+                    order: item.order,
+                  }));
+                return {
+                  id: unit.id,
+                  title: unit.title,
+                  order: unit.order,
+                  contentItems,
+                };
+              });
+            return {
+              id: act.id,
+              title: act.title,
+              order: act.order,
+              isComingSoon: Boolean(act.isComingSoon || act.availability === "coming_soon"),
+              units,
+            };
+          });
+        return {
+          id: course.id,
+          title: course.title,
+          description: course.description,
+          price: course.price,
+          accessDays: course.accessDays,
+          isEnrolled,
+          acts,
+        };
+      });
+
+    res.status(200).json({ success: true, courses: enrolledCourses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching my courses: " + err.message });
+  }
+});
+
+/**
+ * GET /api/student/progress
+ * Returns unit completion stats, streak count, streak calendar info, and XP.
+ */
+router.get("/progress", requireAuth, async (req, res) => {
+  try {
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const userId = req.user.id || req.user._id;
+
+    let student = null;
+    if (isConnected()) {
+      student = await User.findOne({
+        $or: [
+          ...(userId ? [{ _id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      }).select("-password_hash").lean();
+    } else {
+      const usersTable = Database.table("users");
+      student = usersTable.findOne(
+        (u) =>
+          (userId && (u.id === userId || u._id === userId)) ||
+          (studentId && (u.student_id === studentId || u.id === studentId)) ||
+          (email && u.email === email)
+      );
+    }
+
+    const completedUnits = Array.isArray(student?.completedUnits) ? student.completedUnits : [];
+    const totalUnitsCompleted = completedUnits.length;
+    const streakDays = student?.streakDays || 1;
+    const lawXp = student?.lawXp || 150;
+
+    res.status(200).json({
+      success: true,
+      totalUnitsCompleted,
+      completedUnits,
+      streak: streakDays,
+      streakDays,
+      lawXp,
+      streakHistory: [
+        { date: new Date().toISOString().split("T")[0], active: true, xpEarned: 25 },
+      ],
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching progress: " + err.message });
+  }
+});
+
+/**
+ * POST /api/student/toggle-unit-complete
+ * Marks a unit as completed / incomplete.
+ */
+router.post("/toggle-unit-complete", requireAuth, async (req, res) => {
+  try {
+    const { unitId, completed } = req.body;
+    if (!unitId) return res.status(400).json({ success: false, message: "unitId is required." });
+
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const userId = req.user.id || req.user._id;
+
+    if (isConnected()) {
+      const student = await User.findOne({
+        $or: [
+          ...(userId ? [{ _id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      });
+      if (!student) return res.status(404).json({ success: false, message: "Student record not found." });
+
+      let currentCompleted = Array.isArray(student.completedUnits) ? [...student.completedUnits] : [];
+      const isAlready = currentCompleted.includes(unitId);
+      const shouldComplete = completed !== undefined ? Boolean(completed) : !isAlready;
+
+      if (shouldComplete && !isAlready) {
+        currentCompleted.push(unitId);
+        student.lawXp = (student.lawXp || 100) + 20;
+      } else if (!shouldComplete && isAlready) {
+        currentCompleted = currentCompleted.filter((id) => id !== unitId);
+      }
+      student.completedUnits = currentCompleted;
+      await student.save();
+
+      return res.status(200).json({
+        success: true,
+        completedUnits: currentCompleted,
+        totalUnitsCompleted: currentCompleted.length,
+        lawXp: student.lawXp,
+      });
+    }
+
+    const usersTable = Database.table("users");
+    const student = usersTable.findOne(
+      (u) =>
+        (userId && (u.id === userId || u._id === userId)) ||
+        (studentId && (u.student_id === studentId || u.id === studentId)) ||
+        (email && u.email === email)
+    );
+    if (!student) return res.status(404).json({ success: false, message: "Student record not found." });
+
+    let currentCompleted = Array.isArray(student.completedUnits) ? [...student.completedUnits] : [];
+    const isAlready = currentCompleted.includes(unitId);
+    const shouldComplete = completed !== undefined ? Boolean(completed) : !isAlready;
+
+    if (shouldComplete && !isAlready) {
+      currentCompleted.push(unitId);
+      student.lawXp = (student.lawXp || 100) + 20;
+    } else if (!shouldComplete && isAlready) {
+      currentCompleted = currentCompleted.filter((id) => id !== unitId);
+    }
+    const updated = usersTable.update(student.id, {
+      completedUnits: currentCompleted,
+      lawXp: student.lawXp,
+    });
+
+    res.status(200).json({
+      success: true,
+      completedUnits: currentCompleted,
+      totalUnitsCompleted: currentCompleted.length,
+      lawXp: updated.lawXp || student.lawXp,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error toggling unit completion: " + err.message });
+  }
+});
+
+/**
+ * GET /api/student/bookmarks
+ */
+router.get("/bookmarks", requireAuth, async (req, res) => {
+  try {
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const userId = req.user.id || req.user._id;
+
+    let student = null;
+    if (isConnected()) {
+      student = await User.findOne({
+        $or: [
+          ...(userId ? [{ _id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      }).select("bookmarks").lean();
+    } else {
+      const usersTable = Database.table("users");
+      student = usersTable.findOne(
+        (u) =>
+          (userId && (u.id === userId || u._id === userId)) ||
+          (studentId && (u.student_id === studentId || u.id === studentId)) ||
+          (email && u.email === email)
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      bookmarks: Array.isArray(student?.bookmarks) ? student.bookmarks : [],
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching bookmarks: " + err.message });
+  }
+});
+
+/**
+ * POST /api/student/bookmarks
+ */
+router.post("/bookmarks", requireAuth, async (req, res) => {
+  try {
+    const { id, title, courseId, unitId, type, url } = req.body;
+    if (!id || !title) return res.status(400).json({ success: false, message: "id and title are required." });
+
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const userId = req.user.id || req.user._id;
+
+    const newBookmark = {
+      id,
+      title,
+      courseId: courseId || "",
+      unitId: unitId || "",
+      type: type || "notes",
+      url: url || "",
+      createdAt: new Date().toISOString(),
+    };
+
+    if (isConnected()) {
+      const student = await User.findOne({
+        $or: [
+          ...(userId ? [{ _id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      });
+      if (!student) return res.status(404).json({ success: false, message: "Student not found." });
+
+      let bookmarks = Array.isArray(student.bookmarks) ? [...student.bookmarks] : [];
+      if (!bookmarks.some((b) => b.id === id)) {
+        bookmarks.push(newBookmark);
+        student.bookmarks = bookmarks;
+        await student.save();
+      }
+      return res.status(200).json({ success: true, bookmarks: student.bookmarks });
+    }
+
+    const usersTable = Database.table("users");
+    const student = usersTable.findOne(
+      (u) =>
+        (userId && (u.id === userId || u._id === userId)) ||
+        (studentId && (u.student_id === studentId || u.id === studentId)) ||
+        (email && u.email === email)
+    );
+    if (!student) return res.status(404).json({ success: false, message: "Student not found." });
+
+    let bookmarks = Array.isArray(student.bookmarks) ? [...student.bookmarks] : [];
+    if (!bookmarks.some((b) => b.id === id)) {
+      bookmarks.push(newBookmark);
+      usersTable.update(student.id, { bookmarks });
+    }
+    res.status(200).json({ success: true, bookmarks });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error adding bookmark: " + err.message });
+  }
+});
+
+/**
+ * DELETE /api/student/bookmarks/:id
+ */
+router.delete("/bookmarks/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
+    const userId = req.user.id || req.user._id;
+
+    if (isConnected()) {
+      const student = await User.findOne({
+        $or: [
+          ...(userId ? [{ _id: userId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      });
+      if (!student) return res.status(404).json({ success: false, message: "Student not found." });
+
+      student.bookmarks = (student.bookmarks || []).filter((b) => b.id !== id);
+      await student.save();
+      return res.status(200).json({ success: true, bookmarks: student.bookmarks });
+    }
+
+    const usersTable = Database.table("users");
+    const student = usersTable.findOne(
+      (u) =>
+        (userId && (u.id === userId || u._id === userId)) ||
+        (studentId && (u.student_id === studentId || u.id === studentId)) ||
+        (email && u.email === email)
+    );
+    if (!student) return res.status(404).json({ success: false, message: "Student not found." });
+
+    const bookmarks = (student.bookmarks || []).filter((b) => b.id !== id);
+    usersTable.update(student.id, { bookmarks });
+    res.status(200).json({ success: true, bookmarks });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error removing bookmark: " + err.message });
+  }
+});
+
+/**
+ * GET /api/student/support-tickets
+ */
+router.get("/support-tickets", requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user.id || req.user.student_id || req.user._id;
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+
+    if (isConnected()) {
+      const tickets = await SupportTicket.find({
+        $or: [
+          ...(studentId ? [{ student_id: studentId }] : []),
+          ...(email ? [{ student_email: email }] : []),
+        ],
+      }).sort({ createdAt: -1 }).lean();
+      return res.status(200).json({ success: true, tickets });
+    }
+
+    const ticketsTable = Database.table("support_tickets");
+    const tickets = ticketsTable.find(
+      (t) => (studentId && t.student_id === studentId) || (email && t.student_email === email)
+    );
+    tickets.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    res.status(200).json({ success: true, tickets });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching tickets: " + err.message });
+  }
+});
+
+/**
+ * POST /api/student/support-tickets
+ */
+router.post("/support-tickets", requireAuth, async (req, res) => {
+  try {
+    const { subject, message, category, priority } = req.body;
+    if (!subject || !message) {
+      return res.status(400).json({ success: false, message: "Subject and message are required." });
+    }
+
+    const studentId = String(req.user.student_id || req.user.id || req.user._id);
+    const studentEmail = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
+    const studentName = req.user.name || "Student";
+    const ticketId = `tkt-${Date.now()}`;
+
+    const newTicket = {
+      id: ticketId,
+      student_id: studentId,
+      student_name: studentName,
+      student_email: studentEmail,
+      subject: String(subject).trim(),
+      category: category ? String(category).trim() : "General Support",
+      message: String(message).trim(),
+      priority: priority || "medium",
+      status: "open",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (isConnected()) {
+      const created = await SupportTicket.create(newTicket);
+      return res.status(201).json({ success: true, ticket: created });
+    }
+
+    const ticketsTable = Database.table("support_tickets");
+    const created = ticketsTable.insert(newTicket);
+    res.status(201).json({ success: true, ticket: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating ticket: " + err.message });
   }
 });
 
