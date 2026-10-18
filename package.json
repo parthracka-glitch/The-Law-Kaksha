@@ -1,0 +1,33 @@
+{
+  "name": "the-law-kaksha-monorepo",
+  "version": "1.0.0",
+  "description": "The Law Kaksha - Monorepo with Next.js Frontend (Vercel) and Express Backend (Render)",
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "build": "npm install --prefix backend",
+    "postinstall": "npm install --prefix backend",
+    "dev": "npm run dev:frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "start:frontend": "npm run start --prefix frontend",
+    "start:backend": "npm run start --prefix backend",
+    "test": "npm test --prefix backend",
+    "test:api": "npm test --prefix backend",
+    "typecheck": "npm run typecheck --prefix frontend",
+    "check": "npm run typecheck --prefix frontend && npm test --prefix backend",
+    "db:backup": "npm run db:backup --prefix backend",
+    "db:restore:test": "npm run db:restore:test --prefix backend",
+    "loadtest": "npm run loadtest --prefix backend",
+    "verify": "node scripts/verify.js"
+  },
+  "keywords": [
+    "law-kaksha",
+    "nextjs",
+    "express",
+    "vercel",
+    "render"
+  ],
+  "author": "The Law Kaksha",
+  "license": "ISC"
+}

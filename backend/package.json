@@ -1,0 +1,38 @@
+{
+  "name": "the-law-kaksha-backend",
+  "version": "1.0.0",
+  "description": "The Law Kaksha - Express API Backend for Render",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node tests/runner.js",
+    "test:raw": "node --test tests/**/*.test.js",
+    "db:backup": "node src/scripts/backup_restore.js backup",
+    "db:restore:test": "node src/scripts/backup_restore.js backup-and-test",
+    "admin:create": "node src/scripts/create_admin.js",
+    "loadtest": "node src/scripts/load_benchmark.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^11.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.10.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.4.0",
+    "pdf-parse": "^2.4.5",
+    "razorpay": "^2.9.8"
+  },
+  "keywords": [
+    "express",
+    "the-law-kaksha",
+    "render",
+    "api"
+  ],
+  "author": "The Law Kaksha",
+  "license": "ISC"
+}

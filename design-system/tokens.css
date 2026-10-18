@@ -1,0 +1,90 @@
+/* The Law Kaksha — Core Design Tokens */
+:root {
+  /* --- Brand & Palette Colors --- */
+  --color-brand-royal: #005A9C;
+  --color-brand-royal-hover: #004F8A;
+  --color-brand-royal-dark: #004275;
+  --color-brand-navy: #0A192F;
+  --color-brand-navy-light: #162a45;
+  --color-brand-sky: #4A90E2;
+  --color-brand-softleaf: #8ECAE6;
+  --color-brand-steel: #B0C4DE;
+
+  /* --- Canvas & Backgrounds --- */
+  --color-canvas: #FFFFFF;
+  --color-canvas-soft: #F0F7FF;
+  --color-surface-container: #E5EEFF;
+  --color-surface-dim: #CBDBF5;
+  --color-pill-fill: #EFF6FF;
+
+  /* --- Borders & Dividers --- */
+  --color-border-subtle: #DBEAFE;
+  --color-border-input: #E2E8F0;
+  --color-border-focus: #4A90E2;
+
+  /* --- Text & Content --- */
+  --color-text-primary: #0A192F;
+  --color-text-secondary: #64748B;
+  --color-text-placeholder: #94A3B8;
+  --color-text-inverse: #FFFFFF;
+
+  /* --- Semantic / Accents --- */
+  --color-success: #10B981;
+  --color-success-soft: #ECFDF5;
+  --color-quiz-action: #84CC16;
+  --color-coral: #EF4444;
+  --color-coral-soft: #FEF2F2;
+
+  /* --- Typography Scale (Desktop) --- */
+  --text-hero: 44px;
+  --text-hero-lh: 1.15;
+  --text-h1: 36px;
+  --text-h1-lh: 1.2;
+  --text-h2: 28px;
+  --text-h2-lh: 1.25;
+  --text-h3: 20px;
+  --text-h3-lh: 1.3;
+  --text-body-lg: 16px;
+  --text-body-lg-lh: 1.6;
+  --text-body-md: 14px;
+  --text-body-md-lh: 1.55;
+  --text-body-sm: 13px;
+  --text-body-sm-lh: 1.45;
+  --text-micro: 11px;
+  --text-micro-lh: 1.35;
+
+  /* --- Radii --- */
+  --radius-sm: 6px;
+  --radius-input: 8px;
+  --radius-btn: 10px;
+  --radius-card: 14px;
+  --radius-modal: 18px;
+  --radius-pill: 9999px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 3px rgba(10, 25, 47, 0.04);
+  --shadow-card: 0 4px 16px -2px rgba(10, 25, 47, 0.06);
+  --shadow-card-hover: 0 10px 24px -4px rgba(10, 25, 47, 0.10);
+  --shadow-modal: 0 20px 40px -10px rgba(10, 25, 47, 0.15);
+  --shadow-glow-royal: 0 0 18px rgba(0, 90, 156, 0.20);
+  --shadow-focus-ring: 0 0 0 3px rgba(74, 144, 226, 0.18);
+
+  /* --- Spacing System (8px Baseline) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}

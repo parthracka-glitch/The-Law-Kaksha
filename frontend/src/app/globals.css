@@ -1,0 +1,641 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --font-sans: var(--font-dm-sans), "Noto Sans Devanagari", "Mangal", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-serif), "Noto Serif Devanagari", Georgia, Cambria, "Times New Roman", Times, serif;
+
+  /* ========================================
+     THE LAW KAKSHA OFFICIAL BRAND PALETTE
+     Royal Blue (#005A9C) + Deep Navy (#0A192F) on Crisp Canvas (#FFFFFF)
+     ======================================== */
+  --color-brand-royal: #005A9C;
+  --color-brand-royal-hover: #004F8A;
+  --color-brand-royal-dark: #004275;
+  --color-brand-navy: #0A192F;
+  --color-brand-navy-light: #162A45;
+  --color-brand-sky: #4A90E2;
+  --color-brand-softleaf: #8ECAE6;
+  --color-brand-steel: #B0C4DE;
+
+  /* Primary Identity */
+  --color-primary: #005A9C;
+  --color-primary-hover: #004F8A;
+  --color-primary-light: #EFF6FF;
+  --color-primary-dark: #004275;
+
+  /* Surfaces & Canvas */
+  --color-background: #FFFFFF;
+  --color-canvas: #FFFFFF;
+  --color-canvas-soft: #F0F7FF;
+  --color-surface: #FFFFFF;
+  --color-surface-white: #FFFFFF;
+  --color-surface-secondary: #F0F7FF;
+  --color-surface-container: #E5EEFF;
+  --color-pill-fill: #EFF6FF;
+
+  /* Typography Colors */
+  --color-text-primary: #0A192F;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-text-placeholder: #94A3B8;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-main: #0A192F;
+  --color-text-light: #FFFFFF;
+
+  /* Hairline Borders */
+  --color-border: #DBEAFE;
+  --color-border-dark: #B0C4DE;
+  --color-border-subtle: #DBEAFE;
+  --color-border-input: #E2E8F0;
+  --color-border-focus: #4A90E2;
+
+  /* Accents */
+  --color-accent: #005A9C;
+  --color-accent-hover: #004F8A;
+  --color-success: #10B981;
+  --color-success-soft: #ECFDF5;
+  --color-coral: #EF4444;
+  --color-coral-soft: #FEF2F2;
+  --color-quiz-action: #84CC16;
+}
+
+:root {
+  /* ========================================
+     CORE CSS VARIABLES
+     ======================================== */
+  --color-brand-royal: #005A9C;
+  --color-brand-royal-hover: #004F8A;
+  --color-brand-royal-dark: #004275;
+  --color-brand-navy: #0A192F;
+  --color-brand-navy-light: #162A45;
+  --color-brand-sky: #4A90E2;
+  --color-brand-softleaf: #8ECAE6;
+  --color-brand-steel: #B0C4DE;
+
+  --primary: #005A9C;
+  --primary-hover: #004F8A;
+  --primary-light: #EFF6FF;
+  --primary-dark: #004275;
+
+  --color-primary: #005A9C;
+  --color-primary-hover: #004F8A;
+  --color-primary-light: #EFF6FF;
+  --color-primary-dark: #004275;
+
+  --background: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-secondary: #F0F7FF;
+
+  --color-background: #FFFFFF;
+  --color-canvas: #FFFFFF;
+  --color-canvas-soft: #F0F7FF;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F0F7FF;
+  --color-pill-fill: #EFF6FF;
+
+  --text-primary: #0A192F;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --text-on-primary: #FFFFFF;
+
+  --color-text-primary: #0A192F;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-text-light: #FFFFFF;
+
+  --border: #DBEAFE;
+  --border-dark: #B0C4DE;
+  --color-border: #DBEAFE;
+  --color-border-dark: #B0C4DE;
+  --color-border-subtle: #DBEAFE;
+
+  --focus-ring: #4A90E2;
+  --shadow-soft: 0 4px 16px -2px rgba(10, 25, 47, 0.05);
+  --shadow-card: 0 4px 20px -2px rgba(10, 25, 47, 0.06);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  background-color: #FFFFFF;
+  color: #0A192F;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #FFFFFF;
+  color: #0A192F;
+}
+
+/* Custom Selection in Official Blue Tint */
+::selection {
+  background-color: #DBEAFE;
+  color: #0A192F;
+}
+
+/* Minimal refined scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #DBEAFE;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4A90E2;
+}
+
+/* Marquee infinite scroll */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 38s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Transitions */
+.brand-transition {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========================================
+   BUTTON SYSTEM
+   ======================================== */
+
+/* Primary Button (Royal Blue CTA) */
+.btn-primary, .btn-cta, .apple-btn-primary {
+  background-color: #005A9C;
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: none;
+  padding: 0.625rem 1.375rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(0, 90, 156, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-primary:hover, .btn-cta:hover, .apple-btn-primary:hover {
+  background-color: #004F8A;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 79, 138, 0.35);
+}
+
+.btn-primary:active, .btn-cta:active, .apple-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Secondary Button */
+.btn-secondary, .apple-btn-secondary {
+  background-color: #FFFFFF;
+  border: 1.5px solid #005A9C;
+  color: #005A9C;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.625rem 1.375rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-secondary:hover, .apple-btn-secondary:hover {
+  background-color: #F0F7FF;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active, .apple-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Sky Blue / Action Button */
+.btn-blue, .btn-green {
+  background-color: #005A9C;
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.625rem 1.375rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-blue:hover, .btn-green:hover {
+  background-color: #004F8A;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* Badges */
+.badge-lavender, .badge-blue, .badge-green {
+  background-color: #EFF6FF;
+  color: #005A9C;
+  border: 1px solid #DBEAFE;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* ========================================
+   CARD SYSTEM
+   ======================================== */
+
+/* Default Card */
+.card-default, .apple-card, .legal-card-light {
+  background-color: #FFFFFF;
+  border: 1px solid #DBEAFE;
+  color: #0A192F;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px -2px rgba(10, 25, 47, 0.05);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-default:hover, .apple-card:hover, .legal-card-light:hover {
+  border-color: #4A90E2;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -4px rgba(10, 25, 47, 0.09);
+}
+
+/* Featured Card */
+.card-featured {
+  background-color: #F0F7FF;
+  color: #0A192F;
+  border-radius: 1.25rem;
+  border: 1.5px solid #005A9C;
+  box-shadow: 0 4px 20px -2px rgba(0, 90, 156, 0.12);
+}
+
+/* Info Card */
+.card-info, .card-feature-green {
+  background-color: #EFF6FF;
+  color: #0A192F;
+  border-radius: 1.25rem;
+  border: 1px solid #DBEAFE;
+}
+
+/* Form Inputs */
+input[type="text"], input[type="email"], input[type="tel"],
+input[type="password"], input[type="number"], input[type="search"],
+input[type="url"], textarea, select {
+  background-color: #FFFFFF;
+  color: #0A192F;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+/* Smooth Focus Ring */
+*:focus-visible {
+  outline: 2px solid #4A90E2;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RESPONSIVE FOUNDATION — Mobile-First
+   ============================================================ */
+
+/* --- Safe Area Utilities --- */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pl-safe { padding-left: env(safe-area-inset-left); }
+.pr-safe { padding-right: env(safe-area-inset-right); }
+.mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+
+/* --- Base typography --- */
+h1, h2, h3, h4, h5, h6 {
+  color: #0A192F;
+  font-family: var(--font-dm-sans), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+p {
+  color: #64748B;
+}
+
+/* --- Responsive table --- */
+@media (max-width: 767px) {
+  .table-responsive-cards thead {
+    display: none;
+  }
+  .table-responsive-cards tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E7E4E7;
+    border-radius: 1rem;
+    margin-bottom: 0.5rem;
+    background: #FFFFFF;
+  }
+  .table-responsive-cards tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    border: none;
+    font-size: 0.8125rem;
+  }
+  .table-responsive-cards tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #77716E;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+  }
+}
+
+/* --- Scrollable tabs --- */
+.scrollable-tabs {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 0.375rem;
+  padding-bottom: 2px;
+}
+.scrollable-tabs::-webkit-scrollbar {
+  display: none;
+}
+.scrollable-tabs > * {
+  flex-shrink: 0;
+}
+
+/* --- Touch-friendly minimum targets --- */
+@media (pointer: coarse) {
+  button:not(.btn-inline),
+  [role="button"]:not(.btn-inline),
+  nav a,
+  header a,
+  .touch-target,
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="password"], input[type="number"], input[type="search"],
+  input[type="url"], textarea, select {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}
+
+/* --- Sticky footer safe-area padding --- */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+.min-h-dvh { min-height: 100dvh; }
+.h-dvh { height: 100dvh; }
+
+/* =========================================================================
+   3D BOOK CODEX ANIMATIONS & HARDWARE ACCELERATED TRANSFORMS
+   ========================================================================= */
+@keyframes flipLeafForward {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+@keyframes flipLeafBackward {
+  0% {
+    transform: rotateY(-180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.book-perspective {
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* =========================================================================
+   LUXURY HERO STAGGERED FADE-IN & SHIMMER TRANSITION EFFECTS
+   ========================================================================= */
+@keyframes heroFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroBadgeGlow {
+  0%, 100% {
+    box-shadow: 0 2px 10px rgba(0, 90, 156, 0.08);
+    border-color: #DBEAFE;
+  }
+  50% {
+    box-shadow: 0 4px 18px rgba(0, 90, 156, 0.20);
+    border-color: #93C5FD;
+  }
+}
+
+@keyframes luxuryTextShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-hero-fade-1 {
+  animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.animate-hero-fade-2 {
+  animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.animate-hero-fade-3 {
+  animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both;
+}
+
+.animate-hero-fade-4 {
+  animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+.animate-hero-fade-5 {
+  animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.64s both;
+}
+
+.animate-luxury-shimmer {
+  background-size: 200% auto;
+  animation: luxuryTextShimmer 5s ease-in-out infinite;
+}
+
+.animate-badge-glow {
+  animation: heroBadgeGlow 3.5s ease-in-out infinite;
+}
+
+/* =========================================================================
+   LOW-END DEVICE & MOBILE PERFORMANCE OPTIMIZATIONS
+   ========================================================================= */
+
+/* 1. Eliminate 300ms mobile touch delay */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* 2. Fast text rendering & layout stabilization */
+@media (max-width: 768px) {
+  html {
+    text-rendering: optimizeSpeed;
+  }
+}
+
+/* 3. Hardware acceleration & rendering containment utilities */
+.gpu-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 250px;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-layout {
+  contain: layout;
+}
+
+/* 4. Mobile GPU offloading: cap extreme blur filters and backdrop filters on budget chipsets */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  /* Prevent GPU fill-rate stall from deep Gaussian blurs */
+  .blur-3xl {
+    filter: blur(8px) !important;
+  }
+  .blur-2xl {
+    filter: blur(6px) !important;
+  }
+  .blur-xl {
+    filter: blur(4px) !important;
+  }
+
+  /* Optimize backdrop-filter for smooth 60fps scrolling */
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+}
+
+/* 5. Battery & CPU saving on low-power / reduced-motion mode */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-marquee,
+  .animate-luxury-shimmer,
+  .animate-badge-glow,
+  .animate-pulse,
+  .tab-panel-smooth {
+    animation: none !important;
+  }
+}
+
+/* =========================================================================
+   6. SMOOTH TAB FLOW & ZERO-LAG WORKSPACE TRANSITIONS
+   ========================================================================= */
+.tab-panel-smooth {
+  animation: tabFadeSlideIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+@keyframes tabFadeSlideIn {
+  0% {
+    opacity: 0.88;
+    transform: translateY(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
