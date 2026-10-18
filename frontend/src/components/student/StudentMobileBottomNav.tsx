@@ -17,12 +17,12 @@ export function StudentMobileBottomNav({
   onOpenProfile,
 }: StudentMobileBottomNavProps) {
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E7ECF7] shadow-[0_-4px_20px_rgba(15,37,87,0.06)] lg:hidden transition-all">
-      <div className="max-w-md mx-auto px-4 py-2 flex items-center justify-around">
+    <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E7ECF7] shadow-[0_-4px_20px_rgba(15,37,87,0.06)] lg:hidden transition-all pb-[env(safe-area-inset-bottom,0.35rem)]">
+      <div className="max-w-md mx-auto px-4 py-1.5 flex items-center justify-around">
         {/* 1. Home */}
         <button
           onClick={() => onChangeTab("home")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[56px] gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "home" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
           }`}
           aria-label="Home"
@@ -39,7 +39,7 @@ export function StudentMobileBottomNav({
         {/* 2. Courses */}
         <button
           onClick={() => onChangeTab("courses")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[56px] gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "courses" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
           }`}
           aria-label="Courses"
@@ -56,7 +56,7 @@ export function StudentMobileBottomNav({
         {/* 3. Progress */}
         <button
           onClick={() => onChangeTab("progress")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[56px] gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "progress" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
           }`}
           aria-label="Progress"
@@ -76,7 +76,7 @@ export function StudentMobileBottomNav({
             onChangeTab("profile");
             onOpenProfile();
           }}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[56px] gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "profile" ? "text-[#2F55E0]" : "text-[#7B87A6] hover:text-[#13264F]"
           }`}
           aria-label="Profile"
@@ -90,9 +90,6 @@ export function StudentMobileBottomNav({
           <span className="text-[10.5px] font-semibold leading-none">Profile</span>
         </button>
       </div>
-
-      {/* iOS style home indicator bar */}
-      <div className="w-24 h-1 mx-auto bg-[#3C4254]/30 rounded-full mb-1" />
     </div>
   );
 }

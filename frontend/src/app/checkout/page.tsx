@@ -180,7 +180,7 @@ export default function CheckoutPage() {
         studentName: student?.name || studentData.name,
         studentRoll: rollNumber,
         email: student?.email || studentData.email,
-        phone: studentData.phone || "+91 98765 43210",
+        phone: studentData.phone || "",
         item: items.map((i) => i.title).join(", "),
         targetExam: studentData.exam,
         amount: `₹${finalAmount}`,

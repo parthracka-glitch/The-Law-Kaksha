@@ -358,7 +358,7 @@ export function CartDrawer() {
                 studentName,
                 studentRoll: rollNumber,
                 email: studentEmail,
-                phone: studentData.phone || "+91 98765 43210",
+                phone: studentData.phone || "",
                 item: items.map((i) => i.title).join(", "),
                 targetExam: studentData.exam,
                 amount: `₹${orderData.amount || cartTotal}`,

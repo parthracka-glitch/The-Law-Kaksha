@@ -637,5 +637,33 @@ textarea,
   }
 }
 
+/* =========================================================================
+   7. MOBILE RESPONSIVENESS & SAFE-AREA INSETS (P7)
+   ========================================================================= */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+}
+
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+.pt-safe {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0.75rem));
+}
+
+/* Touch-optimized target boundaries */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    touch-action: manipulation;
+  }
+}
+
 
 
