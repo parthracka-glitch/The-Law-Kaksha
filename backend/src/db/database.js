@@ -41,8 +41,11 @@ let db = {
   xp_events: [],
   referrals: [],
   site_settings: [],
-  // Legacy collections for backwards-compatibility
+  // Core Course-Act-Unit-ContentItem tables
   acts: [],
+  units: [],
+  content_items: [],
+  // Legacy collections for backwards-compatibility
   content: [],
   weekly_content: [],
   quizzes: [],

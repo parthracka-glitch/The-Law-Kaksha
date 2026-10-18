@@ -43,4 +43,6 @@ const OrderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+OrderSchema.index({ user_id: 1, createdAt: -1 });
+
 module.exports = mongoose.models.Order || mongoose.model("Order", OrderSchema);

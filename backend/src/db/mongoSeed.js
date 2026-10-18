@@ -1,9 +1,14 @@
 /**
  * The Law Kaksha - MongoDB Atlas Seeder & Synchronizer
- * Prepopulates MongoDB Atlas with production curriculum, products, sample cases, and admin credentials
+ * Prepopulates MongoDB Atlas with Course -> Act -> Unit curriculum hierarchy,
+ * settings, coupons, and secure admin provisioning.
  */
 
 const bcrypt = require("bcryptjs");
+const Course = require("../models/Course");
+const Act = require("../models/Act");
+const Unit = require("../models/Unit");
+const ContentItem = require("../models/ContentItem");
 const Product = require("../models/Product");
 const Resource = require("../models/Resource");
 const User = require("../models/User");
@@ -12,6 +17,119 @@ const WeeklyCase = require("../models/WeeklyCase");
 const McqQuestion = require("../models/McqQuestion");
 const Coupon = require("../models/Coupon");
 const SiteSetting = require("../models/SiteSetting");
+
+const CA_FOUNDATION_ACTS = [
+  {
+    id: "act-ca-contract",
+    courseId: "course-ca-foundation",
+    title: "The Indian Contract Act, 1872",
+    availability: "live",
+    order: 1,
+    units: [
+      { id: "unit-ca-contract-1", title: "Nature & Essentials of Valid Contract (Sec 1-10)", order: 1 },
+      { id: "unit-ca-contract-2", title: "Consideration & Capacity to Contract (Sec 11-25)", order: 2 },
+      { id: "unit-ca-contract-3", title: "Free Consent, Performance & Breach of Contract", order: 3 },
+      { id: "unit-ca-contract-4", title: "Unit 4", order: 4 },
+      { id: "unit-ca-contract-5", title: "Unit 5", order: 5 },
+      { id: "unit-ca-contract-6", title: "Unit 6", order: 6 },
+      { id: "unit-ca-contract-7", title: "Unit 7", order: 7 },
+      { id: "unit-ca-contract-8", title: "Unit 8", order: 8 },
+      { id: "unit-ca-contract-9", title: "Unit 9", order: 9 },
+    ],
+  },
+  {
+    id: "act-ca-soga",
+    courseId: "course-ca-foundation",
+    title: "The Sale of Goods Act, 1930",
+    availability: "live",
+    order: 2,
+    units: [
+      { id: "unit-ca-soga-1", title: "Formation of Contract of Sale & Subject Matter", order: 1 },
+      { id: "unit-ca-soga-2", title: "Conditions and Warranties (Sec 11-17)", order: 2 },
+      { id: "unit-ca-soga-3", title: "Transfer of Property & Rights of Unpaid Seller", order: 3 },
+    ],
+  },
+  {
+    id: "act-ca-partnership",
+    courseId: "course-ca-foundation",
+    title: "The Indian Partnership Act, 1932",
+    availability: "live",
+    order: 3,
+    units: [
+      { id: "unit-ca-partnership-1", title: "General Nature of Partnership", order: 1 },
+      { id: "unit-ca-partnership-2", title: "Relations of Partners", order: 2 },
+      { id: "unit-ca-partnership-3", title: "Registration and Dissolution of Firm", order: 3 },
+    ],
+  },
+  {
+    id: "act-ca-llp",
+    courseId: "course-ca-foundation",
+    title: "The Limited Liability Partnership Act, 2008",
+    availability: "live",
+    order: 4,
+    units: [
+      { id: "unit-ca-llp-1", title: "LLP Architecture & Comparison with Traditional Firm", order: 1 },
+    ],
+  },
+  {
+    id: "act-ca-companies",
+    courseId: "course-ca-foundation",
+    title: "The Companies Act, 2013",
+    availability: "coming_soon",
+    order: 5,
+    units: [
+      { id: "unit-ca-companies-1", title: "Essential Characteristics & Lifting of Corporate Veil", order: 1 },
+      { id: "unit-ca-companies-2", title: "Memorandum & Articles of Association (MOA / AOA)", order: 2 },
+    ],
+  },
+  {
+    id: "act-ca-negotiable",
+    courseId: "course-ca-foundation",
+    title: "The Negotiable Instruments Act, 1881",
+    availability: "coming_soon",
+    order: 6,
+    units: [
+      { id: "unit-ca-negotiable-1", title: "Promissory Notes, Bills of Exchange & Cheques", order: 1 },
+    ],
+  },
+];
+
+const INITIAL_COURSES = [
+  {
+    id: "course-ca-foundation",
+    title: "CA Foundation Paper 2",
+    slug: "ca-foundation-paper-2",
+    availability: "live",
+    price: 99,
+    mrp: 0,
+    accessDays: 30,
+    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
+    thumbnail: "/assets/ca-cs-hero-books-sharp.png",
+    kind: "core",
+    is_active: true,
+    order: 1,
+    display_order: 1,
+    exam_body: "ICAI",
+    units_count: 19,
+  },
+  {
+    id: "course-cseet",
+    title: "CSEET Business Laws & Business Management",
+    slug: "cseet-business-laws-management",
+    availability: "coming_soon",
+    price: 99,
+    mrp: 0,
+    accessDays: 30,
+    description: "Comprehensive Business Laws & Management preparation platform for CSEET.",
+    thumbnail: "/assets/ca-cs-hero-books-sharp.png",
+    kind: "core",
+    is_active: true,
+    order: 2,
+    display_order: 2,
+    exam_body: "ICSI",
+    units_count: 0,
+  },
+];
 
 const INITIAL_PRODUCTS = [
   {
@@ -40,406 +158,148 @@ const INITIAL_PRODUCTS = [
     originalPrice: 499,
     pages: "120+ Pages",
     status: "Active",
-    pdfUrl: "/api/pdf/cseet-management-full.pdf",
-    description: "In-depth study codex for General Principles of Management (Henri Fayol & FW Taylor) and Business Environment & Corporate Ethics (PESTLE & CSR).",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    description: "In-depth study codex for General Principles of Management and Business Environment & Corporate Ethics.",
     units: ["General Principles of Management", "Business Environment & Ethics"],
     highlights: ["Complete Fayol & Taylor Principles", "Corporate Governance Frameworks", "Chapter-Wise Conceptual MCQs", "Memory Maps for Rapid Revision"],
     cover_image: "/assets/ca-cs-hero-books-sharp.png",
   },
-  {
-    id: "prod-combo",
-    title: "Complete 2-Volume Master Digital Access Pass",
-    subtitle: "Volume 1 & 2 Full Study Codices + In-Web DRM Reader Access",
-    category: "Both",
-    format: "Complete Access Pass",
-    price: 449,
-    originalPrice: 899,
-    pages: "300+ Pages",
-    status: "Active",
-    pdfUrl: "/api/pdf/cseet-business-law-full.pdf",
-    description: "All 8 statutory law acts + management theories + case studies & MCQ evaluation tests with instant in-web reader access.",
-    units: ["All 8 Units • CA Foundation & CSEET"],
-    highlights: ["Full DRM Reading Access for Both Volumes", "Weekly Real Case Study Vault Access", "CSEET 30-Question Live MCQ Simulator", "Direct Mentor Answer Evaluation Support"],
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-  },
-];
-
-const INITIAL_CASES = [
-  {
-    id: "case-monday",
-    day: "Monster Monday",
-    badge: "Contract Act 1872",
-    subject: "Indian Contract Act",
-    title: "Carlill v. Carbolic Smoke Ball Co. — Unilateral Offer & Performance",
-    scenario: "Carbolic Smoke Ball Co. advertised that it would pay £100 to anyone who contracted influenza after using its carbolic smoke ball three times daily for two weeks according to printed directions. It deposited £1,000 in the Alliance Bank to show sincerity. Mrs. Carlill used the ball as directed and still caught influenza. The company refused payment claiming no direct notification of acceptance was communicated.",
-    modelAnswer: "An offer made to the public at large (General Offer) can be accepted by anyone fulfilling its conditions without notifying acceptance in advance (Section 8 of Indian Contract Act 1872). Depositing money evidenced an intention to create legal relations. Mrs. Carlill performed the conditions, constituting valid acceptance by conduct. The company is bound and liable to pay £100.",
-    precedent: "Carlill v. Carbolic Smoke Ball Co. [1893] 1 QB 256; Section 8, ICA 1872",
-    marks: "6 Marks",
-  },
-  {
-    id: "case-wednesday",
-    day: "Wednesday Workout",
-    badge: "Sale of Goods Act 1930",
-    subject: "Sale of Goods Act",
-    title: "Grant v. Australian Knitting Mills — Implied Condition as to Merchantable Quality",
-    scenario: "Buyer purchased woollen underwear from a retailer. The manufacturer left excess bisulphite chemicals in the garments during processing. Buyer wore them without washing and developed severe acute dermatitis. Retailer and manufacturer argue that the buyer failed to inspect the goods prior to wearing.",
-    modelAnswer: "Under Section 16(2) of the Sale of Goods Act 1930, goods sold by description carry an implied condition that they are of merchantable quality. Latent chemical defects not discoverable by ordinary visual examination breach merchantability. The manufacturer also owes an independent duty of care in tort under Donoghue v. Stevenson. Both are liable in damages.",
-    precedent: "Grant v. Australian Knitting Mills [1936] AC 85; Section 16(2), SOGA 1930",
-    marks: "6 Marks",
-  },
-  {
-    id: "case-friday",
-    day: "Final Boss Friday",
-    badge: "Partnership Act 1932",
-    subject: "Indian Partnership Act",
-    title: "Implied Authority & Non-Registration Consequences (Section 19 & 69)",
-    scenario: "A, B, and C are partners in an unregistered firm 'Alpha Traders' carrying on wholesale cloth business. The partnership deed contains a clause restricting any partner from borrowing over ₹50,000 without unanimous consent. A borrows ₹2,00,000 from D in the firm's name for purchasing silk fabrics, telling D it is for the firm. D was unaware of the restriction. A absconds with the money. D sues B and C. B and C contend: (1) A exceeded authority, and (2) D cannot sue because the firm is unregistered.",
-    modelAnswer: "1. Cloth trading is a commercial business where borrowing is an implied authority under Section 19(1). Under Section 20, internal restrictions do not bind innocent third parties without notice. 2. Section 69 bars suits BY an unregistered firm, but DOES NOT bar suits against the unregistered firm by third parties. Hence, B and C are jointly and severally liable to pay ₹2,00,000 to D.",
-    precedent: "Cox v. Hickman (1860); Sections 19, 20 & 69, Indian Partnership Act 1932",
-    marks: "6 Marks",
-  },
-];
-
-const INITIAL_MCQS = [
-  {
-    id: "mcq-1",
-    subject: "Indian Contract Act",
-    section: "Section 2(h)",
-    question: "An agreement enforceable by law is defined as a contract under which section of the Indian Contract Act, 1872?",
-    options: ["Section 2(h)", "Section 2(e)", "Section 10", "Section 2(b)"],
-    correctOption: 0,
-    explanation: "Section 2(h) states: 'An agreement enforceable by law is a contract.'",
-  },
-  {
-    id: "mcq-2",
-    subject: "Sale of Goods Act",
-    section: "Section 4(3)",
-    question: "In a contract of sale of goods, when the transfer of property is to take place at a future time or subject to some condition, it is called:",
-    options: ["Sale", "Agreement to sell", "Hire-Purchase", "Bailment"],
-    correctOption: 1,
-    explanation: "Under Section 4(3) of SOGA 1930, when the property in goods is to be transferred at a future time, the contract is an Agreement to Sell.",
-  },
-  {
-    id: "mcq-3",
-    subject: "Indian Partnership Act",
-    section: "Section 6",
-    question: "The conclusive test of a partnership under the landmark ruling Cox v. Hickman and Section 6 is:",
-    options: ["Sharing of profits", "Joint ownership of property", "Mutual agency", "Written partnership deed"],
-    correctOption: 2,
-    explanation: "Mutual agency (each partner acting as principal and agent for all others) is the cardinal conclusive test of partnership.",
-  },
-  {
-    id: "mcq-4",
-    subject: "Management Principles",
-    section: "Henri Fayol",
-    question: "Who propounded the 14 Principles of Modern Operational Management?",
-    options: ["F.W. Taylor", "Henri Fayol", "Max Weber", "Elton Mayo"],
-    correctOption: 1,
-    explanation: "Henri Fayol is celebrated as the Father of Modern Management Theory and formulated the 14 Administrative Principles.",
-  },
-  {
-    id: "mcq-5",
-    subject: "Companies Act 2013",
-    section: "Section 2(68)",
-    question: "What is the minimum paid-up share capital requirement for incorporating a Private Limited Company under Companies Act 2013?",
-    options: ["Rs. 1,00,000", "Rs. 5,00,000", "No minimum paid-up capital prescribed", "Rs. 10,00,000"],
-    correctOption: 2,
-    explanation: "The Companies (Amendment) Act 2015 removed the minimum paid-up capital requirement of Rs. 1 Lakh for Private Companies.",
-  },
 ];
 
 const INITIAL_COUPONS = [
-  { id: "cp-1", code: "EXEMPTION2026", discountPercent: 20, minOrder: 200, maxUses: 500, usedCount: 142, expiryDate: "2026-12-31", status: "Active" },
-  { id: "cp-2", code: "FIRST50", discountPercent: 15, minOrder: 150, maxUses: 100, usedCount: 88, expiryDate: "2026-11-30", status: "Active" },
-  { id: "cp-3", code: "RANKERS", discountPercent: 25, minOrder: 400, maxUses: 50, usedCount: 47, expiryDate: "2026-10-31", status: "Active" },
+  { id: "cp-1", code: "LAUNCH50", discountPercent: 50, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31", status: "Active" },
+  { id: "cp-2", code: "EXEMPTION2026", discountPercent: 20, minOrder: 200, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31", status: "Active" },
 ];
+
+const { isConnected } = require("./mongo");
 
 async function seedMongo() {
   try {
+    if (!isConnected()) {
+      console.log("[MongoDB Atlas Seeder] MongoDB not connected (local mode). Skipping Atlas collection sync.");
+      return;
+    }
     console.log("[MongoDB Atlas Seeder] Synchronizing collections...");
 
-    // 1. Products
+    // 1. Courses
+    for (const c of INITIAL_COURSES) {
+      await Course.findOneAndUpdate({ id: c.id }, { $set: c }, { upsert: true, new: true });
+    }
+    console.log("[MongoDB Atlas Seeder] Courses synchronized.");
+
+    // 2. Acts & Units for CA Foundation Paper 2
+    for (const act of CA_FOUNDATION_ACTS) {
+      await Act.findOneAndUpdate(
+        { id: act.id },
+        {
+          $set: {
+            id: act.id,
+            courseId: act.courseId,
+            title: act.title,
+            availability: act.availability,
+            order: act.order,
+          },
+        },
+        { upsert: true, new: true }
+      );
+
+      for (const unit of act.units) {
+        await Unit.findOneAndUpdate(
+          { id: unit.id },
+          {
+            $set: {
+              id: unit.id,
+              actId: act.id,
+              title: unit.title,
+              order: unit.order,
+              summary: "",
+            },
+          },
+          { upsert: true, new: true }
+        );
+      }
+    }
+    console.log("[MongoDB Atlas Seeder] Acts and Units synchronized.");
+
+    // 3. Products (Backwards-compatibility for catalog / legacy readers)
     const prodCount = await Product.countDocuments();
     if (prodCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding initial study codices & products...");
       await Product.insertMany(INITIAL_PRODUCTS);
       console.log("[MongoDB Atlas Seeder] Products seeded successfully.");
-    }
-
-    // 2. Cases
-    const caseCount = await WeeklyCase.countDocuments();
-    if (caseCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding weekly case studies...");
-      await WeeklyCase.insertMany(INITIAL_CASES);
-      console.log("[MongoDB Atlas Seeder] Cases seeded successfully.");
-    }
-
-    // 3. MCQs
-    const mcqCount = await McqQuestion.countDocuments();
-    if (mcqCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding MCQ question bank...");
-      await McqQuestion.insertMany(INITIAL_MCQS);
-      console.log("[MongoDB Atlas Seeder] MCQs seeded successfully.");
     }
 
     // 4. Coupons
     const couponCount = await Coupon.countDocuments();
     if (couponCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding promotional coupons...");
       await Coupon.insertMany(INITIAL_COUPONS);
       console.log("[MongoDB Atlas Seeder] Coupons seeded successfully.");
     }
 
-    // 5. Administrator User (Strictly via Environment Variables or CLI)
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      const adminEmail = process.env.INITIAL_ADMIN_EMAIL || (process.env.NODE_ENV !== "production" ? "admin@thelawkaksha.com" : null);
-      const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || (process.env.NODE_ENV !== "production" ? "AdminSecurePassword2026!" : null);
+    // 5. Site Settings (Real contact details, WhatsApp empty by default)
+    const siteDetailsSetting = await SiteSetting.findOne({ key: "site_details" });
+    if (!siteDetailsSetting) {
+      await SiteSetting.create({
+        key: "site_details",
+        value: {
+          whatsapp_number: "", // Empty by default; button hidden if empty
+          support_email: "support@thelawkaksha.com",
+          domain: "https://thelawkaksha.com",
+          watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
+        },
+      });
+    }
 
-      if (adminEmail && adminPassword) {
-        console.log(`[MongoDB Atlas Seeder] Initializing administrator account for ${adminEmail}...`);
-        const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+    const footerSetting = await SiteSetting.findOne({ key: "footer_details" });
+    if (!footerSetting) {
+      await SiteSetting.create({
+        key: "footer_details",
+        value: {
+          brand: "The Law Kaksha",
+          tagline: "Premier Visual Learning Space for CA Foundation & CSEET Law Aspirants.",
+          contact_email: "support@thelawkaksha.com",
+          contact_phone: "",
+          address: "Mumbai, Maharashtra, India",
+          copyright: "© 2026 The Law Kaksha. All rights reserved.",
+        },
+      });
+    }
 
-        await User.create([
-          {
-            id: "usr-admin-001",
-            student_id: "LK-ADM-000001",
-            name: "The Law Kaksha Admin",
-            email: adminEmail.toLowerCase().trim(),
-            phone: "+91 99999 88888",
-            password_hash: adminPasswordHash,
-            role: "admin",
-            is_active: true,
-            drm_access: true,
-          },
-        ]);
+    // 6. Administrator User (Strictly via Environment Variables or Test mode)
+    const adminEmail = process.env.INITIAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || (process.env.NODE_ENV === "test" ? "admin@thelawkaksha.com" : null);
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === "test" ? "AdminSecurePassword2026!" : null);
+
+    if (adminEmail && adminPassword) {
+      const cleanEmail = adminEmail.toLowerCase().trim();
+      const existingAdmin = await User.findOne({ email: cleanEmail });
+      const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+
+      if (!existingAdmin) {
+        console.log(`[MongoDB Atlas Seeder] Initializing administrator account for ${cleanEmail}...`);
+        await User.create({
+          id: "usr-admin-001",
+          student_id: "LK-ADM-000001",
+          name: "The Law Kaksha Admin",
+          email: cleanEmail,
+          phone: "",
+          password_hash: adminPasswordHash,
+          role: "admin",
+          is_active: true,
+          drm_access: true,
+        });
         console.log("[MongoDB Atlas Seeder] Administrator seeded successfully.");
       } else {
-        console.log("[MongoDB Atlas Seeder] No default admin seeded in production. Use 'npm run admin:create' CLI to provision production admin.");
+        await User.updateOne(
+          { _id: existingAdmin._id },
+          {
+            $set: {
+              role: "admin",
+              is_active: true,
+              password_hash: adminPasswordHash,
+              phone: "",
+            },
+          }
+        );
       }
-    }
-
-    // 6. Site Settings (Exam countdowns & QOTD)
-    const examSetting = await SiteSetting.findOne({ key: "exam_countdown" });
-    if (!examSetting) {
-      await SiteSetting.create({
-        key: "exam_countdown",
-        value: [
-          { id: "ex-1", exam: "CSEET Paper 2 (Business Law & Management)", date: "2026-11-12", session: "November 2026 Attempt" },
-          { id: "ex-2", exam: "CA Foundation Paper 2 (Business Laws)", date: "2026-12-20", session: "December 2026 Attempt" },
-        ],
-      });
-    }
-
-    const qotdSetting = await SiteSetting.findOne({ key: "qotd" });
-    if (!qotdSetting) {
-      await SiteSetting.create({
-        key: "qotd",
-        value: {
-          id: "qotd-1",
-          act: "Indian Partnership Act, 1932",
-          section: "Section 28",
-          question: "When a retired partner's name is retained on the letterhead without public notice, third parties can sue under:",
-          options: ["Doctrine of Subrogation", "Doctrine of Holding Out", "Doctrine of Ultra Vires", "Doctrine of Estoppel in Pais"],
-          correctOption: 1,
-          explanation: "Under Section 28 of the Indian Partnership Act 1932, anyone who represents or allows himself to be represented as a partner is liable as a partner by Holding Out.",
-        },
-      });
-    }
-
-    // 7. Act-Wise Statutory Resources (Indian Partnership Act & Syllabus Codices)
-    const resourceCount = await Resource.countDocuments();
-    if (resourceCount === 0) {
-      console.log("[MongoDB Atlas Seeder] Seeding act-wise statutory resources & PDF notes...");
-      const initialResources = [
-        {
-          id: "res-ca-soga-1",
-          course: "ca-foundation",
-          actName: "The Sale of Goods Act, 1930",
-          chapterNumber: 3,
-          type: "notes",
-          title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-          description: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities & Statutory Rules.",
-          pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-          samplePdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-          isSample: true,
-          status: "Published",
-          order: 1,
-          pages: "12 Pages (Free Sample PDF)",
-        },
-        {
-          id: "res-ca-soga-2",
-          course: "ca-foundation",
-          actName: "The Sale of Goods Act, 1930",
-          chapterNumber: 3,
-          type: "notes",
-          title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-          description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Caveat Emptor.",
-          pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-          samplePdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-          isSample: true,
-          status: "Published",
-          order: 2,
-          pages: "10 Pages (Free Sample PDF)",
-        },
-        {
-          id: "res-ca-partnership-unit-1",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "notes",
-          title: "Unit 1: General Nature of Partnership",
-          description: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman) & Partnership vs Co-ownership.",
-          pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-          samplePdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-          isSample: true,
-          status: "Published",
-          order: 1,
-          pages: "24 Pages (Sample PDF)",
-        },
-        {
-          id: "res-ca-partnership-unit-2",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "notes",
-          title: "Unit 2: Relations of Partners",
-          description: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.",
-          pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-          samplePdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-          isSample: true,
-          status: "Published",
-          order: 2,
-          pages: "28 Pages (Sample PDF)",
-        },
-        {
-          id: "res-ca-partnership-unit-3",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "notes",
-          title: "Unit 3: Registration and Dissolution of Firm",
-          description: "Effect of Non-Registration (Sec 69), Modes of Dissolution, Settlement of Accounts (Sec 48).",
-          pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-          samplePdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-          isSample: true,
-          status: "Published",
-          order: 3,
-          pages: "32 Pages (Sample PDF)",
-        },
-        {
-          id: "res-ca-partnership-ldr",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "ldr",
-          title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
-          description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
-          pdfUrl: "/notes/partnership-ldr-charts.pdf",
-          samplePdfUrl: "/notes/partnership-ldr-charts.pdf",
-          isSample: true,
-          status: "Published",
-          order: 4,
-          pages: "18 Pages (LDR Revision Charts)",
-        },
-        {
-          id: "res-ca-partnership-infographics",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "infographic",
-          title: "Partnership Act — Visual Infographics & Concept Mind Maps",
-          description: "High-retention infographics breaking down Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
-          pdfUrl: "/notes/partnership-infographics.pdf",
-          samplePdfUrl: "/notes/partnership-infographics.pdf",
-          isSample: true,
-          status: "Published",
-          order: 5,
-          pages: "12 Infographic Sheets",
-        },
-        {
-          id: "res-ca-partnership-practice",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "practice",
-          title: "Indian Partnership Act — Practice Questions & Case Problems",
-          description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
-          pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-          samplePdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-          isSample: true,
-          status: "Published",
-          order: 6,
-          pages: "25 Pages (Practice Problems)",
-        },
-        {
-          id: "res-ca-qbank-part1",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "practice",
-          title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
-          description: "Turn understanding into exam-ready practice: Chapter-wise questions, application scenarios, case-based questions & model test papers for CA Foundation.",
-          pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-          samplePdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-          isSample: true,
-          status: "Published",
-          order: 7,
-          pages: "65+ Pages (Question Bank)",
-        },
-        {
-          id: "res-ca-paper-analysis-sep2026",
-          course: "ca-foundation",
-          actName: "The Indian Partnership Act, 1932",
-          chapterNumber: 4,
-          type: "pyq",
-          title: "September 2026 Paper Analysis & Detailed Model Answers",
-          description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
-          pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-          samplePdfUrl: "/notes/september-2026-paper-analysis.pdf",
-          isSample: true,
-          status: "Published",
-          order: 8,
-          pages: "16 Pages (Exam Paper Analysis)",
-        },
-        {
-          id: "res-cs-mgmt-1",
-          course: "cseet",
-          actName: "General Principles of Management",
-          chapterNumber: 7,
-          type: "notes",
-          title: "Management Principles, Functions & Theories",
-          description: "Henry Fayol 14 Principles vs FW Taylor Scientific Management, PESTLE Analysis & Corporate Governance.",
-          pdfUrl: "/notes/cseet-management-full.pdf",
-          samplePdfUrl: "/notes/cseet-management-full.pdf",
-          isSample: true,
-          status: "Published",
-          order: 1,
-          pages: "120+ Pages",
-        },
-      ];
-      await Resource.insertMany(initialResources);
-      console.log("[MongoDB Atlas Seeder] Resources seeded successfully.");
-    }
-
-    // 8. Provision Default Administrator (if not already existing)
-    const adminUser = await User.findOne({ role: "admin" });
-    if (!adminUser) {
-      console.log("[MongoDB Atlas Seeder] Provisioning default administrator in MongoDB...");
-      const adminPassword = process.env.ADMIN_PASSWORD || "Admin@LawKaksha2026!";
-      const passwordHash = await bcrypt.hash(adminPassword, 10);
-      await User.create({
-        id: "usr-admin-seed",
-        student_id: "LK-ADM-000001",
-        name: "The Law Kaksha Administrator",
-        email: "admin@thelawkaksha.com",
-        phone: "+91 99999 88888",
-        password_hash: passwordHash,
-        role: "admin",
-        is_active: true,
-        drm_access: true,
-      });
-      console.log("[MongoDB Atlas Seeder] Default administrator provisioned.");
     }
 
     console.log("[MongoDB Atlas Seeder] Synchronization completed successfully.");

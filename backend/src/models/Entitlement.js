@@ -7,6 +7,7 @@ const EntitlementSchema = new mongoose.Schema(
     user_email: { type: String, index: true },
     item_type: { type: String, enum: ["subscription", "extra_course", "course", "product"], default: "subscription" },
     item_id: { type: String, required: true, index: true },
+    courseId: { type: String, index: true },
     order_id: { type: String, required: true },
     starts_at: { type: Date, default: Date.now },
     expires_at: { type: Date, required: true, index: true },
@@ -15,6 +16,7 @@ const EntitlementSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+EntitlementSchema.index({ user_id: 1, courseId: 1, status: 1, expires_at: 1 });
 EntitlementSchema.index({ user_id: 1, item_id: 1, status: 1 });
 EntitlementSchema.index({ user_email: 1, status: 1 });
 
