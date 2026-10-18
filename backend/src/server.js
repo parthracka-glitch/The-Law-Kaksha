@@ -179,12 +179,22 @@ const orderRateLimiter = (req, res, next) => {
 app.use("/api/orders", orderRateLimiter);
 
 // Low-End Device & Network Optimization: Cache-Control for Public Catalog Endpoints
-app.use(["/api/products", "/api/resources", "/api/announcement", "/api/target-exams"], (req, res, next) => {
-  if (req.method === "GET") {
-    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+app.use(
+  [
+    "/api/catalog",
+    "/api/public/site-data",
+    "/api/products",
+    "/api/resources",
+    "/api/announcement",
+    "/api/target-exams",
+  ],
+  (req, res, next) => {
+    if (req.method === "GET") {
+      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    }
+    next();
   }
-  next();
-});
+);
 
 // Mount API Routes
 app.use("/api/auth", authRoutes);

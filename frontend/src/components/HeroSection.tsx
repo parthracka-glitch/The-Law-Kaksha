@@ -101,7 +101,6 @@ export function HeroSection() {
                     fill
                     className="object-contain drop-shadow-[0_22px_28px_rgba(10,25,47,0.18)]"
                     priority
-                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
                   />
                 </div>
