@@ -15,7 +15,10 @@ import {
 
 interface SiteSettingsData {
   site_title?: string;
+  support_email?: string;
   contact_email?: string;
+  domain?: string;
+  watermark_text?: string;
   contact_phone?: string;
   whatsapp_number?: string;
   announcement?: {
@@ -42,9 +45,12 @@ export function AdminSettingsTab({
 }) {
   const [settings, setSettings] = useState<SiteSettingsData>({
     site_title: "The Law Kaksha",
-    contact_email: "grievance@thelawkaksha.com",
-    contact_phone: "+91 98765 43210",
-    whatsapp_number: "+91 98765 43210",
+    support_email: "support@thelawkaksha.com",
+    contact_email: "support@thelawkaksha.com",
+    domain: "https://thelawkaksha.com",
+    watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
+    contact_phone: "",
+    whatsapp_number: "", // Empty by default; button hidden if empty
     announcement: {
       enabled: true,
       text: "⚡ Special CA Foundation & CSEET Study Passes available at introductory ₹99/month!",
@@ -105,7 +111,7 @@ export function AdminSettingsTab({
           Module B11: Platform Configuration &amp; Statutory Settings
         </h2>
         <p className="text-xs text-[#77716E]">
-          Update contact details, social links, announcement ribbons, and compliance disclaimers.
+          Update support channels, canonical domain, watermark text, announcement ribbons, and compliance disclaimers.
         </p>
       </div>
 
@@ -114,36 +120,52 @@ export function AdminSettingsTab({
         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E7E4E7] shadow-sm space-y-4">
           <h3 className="font-serif font-bold text-base text-[#221D1D] flex items-center gap-2">
             <Mail className="w-4 h-4 text-[#4B8097]" />
-            Official Contact &amp; Grievance Channels
+            Site Details &amp; Support Channels
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Grievance / Contact Email</label>
+              <label className="block font-semibold text-slate-700 mb-1">Support &amp; Grievance Email</label>
               <input
                 type="email"
-                value={settings.contact_email || ""}
-                onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+                value={settings.support_email || settings.contact_email || ""}
+                onChange={(e) => setSettings({ ...settings, support_email: e.target.value, contact_email: e.target.value })}
+                placeholder="support@thelawkaksha.com"
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Helpline Phone Number</label>
+              <label className="block font-semibold text-slate-700 mb-1">Canonical Domain</label>
               <input
                 type="text"
-                value={settings.contact_phone || ""}
-                onChange={(e) => setSettings({ ...settings, contact_phone: e.target.value })}
+                value={settings.domain || ""}
+                onChange={(e) => setSettings({ ...settings, domain: e.target.value })}
+                placeholder="https://thelawkaksha.com"
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">WhatsApp Support Number</label>
+              <label className="block font-semibold text-slate-700 mb-1">PDF Watermark Text</label>
+              <input
+                type="text"
+                value={settings.watermark_text || ""}
+                onChange={(e) => setSettings({ ...settings, watermark_text: e.target.value })}
+                placeholder="THE LAW KAKSHA • PROTECTED STUDY MATERIAL"
+                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                WhatsApp Support Number <span className="font-normal text-slate-400">(leave empty to hide button)</span>
+              </label>
               <input
                 type="text"
                 value={settings.whatsapp_number || ""}
                 onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })}
+                placeholder="Leave empty to hide WhatsApp from student dashboard"
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
               />
             </div>
@@ -154,6 +176,17 @@ export function AdminSettingsTab({
                 type="text"
                 value={settings.site_title || ""}
                 onChange={(e) => setSettings({ ...settings, site_title: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Helpline Phone Number (Optional)</label>
+              <input
+                type="text"
+                value={settings.contact_phone || ""}
+                onChange={(e) => setSettings({ ...settings, contact_phone: e.target.value })}
+                placeholder="Optional helpline number"
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
               />
             </div>

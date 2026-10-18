@@ -158,7 +158,7 @@ async function handleCreateOrder(req, res) {
 
     const name = shippingDetails.name || req.body.name || "Enrolled Student";
     const email = shippingDetails.email || req.body.email || "student@thelawkaksha.com";
-    const phone = shippingDetails.phone || req.body.phone || "+91 98765 43210";
+    const phone = shippingDetails.phone || req.body.phone || "";
     const exam = shippingDetails.exam || req.body.exam || "CA Foundation Paper 2: Business Laws";
 
     const orderId = `LK-ORD-${Math.floor(100000 + Math.random() * 900000)}`;

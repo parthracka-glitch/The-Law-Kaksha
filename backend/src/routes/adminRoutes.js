@@ -32,6 +32,10 @@ const McqTest = require("../models/McqTest");
 const Resource = require("../models/Resource");
 const Coupon = require("../models/Coupon");
 const SiteSetting = require("../models/SiteSetting");
+const Course = require("../models/Course");
+const Act = require("../models/Act");
+const Unit = require("../models/Unit");
+const ContentItem = require("../models/ContentItem");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
@@ -468,7 +472,7 @@ router.post("/admin/students", async (req, res) => {
       student_id: req.body.student_id || `LRK-2026-${Math.floor(100000 + Math.random() * 900000)}`,
       name: req.body.name || "New Candidate",
       email: String(req.body.email || `student_${Date.now()}@thelawkaksha.com`).toLowerCase().trim(),
-      phone: req.body.phone || "+91 98765 43210",
+      phone: req.body.phone || "",
       target_exam: req.body.target_exam || "CA Foundation Paper 2",
       role: "student",
       is_active: req.body.is_active !== undefined ? Boolean(req.body.is_active) : true,
@@ -569,7 +573,7 @@ router.post("/admin/subscriptions", async (req, res) => {
       studentName: req.body.studentName || "Enrolled Student",
       studentRoll: req.body.studentRoll || "LRK-2026-004182",
       email: String(req.body.email || "student@thelawkaksha.com").toLowerCase().trim(),
-      phone: req.body.phone || "+91 98765 43210",
+      phone: req.body.phone || "",
       item: req.body.item || "Volume 1 & 2 Master Digital Pass",
       targetExam: req.body.targetExam || "CA Foundation Paper 2",
       amount: req.body.amount || "₹449",
@@ -1956,14 +1960,413 @@ router.get("/admin/export/:entity", async (req, res) => {
   }
 });
 
-// SITE SETTINGS MANAGEMENT
+// -----------------------------------------------------------------------------
+// 15. COURSES HIERARCHY MANAGEMENT (P5)
+// -----------------------------------------------------------------------------
+router.get("/admin/courses", async (req, res) => {
+  try {
+    if (isConnected()) {
+      const courses = await Course.find().sort({ order: 1, display_order: 1 }).lean();
+      if (courses && courses.length > 0) {
+        return res.status(200).json({ success: true, source: "mongodb_atlas", courses });
+      }
+    }
+    const courses = Database.table("courses").find();
+    res.status(200).json({ success: true, source: "local_cache", courses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching courses: " + err.message });
+  }
+});
+
+router.put("/admin/courses/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowedFields = [
+      "title",
+      "availability",
+      "price",
+      "mrp",
+      "accessDays",
+      "description",
+      "thumbnail",
+      "kind",
+      "is_active",
+      "order",
+      "display_order",
+    ];
+    const updates = {};
+    for (const f of allowedFields) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    if (updates.price !== undefined) updates.price = Number(updates.price);
+    if (updates.accessDays !== undefined) updates.accessDays = Number(updates.accessDays);
+    if (updates.mrp !== undefined) updates.mrp = Number(updates.mrp);
+
+    if (isConnected()) {
+      const updated = await Course.findOneAndUpdate({ id }, updates, { new: true });
+      Database.table("courses").update(id, updates);
+      if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", course: updated });
+    }
+
+    const updated = Database.table("courses").update(id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
+    res.status(200).json({ success: true, source: "local_cache", course: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating course: " + err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 16. ACTS MANAGEMENT (P5)
+// -----------------------------------------------------------------------------
+router.get("/admin/acts", async (req, res) => {
+  try {
+    const { courseId } = req.query;
+    if (isConnected()) {
+      const filter = courseId ? { courseId } : {};
+      const acts = await Act.find(filter).sort({ order: 1 }).lean();
+      if (acts && acts.length > 0) {
+        return res.status(200).json({ success: true, source: "mongodb_atlas", acts });
+      }
+    }
+    let acts = Database.table("acts").find();
+    if (courseId) acts = acts.filter((a) => a.courseId === courseId);
+    acts.sort((a, b) => (a.order || 0) - (b.order || 0));
+    res.status(200).json({ success: true, source: "local_cache", acts });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching acts: " + err.message });
+  }
+});
+
+router.put("/admin/acts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowed = ["title", "availability", "order", "description"];
+    const updates = {};
+    for (const f of allowed) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    if (updates.order !== undefined) updates.order = Number(updates.order);
+
+    if (isConnected()) {
+      const updated = await Act.findOneAndUpdate({ id }, updates, { new: true });
+      Database.table("acts").update(id, updates);
+      if (!updated) return res.status(404).json({ success: false, message: "Act not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", act: updated });
+    }
+
+    const updated = Database.table("acts").update(id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: "Act not found." });
+    res.status(200).json({ success: true, source: "local_cache", act: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating act: " + err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 17. UNITS MANAGEMENT (P5)
+// -----------------------------------------------------------------------------
+router.get("/admin/units", async (req, res) => {
+  try {
+    const { actId } = req.query;
+    if (isConnected()) {
+      const filter = actId ? { actId } : {};
+      const units = await Unit.find(filter).sort({ order: 1 }).lean();
+      if (units && units.length > 0) {
+        return res.status(200).json({ success: true, source: "mongodb_atlas", units });
+      }
+    }
+    let units = Database.table("units").find();
+    if (actId) units = units.filter((u) => u.actId === actId);
+    units.sort((a, b) => (a.order || 0) - (b.order || 0));
+    res.status(200).json({ success: true, source: "local_cache", units });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching units: " + err.message });
+  }
+});
+
+router.post("/admin/units", async (req, res) => {
+  try {
+    const payload = {
+      id: req.body.id || `unit-${Date.now()}`,
+      actId: req.body.actId,
+      title: req.body.title || "New Unit",
+      order: Number(req.body.order) || 1,
+      summary: req.body.summary || "",
+    };
+    if (!payload.actId) {
+      return res.status(400).json({ success: false, message: "actId is required." });
+    }
+
+    if (isConnected()) {
+      const created = await Unit.create(payload);
+      Database.table("units").insert(payload);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", unit: created });
+    }
+    const created = Database.table("units").insert(payload);
+    res.status(201).json({ success: true, source: "local_cache", unit: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating unit: " + err.message });
+  }
+});
+
+router.put("/admin/units/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowed = ["title", "order", "summary"];
+    const updates = {};
+    for (const f of allowed) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    if (updates.order !== undefined) updates.order = Number(updates.order);
+
+    if (isConnected()) {
+      const updated = await Unit.findOneAndUpdate({ id }, updates, { new: true });
+      Database.table("units").update(id, updates);
+      if (!updated) return res.status(404).json({ success: false, message: "Unit not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", unit: updated });
+    }
+
+    const updated = Database.table("units").update(id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: "Unit not found." });
+    res.status(200).json({ success: true, source: "local_cache", unit: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating unit: " + err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 18. CONTENT ITEMS MANAGEMENT (P5)
+// -----------------------------------------------------------------------------
+router.get("/admin/content-items", async (req, res) => {
+  try {
+    const { unitId, type } = req.query;
+    if (isConnected()) {
+      const filter = {};
+      if (unitId) filter.unitId = unitId;
+      if (type) filter.type = type;
+      const items = await ContentItem.find(filter).sort({ order: 1 }).lean();
+      if (items && items.length > 0) {
+        return res.status(200).json({ success: true, source: "mongodb_atlas", items });
+      }
+    }
+    let items = Database.table("content_items").find();
+    if (unitId) items = items.filter((i) => i.unitId === unitId);
+    if (type) items = items.filter((i) => i.type === type);
+    items.sort((a, b) => (a.order || 0) - (b.order || 0));
+    res.status(200).json({ success: true, source: "local_cache", items });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching content items: " + err.message });
+  }
+});
+
+router.post("/admin/content-items", async (req, res) => {
+  try {
+    const {
+      unitId,
+      title,
+      type,
+      isSample,
+      samplePagesRange,
+      sampleFromPage,
+      sampleToPage,
+      isPublished,
+      description,
+      order,
+      fileName,
+      fileSize,
+      cloudinaryPublicId,
+    } = req.body;
+
+    if (!unitId || !title) {
+      return res.status(400).json({ success: false, message: "unitId and title are required." });
+    }
+
+    let fromP = Number(sampleFromPage) || 1;
+    let toP = Number(sampleToPage) || 5;
+    if (samplePagesRange && typeof samplePagesRange === "string") {
+      const parts = samplePagesRange.split("-").map((p) => parseInt(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        fromP = parts[0];
+        toP = parts[1];
+      }
+    }
+
+    const payload = {
+      id: req.body.id || `item-${Date.now()}`,
+      unitId,
+      title,
+      type: type || "notes",
+      isSample: Boolean(isSample),
+      sampleFromPage: fromP,
+      sampleToPage: toP,
+      samplePagesRange: `${fromP}-${toP}`,
+      isPublished: isPublished !== false,
+      description: description || "",
+      order: Number(order) || 1,
+      fileName: fileName || "",
+      fileSize: Number(fileSize) || 0,
+      cloudinaryPublicId: cloudinaryPublicId || "",
+      publishedAt: new Date(),
+    };
+
+    if (isConnected()) {
+      const created = await ContentItem.create(payload);
+      Database.table("content_items").insert(payload);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", item: created });
+    }
+    const created = Database.table("content_items").insert(payload);
+    res.status(201).json({ success: true, source: "local_cache", item: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating content item: " + err.message });
+  }
+});
+
+router.put("/admin/content-items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowed = [
+      "title",
+      "type",
+      "isSample",
+      "samplePagesRange",
+      "sampleFromPage",
+      "sampleToPage",
+      "isPublished",
+      "description",
+      "order",
+      "fileName",
+      "fileSize",
+      "cloudinaryPublicId",
+    ];
+    const updates = {};
+    for (const f of allowed) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    if (updates.samplePagesRange && typeof updates.samplePagesRange === "string") {
+      const parts = updates.samplePagesRange.split("-").map((p) => parseInt(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        updates.sampleFromPage = parts[0];
+        updates.sampleToPage = parts[1];
+      }
+    }
+    if (updates.order !== undefined) updates.order = Number(updates.order);
+    if (updates.isSample !== undefined) updates.isSample = Boolean(updates.isSample);
+    if (updates.isPublished !== undefined) updates.isPublished = Boolean(updates.isPublished);
+
+    if (isConnected()) {
+      const updated = await ContentItem.findOneAndUpdate({ id }, updates, { new: true });
+      Database.table("content_items").update(id, updates);
+      if (!updated) return res.status(404).json({ success: false, message: "Content item not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", item: updated });
+    }
+
+    const updated = Database.table("content_items").update(id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: "Content item not found." });
+    res.status(200).json({ success: true, source: "local_cache", item: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating content item: " + err.message });
+  }
+});
+
+router.delete("/admin/content-items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isConnected()) {
+      await ContentItem.deleteOne({ id });
+      Database.table("content_items").delete(id);
+      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    }
+    Database.table("content_items").delete(id);
+    res.status(200).json({ success: true, source: "local_cache" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting content item: " + err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 19. SITE SETTINGS & BRANDING CONFIGURATION (P5)
+// -----------------------------------------------------------------------------
 router.get("/admin/settings", async (req, res) => {
   try {
+    let siteDetails = {
+      support_email: "support@thelawkaksha.com",
+      contact_email: "support@thelawkaksha.com",
+      domain: "https://thelawkaksha.com",
+      watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
+      whatsapp_number: "", // Clean by default; UI hides button when empty
+      site_title: "The Law Kaksha",
+      contact_phone: "",
+    };
+
+    if (isConnected()) {
+      const doc = await SiteSetting.findOne({ key: "site_details" }).lean();
+      if (doc && doc.value) siteDetails = { ...siteDetails, ...doc.value };
+    } else {
+      const settingsTable = Database.table("site_settings");
+      const record = settingsTable.findOne((s) => s.key === "site_details");
+      if (record && record.value) siteDetails = { ...siteDetails, ...record.value };
+    }
+
     const settingsTable = Database.table("site_settings");
     const settings = settingsTable.find();
-    res.status(200).json({ success: true, settings });
+    res.status(200).json({ success: true, settings, data: siteDetails });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: "Error fetching settings: " + err.message });
+  }
+});
+
+router.put("/admin/settings", async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const siteDetails = {
+      support_email: payload.support_email || payload.contact_email || "support@thelawkaksha.com",
+      contact_email: payload.contact_email || payload.support_email || "support@thelawkaksha.com",
+      domain: payload.domain || "https://thelawkaksha.com",
+      watermark_text: payload.watermark_text || "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
+      whatsapp_number: payload.whatsapp_number !== undefined ? payload.whatsapp_number.trim() : "",
+      site_title: payload.site_title || "The Law Kaksha",
+      contact_phone: payload.contact_phone || "",
+    };
+
+    if (isConnected()) {
+      await SiteSetting.findOneAndUpdate(
+        { key: "site_details" },
+        { key: "site_details", value: siteDetails },
+        { upsert: true, new: true }
+      );
+      if (payload.announcement) {
+        await SiteSetting.findOneAndUpdate(
+          { key: "announcement" },
+          { key: "announcement", value: payload.announcement },
+          { upsert: true }
+        );
+      }
+      if (payload.social_links) {
+        await SiteSetting.findOneAndUpdate(
+          { key: "social_links" },
+          { key: "social_links", value: payload.social_links },
+          { upsert: true }
+        );
+      }
+    }
+
+    const settingsTable = Database.table("site_settings");
+    const existing = settingsTable.findOne((s) => s.key === "site_details");
+    if (existing) {
+      settingsTable.update(existing.id, { value: siteDetails });
+    } else {
+      settingsTable.insert({ id: `set-${Date.now()}`, key: "site_details", value: siteDetails });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Site settings updated successfully.",
+      data: siteDetails,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error updating settings: " + err.message });
   }
 });
 
@@ -1971,6 +2374,11 @@ router.post("/admin/settings", async (req, res) => {
   try {
     const { key, value } = req.body;
     if (!key) return res.status(400).json({ success: false, message: "Settings key is required." });
+
+    if (isConnected()) {
+      const updated = await SiteSetting.findOneAndUpdate({ key }, { key, value }, { upsert: true, new: true });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", setting: updated });
+    }
 
     const settingsTable = Database.table("site_settings");
     const existing = settingsTable.findOne((s) => s.key === key);

@@ -567,7 +567,41 @@ router.post("/coupons/validate", async (req, res) => {
       coupon_id: coupon.id,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Error validating coupon: " + err.message });
+    res.status(500).json({
+      success: false,
+      message: "Error validating coupon: " + err.message,
+    });
+  }
+});
+
+// GET /api/public/site-settings — Read-only public site details (support email, watermark, whatsapp)
+router.get("/public/site-settings", async (req, res) => {
+  try {
+    let siteDetails = {
+      support_email: "support@thelawkaksha.com",
+      domain: "https://thelawkaksha.com",
+      watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
+      whatsapp_number: "", // Hidden if empty
+      site_title: "The Law Kaksha",
+    };
+
+    if (isConnected()) {
+      const doc = await SiteSetting.findOne({ key: "site_details" }).lean();
+      if (doc && doc.value) siteDetails = { ...siteDetails, ...doc.value };
+    } else {
+      const settingsTable = Database.table("site_settings");
+      const record = settingsTable.findOne((s) => s.key === "site_details");
+      if (record && record.value) siteDetails = { ...siteDetails, ...record.value };
+    }
+
+    res.status(200).json({
+      success: true,
+      source: isConnected() ? "mongodb_atlas" : "local_cache",
+      site_details: siteDetails,
+      whatsapp_number: siteDetails.whatsapp_number || "",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching site settings: " + err.message });
   }
 });
 
