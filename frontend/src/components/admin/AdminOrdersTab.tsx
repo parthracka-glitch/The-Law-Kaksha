@@ -103,6 +103,62 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
     }
   };
 
+  const handleRecheckPayment = async (orderId: string) => {
+    try {
+      setActionLoading(true);
+      const res = await adminFetch(`/api/admin/orders/${orderId}/recheck`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.reconciled || data.status === "COMPLETED") {
+          showToast("Payment verified with gateway. Access restored.");
+        } else {
+          showToast("Order is still marked as pending on gateway.");
+        }
+        fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder((prev) => (prev ? { ...prev, status: data.status === "COMPLETED" ? "paid" : prev.status } : null));
+        }
+      } else {
+        alert(data.message || "Failed to recheck payment.");
+      }
+    } catch (err: any) {
+      alert("Error rechecking payment: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleGrantManual = async (orderId: string) => {
+    if (!confirm("Are you sure you want to manually grant digital course access for this candidate? This action is audited.")) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const res = await adminFetch(`/api/admin/orders/${orderId}/grant-manual`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: "Manual grant by administrator from orders dashboard" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Access granted manually. Audit record created.");
+        fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder((prev) => (prev ? { ...prev, status: "paid" } : null));
+        }
+      } else {
+        alert(data.message || "Failed to grant access.");
+      }
+    } catch (err: any) {
+      alert("Error granting access: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleExtendEntitlement = async (entitlementId: string) => {
     try {
       setActionLoading(true);
@@ -282,6 +338,26 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
                           Inspect Snapshot
                         </button>
 
+                        <button
+                          onClick={() => handleRecheckPayment(order.id)}
+                          disabled={actionLoading}
+                          className="px-2.5 py-1.5 rounded-lg border border-[#AED7E9] bg-sky-50 hover:bg-sky-100 text-sky-800 font-semibold text-xs transition-colors"
+                          title="Verify payment with Razorpay gateway"
+                        >
+                          Re-check
+                        </button>
+
+                        {order.status !== "paid" && (
+                          <button
+                            onClick={() => handleGrantManual(order.id)}
+                            disabled={actionLoading}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs border border-emerald-200 transition-colors"
+                            title="Grant digital entitlement manually"
+                          >
+                            Grant Access
+                          </button>
+                        )}
+
                         {order.status === "paid" && (
                           <button
                             onClick={() => handleRefund(order.id)}
@@ -362,7 +438,27 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
             </div>
 
             {/* Actions in Modal */}
-            <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between">
+            <div className="pt-4 border-t border-[#E7E4E7] flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => handleRecheckPayment(selectedOrder.id)}
+                disabled={actionLoading}
+                className="px-3 py-2 rounded-xl border border-[#AED7E9] bg-sky-50 hover:bg-sky-100 text-sky-800 font-semibold text-xs transition-colors flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? "animate-spin" : ""}`} />
+                <span>Re-check Payment</span>
+              </button>
+
+              {selectedOrder.status !== "paid" && (
+                <button
+                  onClick={() => handleGrantManual(selectedOrder.id)}
+                  disabled={actionLoading}
+                  className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Grant Access Manually</span>
+                </button>
+              )}
+
               {selectedOrder.status === "paid" && (
                 <button
                   onClick={() => handleRefund(selectedOrder.id)}

@@ -89,7 +89,14 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(morgan("dev"));
 
 // OWASP A05: NoSQL / Mongo Operator Injection & Prototype Pollution Sanitizer (Bounded Depth)
@@ -248,6 +255,11 @@ if (require.main === module) {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`[The Law Kaksha] API Server running on port ${PORT}`);
     console.log(`[The Law Kaksha] Health check: http://127.0.0.1:${PORT}/api/health`);
+
+    // Background Pending Order Reconcile Sweeper (runs on startup & every 15 mins)
+    const { sweepPendingOrders } = require("./services/entitlementService");
+    setTimeout(() => sweepPendingOrders().catch(() => {}), 5000);
+    setInterval(() => sweepPendingOrders().catch(() => {}), 15 * 60 * 1000).unref();
   });
 }
 

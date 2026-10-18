@@ -36,6 +36,7 @@ const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
 const { requireAdmin } = require("../middleware/authMiddleware");
+const { grantEntitlement, reconcileOrder } = require("../services/entitlementService");
 
 const router = express.Router();
 
@@ -1237,9 +1238,49 @@ router.get("/admin/orders", async (req, res) => {
 
     orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    res.status(200).json({ success: true, count: orders.length, orders });
+    res.status(200).json({ success: true, count: orders.length, orders, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching orders: " + err.message });
+  }
+});
+
+// B1: ADMIN ORDER RE-CHECK PAYMENT (§8 B1)
+router.post("/admin/orders/:id/recheck", async (req, res) => {
+  try {
+    const result = await reconcileOrder(req.params.id);
+    if (!result.success && result.error === "ORDER_NOT_FOUND") {
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error reconciling order: " + err.message });
+  }
+});
+
+// B1: ADMIN MANUAL ENTITLEMENT GRANT WITH AUDIT LOG (§8 B1)
+router.post("/admin/orders/:id/grant-manual", async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { notes = "Granted access manually by administrator" } = req.body;
+
+    const result = await grantEntitlement(orderId, {
+      grantedBy: "admin_manual",
+      adminUser: req.user,
+      notes,
+    });
+
+    if (!result.success) {
+      const status = result.error === "ORDER_NOT_FOUND" ? 404 : 400;
+      return res.status(status).json(result);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Digital entitlement granted manually. Action recorded in audit logs.",
+      ...result,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error granting manual entitlement: " + err.message });
   }
 });
 

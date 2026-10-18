@@ -32,8 +32,10 @@ import {
   ShoppingBag,
   GraduationCap,
   Crown,
+  RefreshCw,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { getApiBaseUrl } from "@/lib/api";
 import { StudentHeroCard } from "./StudentHeroCard";
 import { StudentMetricStats } from "./StudentMetricStats";
 import { StudentMyCoursesList, StudentCourseProgressItem } from "./StudentMyCoursesList";
@@ -594,6 +596,39 @@ export function StudentDashboardHome({
   const freeNotesCarouselRef = useRef<HTMLDivElement>(null);
   const quizSectionRef = useRef<HTMLDivElement>(null);
   const [promoSlideIndex, setPromoSlideIndex] = useState(0);
+  const [isReconciling, setIsReconciling] = useState(false);
+
+  const handleReconcileAccess = async () => {
+    try {
+      setIsReconciling(true);
+      const token = typeof window !== "undefined" ? localStorage.getItem("lawkaksha_token") || localStorage.getItem("token") : null;
+      if (!token) {
+        alert("Please login first to check your payment status.");
+        return;
+      }
+      const apiBase = getApiBaseUrl();
+      const res = await fetch(`${apiBase}/api/orders/reconcile-my-access`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || "Payment reconciliation complete.");
+        if (typeof window !== "undefined") {
+          window.location.reload();
+        }
+      } else {
+        alert(data.message || "No pending payment found to restore.");
+      }
+    } catch (e: any) {
+      alert("Error checking access status: " + e.message);
+    } finally {
+      setIsReconciling(false);
+    }
+  };
 
   // Dynamic enrolled courses strictly reflecting student's subscribed stream
   const dynamicCourses: EnrolledCourseItem[] = useMemo(() => {
@@ -1040,17 +1075,28 @@ export function StudentDashboardHome({
       {/* 3. MY COURSES SECTION (SEARCH, FILTERS, PROGRESS BARS MATCHING SVG)        */}
       {/* ========================================================================= */}
       <section className="space-y-3.5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <h3 className="text-lg sm:text-xl font-extrabold text-[#13264F] tracking-tight">
             My Courses
           </h3>
-          <button
-            onClick={() => onExploreCourse && onExploreCourse("ca-foundation")}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#3558E8] hover:underline cursor-pointer"
-          >
-            <span>View all</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReconcileAccess}
+              disabled={isReconciling}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 shadow-xs cursor-pointer transition-colors"
+              title="Click here if you completed payment but cannot access course material"
+            >
+              <RefreshCw className={`w-3 h-3 text-slate-500 ${isReconciling ? "animate-spin" : ""}`} />
+              <span>{isReconciling ? "Checking Access..." : "I paid but can't access"}</span>
+            </button>
+            <button
+              onClick={() => onExploreCourse && onExploreCourse("ca-foundation")}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#3558E8] hover:underline cursor-pointer"
+            >
+              <span>View all</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         <StudentMyCoursesList

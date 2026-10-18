@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const Database = require("../db/database");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
+const { grantEntitlement, reconcileOrder } = require("../services/entitlementService");
 
 const router = express.Router();
 
@@ -300,145 +301,28 @@ async function handleVerifyPayment(req, res) {
       });
     }
 
-    // Idempotent fulfillment if order was already verified
-    if (order.status === "COMPLETED") {
-      const usersTable = Database.table("users");
-      const student = usersTable.findOne(
-        (u) => u.email && u.email.toLowerCase() === (order.customer_email || "").toLowerCase()
-      );
-      return res.status(200).json({
-        success: true,
-        message: "Payment already verified and enrollment active.",
-        data: { order, student },
-        order,
-      });
-    }
-
-    ordersTable.update(order.id, {
-      status: "COMPLETED",
-      gateway_payment_id: razorpayPaymentId || `pay_LK_${Date.now()}`,
+    // Fulfill entitlement idempotently using EntitlementService
+    const grantResult = await grantEntitlement(order.id, {
+      gatewayPaymentId: razorpayPaymentId,
+      gatewayOrderId: razorpayOrderId,
+      paymentMethod: "UPI / Razorpay",
+      grantedBy: "razorpay_verify",
+      deviceId: req.body.deviceId,
+      deviceName: req.body.deviceName,
     });
 
-    // Determine unlocked item IDs
-    const unlockedItemIds = [];
-    (order.items || []).forEach((it) => {
-      const id = it.id || "";
-      if (id) unlockedItemIds.push(id);
-      if (id === "ca-book-vol-1" || id === "book-vol-1" || id === "prod-vol1" || id.includes("ca-foundation") || id.includes("ca-book") || id.includes("question-bank")) {
-        unlockedItemIds.push("book-vol-1", "ca-foundation-business-laws", "course-ca-foundation-sub", "ca-foundation");
-      }
-      if (id === "ca-book-vol-2" || id === "book-vol-2" || id === "prod-vol2" || id.includes("cseet")) {
-        unlockedItemIds.push("book-vol-2", "cseet-business-law", "cseet-management", "course-cseet-sub", "cseet");
-      }
-      if (id === "prod-combo" || id === "all-access") {
-        unlockedItemIds.push("book-vol-1", "book-vol-2", "ca-foundation-business-laws", "cseet-business-law", "course-ca-foundation-sub", "course-cseet-sub", "all-access");
-      }
-      if (id.includes("mcq")) {
-        unlockedItemIds.push("book-mcq");
-      }
-      if (id.includes("ldr")) {
-        unlockedItemIds.push("book-ldr");
-      }
-    });
-
-    // Create or retrieve student account
-    const usersTable = Database.table("users");
-    const cleanEmail = (order.customer_email || "").toLowerCase().trim();
-    let student = usersTable.findOne(
-      (u) => (u.email && u.email.toLowerCase() === cleanEmail)
-    );
-
-    const isCSEET = (order.target_exam || "").toLowerCase().includes("cseet");
-    const studentId = student?.student_id || (isCSEET ? `LRK-2026-CS${Math.floor(1000 + Math.random() * 9000)}` : `LRK-2026-CA${Math.floor(1000 + Math.random() * 9000)}`);
-    const tempPassword = student?.tempPassword || order.tempPassword || `Law@${Math.floor(1000 + Math.random() * 9000)}`;
-    const passwordHash = student?.password_hash || bcrypt.hashSync(tempPassword, 10);
-    const deviceId = req.body.deviceId || order.deviceId || `DEV-${Date.now()}`;
-    const deviceName = req.body.deviceName || order.deviceName || "Primary Device";
-
-    if (!student) {
-      student = usersTable.insert({
-        id: `usr-${Date.now()}`,
-        student_id: studentId,
-        name: order.customer_name || "Enrolled Student",
-        email: cleanEmail,
-        boundGmail: cleanEmail,
-        phone: order.customer_phone || "",
-        password_hash: passwordHash,
-        tempPassword: tempPassword,
-        target_exam: order.target_exam,
-        role: "student",
-        is_active: 1,
-        drm_access: 1,
-        unlockedItemIds,
-        activeDeviceId: deviceId,
-        activeDeviceName: deviceName,
-        lastActiveAt: new Date().toISOString(),
-      });
-    } else {
-      const combined = Array.from(new Set([...(student.unlockedItemIds || []), ...unlockedItemIds]));
-      usersTable.update(student.id, {
-        unlockedItemIds: combined,
-        password_hash: passwordHash,
-        tempPassword: tempPassword,
-        activeDeviceId: deviceId,
-        activeDeviceName: deviceName,
-        lastActiveAt: new Date().toISOString(),
+    if (!grantResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: grantResult.message || "Payment verified but access fulfillment failed.",
       });
     }
 
-    // Insert active subscription record
-    const subscriptionsTable = Database.table("subscriptions");
-    const subRecord = {
-      id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      userId: student.id,
-      studentName: student.name,
-      studentRoll: studentId,
-      email: cleanEmail,
-      phone: student.phone,
-      item: (order.items || []).map((i) => i.title).join(", "),
-      targetExam: order.target_exam,
-      amount: `₹${order.total_amount}`,
-      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-      paymentMode: "UPI / Razorpay",
-      accessStatus: "Active",
-      status: "ACTIVE",
-      unlockedItemIds,
-    };
-    subscriptionsTable.insert(subRecord);
-
-    // Sync directly to MongoDB Atlas
-    const { isConnected } = require("../db/mongo");
-    if (isConnected()) {
-      const User = require("../models/User");
-      const Subscription = require("../models/Subscription");
-
-      User.findOneAndUpdate(
-        { email: cleanEmail },
-        {
-          $addToSet: {
-            unlockedItemIds: { $each: unlockedItemIds },
-            enrolled_books: { $each: (order.items || []).map((i) => i.title) },
-          },
-          $set: {
-            name: student.name,
-            phone: student.phone,
-            student_id: studentId,
-            target_exam: order.target_exam,
-            drm_access: true,
-            is_active: true,
-            password_hash: passwordHash,
-            tempPassword: tempPassword,
-            boundGmail: cleanEmail,
-            activeDeviceId: deviceId,
-            activeDeviceName: deviceName,
-            lastActiveAt: new Date(),
-          },
-        },
-        { upsert: true }
-      ).catch((e) => console.error("[Orders] Atlas user sync error:", e));
-
-      Subscription.create(subRecord).catch((e) => console.error("[Orders] Atlas sub create error:", e));
-    }
+    const student = grantResult.student;
+    const cleanEmail = student.email;
+    const studentId = student.student_id;
+    const deviceId = req.body.deviceId || student.activeDeviceId || `DEV-${Date.now()}`;
+    const tempPassword = grantResult.credentials?.tempPassword || student.tempPassword;
 
     const token = jwt.sign(
       {
@@ -456,8 +340,8 @@ async function handleVerifyPayment(req, res) {
 
     const responseData = {
       order: {
-        id: order.id,
-        total_amount: order.total_amount,
+        id: grantResult.order.id,
+        total_amount: grantResult.order.total_amount,
         status: "COMPLETED",
         tracking_number: "INSTANT-IN-WEB-DRM-ACTIVE",
         date: new Date().toISOString(),
@@ -465,7 +349,7 @@ async function handleVerifyPayment(req, res) {
       student: {
         ...safeStudent,
         student_id: studentId,
-        unlockedItemIds,
+        unlockedItemIds: student.unlockedItemIds,
       },
       credentials: {
         studentId: studentId,
@@ -474,7 +358,7 @@ async function handleVerifyPayment(req, res) {
       },
       studentId: studentId,
       tempPassword: tempPassword,
-      unlockedItemIds,
+      unlockedItemIds: student.unlockedItemIds,
       deviceId,
       token,
     };
@@ -487,7 +371,91 @@ async function handleVerifyPayment(req, res) {
     });
   } catch (err) {
     console.error("[Orders] Verification error:", err);
-    return res.status(500).json({ success: false, message: "Payment verification failed." });
+    return res.status(500).json({ success: false, message: "Payment verification failed: " + err.message });
+  }
+}
+
+/**
+ * 4. Razorpay Webhook Handler
+ * POST /api/webhooks/razorpay
+ * Cryptographically verifies x-razorpay-signature and fulfills entitlement for order.paid / payment.captured
+ */
+async function handleRazorpayWebhook(req, res) {
+  try {
+    const signature = req.headers["x-razorpay-signature"];
+    const webhookSecret =
+      process.env.RAZORPAY_WEBHOOK_SECRET ||
+      process.env.RAZORPAY_KEY_SECRET ||
+      (process.env.NODE_ENV !== "production" ? "mock_razorpay_webhook_secret" : null);
+
+    if (!webhookSecret) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(500).json({ success: false, message: "RAZORPAY_WEBHOOK_SECRET unconfigured in production." });
+      }
+    }
+
+    if (webhookSecret && signature) {
+      const payload = req.rawBody ? req.rawBody.toString() : (typeof req.body === "string" ? req.body : JSON.stringify(req.body));
+      const expectedSignature = crypto.createHmac("sha256", webhookSecret).update(payload).digest("hex");
+
+      const sigBuffer = Buffer.from(signature);
+      const expectedBuffer = Buffer.from(expectedSignature);
+      const isValid = sigBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+
+      if (!isValid) {
+        console.warn("[Razorpay Webhook] Signature mismatch.");
+        return res.status(400).json({ success: false, message: "Webhook signature mismatch." });
+      }
+    } else if (process.env.NODE_ENV === "production") {
+      return res.status(400).json({ success: false, message: "Missing required webhook signature header." });
+    }
+
+    const event = req.body?.event;
+    const payload = req.body?.payload || {};
+
+    let gatewayOrderId = null;
+    let gatewayPaymentId = null;
+
+    if (event === "order.paid") {
+      gatewayOrderId = payload.order?.entity?.id;
+      gatewayPaymentId = payload.payment?.entity?.id;
+    } else if (event === "payment.captured") {
+      gatewayPaymentId = payload.payment?.entity?.id;
+      gatewayOrderId = payload.payment?.entity?.order_id;
+    }
+
+    if (!gatewayOrderId && !gatewayPaymentId) {
+      return res.status(200).json({ status: "ok", message: `Event ${event} acknowledged.` });
+    }
+
+    const ordersTable = Database.table("orders");
+    const order = ordersTable.findOne(
+      (o) =>
+        (gatewayOrderId && o.gateway_order_id === gatewayOrderId) ||
+        (gatewayPaymentId && o.gateway_payment_id === gatewayPaymentId)
+    );
+
+    if (!order) {
+      console.warn(`[Razorpay Webhook] Order not found for gatewayOrderId: ${gatewayOrderId}`);
+      return res.status(200).json({ status: "ok", message: "Order not tracked, ignored." });
+    }
+
+    const grantResult = await grantEntitlement(order.id, {
+      gatewayPaymentId: gatewayPaymentId || `pay_wh_${Date.now()}`,
+      gatewayOrderId,
+      grantedBy: "razorpay_webhook",
+      rawPayload: req.body,
+    });
+
+    return res.status(200).json({
+      status: "ok",
+      success: true,
+      message: "Webhook processed and digital entitlement granted.",
+      alreadyGranted: grantResult.alreadyGranted,
+    });
+  } catch (err) {
+    console.error("[Razorpay Webhook] Processing error:", err);
+    return res.status(500).json({ success: false, message: "Webhook error: " + err.message });
   }
 }
 
@@ -496,6 +464,81 @@ router.post("/orders/create", handleCreateOrder);
 
 // 2. Payment Verification endpoint
 router.post("/orders/verify", handleVerifyPayment);
+
+// 3. Razorpay Webhooks
+router.post("/webhooks/razorpay", handleRazorpayWebhook);
+router.post("/webhook/razorpay", handleRazorpayWebhook);
+
+// 4. Order Reconcile & Status Endpoints
+router.get("/orders/:id/status", async (req, res) => {
+  try {
+    const result = await reconcileOrder(req.params.id);
+    if (!result.success && result.error === "ORDER_NOT_FOUND") {
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("[Orders] Status error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/orders/:id/reconcile", async (req, res) => {
+  try {
+    const result = await reconcileOrder(req.params.id);
+    if (!result.success && result.error === "ORDER_NOT_FOUND") {
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("[Orders] Reconcile error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/orders/reconcile-my-access", requireAuth, async (req, res) => {
+  try {
+    const email = (req.user.email || "").toLowerCase().trim();
+    if (!email) {
+      return res.status(400).json({ success: false, message: "User email not found in token." });
+    }
+
+    const ordersTable = Database.table("orders");
+    const userOrders = ordersTable.find(
+      (o) =>
+        (o.customer_email && o.customer_email.toLowerCase() === email) ||
+        (o.personal_details?.email && o.personal_details.email.toLowerCase() === email)
+    );
+
+    let reconciledCount = 0;
+    for (const ord of userOrders) {
+      if (ord.status === "PENDING" || ord.status === "pending") {
+        const rec = await reconcileOrder(ord);
+        if (rec.reconciled) reconciledCount++;
+      } else if (ord.status === "COMPLETED" || ord.status === "paid") {
+        await grantEntitlement(ord.id, { grantedBy: "reconcile" });
+      }
+    }
+
+    const entitlementsTable = Database.table("entitlements");
+    const studentEntitlements = entitlementsTable.find(
+      (e) => (e.user_id === req.user.id || e.user_email === email) && e.status === "active"
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        reconciledCount > 0
+          ? `Successfully reconciled ${reconciledCount} order(s). Access is now active!`
+          : "Access check complete. All paid orders are currently active.",
+      reconciledCount,
+      entitlements: studentEntitlements,
+    });
+  } catch (err) {
+    console.error("[Orders] Reconcile my access error:", err);
+    return res.status(500).json({ success: false, message: "Failed to reconcile access: " + err.message });
+  }
+});
 
 
 /**
