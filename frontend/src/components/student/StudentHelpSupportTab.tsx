@@ -70,7 +70,12 @@ export function StudentHelpSupportTab() {
   const fetchTickets = async () => {
     try {
       setLoadingTickets(true);
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("lawkaksha_student_token") ||
+            localStorage.getItem("lawkaksha_token") ||
+            localStorage.getItem("token")
+          : null;
       const res = await fetch(`${API_URL}/api/student/support-tickets`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -102,7 +107,12 @@ export function StudentHelpSupportTab() {
       setSubmitError(null);
       setSubmitSuccess(null);
 
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("lawkaksha_student_token") ||
+            localStorage.getItem("lawkaksha_token") ||
+            localStorage.getItem("token")
+          : null;
       const res = await fetch(`${API_URL}/api/student/support-tickets`, {
         method: "POST",
         headers: {

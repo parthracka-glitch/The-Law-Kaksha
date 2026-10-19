@@ -93,7 +93,12 @@ export function getActiveUser(): any | null {
 
 export function getStudentAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("lawkaksha_student_token");
+  return (
+    localStorage.getItem("lawkaksha_student_token") ||
+    localStorage.getItem("lawkaksha_token") ||
+    localStorage.getItem("token") ||
+    null
+  );
 }
 
 export function setStudentAuthSession(token: string, user: any) {

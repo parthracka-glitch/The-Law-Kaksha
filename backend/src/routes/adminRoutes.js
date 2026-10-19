@@ -1387,12 +1387,22 @@ router.post("/admin/subscriptions", async (req, res) => {
   }
 });
 
-// B2 & B3: COURSES & EXTRA COURSES CRUD (§8 B2 & B3)
+// B2 & B3: COURSES & EXTRA COURSES CRUD (§8 B2 & B3) & COURSES HIERARCHY MANAGEMENT (P5)
 router.get("/admin/courses", async (req, res) => {
   try {
+    if (isConnected()) {
+      const courses = await Course.find().sort({ order: 1, display_order: 1 }).lean();
+      if (courses && courses.length > 0) {
+        return res.status(200).json({ success: true, count: courses.length, source: "mongodb_atlas", courses });
+      }
+    }
     const coursesTable = Database.table("courses");
-    const courses = coursesTable.find();
-    res.status(200).json({ success: true, count: courses.length, courses });
+    const courses = coursesTable.find().sort((a, b) => {
+      const ordA = a.order ?? (a.kind === "core" ? 1 : 99);
+      const ordB = b.order ?? (b.kind === "core" ? 1 : 99);
+      return ordA - ordB;
+    });
+    res.status(200).json({ success: true, count: courses.length, source: "local_cache", courses });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1400,24 +1410,34 @@ router.get("/admin/courses", async (req, res) => {
 
 router.post("/admin/courses", async (req, res) => {
   try {
-    const { title, description, thumbnail, kind, price, mrp, show_on_website, display_order } = req.body;
+    const { title, description, thumbnail, kind, price, mrp, show_on_website, display_order, availability, accessDays } = req.body;
     if (!title) return res.status(400).json({ success: false, message: "Course title is required." });
 
-    const coursesTable = Database.table("courses");
-    const newCourse = coursesTable.insert({
-      id: `course-${Date.now()}`,
+    const newCourseData = {
+      id: req.body.id || `course-${Date.now()}`,
       title,
       description: description || "",
       thumbnail: thumbnail || "/assets/ca-cs-hero-books-sharp.png",
       kind: kind === "extra" ? "extra" : "core",
       price: Number(price || 0),
       mrp: Number(mrp || 0),
+      accessDays: Number(accessDays || 30),
+      availability: availability || "live",
       show_on_website: show_on_website !== false,
       is_active: true,
-      display_order: Number(display_order || 0),
-    });
+      order: Number(display_order || 99),
+      display_order: Number(display_order || 99),
+    };
 
-    res.status(201).json({ success: true, course: newCourse });
+    if (isConnected()) {
+      const created = await Course.create(newCourseData);
+      Database.table("courses").insert(newCourseData);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", course: created });
+    }
+
+    const coursesTable = Database.table("courses");
+    const newCourse = coursesTable.insert(newCourseData);
+    res.status(201).json({ success: true, source: "local_cache", course: newCourse });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1425,12 +1445,40 @@ router.post("/admin/courses", async (req, res) => {
 
 router.put("/admin/courses/:id", async (req, res) => {
   try {
-    const coursesTable = Database.table("courses");
-    const updated = coursesTable.update(req.params.id, req.body);
-    if (!updated) return res.status(404).json({ success: false, message: "Course not found" });
-    res.status(200).json({ success: true, course: updated });
+    const { id } = req.params;
+    const allowedFields = [
+      "title",
+      "availability",
+      "price",
+      "mrp",
+      "accessDays",
+      "description",
+      "thumbnail",
+      "kind",
+      "is_active",
+      "order",
+      "display_order",
+    ];
+    const updates = {};
+    for (const f of allowedFields) {
+      if (req.body[f] !== undefined) updates[f] = req.body[f];
+    }
+    if (updates.price !== undefined) updates.price = Number(updates.price);
+    if (updates.accessDays !== undefined) updates.accessDays = Number(updates.accessDays);
+    if (updates.mrp !== undefined) updates.mrp = Number(updates.mrp);
+
+    if (isConnected()) {
+      const updated = await Course.findOneAndUpdate({ id }, updates, { new: true });
+      Database.table("courses").update(id, updates);
+      if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
+      return res.status(200).json({ success: true, source: "mongodb_atlas", course: updated });
+    }
+
+    const updated = Database.table("courses").update(id, updates);
+    if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
+    res.status(200).json({ success: true, source: "local_cache", course: updated });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: "Error updating course: " + err.message });
   }
 });
 
@@ -1962,61 +2010,8 @@ router.get("/admin/export/:entity", async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// 15. COURSES HIERARCHY MANAGEMENT (P5)
+// 15. COURSES HIERARCHY MANAGEMENT (P5) - Handled in Section B2/B3 above
 // -----------------------------------------------------------------------------
-router.get("/admin/courses", async (req, res) => {
-  try {
-    if (isConnected()) {
-      const courses = await Course.find().sort({ order: 1, display_order: 1 }).lean();
-      if (courses && courses.length > 0) {
-        return res.status(200).json({ success: true, source: "mongodb_atlas", courses });
-      }
-    }
-    const courses = Database.table("courses").find();
-    res.status(200).json({ success: true, source: "local_cache", courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching courses: " + err.message });
-  }
-});
-
-router.put("/admin/courses/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const allowedFields = [
-      "title",
-      "availability",
-      "price",
-      "mrp",
-      "accessDays",
-      "description",
-      "thumbnail",
-      "kind",
-      "is_active",
-      "order",
-      "display_order",
-    ];
-    const updates = {};
-    for (const f of allowedFields) {
-      if (req.body[f] !== undefined) updates[f] = req.body[f];
-    }
-    if (updates.price !== undefined) updates.price = Number(updates.price);
-    if (updates.accessDays !== undefined) updates.accessDays = Number(updates.accessDays);
-    if (updates.mrp !== undefined) updates.mrp = Number(updates.mrp);
-
-    if (isConnected()) {
-      const updated = await Course.findOneAndUpdate({ id }, updates, { new: true });
-      Database.table("courses").update(id, updates);
-      if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
-      return res.status(200).json({ success: true, source: "mongodb_atlas", course: updated });
-    }
-
-    const updated = Database.table("courses").update(id, updates);
-    if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
-    res.status(200).json({ success: true, source: "local_cache", course: updated });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error updating course: " + err.message });
-  }
-});
 
 // -----------------------------------------------------------------------------
 // 16. ACTS MANAGEMENT (P5)

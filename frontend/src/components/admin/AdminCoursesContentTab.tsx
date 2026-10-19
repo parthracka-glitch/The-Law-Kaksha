@@ -78,10 +78,33 @@ interface Props {
   onPreviewPdf?: (item: { title: string; pdfUrl: string; isSample?: boolean }) => void;
 }
 
+const DEFAULT_ADMIN_COURSES: CourseRecord[] = [
+  {
+    id: "course-ca-foundation",
+    title: "CA Foundation Paper 2: Business Laws",
+    availability: "live",
+    price: 99,
+    mrp: 299,
+    accessDays: 30,
+    exam_body: "ICAI",
+    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
+  },
+  {
+    id: "course-cseet",
+    title: "CSEET Business Laws & Business Management",
+    availability: "coming_soon",
+    price: 99,
+    mrp: 299,
+    accessDays: 30,
+    exam_body: "ICSI",
+    description: "Comprehensive Business Laws & Management preparation platform for CSEET.",
+  },
+];
+
 export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: Props) {
   // Courses state
-  const [courses, setCourses] = useState<CourseRecord[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [courses, setCourses] = useState<CourseRecord[]>(DEFAULT_ADMIN_COURSES);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("course-ca-foundation");
   const [courseLoading, setCourseLoading] = useState<boolean>(true);
   const [editingCourse, setEditingCourse] = useState<{ [id: string]: { price: number; accessDays: number; saving: boolean } }>({});
 
@@ -120,19 +143,42 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     try {
       const res = await adminFetch("/api/admin/courses");
       const data = await res.json();
-      if (data.success && data.courses && data.courses.length > 0) {
-        setCourses(data.courses);
-        const editMap: { [id: string]: { price: number; accessDays: number; saving: boolean } } = {};
-        data.courses.forEach((c: CourseRecord) => {
-          editMap[c.id] = { price: c.price || 99, accessDays: c.accessDays || 30, saving: false };
-        });
-        setEditingCourse(editMap);
-        if (!selectedCourseId && data.courses[0]) {
-          setSelectedCourseId(data.courses[0].id);
-        }
-      }
+      const rawCourses: CourseRecord[] =
+        data.success && data.courses && data.courses.length > 0
+          ? data.courses
+          : DEFAULT_ADMIN_COURSES;
+
+      const sorted = [...rawCourses].sort((a, b) => {
+        const ordA =
+          a.id === "course-ca-foundation" || a.id === "ca-foundation"
+            ? 1
+            : a.id === "course-cseet"
+            ? 2
+            : 99;
+        const ordB =
+          b.id === "course-ca-foundation" || b.id === "ca-foundation"
+            ? 1
+            : b.id === "course-cseet"
+            ? 2
+            : 99;
+        return ordA - ordB;
+      });
+
+      setCourses(sorted);
+      const editMap: { [id: string]: { price: number; accessDays: number; saving: boolean } } = {};
+      sorted.forEach((c: CourseRecord) => {
+        editMap[c.id] = { price: c.price || 99, accessDays: c.accessDays || 30, saving: false };
+      });
+      setEditingCourse(editMap);
+
+      setSelectedCourseId((prev) => {
+        if (prev && sorted.some((c) => c.id === prev)) return prev;
+        return sorted[0]?.id || "course-ca-foundation";
+      });
     } catch (err) {
       console.error("Failed to load courses:", err);
+      setCourses(DEFAULT_ADMIN_COURSES);
+      setSelectedCourseId((prev) => prev || "course-ca-foundation");
     } finally {
       setCourseLoading(false);
     }
@@ -150,16 +196,46 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       try {
         const res = await adminFetch(`/api/admin/acts?courseId=${selectedCourseId}`);
         const data = await res.json();
-        if (data.success && data.acts) {
+        if (data.success && data.acts && data.acts.length > 0) {
           setActs(data.acts);
-          if (data.acts.length > 0) {
-            setSelectedActId(data.acts[0].id);
+          setSelectedActId((prev) =>
+            prev && data.acts.some((a: ActRecord) => a.id === prev) ? prev : data.acts[0].id
+          );
+        } else {
+          // Provide default acts for CA Foundation if empty or unseeded
+          if (selectedCourseId === "course-ca-foundation" || selectedCourseId === "ca-foundation") {
+            const fallbackActs: ActRecord[] = [
+              { id: "act-ca-contract", courseId: selectedCourseId, title: "The Indian Contract Act, 1872", availability: "live", order: 1 },
+              { id: "act-ca-soga", courseId: selectedCourseId, title: "The Sale of Goods Act, 1930", availability: "live", order: 2 },
+              { id: "act-ca-partnership", courseId: selectedCourseId, title: "The Indian Partnership Act, 1932", availability: "live", order: 3 },
+              { id: "act-ca-llp", courseId: selectedCourseId, title: "The Limited Liability Partnership Act, 2008", availability: "live", order: 4 },
+              { id: "act-ca-companies", courseId: selectedCourseId, title: "The Companies Act, 2013", availability: "coming_soon", order: 5 },
+            ];
+            setActs(fallbackActs);
+            setSelectedActId((prev) =>
+              prev && fallbackActs.some((a) => a.id === prev) ? prev : fallbackActs[0].id
+            );
           } else {
+            setActs([]);
             setSelectedActId("");
           }
         }
       } catch (err) {
         console.error("Failed to load acts:", err);
+        if (selectedCourseId === "course-ca-foundation" || selectedCourseId === "ca-foundation") {
+          const fallbackActs: ActRecord[] = [
+            { id: "act-ca-contract", courseId: selectedCourseId, title: "The Indian Contract Act, 1872", availability: "live", order: 1 },
+            { id: "act-ca-soga", courseId: selectedCourseId, title: "The Sale of Goods Act, 1930", availability: "live", order: 2 },
+            { id: "act-ca-partnership", courseId: selectedCourseId, title: "The Indian Partnership Act, 1932", availability: "live", order: 3 },
+            { id: "act-ca-llp", courseId: selectedCourseId, title: "The Limited Liability Partnership Act, 2008", availability: "live", order: 4 },
+            { id: "act-ca-companies", courseId: selectedCourseId, title: "The Companies Act, 2013", availability: "coming_soon", order: 5 },
+          ];
+          setActs(fallbackActs);
+          setSelectedActId(fallbackActs[0].id);
+        } else {
+          setActs([]);
+          setSelectedActId("");
+        }
       } finally {
         setActsLoading(false);
       }
@@ -179,16 +255,30 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       try {
         const res = await adminFetch(`/api/admin/units?actId=${selectedActId}`);
         const data = await res.json();
-        if (data.success && data.units) {
+        if (data.success && data.units && data.units.length > 0) {
           setUnits(data.units);
-          if (data.units.length > 0) {
-            setSelectedUnitId(data.units[0].id);
+          setSelectedUnitId((prev) =>
+            prev && data.units.some((u: UnitRecord) => u.id === prev) ? prev : data.units[0].id
+          );
+        } else {
+          if (selectedActId === "act-ca-contract") {
+            const fallbackUnits: UnitRecord[] = [
+              { id: "unit-ca-contract-1", actId: "act-ca-contract", title: "Unit 1: Nature of Contracts & Essentials of Valid Offer", order: 1 },
+              { id: "unit-ca-contract-2", actId: "act-ca-contract", title: "Unit 2: Consideration & Capacity to Contract", order: 2 },
+            ];
+            setUnits(fallbackUnits);
+            setSelectedUnitId((prev) =>
+              prev && fallbackUnits.some((u) => u.id === prev) ? prev : fallbackUnits[0].id
+            );
           } else {
+            setUnits([]);
             setSelectedUnitId("");
           }
         }
       } catch (err) {
         console.error("Failed to load units:", err);
+        setUnits([]);
+        setSelectedUnitId("");
       } finally {
         setUnitsLoading(false);
       }
@@ -466,9 +556,9 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     }
   };
 
-  const selectedCourse = courses.find((c) => c.id === selectedCourseId);
-  const selectedAct = acts.find((a) => a.id === selectedActId);
-  const selectedUnit = units.find((u) => u.id === selectedUnitId);
+  const selectedCourse = courses.find((c) => c.id === selectedCourseId) || courses[0];
+  const selectedAct = acts.find((a) => a.id === selectedActId) || acts[0];
+  const selectedUnit = units.find((u) => u.id === selectedUnitId) || units[0];
 
   return (
     <div className="space-y-6 font-sans">

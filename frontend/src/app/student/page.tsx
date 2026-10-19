@@ -776,7 +776,12 @@ export default function StudentDashboardPage() {
     setCompletedUnits(updated);
     try {
       localStorage.setItem("lawkaksha_completed_units", JSON.stringify(updated));
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("lawkaksha_student_token") ||
+            localStorage.getItem("lawkaksha_token") ||
+            localStorage.getItem("token")
+          : null;
       fetch(`${API_URL}/api/student/toggle-unit-complete`, {
         method: "POST",
         headers: {
@@ -792,7 +797,12 @@ export default function StudentDashboardPage() {
   const handleToggleBookmark = (item: any) => {
     const itemId = item.id;
     const isBookmarked = bookmarksList.some((b) => b.id === itemId);
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("lawkaksha_student_token") ||
+          localStorage.getItem("lawkaksha_token") ||
+          localStorage.getItem("token")
+        : null;
 
     if (isBookmarked) {
       const updatedList = bookmarksList.filter((b) => b.id !== itemId);
@@ -1447,10 +1457,10 @@ export default function StudentDashboardPage() {
                       handleBuyCourse("all-access");
                     } else if (courseId.includes("ca")) {
                       setActiveCourse("ca");
-                      setActiveTab("chapters");
+                      setActiveTab("courses");
                     } else {
                       setActiveCourse("cs");
-                      setActiveTab("chapters");
+                      setActiveTab("courses");
                     }
                   }}
                   qotdData={DAILY_QOTD_DATA}
@@ -1492,6 +1502,7 @@ export default function StudentDashboardPage() {
 
           {(activeTab === "courses" || activeTab === "chapters") && (
             <StudentCoursesHierarchyTab
+              initialCourseId={activeCourse === "ca" ? "ca-foundation" : "course-cseet"}
               onOpenReader={(url, title, isPurchased, previewPagesLimit) => {
                 handleOpenPdf(url, title, "Curriculum Codex", isPurchased, Boolean(previewPagesLimit), previewPagesLimit);
               }}

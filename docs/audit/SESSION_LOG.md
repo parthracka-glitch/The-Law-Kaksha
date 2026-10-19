@@ -183,3 +183,26 @@
   3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 static and dynamic routes compiled cleanly, exit 0.
   4. Visual & Layout Stability: Carousel card maintains 100% static, uniform dimensions across all course rotations with zero vertical jump or layout shift on the sections below it.
 
+## 2026-10-19 21:25 - gemini - Admin Cascading Structure & Student My Courses Tab Hierarchy Fix
+- Goal: Fix "Cascading Structure: Select Course" getting stuck/empty in the Admin Panel and fix "My Courses" tab and metric cards ("7 Courses", "15 Lessons", "14 Study Drills") in the Student Dashboard not loading or opening.
+- Actions taken:
+  1. Token Retrieval Inconsistency:
+     - Standardized token retrieval in `frontend/src/lib/api.ts` (`getStudentAuthToken()`) and all student dashboard components (`StudentCoursesHierarchyTab.tsx`, `student/page.tsx`, `StudentHelpSupportTab.tsx`, `StudentDashboardHome.tsx`) to check `lawkaksha_student_token || lawkaksha_token || token`.
+  2. Backend Course Order & Filter Consolidation:
+     - In `backend/src/routes/adminRoutes.js` and `backend/src/routes/studentRoutes.js`, eliminated duplicate course route registrations and sorted courses by `order: 1, 2` so core courses (`course-ca-foundation`, `course-cseet`) always return first.
+     - Filtered `/api/student/my-courses` so courses with populated acts/curriculum are displayed to students.
+  3. Admin Panel Cascading Structure (`frontend/src/components/admin/AdminCoursesContentTab.tsx`):
+     - Defined `DEFAULT_ADMIN_COURSES` and pre-selected `course-ca-foundation` so the cascading dropdowns immediately display "Cascading Structure: CA Foundation Paper 2: Business Laws" without remaining blank or stuck on "Select Course".
+     - Added robust fallback act and unit data if the backend is temporarily offline or unseeded.
+  4. Student Dashboard "My Courses" Tab (`frontend/src/components/student/StudentCoursesHierarchyTab.tsx`):
+     - Added `initialCourseId?: string;` prop and `slug?: string;` to `HierarchicalCourse`.
+     - Seeded initial state with `FALLBACK_CA_COURSE` to eliminate empty flashes.
+     - Automatically sorted incoming courses, auto-selected the active course, and automatically expanded the first live act and unit so students see the complete curriculum hierarchy tree immediately.
+  5. Student Stat Cards & Navigation (`frontend/src/app/student/page.tsx`):
+     - Updated `onExploreCourse` to switch to `courses` tab and pass `initialCourseId={activeCourse === "ca" ? "ca-foundation" : "course-cseet"}`.
+     - Enabled opening the PDF reader directly upon clicking content items.
+- Verified:
+  1. Frontend TypeScript Compilation (`npm run --prefix frontend typecheck`): 0 errors, exit 0.
+  2. Full Backend Test Harness (`node backend/tests/runner.js`): 91/91 tests pass across 12 suites (100% pass rate in ~7.2s, exit 0).
+  3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 static and dynamic routes compiled cleanly, exit 0.
+

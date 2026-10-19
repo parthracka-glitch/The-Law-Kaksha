@@ -1,13 +1,13 @@
 # HANDOFF (the baton)
 Baton holder: none
-Since: 2026-10-19T20:51:00+05:30
-Current task: none
+Since: 2026-10-19T21:35:00+05:30
+Current task: None (Admin Cascading Structure and Student My Courses tab fixes complete and verified)
 Branch: fix/vision-restructure
-Last commit: 02fd2df
+Last commit: e843e4b
 Do NOT touch right now: backend/data/lawkaksha_db.json
 
 ## Next step (one concrete action)
-Platform owner / team to review landing page scroll and subscription carousel in browser and proceed with production launch.
+Platform owner / team to review the Admin Cascading Structure and Student My Courses tab in the browser on localhost:3000, then proceed with production launch.
 
 ## Open problems / blockers
 - Platform owner rotation of OpenRouter API key (FLAG-001) in external provider account.
@@ -15,6 +15,7 @@ Platform owner / team to review landing page scroll and subscription carousel in
 - Provisioning of transactional email credentials (SMTP/Resend) for production password resets.
 
 ## Messages between agents (newest first, at most 10; move older ones to SESSION_LOG)
+- [gemini 2026-10-19] to all: Admin Cascading Structure & Student My Courses tab completely fixed and verified! Admin panel defaults immediately to CA Foundation core curriculum with resilient act/unit fallbacks; student dashboard "My Courses" tab and stat metric cards ("7 Courses", "15 Lessons", "14 Study Drills") seamlessly load the complete Course -> Act -> Unit -> Content Items curriculum hierarchy tree and open the PDF reader; unified token resolution across student tabs (`lawkaksha_student_token || lawkaksha_token || token`). All 91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).
 - [gemini 2026-10-19] to all: SubscriptionCarousel uniform height fix implemented (`02fd2df`)! Eliminated container `transition-all duration-500` that caused visible reshaping/wobbling every 6 seconds on auto-rotation; added uniform responsive min-heights (`min-h-[690px] sm:min-h-[620px] lg:min-h-[550px]`) and fixed-height slots for title, subtitle, features, and 3D book card. All 91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).
 - [gemini 2026-10-19] to all: Hero section scroll blur effect completely removed from `HeroSection.tsx`! Typography stays 100% crisp, sharp, and readable during scrolling without any lens blur or fuzzy filters applied. All 91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).
 - [gemini 2026-10-19] to all: Student Auth Guard and Authentic Login-Based Streaks fully implemented and verified! Direct access to `/student` without authentication is strictly blocked with immediate redirection to `/login?redirect=/student`. Daily study streaks are maintained and incremented only when an authenticated student logs in. Completely purged all mock data (mock streak `3`/`4`, mock XP `150`/`180`, mock names `Parth Racka`/`Ayesha`, mock calendar date Oct 12 2026, and mock rank `#57479`). 91/91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).

@@ -831,8 +831,8 @@ router.get("/my-courses", requireAuth, async (req, res) => {
         }
       });
 
-      // Fetch all courses
-      const allCourses = await Course.find({ isLive: true }).sort({ order: 1 }).lean();
+      // Fetch all courses sorted by curriculum order
+      const allCourses = await Course.find({ isLive: true }).sort({ order: 1, display_order: 1 }).lean();
       const allActs = await Act.find().sort({ order: 1 }).lean();
       const allUnits = await Unit.find().sort({ order: 1 }).lean();
       const allItems = await ContentItem.find({ status: "Published" }).sort({ order: 1 }).lean();
@@ -883,7 +883,9 @@ router.get("/my-courses", requireAuth, async (req, res) => {
             isEnrolled,
             acts,
           };
-        });
+        })
+        .filter((c) => (c.acts && c.acts.length > 0) || c.id === "course-ca-foundation" || c.id === "ca-foundation")
+        .sort((a, b) => (b.acts?.length || 0) - (a.acts?.length || 0));
 
       return res.status(200).json({ success: true, courses: enrolledCourses });
     }
@@ -919,7 +921,13 @@ router.get("/my-courses", requireAuth, async (req, res) => {
     const unitsTable = Database.table("units");
     const itemsTable = Database.table("content_items");
 
-    const allCourses = coursesTable.find((c) => c.isLive !== false);
+    const allCourses = coursesTable
+      .find((c) => c.isLive !== false)
+      .sort((a, b) => {
+        const ordA = a.order ?? (a.kind === "core" ? 1 : 99);
+        const ordB = b.order ?? (b.kind === "core" ? 1 : 99);
+        return ordA - ordB;
+      });
     const allActs = actsTable.find();
     const allUnits = unitsTable.find();
     const allItems = itemsTable.find((i) => i.status !== "Draft");
@@ -973,7 +981,9 @@ router.get("/my-courses", requireAuth, async (req, res) => {
           isEnrolled,
           acts,
         };
-      });
+      })
+      .filter((c) => (c.acts && c.acts.length > 0) || c.id === "course-ca-foundation" || c.id === "ca-foundation")
+      .sort((a, b) => (b.acts?.length || 0) - (a.acts?.length || 0));
 
     res.status(200).json({ success: true, courses: enrolledCourses });
   } catch (err) {

@@ -601,7 +601,12 @@ export function StudentDashboardHome({
   const handleReconcileAccess = async () => {
     try {
       setIsReconciling(true);
-      const token = typeof window !== "undefined" ? localStorage.getItem("lawkaksha_token") || localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("lawkaksha_student_token") ||
+            localStorage.getItem("lawkaksha_token") ||
+            localStorage.getItem("token")
+          : null;
       if (!token) {
         alert("Please login first to check your payment status.");
         return;

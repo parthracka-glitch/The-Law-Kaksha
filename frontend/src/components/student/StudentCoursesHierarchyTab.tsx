@@ -52,11 +52,175 @@ export interface HierarchicalAct {
 export interface HierarchicalCourse {
   id: string;
   title: string;
+  slug?: string;
   description?: string;
   price?: number;
   accessDays?: number;
   acts: HierarchicalAct[];
 }
+
+const FALLBACK_CA_COURSE: HierarchicalCourse = {
+  id: "ca-foundation",
+  title: "CA Foundation — Business Laws",
+  description: "ICAI New Syllabus comprehensive study notes, LDR charts, and case problems.",
+  price: 1499,
+  accessDays: 365,
+  acts: [
+    {
+      id: "act-ca-contract",
+      title: "The Indian Contract Act, 1872",
+      order: 1,
+      isComingSoon: false,
+      units: [
+        {
+          id: "unit-ca-contract-1",
+          title: "Unit 1: Nature of Contracts & Essentials of Valid Offer",
+          order: 1,
+          contentItems: [
+            {
+              id: "item-ca-contract-1",
+              title: "Comprehensive Study Notes — Section 1-10",
+              contentType: "notes",
+              pages: "34 Pages",
+              isFreeSample: true,
+              samplePagesRange: "1-5",
+              fileUrl: "/notes/sale-of-goods-unit-1.pdf",
+            },
+            {
+              id: "item-ca-contract-ldr",
+              title: "LDR Flowchart & Statutory Revision Matrix",
+              contentType: "ldr",
+              pages: "12 Pages",
+              isFreeSample: true,
+              fileUrl: "/notes/partnership-ldr-charts.pdf",
+            },
+          ],
+        },
+        {
+          id: "unit-ca-contract-2",
+          title: "Unit 2: Consideration & Capacity to Contract",
+          order: 2,
+          contentItems: [
+            {
+              id: "item-ca-contract-2",
+              title: "Study Notes — Doctrine of Privity & Minor Capacity",
+              contentType: "notes",
+              pages: "28 Pages",
+              fileUrl: "/notes/sale-of-goods-unit-2.pdf",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "act-ca-soga",
+      title: "The Sale of Goods Act, 1930",
+      order: 2,
+      isComingSoon: false,
+      units: [
+        {
+          id: "unit-ca-soga-1",
+          title: "Unit 1: Formation of Contract of Sale & Subject Matter",
+          order: 1,
+          contentItems: [
+            {
+              id: "item-ca-soga-1",
+              title: "Study Notes — Sale vs Agreement to Sell (Sec 4-10)",
+              contentType: "notes",
+              pages: "22 Pages",
+              isFreeSample: true,
+              samplePagesRange: "1-5",
+              fileUrl: "/notes/sale-of-goods-unit-1.pdf",
+            },
+          ],
+        },
+        {
+          id: "unit-ca-soga-2",
+          title: "Unit 2: Conditions and Warranties (Sec 11-17)",
+          order: 2,
+          contentItems: [
+            {
+              id: "item-ca-soga-2",
+              title: "Study Notes — Caveat Emptor & Priest v. Last Rules",
+              contentType: "notes",
+              pages: "18 Pages",
+              fileUrl: "/notes/sale-of-goods-unit-2.pdf",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "act-ca-partnership",
+      title: "The Indian Partnership Act, 1932",
+      order: 3,
+      isComingSoon: false,
+      units: [
+        {
+          id: "unit-ca-partnership-1",
+          title: "Unit 1: General Nature of Partnership & True Test",
+          order: 1,
+          contentItems: [
+            {
+              id: "item-ca-part-1",
+              title: "Complete Master Notes & Landmark Rulings",
+              contentType: "notes",
+              pages: "24 Pages",
+              isFreeSample: true,
+              fileUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "act-ca-llp",
+      title: "The Limited Liability Partnership Act, 2008",
+      order: 4,
+      isComingSoon: false,
+      units: [
+        {
+          id: "unit-ca-llp-1",
+          title: "Unit 1: Salient Features & Incorporation of LLP",
+          order: 1,
+          contentItems: [
+            {
+              id: "item-ca-llp-1",
+              title: "LLP Overview & Comparison Matrix",
+              contentType: "notes",
+              pages: "16 Pages",
+              isFreeSample: true,
+              fileUrl: "/notes/unit-2-relations-of-partners.pdf",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "act-ca-companies",
+      title: "The Companies Act, 2013 (Foundation Level)",
+      order: 5,
+      isComingSoon: false,
+      units: [
+        {
+          id: "unit-ca-comp-1",
+          title: "Unit 1: Company Meaning, Features & Corporate Veil",
+          order: 1,
+          contentItems: [
+            {
+              id: "item-ca-comp-1",
+              title: "Essential Concepts of Company Law",
+              contentType: "notes",
+              pages: "30 Pages",
+              isFreeSample: true,
+              fileUrl: "/notes/cseet-business-law-full.pdf",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
 
 interface StudentCoursesHierarchyTabProps {
   onOpenReader: (url: string, title: string, isPurchased?: boolean, previewPagesLimit?: number) => void;
@@ -65,6 +229,7 @@ interface StudentCoursesHierarchyTabProps {
   bookmarks: any[];
   onToggleBookmark: (item: any) => void;
   onExploreMore?: () => void;
+  initialCourseId?: string;
 }
 
 export function StudentCoursesHierarchyTab({
@@ -74,14 +239,34 @@ export function StudentCoursesHierarchyTab({
   bookmarks = [],
   onToggleBookmark,
   onExploreMore,
+  initialCourseId,
 }: StudentCoursesHierarchyTabProps) {
   const API_URL = getApiBaseUrl();
-  const [courses, setCourses] = useState<HierarchicalCourse[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
-  const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
+  const [courses, setCourses] = useState<HierarchicalCourse[]>([FALLBACK_CA_COURSE]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId || "ca-foundation");
+  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({ "act-ca-contract": true });
+  const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({ "unit-ca-contract-1": true });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync initialCourseId prop
+  useEffect(() => {
+    if (initialCourseId && courses.length > 0) {
+      const match = courses.find((c) => c.id === initialCourseId || c.slug === initialCourseId);
+      if (match) {
+        setSelectedCourseId(match.id);
+        if (match.acts && match.acts.length > 0) {
+          const firstLiveAct = match.acts.find((a: any) => !a.isComingSoon) || match.acts[0];
+          if (firstLiveAct) {
+            setExpandedActs((prev) => ({ ...prev, [firstLiveAct.id]: true }));
+            if (firstLiveAct.units && firstLiveAct.units.length > 0) {
+              setExpandedUnits((prev) => ({ ...prev, [firstLiveAct.units[0].id]: true }));
+            }
+          }
+        }
+      }
+    }
+  }, [initialCourseId, courses]);
 
   // Fetch student courses
   useEffect(() => {
@@ -90,165 +275,61 @@ export function StudentCoursesHierarchyTab({
       try {
         setLoading(true);
         setError(null);
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("lawkaksha_student_token") ||
+              localStorage.getItem("lawkaksha_token") ||
+              localStorage.getItem("token")
+            : null;
         const res = await fetch(`${API_URL}/api/student/my-courses`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const data = await res.json();
         if (isMounted) {
           if (data.success && Array.isArray(data.courses) && data.courses.length > 0) {
-            setCourses(data.courses);
-            setSelectedCourseId(data.courses[0].id);
-            // Default first act expanded
-            if (data.courses[0].acts && data.courses[0].acts.length > 0) {
-              const firstLiveAct = data.courses[0].acts.find((a: any) => !a.isComingSoon);
-              if (firstLiveAct) {
-                setExpandedActs({ [firstLiveAct.id]: true });
-                if (firstLiveAct.units && firstLiveAct.units.length > 0) {
-                  setExpandedUnits({ [firstLiveAct.units[0].id]: true });
+            // Sort so courses with acts come first
+            const validCourses = [...data.courses].sort((a, b) => {
+              const actsA = a.acts?.length || 0;
+              const actsB = b.acts?.length || 0;
+              return actsB - actsA;
+            });
+            setCourses(validCourses);
+
+            const targetCourse =
+              (initialCourseId &&
+                validCourses.find((c) => c.id === initialCourseId || c.slug === initialCourseId)) ||
+              validCourses.find((c) => c.acts && c.acts.length > 0) ||
+              validCourses[0];
+
+            if (targetCourse) {
+              setSelectedCourseId(targetCourse.id);
+              if (targetCourse.acts && targetCourse.acts.length > 0) {
+                const firstLiveAct =
+                  targetCourse.acts.find((a: any) => !a.isComingSoon) || targetCourse.acts[0];
+                if (firstLiveAct) {
+                  setExpandedActs({ [firstLiveAct.id]: true });
+                  if (firstLiveAct.units && firstLiveAct.units.length > 0) {
+                    setExpandedUnits({ [firstLiveAct.units[0].id]: true });
+                  }
                 }
               }
             }
           } else {
             // Fallback: If no courses purchased yet, load default CA Foundation hierarchy
-            const fallbackCourse: HierarchicalCourse = {
-              id: "ca-foundation",
-              title: "CA Foundation — Business Laws",
-              description: "ICAI New Syllabus comprehensive study notes, LDR charts, and case problems.",
-              price: 1499,
-              accessDays: 365,
-              acts: [
-                {
-                  id: "act-ca-contract",
-                  title: "The Indian Contract Act, 1872",
-                  order: 1,
-                  isComingSoon: false,
-                  units: [
-                    {
-                      id: "unit-ca-contract-1",
-                      title: "Unit 1: Nature of Contracts & Essentials of Valid Offer",
-                      order: 1,
-                      contentItems: [
-                        {
-                          id: "item-ca-contract-1",
-                          title: "Comprehensive Study Notes — Section 1-10",
-                          contentType: "notes",
-                          pages: "34 Pages",
-                          isFreeSample: true,
-                          samplePagesRange: "1-5",
-                          fileUrl: "/notes/sale-of-goods-unit-1.pdf",
-                        },
-                        {
-                          id: "item-ca-contract-ldr",
-                          title: "LDR Flowchart & Statutory Revision Matrix",
-                          contentType: "ldr",
-                          pages: "12 Pages",
-                          isFreeSample: true,
-                          fileUrl: "/notes/partnership-ldr-charts.pdf",
-                        },
-                      ],
-                    },
-                    {
-                      id: "unit-ca-contract-2",
-                      title: "Unit 2: Consideration & Capacity to Contract",
-                      order: 2,
-                      contentItems: [
-                        {
-                          id: "item-ca-contract-2",
-                          title: "Study Notes — Doctrine of Privity & Minor Capacity",
-                          contentType: "notes",
-                          pages: "28 Pages",
-                          fileUrl: "/notes/sale-of-goods-unit-2.pdf",
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  id: "act-ca-soga",
-                  title: "The Sale of Goods Act, 1930",
-                  order: 2,
-                  isComingSoon: false,
-                  units: [
-                    {
-                      id: "unit-ca-soga-1",
-                      title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-                      order: 1,
-                      contentItems: [
-                        {
-                          id: "item-ca-soga-1",
-                          title: "Study Notes — Sale vs Agreement to Sell (Sec 4-10)",
-                          contentType: "notes",
-                          pages: "22 Pages",
-                          isFreeSample: true,
-                          samplePagesRange: "1-5",
-                          fileUrl: "/notes/sale-of-goods-unit-1.pdf",
-                        },
-                      ],
-                    },
-                    {
-                      id: "unit-ca-soga-2",
-                      title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-                      order: 2,
-                      contentItems: [
-                        {
-                          id: "item-ca-soga-2",
-                          title: "Study Notes — Caveat Emptor & Priest v. Last Rules",
-                          contentType: "notes",
-                          pages: "18 Pages",
-                          fileUrl: "/notes/sale-of-goods-unit-2.pdf",
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  id: "act-ca-partnership",
-                  title: "The Indian Partnership Act, 1932",
-                  order: 3,
-                  isComingSoon: false,
-                  units: [
-                    {
-                      id: "unit-ca-partnership-1",
-                      title: "Unit 1: General Nature of Partnership & True Test",
-                      order: 1,
-                      contentItems: [
-                        {
-                          id: "item-ca-part-1",
-                          title: "Complete Master Notes & Landmark Rulings",
-                          contentType: "notes",
-                          pages: "24 Pages",
-                          isFreeSample: true,
-                          fileUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  id: "act-ca-llp",
-                  title: "The Limited Liability Partnership Act, 2008",
-                  order: 4,
-                  isComingSoon: true, // Coming Soon Act
-                  units: [],
-                },
-                {
-                  id: "act-ca-companies",
-                  title: "The Companies Act, 2013 (Foundation Level)",
-                  order: 5,
-                  isComingSoon: true, // Coming Soon Act
-                  units: [],
-                },
-              ],
-            };
-            setCourses([fallbackCourse]);
-            setSelectedCourseId(fallbackCourse.id);
+            setCourses([FALLBACK_CA_COURSE]);
+            setSelectedCourseId(FALLBACK_CA_COURSE.id);
             setExpandedActs({ "act-ca-contract": true });
             setExpandedUnits({ "unit-ca-contract-1": true });
           }
         }
       } catch (err: any) {
-        if (isMounted) setError(err.message || "Failed to load courses");
+        if (isMounted) {
+          setError(err.message || "Failed to load courses");
+          setCourses([FALLBACK_CA_COURSE]);
+          setSelectedCourseId(FALLBACK_CA_COURSE.id);
+          setExpandedActs({ "act-ca-contract": true });
+          setExpandedUnits({ "unit-ca-contract-1": true });
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
