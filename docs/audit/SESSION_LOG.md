@@ -139,3 +139,19 @@
   3. Next.js Production Build (`npm run --prefix frontend build`): 22 static and dynamic routes compiled cleanly, exit 0.
   4. Invariants strictly preserved: zero UI/UX regressions, zero mock credentials, zero fake phone numbers, strict branch isolation on `fix/vision-restructure`.
 - Result: Both PASS 1 and PASS 2 are 100% complete and fully verified. The platform is demo-ready and production-hardened for tomorrow's client presentation.
+
+## 2026-10-19 15:15 - gemini - Student Auth Guard Enforcement & Authentic Login-Based Streaks
+- Goal: Fix unauthorized direct URL access to `/student`, enforce synchronous client-side and server-side authentication redirection, maintain daily study streaks ONLY when an authenticated student logs in, and completely purge mock streak/rank/date data.
+- Actions taken:
+  1. `backend/src/routes/authRoutes.js`: Student login handler calculates authentic daily login streaks based on `user.last_login_date` (`today` vs `yesterday` consecutive calculation). Increments and persists `streakDays` and `longest_streak`.
+  2. `backend/src/routes/studentRoutes.js`: Purged mock fallbacks (`streakDays || 1`, `lawXp || 150`, fake `completedUnits`, fake `streakHistory`) across `/dashboard`, `/sync-progress`, `/calendar`, and `/progress`. Authenticated students start at 0 until active logins and milestones occur.
+  3. `frontend/src/app/student/page.tsx`: Rewrote student auth guard to verify active `studentToken` and student session. Unauthenticated users are immediately redirected via `window.location.replace("/login?redirect=/student")`. Purged `lawkaksha_student_verified` backdoor. Dynamically computes streak from authenticated student session. Replaced mock `Math.max(streak, 4)`, `studyHours = Math.max(10, ...)`, and `userRank = 57479` with authentic state variables. Passed `longestStreak` to `StreakCalendarModal`.
+  4. `frontend/src/components/student/StudentDashboardHome.tsx`: Reset default props from mock values (`Parth Racka`, streak 3, XP 180, Level 2) to authentic defaults (`Student`, streak 0, XP 0, Level 1 Intern). Replaced hardcoded `"Active 2026 Batch"` with dynamic current year. Tied enrolled course progress strictly to `completedUnitsCount`.
+  5. `frontend/src/components/student/StudentHeroCard.tsx`: Purged default `"Ayesha"` name fallback and sanitized display name to `"Student"`.
+  6. `frontend/src/components/student/StudentRightSidebar.tsx`: Default props updated to 0 streak, 0 rank, 0 hours, `"Student"`. Displays `"Start Streak"` with inactive amber indicator when streak is 0.
+  7. `frontend/src/components/student/StudentSchedulePanel.tsx`: Replaced hardcoded `new Date(2026, 9, 12)` and `selectedDay = 12` with dynamic live date (`new Date()`, `new Date().getDate()`).
+  8. `frontend/src/components/StreakCalendarModal.tsx`: Added `longestStreak?: number` prop, removed `Math.max(streak, 1)` and `Math.max(streak, 14)` fallbacks. Highlights today with flame badge only if `streak > 0`. Shows `"Start Your Study Streak Today"` when streak is 0.
+- Verified:
+  1. Full Backend Test Suite (`node backend/tests/runner.js`): 91/91 tests pass (100% pass rate in ~5.5s, exit 0).
+  2. Frontend TypeScript Check (`npm run --prefix frontend typecheck`): 0 errors, exit 0.
+  3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 routes compile cleanly, exit 0.

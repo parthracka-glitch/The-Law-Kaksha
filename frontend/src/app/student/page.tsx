@@ -555,8 +555,9 @@ export default function StudentDashboardPage() {
     student_id: "",
     avatarColor: "violet",
   });
-  const [streak, setStreak] = useState<number>(1);
-  const [lawXp, setLawXp] = useState<number>(180);
+  const [streak, setStreak] = useState<number>(0);
+  const [longestStreak, setLongestStreak] = useState<number>(0);
+  const [lawXp, setLawXp] = useState<number>(0);
   const [completedUnits, setCompletedUnits] = useState<string[]>([]);
   const [bookmarkedUnits, setBookmarkedUnits] = useState<string[]>([]);
   const [xpToast, setXpToast] = useState<{ show: boolean; msg: string; xp: number } | null>(null);
@@ -888,19 +889,44 @@ export default function StudentDashboardPage() {
   // Session & Local Storage Loading
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const studentToken = localStorage.getItem("lawkaksha_student_token");
-      const studentUser = localStorage.getItem("lawkaksha_student_user");
+      const studentToken = localStorage.getItem("lawkaksha_student_token") || localStorage.getItem("lawkaksha_token");
       const studentSession = localStorage.getItem("lawkaksha_student_session");
+      const studentUser = localStorage.getItem("lawkaksha_student_user") || localStorage.getItem("lawkaksha_active_student");
       const adminSession = localStorage.getItem("lawkaksha_admin_session");
-      if (!studentToken && !studentUser && !studentSession && !adminSession) {
+
+      let authenticatedUser: any = null;
+      if (studentSession) {
+        try { authenticatedUser = JSON.parse(studentSession); } catch (e) {}
+      } else if (studentUser) {
+        try { authenticatedUser = JSON.parse(studentUser); } catch (e) {}
+      }
+
+      let isAdmin = false;
+      if (adminSession) {
+        try {
+          const adm = JSON.parse(adminSession);
+          if (adm && adm.role === "admin") {
+            isAdmin = true;
+          }
+        } catch (e) {}
+      }
+
+      const hasValidStudent = Boolean(
+        studentToken &&
+        authenticatedUser &&
+        (authenticatedUser.email || authenticatedUser.student_id || authenticatedUser.id)
+      );
+
+      if (!hasValidStudent && !isAdmin) {
         setIsAuthorized(false);
         setIsCheckingAuth(false);
-        router.push("/login");
+        window.location.replace("/login?redirect=/student");
         return;
       }
+
       setIsAuthorized(true);
       setIsCheckingAuth(false);
-      if (adminSession) setIsAdminUser(true);
+      if (isAdmin) setIsAdminUser(true);
 
       const params = new URLSearchParams(window.location.search);
       const courseParam = params.get("course");
@@ -913,20 +939,17 @@ export default function StudentDashboardPage() {
       }
 
       const initialUnlocked: string[] = [];
-      if (studentSession) {
+      if (authenticatedUser?.name) {
+        setStudentName(authenticatedUser.name);
+        setStudentProfile((prev) => ({ ...prev, ...authenticatedUser }));
+        if (Array.isArray(authenticatedUser.unlockedItemIds)) {
+          initialUnlocked.push(...authenticatedUser.unlockedItemIds);
+        }
+      } else if (isAdmin && adminSession) {
         try {
-          const p = JSON.parse(studentSession);
-          if (p.name) setStudentName(p.name);
-          setStudentProfile((prev) => ({ ...prev, ...p }));
-          if (Array.isArray(p.unlockedItemIds)) {
-            initialUnlocked.push(...p.unlockedItemIds);
-          }
-        } catch (e) {}
-      } else if (adminSession) {
-        try {
-          const p = JSON.parse(adminSession);
-          if (p.name) setStudentName(p.name);
-          setStudentProfile((prev) => ({ ...prev, ...p }));
+          const adm = JSON.parse(adminSession);
+          if (adm?.name) setStudentName(adm.name);
+          setStudentProfile((prev) => ({ ...prev, ...adm }));
         } catch (e) {}
       }
 
@@ -952,18 +975,6 @@ export default function StudentDashboardPage() {
 
       if (initialUnlocked.length > 0) {
         setPurchasedBooks((prev) => Array.from(new Set([...prev, ...initialUnlocked])));
-      }
-
-      const isVerifiedStudent =
-        Boolean(adminSession) ||
-        initialUnlocked.length > 0 ||
-        localStorage.getItem("lawkaksha_student_verified") === "true";
-
-      if (!isVerifiedStudent) {
-        setIsAuthorized(false);
-        setIsCheckingAuth(false);
-        router.push("/login?error=no_purchase");
-        return;
       }
 
       // Listen for instant purchase unlocks from CartDrawer
@@ -999,10 +1010,10 @@ export default function StudentDashboardPage() {
       window.addEventListener("lawkaksha_student_updated", handleStudentUpdated);
       window.addEventListener("storage", handleStudentUpdated);
 
-      // Load XP, streak, completed units, bookmarks, last read
+      // Load XP, streak, completed units, bookmarks, last read (Authentic data only)
       try {
         const storedXp = localStorage.getItem("lawkaksha_xp");
-        if (storedXp) setLawXp(parseInt(storedXp));
+        if (storedXp) setLawXp(parseInt(storedXp, 10));
 
         const storedUnits = localStorage.getItem("lawkaksha_completed_units");
         if (storedUnits) setCompletedUnits(JSON.parse(storedUnits));
@@ -1013,20 +1024,33 @@ export default function StudentDashboardPage() {
         const storedLastRead = localStorage.getItem("lawkaksha_last_read");
         if (storedLastRead) setLastRead(JSON.parse(storedLastRead));
 
-        const storedStreak = localStorage.getItem("lawkaksha_streak");
-        const lastLogin = localStorage.getItem("lawkaksha_last_login");
-        const today = new Date().toDateString();
-        if (lastLogin === today) {
-          setStreak(storedStreak ? parseInt(storedStreak) : 1);
+        // Authentic Streak Calculation: Only increment and track for actively logged-in student
+        const storedStreak = parseInt(localStorage.getItem("lawkaksha_streak") || "0", 10);
+        const storedLongest = parseInt(localStorage.getItem("lawkaksha_longest_streak") || "0", 10);
+        const lastLoginDate = localStorage.getItem("lawkaksha_last_login_date");
+        const todayStr = new Date().toISOString().split("T")[0];
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+        let calculatedStreak = 0;
+        if (lastLoginDate === todayStr) {
+          calculatedStreak = Math.max(1, storedStreak);
+        } else if (lastLoginDate === yesterdayStr) {
+          calculatedStreak = (storedStreak || 0) + 1;
+          localStorage.setItem("lawkaksha_streak", String(calculatedStreak));
+          localStorage.setItem("lawkaksha_last_login_date", todayStr);
         } else {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const isConsecutive = lastLogin === yesterday.toDateString();
-          const newStreak = isConsecutive ? (storedStreak ? parseInt(storedStreak) + 1 : 1) : 1;
-          setStreak(newStreak);
-          localStorage.setItem("lawkaksha_streak", String(newStreak));
-          localStorage.setItem("lawkaksha_last_login", today);
+          calculatedStreak = 1;
+          localStorage.setItem("lawkaksha_streak", "1");
+          localStorage.setItem("lawkaksha_last_login_date", todayStr);
         }
+
+        const calculatedLongest = Math.max(storedLongest, calculatedStreak);
+        localStorage.setItem("lawkaksha_longest_streak", String(calculatedLongest));
+        setStreak(calculatedStreak);
+        setLongestStreak(calculatedLongest);
+
         const storedProducts = localStorage.getItem("lawkaksha_admin_products");
         if (storedProducts) {
           try {
@@ -1040,7 +1064,9 @@ export default function StudentDashboardPage() {
           } catch (e) {}
         }
       } catch (e) {
-        setStreak(1);
+        setStreak(0);
+        setLongestStreak(0);
+        setLawXp(0);
       }
 
       const handleResourcesUpdated = () => {
@@ -1379,7 +1405,7 @@ export default function StudentDashboardPage() {
                 <StudentDashboardHome
                   studentName={studentName}
                   streak={streak}
-                  longestStreak={Math.max(streak, 4)}
+                  longestStreak={longestStreak}
                   lawXp={lawXp}
                   levelInfo={levelInfo}
                   awardXp={awardXp}
@@ -1454,10 +1480,10 @@ export default function StudentDashboardPage() {
               <div className="w-full lg:w-[310px] xl:w-[330px] 2xl:w-[350px] shrink-0 max-w-md mx-auto lg:mx-0">
                 <StudentRightSidebar
                   streak={streak}
-                  longestStreak={Math.max(streak, 4)}
+                  longestStreak={longestStreak}
                   studentName={studentName}
-                  studyHours={Math.max(10, Math.round(lawXp / 25))}
-                  userRank={57479}
+                  studyHours={Math.round(lawXp / 25)}
+                  userRank={0}
                   onOpenStreakLog={() => setStreakModalOpen(true)}
                 />
               </div>
@@ -2565,6 +2591,7 @@ export default function StudentDashboardPage() {
         isOpen={streakModalOpen}
         onClose={() => setStreakModalOpen(false)}
         streak={streak}
+        longestStreak={longestStreak}
         onStreakUpdate={(newStreak) => setStreak(newStreak)}
       />
 

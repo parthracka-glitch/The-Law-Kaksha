@@ -32,4 +32,5 @@ Status values: Not started · In progress · Blocked · Done · Verified against
 | **P8** | Vision Restructure: Perf & Core Web Vitals | **Done** | gemini | 2026-10-19 | Removed hero image unoptimized prop for AVIF/WebP, added catalog Cache-Control headers, sub-100ms TTFB (commit `d1152f5`, 86 tests) |
 | **P9** | Vision Restructure: Penetration Hardening | **Done** | gemini | 2026-10-19 | Coupon & ticket sliding-window rate limiters, tokenVersion revocation verified, strict security headers (commit `3756c59`, 91 tests) |
 | **P10** | Vision Restructure: Production Release | **Done** | gemini | 2026-10-19 | Production Next.js build clean (22 routes), 91/91 tests passing (100%), 0 TS errors, demo-ready |
+| **P11** | Student Auth Guard & Authentic Streaks | **Done** | gemini | 2026-10-19 | Enforce student auth guard on /student route, compute streaks upon active login only, purge mock streak/rank/dates |
 

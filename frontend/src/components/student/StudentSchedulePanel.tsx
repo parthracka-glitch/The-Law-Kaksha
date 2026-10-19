@@ -42,7 +42,7 @@ const DEFAULT_UPCOMING_CLASSES: LiveClassScheduleItem[] = [
     id: "live-3",
     subject: "The Companies Act, 2013",
     topic: "Corporate Veil & Lifting of Veil Exceptions",
-    timeLabel: "Oct 15, 11:00 AM",
+    timeLabel: "Friday, 11:00 AM",
     status: "upcoming",
     instructor: "Law Kaksha Faculty",
   },
@@ -83,9 +83,9 @@ export function StudentSchedulePanel({
   onViewAllClasses,
   onViewAllActivity,
 }: StudentSchedulePanelProps) {
-  // Current calendar month state (e.g. October 2026)
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 9, 12)); // Oct 12, 2026
-  const [selectedDay, setSelectedDay] = useState(12);
+  // Current live calendar date state
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState(() => new Date().getDate());
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",

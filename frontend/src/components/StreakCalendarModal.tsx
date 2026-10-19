@@ -23,6 +23,7 @@ interface StreakCalendarModalProps {
   isOpen: boolean;
   onClose: () => void;
   streak: number;
+  longestStreak?: number;
   onStreakUpdate?: (newStreak: number) => void;
 }
 
@@ -106,6 +107,7 @@ export function StreakCalendarModal({
   isOpen,
   onClose,
   streak,
+  longestStreak,
   onStreakUpdate,
 }: StreakCalendarModalProps) {
   // Real live system date reference
@@ -161,7 +163,7 @@ export function StreakCalendarModal({
   // Calculate real consecutive streak dates ending at realToday
   const activeStreakKeys = useMemo(() => {
     const keys = new Set<string>();
-    const count = Math.max(streak, 1);
+    const count = Math.max(0, streak);
     for (let i = 0; i < count; i++) {
       const d = new Date(currentRealTime);
       d.setDate(currentRealTime.getDate() - i);
@@ -328,7 +330,7 @@ export function StreakCalendarModal({
           </div>
 
           <h2 className="text-2xl font-bold text-[#221D1D] tracking-tight font-serif">
-            {streak} Day Study Streak!
+            {streak > 0 ? `${streak} Day Study Streak!` : "Start Your Study Streak Today"}
           </h2>
           <p className="text-[#4D433F] text-xs font-medium mt-1 max-w-md mx-auto">
             Synchronized live with real calendar dates &amp; active study milestones.
@@ -341,7 +343,7 @@ export function StreakCalendarModal({
               <p className="text-[10px] text-[#4D433F] font-semibold uppercase tracking-wider">Current Streak</p>
             </div>
             <div className="p-2.5 rounded-xl bg-white/60 backdrop-blur-sm border border-[#98C5D8]">
-              <p className="text-base font-bold text-[#221D1D]">{Math.max(streak, 14)} Days</p>
+              <p className="text-base font-bold text-[#221D1D]">{(longestStreak ?? streak)} {((longestStreak ?? streak) === 1 ? "Day" : "Days")}</p>
               <p className="text-[10px] text-[#4D433F] font-semibold uppercase tracking-wider">Best Record</p>
             </div>
             <div className="p-2.5 rounded-xl bg-white/60 backdrop-blur-sm border border-[#98C5D8]">
@@ -479,7 +481,7 @@ export function StreakCalendarModal({
                     }`}
                   >
                     <span>{dayNum}</span>
-                    {isToday ? (
+                    {isToday && streak > 0 ? (
                       <Flame className="w-2.5 h-2.5 text-[#F7892A] mt-0.5" />
                     ) : isInStreak ? (
                       <span className="w-1.5 h-1.5 rounded-full bg-[#4B8097] mt-0.5" />
@@ -546,7 +548,7 @@ export function StreakCalendarModal({
                 {isSelectedToday ? (
                   <span className="px-2.5 py-0.5 rounded-full bg-[#BFAFE5] text-[#221D1D] text-[10px] font-semibold flex items-center gap-1 shrink-0 shadow-xs">
                     <Flame className="w-3 h-3 text-[#F7892A]" />
-                    Today • Active Session
+                    {streak > 0 ? "Today • Active Session" : "Today • Ready to Study"}
                   </span>
                 ) : isSelectedInStreak ? (
                   <span className="px-2.5 py-0.5 rounded-full bg-[#AED7E9]/40 text-[#221D1D] text-[10px] font-semibold flex items-center gap-1 shrink-0 border border-[#AED7E9]">

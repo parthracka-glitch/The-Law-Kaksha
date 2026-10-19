@@ -164,17 +164,12 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       mcqs,
       mcqTests,
       examSettings,
-      qotd,
-      lawXp: student?.lawXp || 150,
-      streakDays: student?.streakDays || 1,
-      completedUnits: student?.completedUnits || ["ca-ch1-u1", "ca-ch4-u1"],
-      lastRead: student?.lastRead || {
-        title: "Indian Partnership Act, 1932 (Unit 1)",
-        url: "/notes/unit-1-general-nature-of-partnership.pdf",
-        date: "Today",
-        progress: 50,
-      },
-      bookmarks: student?.bookmarks || [],
+      lawXp: typeof student?.lawXp === "number" ? student.lawXp : 0,
+      streakDays: typeof student?.streakDays === "number" ? student.streakDays : 0,
+      longest_streak: typeof student?.longest_streak === "number" ? student.longest_streak : (typeof student?.streakDays === "number" ? student.streakDays : 0),
+      completedUnits: Array.isArray(student?.completedUnits) ? student.completedUnits : [],
+      lastRead: student?.lastRead || null,
+      bookmarks: Array.isArray(student?.bookmarks) ? student.bookmarks : [],
     });
   } catch (err) {
     console.error("[Student API] Dashboard fetch error:", err);
@@ -223,7 +218,7 @@ router.post("/sync-progress", requireAuth, async (req, res) => {
     res.status(200).json({
       success: true,
       source: "local_cache",
-      lawXp: xpTotal || 150,
+      lawXp: typeof xpTotal === "number" ? xpTotal : 0,
     });
   } catch (err) {
     console.error("[Student API] Sync progress error:", err);
@@ -401,8 +396,8 @@ router.get("/calendar", requireAuth, async (req, res) => {
       success: true,
       sessions,
       expiries,
-      streakDays: stats ? stats.current_streak : 1,
-      lastActiveDate: stats ? stats.last_active_date : new Date().toISOString().split("T")[0],
+      streakDays: stats && typeof stats.current_streak === "number" ? stats.current_streak : 0,
+      lastActiveDate: stats ? stats.last_active_date : "",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching student calendar: " + err.message });
@@ -1017,8 +1012,12 @@ router.get("/progress", requireAuth, async (req, res) => {
 
     const completedUnits = Array.isArray(student?.completedUnits) ? student.completedUnits : [];
     const totalUnitsCompleted = completedUnits.length;
-    const streakDays = student?.streakDays || 1;
-    const lawXp = student?.lawXp || 150;
+    const streakDays = typeof student?.streakDays === "number" ? student.streakDays : 0;
+    const longestStreak = typeof student?.longest_streak === "number" ? student.longest_streak : streakDays;
+    const lawXp = typeof student?.lawXp === "number" ? student.lawXp : 0;
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const hasActiveStreakToday = streakDays > 0 && student?.last_login_date === todayStr;
 
     res.status(200).json({
       success: true,
@@ -1026,10 +1025,11 @@ router.get("/progress", requireAuth, async (req, res) => {
       completedUnits,
       streak: streakDays,
       streakDays,
+      longest_streak: longestStreak,
       lawXp,
-      streakHistory: [
-        { date: new Date().toISOString().split("T")[0], active: true, xpEarned: 25 },
-      ],
+      streakHistory: hasActiveStreakToday ? [
+        { date: todayStr, active: true, xpEarned: 25 },
+      ] : [],
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching progress: " + err.message });

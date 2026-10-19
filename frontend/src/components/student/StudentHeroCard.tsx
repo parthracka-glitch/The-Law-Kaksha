@@ -11,7 +11,7 @@ interface StudentHeroCardProps {
 }
 
 export function StudentHeroCard({
-  studentName = "Ayesha",
+  studentName = "Student",
   lastReadTitle = "The Indian Contract Act, 1872",
   lastReadSubtitle = "Unit 1: Nature & Essentials of Valid Contract",
   onContinueLearning,
@@ -24,14 +24,14 @@ export function StudentHeroCard({
     return "Good Evening";
   }, []);
 
-  // Format student name cleanly (e.g. "Administrator Parth" -> "Parth", default "Ayesha")
+  // Format student name cleanly (e.g. "Administrator Parth" -> "Parth", default "Student")
   const displayName = useMemo(() => {
-    if (!studentName || studentName === "Student" || studentName.toLowerCase() === "user") {
-      return "Ayesha";
+    if (!studentName || studentName.toLowerCase() === "user") {
+      return "Student";
     }
     const cleaned = studentName.replace(/^administrator\s+/i, "").trim();
     const firstName = cleaned.split(" ")[0];
-    return firstName || cleaned || "Ayesha";
+    return firstName || cleaned || "Student";
   }, [studentName]);
 
   return (

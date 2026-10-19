@@ -14,11 +14,11 @@ interface StudentRightSidebarProps {
 }
 
 export function StudentRightSidebar({
-  streak = 1,
-  longestStreak = 14,
-  studentName = "Parth Racka",
-  studyHours = 11,
-  userRank = 57479,
+  streak = 0,
+  longestStreak = 0,
+  studentName = "Student",
+  studyHours = 0,
+  userRank = 0,
   onOpenStreakLog,
 }: StudentRightSidebarProps) {
   return (
@@ -58,8 +58,8 @@ export function StudentRightSidebar({
           </div>
 
           <div className="mt-2 pt-1.5 border-t border-amber-200/50 flex items-center justify-between text-[10px] font-bold text-[#B45309]">
-            <span>Active Today</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+            <span>{streak > 0 ? "Active Today" : "Start Streak"}</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${streak > 0 ? "bg-emerald-500 animate-ping" : "bg-amber-400"}`} />
           </div>
         </div>
 

@@ -300,6 +300,47 @@ router.post("/login", async (req, res) => {
       );
     }
 
+    if (user.role === "student") {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+      let newStreak = typeof user.streakDays === "number" && user.streakDays > 0 ? user.streakDays : 1;
+      const lastLoginDate = user.last_login_date || "";
+
+      if (lastLoginDate === todayStr) {
+        newStreak = Math.max(1, user.streakDays || 1);
+      } else if (lastLoginDate === yesterdayStr) {
+        newStreak = (user.streakDays || 0) + 1;
+      } else {
+        newStreak = 1;
+      }
+
+      const longestStreak = Math.max(user.longest_streak || 0, newStreak);
+      user.streakDays = newStreak;
+      user.longest_streak = longestStreak;
+      user.last_login_date = todayStr;
+
+      if (isConnected()) {
+        try {
+          await User.findByIdAndUpdate(user.id || user._id, {
+            streakDays: newStreak,
+            longest_streak: longestStreak,
+            last_login_date: todayStr,
+          });
+        } catch (e) {}
+      } else {
+        try {
+          Database.table("users").update(user.id, {
+            streakDays: newStreak,
+            longest_streak: longestStreak,
+            last_login_date: todayStr,
+          });
+        } catch (e) {}
+      }
+    }
+
     const hasPurchasedCourse = await checkUserHasPurchasedCourse(user, activeSub);
     const { password_hash, ...safeUser } = user;
 
