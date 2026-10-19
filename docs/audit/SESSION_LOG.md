@@ -155,3 +155,14 @@
   1. Full Backend Test Suite (`node backend/tests/runner.js`): 91/91 tests pass (100% pass rate in ~5.5s, exit 0).
   2. Frontend TypeScript Check (`npm run --prefix frontend typecheck`): 0 errors, exit 0.
   3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 routes compile cleanly, exit 0.
+
+## 2026-10-19 20:35 - gemini - Hero Section Scroll Blur Removal
+- Goal: Remove the scroll blur effect that degraded typography sharpness when scrolling down from the hero section on the main website.
+- Actions taken:
+  1. `frontend/src/components/HeroSection.tsx`: Removed `blurAmount = (progress * 3.5).toFixed(1)` lens blur calculation and removed dynamic `blur(${blurAmount}px)` from `typographyRef.current.style.filter`.
+  2. Ensured `typographyRef.current.style.filter = "none"` is preserved, and removed `filter` from CSS `willChange: "transform, opacity"`.
+  3. Softened scroll opacity fade from aggressive 0.25 to 0.5 to keep typography crisp, readable, and high-contrast throughout the scroll.
+- Verified:
+  1. Frontend TypeScript Compilation (`tsc --noEmit`): 0 errors, exit 0.
+  2. Full Backend Test Harness (`node backend/tests/runner.js`): 91/91 tests pass across 12 suites (100% pass rate, exit 0).
+  3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 routes compile cleanly, exit 0.

@@ -1,13 +1,13 @@
 # HANDOFF (the baton)
 Baton holder: none
-Since: 2026-10-19T15:20:00+05:30
+Since: 2026-10-19T20:36:00+05:30
 Current task: none
 Branch: fix/vision-restructure
-Last commit: 47e5ce4
+Last commit: pending
 Do NOT touch right now: backend/data/lawkaksha_db.json
 
 ## Next step (one concrete action)
-Platform owner / team to review student login flow and launch production deployment when approved.
+Platform owner / team to review landing page scroll and launch production deployment when approved.
 
 ## Open problems / blockers
 - Platform owner rotation of OpenRouter API key (FLAG-001) in external provider account.
@@ -15,6 +15,7 @@ Platform owner / team to review student login flow and launch production deploym
 - Provisioning of transactional email credentials (SMTP/Resend) for production password resets.
 
 ## Messages between agents (newest first, at most 10; move older ones to SESSION_LOG)
+- [gemini 2026-10-19] to all: Hero section scroll blur effect completely removed from `HeroSection.tsx`! Typography stays 100% crisp, sharp, and readable during scrolling without any lens blur or fuzzy filters applied. All 91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).
 - [gemini 2026-10-19] to all: Student Auth Guard and Authentic Login-Based Streaks fully implemented and verified! Direct access to `/student` without authentication is strictly blocked with immediate redirection to `/login?redirect=/student`. Daily study streaks are maintained and incremented only when an authenticated student logs in. Completely purged all mock data (mock streak `3`/`4`, mock XP `150`/`180`, mock names `Parth Racka`/`Ayesha`, mock calendar date Oct 12 2026, and mock rank `#57479`). 91/91 backend tests passing (100%), 0 TypeScript errors, clean production Next.js build (22 routes).
 - [gemini 2026-10-19] to all: PASS 2 (P7 through P10) completely finished, verified, and committed! P7 (Mobile responsiveness & safe-area insets `cb1a636`), P8 (Core Web Vitals, hero AVIF/WebP, catalog Cache-Control headers `d1152f5`), P9 (Final security penetration hardening, coupon/ticket rate limits `3756c59`), P10 (Production Next.js build clean with 22 routes, 91/91 tests passing, 0 TS errors). Client demo tomorrow is 100% verified and operational.
 - [gemini 2026-10-19] to all: PASS 1 completely finished, verified, and committed! P0 (Quick Verify `4dffa14`), P1 (Removal `af870de`), P2 (Data Model `3138e15`), P3 (Cloudinary Auth Gate `2f5c068`), P4 (Purchase Access `bd7dcf9`), P5 (Admin Restructure `38acd24`), P6 (Student Dashboard `a1f9711`). Full test runner expanded to 77 tests (77/77 passing, 100%), 0 TypeScript compilation errors. Consolidated report compiled at `/AUDIT/11-pass1-report.md`. Client demo tomorrow is fully supported and verified.

@@ -29,13 +29,12 @@ export function HeroSection() {
       // Parallax fade progression across first 480px of scrolling down to Course Spotlight
       const progress = Math.min(Math.max(scrollY / 480, 0), 1);
 
-      const opacity = 1 - progress * 0.75; // Silky dimming from 1.0 to 0.25
+      const opacity = 1 - progress * 0.5; // Subtle dimming as it scrolls down
       const translateY = progress * 36; // Elegant downward parallax drift
-      const blurAmount = (progress * 3.5).toFixed(1); // Soft focus lens blur
 
       typographyRef.current.style.opacity = `${opacity}`;
       typographyRef.current.style.transform = `translateY(${translateY}px)`;
-      typographyRef.current.style.filter = `blur(${blurAmount}px)`;
+      typographyRef.current.style.filter = "none";
     };
 
     const onScroll = () => {
@@ -47,6 +46,9 @@ export function HeroSection() {
     return () => {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(rafId);
+      if (typographyRef.current) {
+        typographyRef.current.style.filter = "none";
+      }
     };
   }, []);
 
@@ -118,7 +120,7 @@ export function HeroSection() {
             {/* Right Column: Typography, Subtitle, CTAs */}
             <div
               ref={typographyRef}
-              style={{ willChange: "transform, opacity, filter" }}
+              style={{ willChange: "transform, opacity" }}
               className="lg:col-span-6 space-y-6 text-center lg:text-left order-1 lg:order-2"
             >
               {/* Launch Badge with Live Pulse & Staggered Fade 1 */}
