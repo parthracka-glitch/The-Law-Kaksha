@@ -199,21 +199,21 @@ export function SubscriptionCarousel() {
         </div>
 
         {/* Main Spotlight Card */}
-        <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-white border-2 border-[#DBEAFE] text-[#0A192F] shadow-[0_15px_50px_rgba(0,90,156,0.08)] transition-all duration-500">
+        <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-white border-2 border-[#DBEAFE] text-[#0A192F] shadow-[0_15px_50px_rgba(0,90,156,0.08)] min-h-[690px] sm:min-h-[620px] lg:min-h-[550px] flex flex-col justify-between">
           {/* Radiant Background Aura */}
           <div
-            className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none blur-3xl opacity-40 transition-all duration-700"
+            className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none blur-3xl opacity-40 transition-opacity duration-500"
             style={{
               background: "radial-gradient(circle, rgba(0,90,156,0.25) 0%, rgba(174,215,233,0.15) 50%, transparent 70%)",
             }}
           />
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-6 sm:p-10 lg:p-12">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-6 sm:p-10 lg:p-12 grow">
             
             {/* Left Column: Course Details & CTAs */}
-            <div className="lg:col-span-7 space-y-5 text-left order-2 lg:order-1">
+            <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left order-2 lg:order-1 flex flex-col justify-between">
               {/* Category Status & Live Rating */}
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5 min-h-[30px]">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase border shadow-2xs ${current.tagColor}`}
                 >
@@ -230,18 +230,22 @@ export function SubscriptionCarousel() {
                 </div>
               </div>
 
-              {/* Course Title */}
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#0A192F] tracking-tight leading-tight">
-                {current.title}
-              </h3>
+              {/* Course Title - Fixed height container so titles never cause layout shift */}
+              <div className="min-h-[3.75rem] sm:min-h-[4.5rem] lg:min-h-[5.25rem] flex items-center">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#0A192F] tracking-tight leading-tight">
+                  {current.title}
+                </h3>
+              </div>
 
-              {/* Subtitle */}
-              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                {current.subtitle}
-              </p>
+              {/* Subtitle - Fixed height container */}
+              <div className="min-h-[3.75rem] sm:min-h-[3.25rem] flex items-center">
+                <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                  {current.subtitle}
+                </p>
+              </div>
 
-              {/* Key Features Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {/* Key Features Grid - Fixed min-height to accommodate all 5 features across all slides */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 min-h-[6.5rem] sm:min-h-[4.75rem] content-start">
                 {current.features.map((feat, i) => (
                   <div key={i} className="flex items-start gap-2 text-xs text-[#0A192F] font-medium">
                     <CheckCircle2 className="w-4 h-4 text-[#005A9C] shrink-0 mt-0.5" />
@@ -251,7 +255,7 @@ export function SubscriptionCarousel() {
               </div>
 
               {/* Price Tag Callout */}
-              <div className="flex items-baseline gap-3 pt-2">
+              <div className="flex items-baseline gap-3 pt-2 h-[44px]">
                 <span className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
                   ₹{current.price}
                 </span>
@@ -283,7 +287,7 @@ export function SubscriptionCarousel() {
               </div>
 
               {/* Trust Indicators */}
-              <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] text-[#64748B]">
+              <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] text-[#64748B] min-h-[20px]">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
                   <span>Single-Device Watermarked DRM</span>
@@ -299,7 +303,7 @@ export function SubscriptionCarousel() {
             <div className="lg:col-span-5 flex justify-center items-center order-1 lg:order-2">
               <div
                 onClick={() => handleOpenSample(current.bookId, current.sampleTitle)}
-                className="relative w-full max-w-[340px] aspect-[1/1.1] rounded-3xl p-6 bg-gradient-to-b from-[#F0F7FF] via-white to-[#F0F7FF] border border-[#DBEAFE] shadow-[0_15px_40px_rgba(0,90,156,0.10)] flex flex-col items-center justify-center cursor-pointer group hover:border-[#005A9C] transition-all duration-300"
+                className="relative w-full max-w-[320px] sm:max-w-[340px] h-[340px] sm:h-[370px] rounded-3xl p-6 bg-gradient-to-b from-[#F0F7FF] via-white to-[#F0F7FF] border border-[#DBEAFE] shadow-[0_15px_40px_rgba(0,90,156,0.10)] flex flex-col items-center justify-center cursor-pointer group hover:border-[#005A9C] transition-colors duration-200"
               >
                 {/* Floating Top Badge */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
@@ -312,7 +316,7 @@ export function SubscriptionCarousel() {
                 </div>
 
                 {/* 3D Book Graphic */}
-                <div className="relative w-full h-[78%] my-auto flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                <div className="relative w-full h-[70%] my-auto flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
                   <Image
                     src={current.image}
                     alt={current.title}
