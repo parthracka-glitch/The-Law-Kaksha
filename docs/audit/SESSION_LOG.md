@@ -166,3 +166,20 @@
   1. Frontend TypeScript Compilation (`tsc --noEmit`): 0 errors, exit 0.
   2. Full Backend Test Harness (`node backend/tests/runner.js`): 91/91 tests pass across 12 suites (100% pass rate, exit 0).
   3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 routes compile cleanly, exit 0.
+
+## 2026-10-19 20:47 - gemini - Subscription Carousel Uniform Size & Layout Shift Elimination
+- Goal: Make the "Official 2026 Curriculum - Featured & Best-Selling Codices" carousel uniform in height across all 3 course slides so it does not resize/wobble/reshape repeatedly during auto-play or slide switching.
+- Actions taken:
+  1. `frontend/src/components/SubscriptionCarousel.tsx`:
+     - Removed `transition-all duration-500` from the outer spotlight card container that was animating height differences every 6 seconds on auto-rotation.
+     - Added uniform responsive min-height to outer spotlight card: `min-h-[690px] sm:min-h-[620px] lg:min-h-[550px] flex flex-col justify-between`.
+     - Wrapped Course Title in a reserved min-height slot (`min-h-[3.75rem] sm:min-h-[4.5rem] lg:min-h-[5.25rem] flex items-center`) so differing titles (44 chars vs 34 chars vs 31 chars) never shift content.
+     - Wrapped Subtitle in a reserved min-height slot (`min-h-[3.75rem] sm:min-h-[3.25rem] flex items-center`).
+     - Wrapped Key Features Grid in a reserved min-height slot (`min-h-[6.5rem] sm:min-h-[4.75rem] content-start`).
+     - Set fixed dimensions and subtle color transition for Right Column 3D Book Showcase Card (`w-full max-w-[320px] sm:max-w-[340px] h-[340px] sm:h-[370px] transition-colors duration-200`) instead of dynamic aspect-ratio resizing.
+- Verified:
+  1. Frontend TypeScript Compilation (`tsc --noEmit`): 0 errors, exit 0.
+  2. Full Backend Test Harness (`node backend/tests/runner.js`): 91/91 tests pass across 12 suites (100% pass rate in ~6.4s, exit 0).
+  3. Production Next.js Build (`npm run --prefix frontend build`): 22/22 static and dynamic routes compiled cleanly, exit 0.
+  4. Visual & Layout Stability: Carousel card maintains 100% static, uniform dimensions across all course rotations with zero vertical jump or layout shift on the sections below it.
+

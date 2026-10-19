@@ -34,4 +34,5 @@ Status values: Not started · In progress · Blocked · Done · Verified against
 | **P10** | Vision Restructure: Production Release | **Done** | gemini | 2026-10-19 | Production Next.js build clean (22 routes), 91/91 tests passing (100%), 0 TS errors, demo-ready |
 | **P11** | Student Auth Guard & Authentic Streaks | **Done** | gemini | 2026-10-19 | Enforce student auth guard on /student route, compute streaks upon active login only, purge mock streak/rank/dates |
 | **P12** | Hero Section Scroll Blur Removal | **Done** | gemini | 2026-10-19 | Removed dynamic blur filter on scroll in HeroSection, keeping typography crisp and legible |
+| **P13** | Subscription Carousel Uniform Size | **Done** | gemini | 2026-10-19 | Enforce uniform min-height, fixed title/subtitle/features slots, fixed book card, and remove transition-all to eliminate layout shifts (commit `02fd2df`) |
 
