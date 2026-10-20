@@ -10,7 +10,9 @@ const fs = require("fs");
 const path = require("path");
 
 const DATA_DIR = path.resolve(__dirname, "../../data");
-const DB_FILE = path.join(DATA_DIR, "lawkaksha_db.json");
+const DB_FILE = process.env.NODE_ENV === "test"
+  ? path.join(DATA_DIR, "lawkaksha_db.test.json")
+  : path.join(DATA_DIR, "lawkaksha_db.json");
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -148,7 +150,9 @@ const Database = {
 
       insert(record) {
         const timestamp = new Date().toISOString();
+        const autoId = record.id || (record.key ? `key-${record.key}` : `${name}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`);
         const newRecord = {
+          id: autoId,
           ...record,
           created_at: record.created_at || timestamp,
           updated_at: timestamp,

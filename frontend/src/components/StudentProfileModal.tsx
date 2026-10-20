@@ -315,9 +315,8 @@ export function StudentProfileModal({
                       onChange={(e) => setFormData({ ...formData, targetExam: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] text-[#221D1D] text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#BFAFE5] focus:border-transparent transition-all cursor-pointer"
                     >
-                      <option value="CSEET Law & Management">CSEET — Business Law &amp; Management</option>
+                      <option value="CSEET Business Laws and Management">CSEET Business Laws and Management</option>
                       <option value="CA Foundation Paper 2">CA Foundation — Paper 2 Business Laws</option>
-                      <option value="CSEET + CA Foundation Both">CSEET &amp; CA Foundation (Combo)</option>
                     </select>
                   </div>
 

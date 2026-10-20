@@ -45,6 +45,17 @@ const { grantEntitlement, reconcileOrder } = require("../services/entitlementSer
 
 const router = express.Router();
 
+function createSlug(value) {
+  const slug = String(value || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-");
+  return slug || `course-${Date.now()}`;
+}
+
 // Enforce Administrator privileges for all /admin/* endpoints
 router.use("/admin", requireAdmin);
 
@@ -680,7 +691,7 @@ router.get("/admin/exam-settings", async (req, res) => {
     res.status(200).json({
       success: true,
       examSettings: [
-        { id: "ex-1", exam: "CSEET Paper 2 (Business Law & Management)", date: "2026-11-12", session: "November 2026 Attempt" },
+        { id: "ex-1", exam: "CSEET Business Laws and Management", date: "2026-11-12", session: "November 2026 Attempt" },
         { id: "ex-2", exam: "CA Foundation Paper 2 (Business Laws)", date: "2026-12-20", session: "December 2026 Attempt" },
       ],
     });
@@ -1074,7 +1085,7 @@ const DEFAULT_PROMO_BANNERS = {
     id: "card_cs",
     streamBadge: "ICSI • 8 Exam Units",
     discountBadge: "67% OFF",
-    title: "CSEET Business Law & Management",
+    title: "CSEET Business Laws and Management",
     subtitle: "Master Question Bank",
     price: 99,
     originalPrice: 299,
@@ -1410,11 +1421,20 @@ router.get("/admin/courses", async (req, res) => {
 
 router.post("/admin/courses", async (req, res) => {
   try {
-    const { title, description, thumbnail, kind, price, mrp, show_on_website, display_order, availability, accessDays } = req.body;
+    const { title, slug, description, thumbnail, kind, price, mrp, show_on_website, display_order, availability, accessDays, exam_body } = req.body;
     if (!title) return res.status(400).json({ success: false, message: "Course title is required." });
+
+    let courseSlug = createSlug(slug || title);
+    if (isConnected()) {
+      const existingSlug = await Course.findOne({ slug: courseSlug }).lean();
+      if (existingSlug) courseSlug = `${courseSlug}-${Date.now()}`;
+    } else if (Database.table("courses").findOne((c) => c.slug === courseSlug)) {
+      courseSlug = `${courseSlug}-${Date.now()}`;
+    }
 
     const newCourseData = {
       id: req.body.id || `course-${Date.now()}`,
+      slug: courseSlug,
       title,
       description: description || "",
       thumbnail: thumbnail || "/assets/ca-cs-hero-books-sharp.png",
@@ -1422,7 +1442,8 @@ router.post("/admin/courses", async (req, res) => {
       price: Number(price || 0),
       mrp: Number(mrp || 0),
       accessDays: Number(accessDays || 30),
-      availability: availability || "live",
+      availability: availability === "coming_soon" ? "coming_soon" : "live",
+      exam_body: exam_body || "ICAI",
       show_on_website: show_on_website !== false,
       is_active: true,
       order: Number(display_order || 99),
@@ -1448,6 +1469,7 @@ router.put("/admin/courses/:id", async (req, res) => {
     const { id } = req.params;
     const allowedFields = [
       "title",
+      "slug",
       "availability",
       "price",
       "mrp",
@@ -1455,6 +1477,7 @@ router.put("/admin/courses/:id", async (req, res) => {
       "description",
       "thumbnail",
       "kind",
+      "exam_body",
       "is_active",
       "order",
       "display_order",
@@ -2032,6 +2055,33 @@ router.get("/admin/acts", async (req, res) => {
     res.status(200).json({ success: true, source: "local_cache", acts });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching acts: " + err.message });
+  }
+});
+
+router.post("/admin/acts", async (req, res) => {
+  try {
+    const payload = {
+      id: req.body.id || `act-${Date.now()}`,
+      courseId: req.body.courseId,
+      title: req.body.title,
+      availability: req.body.availability === "coming_soon" ? "coming_soon" : "live",
+      order: Number(req.body.order) || 1,
+      description: req.body.description || "",
+    };
+    if (!payload.courseId || !payload.title) {
+      return res.status(400).json({ success: false, message: "courseId and title are required." });
+    }
+
+    if (isConnected()) {
+      const created = await Act.create(payload);
+      Database.table("acts").insert(payload);
+      return res.status(201).json({ success: true, source: "mongodb_atlas", act: created });
+    }
+
+    const created = Database.table("acts").insert(payload);
+    res.status(201).json({ success: true, source: "local_cache", act: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating act: " + err.message });
   }
 });
 

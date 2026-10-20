@@ -21,8 +21,10 @@ async function connectMongo() {
     return cached.conn;
   }
 
-  if (!MONGODB_URI) {
-    console.warn("[MongoDB Atlas] MONGODB_URI not configured. Operating with local persistent database.");
+  if (process.env.NODE_ENV === "test" || !MONGODB_URI) {
+    if (process.env.NODE_ENV !== "test") {
+      console.warn("[MongoDB Atlas] MONGODB_URI not configured. Operating with local persistent database.");
+    }
     return mongoose.connection;
   }
 

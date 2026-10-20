@@ -21,7 +21,7 @@ import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { StudentDashboardHome } from "@/components/student/StudentDashboardHome";
 import { StudentRightSidebar } from "@/components/student/StudentRightSidebar";
 import { StudentMobileBottomNav } from "@/components/student/StudentMobileBottomNav";
-import { StudentSchedulePanel } from "@/components/student/StudentSchedulePanel";
+import type { RecentActivityItem } from "@/components/student/StudentSchedulePanel";
 import { CseetComingSoonShell } from "@/components/student/CseetComingSoonShell";
 import { StudentCoursesHierarchyTab } from "@/components/student/StudentCoursesHierarchyTab";
 import { StudentBookmarksTab, StudentBookmarkItem } from "@/components/student/StudentBookmarksTab";
@@ -357,7 +357,7 @@ const CSEET_BOOKS = [
   },
   {
     id: "cseet-management",
-    title: "Business Law & Management",
+    title: "CSEET Business Laws and Management",
     volume: "Volume 2",
     subtitle: "CSEET Paper 2 • Units 7 & 8",
     badge: "Volume 2 • Management & Ethics",
@@ -570,11 +570,11 @@ export default function StudentDashboardPage() {
     progress: number;
     date: string;
   }>({
-    title: "The Sale of Goods Act, 1930",
-    subtitle: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    title: "",
+    subtitle: "",
+    pdfUrl: "",
     progress: 0,
-    date: "Available Now",
+    date: "",
   });
 
   // Daily QOTD Interactive State
@@ -585,6 +585,8 @@ export default function StudentDashboardPage() {
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>([]);
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [liveResources, setLiveResources] = useState<any[]>([]);
+  const [studentCourses, setStudentCourses] = useState<any[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
   const [liveCases, setLiveCases] = useState<any[]>(WEEKLY_CASES);
   const [liveMcqTests, setLiveMcqTests] = useState<GoogleFormTestItem[]>(DEFAULT_GOOGLE_TESTS);
   const [activeFormModal, setActiveFormModal] = useState<{
@@ -637,7 +639,7 @@ export default function StudentDashboardPage() {
   }, [purchasedBooks]);
 
   const hasActiveCourseAccess = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
-  const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management";
+  const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management";
 
   // Auto-detect active course stream based on student's actual subscription
   useEffect(() => {
@@ -656,20 +658,8 @@ export default function StudentDashboardPage() {
     }
   }, [isCsUnlocked, isCaUnlocked, activeCourse]);
 
-  const handleBuyCourse = (courseType: "ca" | "cs" | "all-access" | string) => {
-    if (courseType === "all-access" || courseType === "prod-combo") {
-      addToCart({
-        id: "prod-combo",
-        title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
-        format: "pdf",
-        price: 180,
-        originalPrice: 499,
-        category: "Full Course Subscription",
-        badge: "Dual Pass • 15 Chapters",
-      });
-      setIsCartOpen(true);
-      setCheckoutStep("details");
-    } else if (courseType === "ca" || courseType === "course-ca-foundation-sub") {
+  const handleBuyCourse = (courseType: "ca" | "cs" | string) => {
+    if (courseType === "ca" || courseType === "course-ca-foundation-sub") {
       addToCart({
         id: "course-ca-foundation-sub",
         title: "CA Foundation Business Laws Master Pass",
@@ -684,7 +674,7 @@ export default function StudentDashboardPage() {
     } else if (courseType === "cs" || courseType === "course-cseet-sub") {
       addToCart({
         id: "course-cseet-sub",
-        title: "CSEET Business Law & Management Master Pass",
+        title: "CSEET Business Laws and Management Master Pass",
         format: "pdf",
         price: 99,
         originalPrice: 299,
@@ -708,24 +698,12 @@ export default function StudentDashboardPage() {
     } else if (courseType === "prod-vol2") {
       addToCart({
         id: "prod-vol2",
-        title: "Volume 2: Business Law & Management (CSEET)",
+        title: "Volume 2: CSEET Business Laws and Management",
         format: "pdf",
         price: 99,
         originalPrice: 249,
         category: "Digital Codex",
         badge: "Management • 120+ Pages",
-      });
-      setIsCartOpen(true);
-      setCheckoutStep("details");
-    } else {
-      addToCart({
-        id: "prod-combo",
-        title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
-        format: "pdf",
-        price: 180,
-        originalPrice: 499,
-        category: "Full Course Subscription",
-        badge: "Dual Pass • 15 Chapters",
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
@@ -869,7 +847,7 @@ export default function StudentDashboardPage() {
     if (!isUnlocked && !isSamplePreview) {
       setLockedPrompt({
         open: true,
-        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management",
+        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management",
       });
       return;
     }
@@ -1136,6 +1114,14 @@ export default function StudentDashboardPage() {
             setLastRead(data.lastRead);
           }
         }
+
+        const coursesRes = await fetch(`${API_URL}/api/student/my-courses`, { headers });
+        if (coursesRes.ok) {
+          const coursesData = await coursesRes.json();
+          if (coursesData.success && Array.isArray(coursesData.courses)) {
+            setStudentCourses(coursesData.courses);
+          }
+        }
       } catch (err) {}
 
       // Fallback fetch resources endpoint
@@ -1151,6 +1137,21 @@ export default function StudentDashboardPage() {
     }
     syncAtlasData();
   }, [studentProfile.email, studentProfile.student_id, API_URL]);
+
+  // Live catalog products for the student dashboard pass carousel
+  useEffect(() => {
+    async function loadCatalog() {
+      try {
+        const res = await fetch(`${API_URL}/api/catalog`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.products)) {
+          setCatalogProducts(data.products);
+        }
+      } catch (err) {}
+    }
+    loadCatalog();
+  }, [API_URL]);
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -1249,6 +1250,42 @@ export default function StudentDashboardPage() {
     return completedUnits.filter((id) => id.startsWith(activeCourse)).length;
   }, [completedUnits, activeCourse]);
 
+  const recentActivities = useMemo<RecentActivityItem[]>(() => {
+    const activities: RecentActivityItem[] = [];
+
+    if (lastRead.title) {
+      activities.push({
+        id: "last-read",
+        subject: lastRead.title,
+        actionText: lastRead.subtitle ? `Reading: ${lastRead.subtitle}` : "Opened study material",
+        type: "read",
+      });
+    }
+
+    const unitTitles = new Map<string, string>();
+    studentCourses.forEach((course: any) => {
+      course.acts?.forEach((act: any) => {
+        act.units?.forEach((unit: any) => {
+          if (unit.id && unit.title) unitTitles.set(unit.id, unit.title);
+        });
+      });
+    });
+
+    [...completedUnits]
+      .slice(-3)
+      .reverse()
+      .forEach((unitId) => {
+        activities.push({
+          id: `completed-${unitId}`,
+          subject: unitTitles.get(unitId) || "Study Unit",
+          actionText: "Completed lesson",
+          type: "completed_lesson",
+        });
+      });
+
+    return activities.slice(0, 4);
+  }, [completedUnits, lastRead, studentCourses]);
+
   const masteryPercent = Math.min(100, Math.round((completedCount / (totalUnitsCount || 1)) * 100));
 
   // Course-specific unit & mastery tracking for Certificate Eligibility (Strict: 100% + Paid Subscription)
@@ -1346,7 +1383,7 @@ export default function StudentDashboardPage() {
                 <span>{NAV_ITEMS.find((n) => n.id === activeTab)?.label || "Student Dashboard"}</span>
               </h1>
               <p className="text-[11px] text-[#DCE6FF] leading-none mt-0.5">
-                {activeCourse === "ca" ? "CA Foundation Paper 2: Business Laws" : "CSEET Paper 2: Business Law & Management"}
+                {activeCourse === "ca" ? "CA Foundation Paper 2: Business Laws" : "CSEET Business Laws and Management"}
               </p>
             </div>
           </div>
@@ -1447,14 +1484,14 @@ export default function StudentDashboardPage() {
                     } else {
                       setLockedPrompt({
                         open: true,
-                        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Law & Management",
+                        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management",
                       });
                     }
                   }}
                   activeCourse={activeCourse}
                   onExploreCourse={(courseId) => {
                     if (courseId === "all-access") {
-                      handleBuyCourse("all-access");
+                      handleBuyCourse(activeCourse);
                     } else if (courseId.includes("ca")) {
                       setActiveCourse("ca");
                       setActiveTab("courses");
@@ -1483,6 +1520,9 @@ export default function StudentDashboardPage() {
                   isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
                   onBuyCourse={(courseType) => handleBuyCourse(courseType)}
                   purchasedBooks={purchasedBooks}
+                  studentCourses={studentCourses}
+                  completedUnits={completedUnits}
+                  catalogProducts={catalogProducts}
                 />
               </div>
 
@@ -1495,6 +1535,7 @@ export default function StudentDashboardPage() {
                   studyHours={Math.round(lawXp / 25)}
                   userRank={0}
                   onOpenStreakLog={() => setStreakModalOpen(true)}
+                  recentActivities={recentActivities}
                 />
               </div>
             </div>
@@ -1996,7 +2037,7 @@ export default function StudentDashboardPage() {
                 <div className="space-y-1.5 text-center sm:text-left">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Curriculum Progress</span>
                   <h2 className="text-2xl font-serif font-bold text-[#221D1D]">
-                    {activeCourse === "ca" ? "CA Foundation Law Mastery" : "CSEET Law & Management Mastery"}
+                    {activeCourse === "ca" ? "CA Foundation Law Mastery" : "CSEET Business Laws and Management Mastery"}
                   </h2>
                   <div className="pt-2">
                     <button
@@ -2752,28 +2793,27 @@ export default function StudentDashboardPage() {
 
             {/* Action Buttons */}
             <div className="space-y-2 pt-1">
-              <button
-                onClick={() => {
-                  const courseType = activeCourse;
-                  setLockedPrompt(null);
-                  handleBuyCourse(courseType);
-                }}
-                className="w-full py-3.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <ShoppingBag className="w-4 h-4 text-[#AED7E9]" />
-                <span>Buy {lockedPrompt.courseName} Pass — ₹99/mo</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setLockedPrompt(null);
-                  handleBuyCourse("all-access");
-                }}
-                className="w-full py-2.5 rounded-full bg-[#BFAFE5]/40 hover:bg-[#BFAFE5]/70 text-[#221D1D] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-[#BFAFE5]"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
-                <span>Or Get All-Access Dual Pass (CA + CS) @ ₹180</span>
-              </button>
+              {activeCourse === "cs" ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full py-3.5 rounded-full bg-[#F1F5F9] text-[#94A3B8] text-xs font-bold border border-[#E2E8F0] flex items-center justify-center gap-2 cursor-not-allowed"
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>CSEET Pass — Coming Soon</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setLockedPrompt(null);
+                    handleBuyCourse(activeCourse);
+                  }}
+                  className="w-full py-3.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <ShoppingBag className="w-4 h-4 text-[#AED7E9]" />
+                  <span>Buy {lockedPrompt.courseName} Pass — ₹99/mo</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,58 +1,50 @@
-"use client";
-
 import React from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between text-[#221D1D]">
+    <div className="min-h-screen bg-[#F0F7FF]/25 flex flex-col justify-between text-[#0A192F] font-sans">
       <Navbar />
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 w-full flex flex-col justify-center">
-        <div className="bg-white border border-[#E7E4E7] rounded-3xl p-8 sm:p-12 md:p-16 shadow-sm space-y-8">
-          
-          {/* Main Heading */}
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 text-[#221D1D] text-xs font-medium">
-              <span>About Us</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#221D1D] tracking-tight font-serif">
-              About The Law कक्षा
-            </h1>
-          </div>
+      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 w-full">
+        <article className="bg-white border border-[#DBEAFE] rounded-3xl p-6 sm:p-10 md:p-12 shadow-sm space-y-6">
+          <h1 className="text-3xl sm:text-4xl font-serif font-extrabold text-[#0A192F] tracking-tight">
+            About Us
+          </h1>
 
-          {/* Body Paragraphs */}
-          <div className="space-y-6 text-sm sm:text-base md:text-lg text-[#4D433F] leading-relaxed font-sans">
+          <p className="text-lg sm:text-xl font-serif font-bold text-[#005A9C]">
+            The Law कक्षा Learn. Practise. Excel.
+          </p>
+
+          <div className="space-y-4 text-sm sm:text-base text-[#334155] leading-relaxed">
             <p>
-              The Law कक्षा is a dedicated learning space for law, currently focusing on Business Law for CA Foundation and CSEET students. Through structured practice, application-based case studies and exam-oriented resources, we aim to help students move beyond memorising provisions and develop a clear understanding of how to apply the law.
+              The Law कक्षा was created with a simple belief: understanding a concept is only the beginning of learning. True preparation begins when you learn to apply that understanding to questions, situations and problems.
             </p>
-
             <p>
-              We believe that learning the law is not just about knowing what a provision says. It is about understanding when, why and how it applies.
+              For CA Foundation students, studying Business Laws involves more than remembering provisions and definitions. It requires developing the ability to read a question carefully, identify the relevant legal principle, apply it to the given facts and arrive at a reasoned conclusion.
             </p>
-
-            <div className="space-y-2 pt-4 border-t border-[#E7E4E7]">
-              <p className="font-semibold text-[#221D1D]">
-                The Law कक्षा is a learning space built around that belief.
-              </p>
-              <p className="font-semibold text-[#4B8097]">
-                Learn with clarity. Practice with purpose.
-              </p>
-            </div>
-          </div>
-
-          {/* Brand Signature */}
-          <div className="pt-6 border-t border-[#E7E4E7] space-y-1">
-            <p className="text-base sm:text-lg font-bold font-serif text-[#221D1D]">
-              The Law कक्षा
+            <p>
+              Yet, one of the challenges students often face is finding sufficient structured practice beyond their regular study material. While the ICAI Study Material, RTPs, MTPs and previous year papers remain essential to examination preparation, additional practice can help students strengthen their conceptual understanding and build confidence in applying the law.
             </p>
-            <p className="text-xs sm:text-sm font-semibold tracking-wider text-[#77716E] uppercase">
-              Learn • Practice • Excel
+            <p>
+              We aim to create learning resources that bridge the gap between studying concepts and practising their application. Our question banks are designed to encourage active learning, structured revision and thoughtful problem-solving, helping students approach their preparation with greater clarity and purpose.
+            </p>
+            <p>
+              Through chapter-wise questions, application-based case studies, exam-oriented practice and detailed solutions, we seek to make the learning process more organised and meaningful.
+            </p>
+            <p>
+              We believe that students do not simply need more content. They need the right opportunities to practise, reflect, identify gaps in their understanding and improve.
+            </p>
+            <p>
+              Because learning the law is not just about knowing what a provision says. It is about understanding when, why and how it applies.
             </p>
           </div>
 
-        </div>
+          <p className="text-base sm:text-lg font-serif font-bold text-[#005A9C]">
+            Learn with clarity. Practise with purpose.
+          </p>
+        </article>
       </main>
 
       <Footer />

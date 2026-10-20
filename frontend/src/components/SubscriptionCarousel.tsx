@@ -38,6 +38,7 @@ export interface FeaturedCourseData {
   ctaLink: string;
   isBestseller?: boolean;
   isNew?: boolean;
+  isComingSoon?: boolean;
 }
 
 const FEATURED_COURSES: FeaturedCourseData[] = [
@@ -68,8 +69,8 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
   },
   {
     id: "cseet-law",
-    categoryTag: "✨ NEW COURSE RELEASE • 2026 ICSI SYLLABUS",
-    tagColor: "bg-blue-50 text-[#005A9C] border-blue-200",
+    categoryTag: "⏳ COMING SOON • 2026 ICSI SYLLABUS",
+    tagColor: "bg-slate-100 text-slate-600 border-slate-200",
     title: "CSEET Legal Aptitude & Management",
     subtitle:
       "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
@@ -78,9 +79,9 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
     discount: "67% OFF",
     image: "/assets/bookcover.png",
     bookId: "cseet",
-    sampleTitle: "CSEET Business Law & Management Codex",
+    sampleTitle: "CSEET Business Laws and Management Codex",
     rating: "4.9 / 5.0",
-    studentCount: "Just Released",
+    studentCount: "Launching Soon",
     features: [
       "Full 8 Units Legal Aptitude & Business Mgt",
       "High-Yield Timed MCQ Drills with Analytics",
@@ -88,32 +89,8 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
       "Interactive 3D Digital Codex Reader",
       "Live Strategy Sessions & Doubt Support",
     ],
-    ctaLink: "/product/course-cseet-sub",
-    isNew: true,
-  },
-  {
-    id: "ca-cs-combo",
-    categoryTag: "⚡ BEST VALUE • ALL-ACCESS COMMERCE PASS",
-    tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    title: "CA Foundation + CSEET Dual Pass",
-    subtitle:
-      "One unified pass for comprehensive commerce law mastery. Unlocks both CA Foundation & CSEET portals simultaneously.",
-    price: 179,
-    mrp: 598,
-    discount: "70% OFF",
-    image: "/assets/ca-cs-hero-books-sharp.png",
-    bookId: "ca-foundation",
-    sampleTitle: "Dual Master Commerce Law Codex",
-    rating: "5.0 / 5.0",
-    studentCount: "Limited Launch Offer",
-    features: [
-      "Includes BOTH CA Foundation & CSEET Codices",
-      "Full 15 Subjects & Statutory Acts Access",
-      "Unlimited Mock Exams & Evaluation",
-      "Priority Google Meet Q&A Sessions",
-      "Personalized Study Streak Tracking",
-    ],
     ctaLink: "/courses",
+    isComingSoon: true,
   },
 ];
 
@@ -191,7 +168,8 @@ export function SubscriptionCarousel() {
                 >
                   {course.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
                   {course.isNew && <Sparkles className="w-3.5 h-3.5 text-sky-400" />}
-                  <span>{course.id === "ca-foundation" ? "Best Seller (CA)" : course.id === "cseet-law" ? "New Course (CSEET)" : "Dual Pass Combo"}</span>
+                  {course.isComingSoon && <Clock className="w-3.5 h-3.5 text-slate-400" />}
+                  <span>{course.id === "ca-foundation" ? "Best Seller (CA)" : "CSEET (Coming Soon)"}</span>
                 </button>
               );
             })}
@@ -219,6 +197,7 @@ export function SubscriptionCarousel() {
                 >
                   {current.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
                   {current.isNew && <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />}
+                  {current.isComingSoon && <Clock className="w-3.5 h-3.5 text-slate-500" />}
                   <span>{current.categoryTag}</span>
                 </span>
 
@@ -256,25 +235,44 @@ export function SubscriptionCarousel() {
 
               {/* Price Tag Callout */}
               <div className="flex items-baseline gap-3 pt-2 h-[44px]">
-                <span className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
-                  ₹{current.price}
-                </span>
-                <span className="text-xs text-[#64748B]">/ month</span>
-                <span className="text-base text-[#94A3B8] line-through">₹{current.mrp}</span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {current.discount}
-                </span>
+                {current.isComingSoon ? (
+                  <span className="text-xl sm:text-2xl font-serif font-black text-slate-500">
+                    Launching Soon
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-3xl sm:text-4xl font-serif font-black text-[#0A192F]">
+                      ₹{current.price}
+                    </span>
+                    <span className="text-xs text-[#64748B]">/ month</span>
+                    <span className="text-base text-[#94A3B8] line-through">₹{current.mrp}</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {current.discount}
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="pt-2 flex flex-wrap items-center gap-3">
-                <Link
-                  href={current.ctaLink}
-                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
-                >
-                  <span>Enroll in Course</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </Link>
+                {current.isComingSoon ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed min-h-[46px]"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Coming Soon</span>
+                  </button>
+                ) : (
+                  <Link
+                    href={current.ctaLink}
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                  >
+                    <span>Enroll in Course</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </Link>
+                )}
 
                 <button
                   type="button"
@@ -308,7 +306,7 @@ export function SubscriptionCarousel() {
                 {/* Floating Top Badge */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-[#005A9C] border border-[#DBEAFE] shadow-2xs">
-                    {current.isBestseller ? "🔥 #1 Best Seller" : current.isNew ? "✨ New 2026 Edition" : "⭐ Dual All-Access"}
+                    {current.isBestseller ? "🔥 #1 Best Seller" : current.isComingSoon ? "⏳ Coming Soon" : "✨ New 2026 Edition"}
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0A192F] text-white">
                     DRM-PROTECTED

@@ -60,12 +60,12 @@ export function AnnouncementBar() {
   return (
     <aside
       aria-label="Announcement"
-      className="bg-[#221D1D] text-white text-xs py-2 px-3 sm:px-4 relative z-50 border-b border-[#383130] transition-all animate-in fade-in slide-in-from-top-1 duration-300"
+      className="bg-[#0A192F] text-white text-xs py-2 px-3 sm:px-4 relative z-50 border-b border-[#005A9C]/30 transition-all animate-in fade-in slide-in-from-top-1 duration-200"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <div className="flex-1 flex items-center justify-center gap-2 sm:gap-3 text-center min-w-0">
           {announcement.badge && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-[#AED7E9] text-[#221D1D] shrink-0 font-sans shadow-2xs">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4AF37] text-[#0A192F] shrink-0 font-sans shadow-2xs">
               {announcement.badge}
             </span>
           )}
@@ -75,7 +75,7 @@ export function AnnouncementBar() {
           {announcement.link && (
             <Link
               href={announcement.link}
-              className="inline-flex items-center gap-1 font-bold text-[#AED7E9] hover:text-white underline underline-offset-2 shrink-0 transition-colors ml-1"
+              className="inline-flex items-center gap-1 font-bold text-[#8ECAE6] hover:text-white underline underline-offset-2 shrink-0 transition-colors ml-1"
             >
               <span>Explore</span>
               <ArrowRight className="w-3 h-3 stroke-[2.5]" />
@@ -85,7 +85,7 @@ export function AnnouncementBar() {
         <button
           type="button"
           onClick={() => setDismissed(true)}
-          className="text-white/60 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+          className="text-white/60 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors shrink-0 cursor-pointer min-w-[28px] min-h-[28px] flex items-center justify-center"
           aria-label="Dismiss announcement"
         >
           <X className="w-3.5 h-3.5" />

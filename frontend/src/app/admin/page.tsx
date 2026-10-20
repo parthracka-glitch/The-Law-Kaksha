@@ -193,314 +193,15 @@ export interface QotdSetting {
 }
 
 // --- INITIAL SEED DATA ---
-const INITIAL_PRODUCTS: ProductItem[] = [
-  {
-    id: "prod-vol1",
-    title: "CA Foundation Business Laws Codex",
-    subtitle: "Complete 7 Chapters Study Notes & Case Problem Bank",
-    category: "CA Foundation",
-    format: "Digital Codex (In-Web DRM)",
-    price: 99,
-    originalPrice: 299,
-    pages: "250+ Pages",
-    status: "Active",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes for all 7 Acts, practice questions, and model solutions.",
-    units: ["Indian Regulatory Framework", "Indian Contract Act, 1872", "Sale of Goods Act, 1930", "Indian Partnership Act, 1932", "LLP Act, 2008", "Companies Act, 2013", "Negotiable Instruments Act, 1881"],
-  },
-  {
-    id: "prod-vol2",
-    title: "CSEET Business Law & Management Codex",
-    subtitle: "8 Units Comprehensive Notes & MCQ Practice Bank",
-    category: "CSEET",
-    format: "Digital Codex (In-Web DRM)",
-    price: 99,
-    originalPrice: 299,
-    pages: "300+ Pages",
-    status: "Active",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with explanations, and timed mock drills.",
-    units: ["Indian Contract Act", "Sale of Goods Act", "Partnership Act", "LLP Act", "Company Law", "Negotiable Instruments", "Principles of Management", "Business Environment & Ethics"],
-  },
-];
+const INITIAL_PRODUCTS: ProductItem[] = [];
 
-const INITIAL_RESOURCES: ResourceItem[] = [
-  {
-    id: "res-ca-soga-1",
-    course: "ca-foundation",
-    actName: "The Sale of Goods Act, 1930",
-    chapterNumber: 3,
-    type: "notes",
-    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    description: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods, Formalities & Statutory Rules.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    samplePdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "12 Pages (Free Sample PDF)",
-  },
-  {
-    id: "res-ca-3",
-    course: "ca-foundation",
-    actName: "The Sale of Goods Act, 1930",
-    chapterNumber: 3,
-    type: "notes",
-    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-    description: "Implied conditions of fitness, Priest v. Last, Grant v. Australian Knitting Mills & Caveat Emptor.",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    samplePdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isSample: true,
-    status: "Published",
-    order: 2,
-    pages: "10 Pages (Free Sample PDF)",
-  },
-  {
-    id: "res-ca-1",
-    course: "ca-foundation",
-    actName: "Indian Regulatory Framework",
-    chapterNumber: 1,
-    type: "notes",
-    title: "Overview of Indian Legal System & Hierarchy of Courts",
-    description: "Structure of Legislative, Executive & Judiciary in India with constitutional jurisdiction.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "18 Pages",
-  },
-  {
-    id: "res-ca-2",
-    course: "ca-foundation",
-    actName: "The Indian Contract Act, 1872",
-    chapterNumber: 2,
-    type: "notes",
-    title: "Nature & Essentials of Valid Contract (Sec 1-10)",
-    description: "Offer, Acceptance, Intention to create Legal Relationship with landmark English & Indian precedents.",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "34 Pages",
-  },
-  {
-    id: "res-ca-4",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 1: General Nature of Partnership",
-    description: "Definition of Partnership, Mutual Agency, True Test (Cox v. Hickman) & Partnership vs Co-ownership.",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    samplePdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "24 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-5",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 2: Relations of Partners",
-    description: "Rights, Duties, Implied Authority, Holding Out, Minor as Beneficiary.",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    samplePdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    isSample: true,
-    status: "Published",
-    order: 2,
-    pages: "28 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-6",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "notes",
-    title: "Unit 3: Registration and Dissolution of Firm",
-    description: "Effect of Non-Registration (Sec 69), Modes of Dissolution, Settlement of Accounts (Sec 48).",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    samplePdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    isSample: true,
-    status: "Published",
-    order: 3,
-    pages: "32 Pages (Sample PDF)",
-  },
-  {
-    id: "res-ca-partnership-ldr",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "ldr",
-    title: "Partnership Act — Last Day Revision (LDR) Flowcharts & Summary Matrix",
-    description: "High-speed visual recall flowcharts covering Section 4 Definition, Section 6 True Test (Cox v. Hickman), Section 19 Implied Authority limits, Section 28 Holding Out & Section 48-49 Dissolution Rules.",
-    pdfUrl: "/notes/partnership-ldr-charts.pdf",
-    samplePdfUrl: "/notes/partnership-ldr-charts.pdf",
-    isSample: true,
-    status: "Published",
-    order: 4,
-    pages: "18 Pages (LDR Revision Charts)",
-  },
-  {
-    id: "res-ca-partnership-infographics",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "infographic",
-    title: "Partnership Act — Visual Infographics & Concept Mind Maps",
-    description: "High-retention infographics breaking down Mutual Agency, Minor Beneficiary Rights, Modes of Dissolution & Registration Consequences.",
-    pdfUrl: "/notes/partnership-infographics.pdf",
-    samplePdfUrl: "/notes/partnership-infographics.pdf",
-    isSample: true,
-    status: "Published",
-    order: 5,
-    pages: "12 Infographic Sheets",
-  },
-  {
-    id: "res-ca-partnership-practice",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "practice",
-    title: "Indian Partnership Act — Practice Questions & Case Problems",
-    description: "Curated chapter-wise practice questions with step-by-step model solutions covering application-based scenarios and ICAI exam patterns.",
-    pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    samplePdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    isSample: true,
-    status: "Published",
-    order: 6,
-    pages: "25 Pages (Practice Problems)",
-  },
-  {
-    id: "res-ca-qbank-part1",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "practice",
-    title: "Smart Revision Question Bank (Part 1) — With Detailed Solutions",
-    description: "Turn understanding into exam-ready practice: Chapter-wise questions, application scenarios, case-based questions & model test papers for CA Foundation.",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    samplePdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    isSample: true,
-    status: "Published",
-    order: 7,
-    pages: "65+ Pages (Question Bank)",
-  },
-  {
-    id: "res-ca-paper-analysis-sep2026",
-    course: "ca-foundation",
-    actName: "The Indian Partnership Act, 1932",
-    chapterNumber: 4,
-    type: "pyq",
-    title: "September 2026 Paper Analysis & Detailed Model Answers",
-    description: "Comprehensive question-by-question paper analysis with section-wise statutory references, examiner marking traps & ICAI model answers.",
-    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    samplePdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    isSample: true,
-    status: "Published",
-    order: 8,
-    pages: "16 Pages (Exam Paper Analysis)",
-  },
-  {
-    id: "res-ca-7",
-    course: "ca-foundation",
-    actName: "The Limited Liability Partnership Act, 2008",
-    chapterNumber: 5,
-    type: "notes",
-    title: "LLP Architecture & Comparison with Traditional Firm",
-    description: "Separate legal identity, perpetual succession, Designated Partners compliance & Amendment Act 2021.",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "20 Pages",
-  },
-  {
-    id: "res-ca-8",
-    course: "ca-foundation",
-    actName: "The Companies Act, 2013",
-    chapterNumber: 6,
-    type: "notes",
-    title: "Essential Characteristics & Lifting of Corporate Veil",
-    description: "Salomon v. Salomon, Private vs Public vs One Person Company, Section 8 Non-profit companies.",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "36 Pages",
-  },
-  {
-    id: "res-ca-9",
-    course: "ca-foundation",
-    actName: "The Negotiable Instruments Act, 1881",
-    chapterNumber: 7,
-    type: "notes",
-    title: "Promissory Notes, Bills of Exchange & Cheques",
-    description: "Holder in Due Course, Section 138 Dishonour penalties, statutory notice timeline & defences.",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    isSample: false,
-    status: "Published",
-    order: 1,
-    pages: "26 Pages",
-  },
-  {
-    id: "res-cs-1",
-    course: "cseet",
-    actName: "General Principles of Management",
-    chapterNumber: 7,
-    type: "notes",
-    title: "Management Principles, Functions & Theories",
-    description: "Henry Fayol 14 Principles vs FW Taylor Scientific Management, PESTLE Analysis & Corporate Governance.",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    samplePdfUrl: "/notes/cseet-management-full.pdf",
-    isSample: true,
-    status: "Published",
-    order: 1,
-    pages: "120+ Pages",
-  },
-];
+const INITIAL_RESOURCES: ResourceItem[] = [];
 
 const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
 const INITIAL_STUDENTS: StudentRecord[] = [];
 
-const INITIAL_CASES: CaseStudyItem[] = [
-  {
-    id: "case-1",
-    day: "Monster Monday",
-    badge: "High Difficulty",
-    subject: "Indian Contract Act, 1872",
-    title: "The Anticipatory Breach & Measure of Damages",
-    scenario: "A agreed to supply 500 MT of industrial chemicals to B at Rs.20,000/MT on 1st November. On 15th October, A informed B that he would not deliver. Market price on 15th October was Rs.22,000/MT but B waited until 1st November when market price surged to Rs.26,000/MT. B sued for Rs.30,00,000 damages. Decide quantum of damages under Section 73.",
-    modelAnswer: "Under Section 73 of Indian Contract Act 1872 (and Frost v. Knight), B has two options: (1) Treat contract as rescinded on 15th Oct and claim difference (Rs.2,000/MT = Rs.10 Lakhs), OR (2) Keep contract alive till 1st Nov and claim difference on date of performance (Rs.6,000/MT = Rs.30 Lakhs). Since contract was kept alive, B is entitled to Rs.30 Lakhs.",
-    precedent: "Frost v. Knight (1872) L.R. 7 Ex. 111",
-    marks: "6/6 Marks",
-  },
-  {
-    id: "case-2",
-    day: "Midweek Law Madness",
-    badge: "Statutory Trap",
-    subject: "Indian Partnership Act, 1932",
-    title: "Retirement without Notice & Doctrine of Holding Out",
-    scenario: "Karan, partner in M/s Apex Builders, retired in January but no public notice was given in the Official Gazette. In March, firm borrowed Rs.15 Lakhs from Indus Bank. Karan was unaware. Is Karan personally liable to Indus Bank?",
-    modelAnswer: "Under Section 32(3) read with Section 28 of Indian Partnership Act 1932, a retired partner continues to be liable to third parties unless public notice is published in the Official Gazette and at least one local language newspaper. Karan is personally liable to Indus Bank under the doctrine of Holding Out.",
-    precedent: "Scarf v. Jardine (1882) 7 App Cas 345",
-    marks: "6/6 Marks",
-  },
-  {
-    id: "case-3",
-    day: "Final Boss Friday",
-    badge: "Exam Simulation",
-    subject: "Companies Act, 2013",
-    title: "Ultra Vires Borrowing & Subrogation Remedy",
-    scenario: "A company's MOA authorizes borrowing up to Rs.1 Crore. The Directors borrowed Rs.2.5 Crores from a private financier without member approval. The entire Rs.2.5 Crores was used to pay off lawful trade debts of the company. Can the lender recover money from the company?",
-    modelAnswer: "The loan is Ultra Vires the borrowing powers of the company and void ab initio (Ashbury Railway Carriage Co. v. Riche). However, under the equitable doctrine of Subrogation (Sinclair v. Brougham), since the money was used to discharge lawful intra-vires liabilities, the lender stands in shoes of discharged creditors and can recover the debt.",
-    precedent: "Sinclair v. Brougham [1914] AC 398",
-    marks: "6/6 Marks",
-  },
-];
+const INITIAL_CASES: CaseStudyItem[] = [];
 
 const INITIAL_MCQ_TESTS: GoogleFormTestItem[] = [
   {
@@ -647,7 +348,7 @@ export default function AdminPortalPage() {
   const [mcqTests, setMcqTests] = useState<GoogleFormTestItem[]>(INITIAL_MCQ_TESTS);
   const [coupons, setCoupons] = useState<CouponRecord[]>(INITIAL_COUPONS);
   const [examSettings, setExamSettings] = useState<ExamCountdownSetting[]>([
-    { id: "ex-1", exam: "CSEET Paper 2 (Business Law & Management)", date: "2026-11-12", session: "November 2026 Attempt" },
+    { id: "ex-1", exam: "CSEET Business Laws and Management", date: "2026-11-12", session: "November 2026 Attempt" },
     { id: "ex-2", exam: "CA Foundation Paper 2 (Business Laws)", date: "2026-12-20", session: "December 2026 Attempt" },
   ]);
   const [qotd, setQotd] = useState<QotdSetting>({
@@ -739,29 +440,7 @@ export default function AdminPortalPage() {
       setIsCheckingAuth(false);
 
 
-      // 1. Optimistic load from localStorage
-      try {
-        const p = localStorage.getItem("lawkaksha_admin_products");
-        if (p) setProducts(JSON.parse(p));
-        const resList = localStorage.getItem("lawkaksha_admin_resources");
-        if (resList) setResources(JSON.parse(resList));
-        const sub = localStorage.getItem("lawkaksha_admin_subs");
-        if (sub) setSubscriptions(JSON.parse(sub));
-        const s = localStorage.getItem("lawkaksha_admin_students");
-        if (s) setStudents(JSON.parse(s));
-        const c = localStorage.getItem("lawkaksha_admin_cases");
-        if (c) setCases(JSON.parse(c));
-        const m = localStorage.getItem("lawkaksha_admin_mcqs");
-        if (m) setMcqTests(JSON.parse(m));
-        const cp = localStorage.getItem("lawkaksha_admin_coupons");
-        if (cp) setCoupons(JSON.parse(cp));
-        const ann = localStorage.getItem("lawkaksha_admin_announcement");
-        if (ann) setAnnouncement(JSON.parse(ann));
-        const pb = localStorage.getItem("lawkaksha_admin_promo_banners");
-        if (pb) setPromoBanners(JSON.parse(pb));
-      } catch (e) {}
-
-      // 2. Live fetch from MongoDB Atlas
+      // Load live data from MongoDB Atlas
       const syncWithAtlas = async () => {
         try {
           const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, annRes, pbRes] = await Promise.allSettled([
@@ -778,31 +457,31 @@ export default function AdminPortalPage() {
             adminFetch(`/api/admin/promo-banners`).then((r) => r.json()),
           ]);
 
-          if (pRes.status === "fulfilled" && pRes.value?.products?.length) {
+          if (pRes.status === "fulfilled" && Array.isArray(pRes.value?.products)) {
             setProducts(pRes.value.products);
             localStorage.setItem("lawkaksha_admin_products", JSON.stringify(pRes.value.products));
           }
-          if (rRes.status === "fulfilled" && rRes.value?.resources?.length) {
+          if (rRes.status === "fulfilled" && Array.isArray(rRes.value?.resources)) {
             setResources(rRes.value.resources);
             localStorage.setItem("lawkaksha_admin_resources", JSON.stringify(rRes.value.resources));
           }
-          if (sRes.status === "fulfilled" && sRes.value?.subscriptions?.length) {
+          if (sRes.status === "fulfilled" && Array.isArray(sRes.value?.subscriptions)) {
             setSubscriptions(sRes.value.subscriptions);
             localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(sRes.value.subscriptions));
           }
-          if (stdRes.status === "fulfilled" && stdRes.value?.students?.length) {
+          if (stdRes.status === "fulfilled" && Array.isArray(stdRes.value?.students)) {
             setStudents(stdRes.value.students);
             localStorage.setItem("lawkaksha_admin_students", JSON.stringify(stdRes.value.students));
           }
-          if (cRes.status === "fulfilled" && cRes.value?.cases?.length) {
+          if (cRes.status === "fulfilled" && Array.isArray(cRes.value?.cases)) {
             setCases(cRes.value.cases);
             localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(cRes.value.cases));
           }
-          if (mRes.status === "fulfilled" && mRes.value?.tests?.length) {
+          if (mRes.status === "fulfilled" && Array.isArray(mRes.value?.tests)) {
             setMcqTests(mRes.value.tests);
             localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(mRes.value.tests));
           }
-          if (cpRes.status === "fulfilled" && cpRes.value?.coupons?.length) {
+          if (cpRes.status === "fulfilled" && Array.isArray(cpRes.value?.coupons)) {
             setCoupons(cpRes.value.coupons);
             localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(cpRes.value.coupons));
           }
@@ -3425,7 +3104,7 @@ export default function AdminPortalPage() {
                   className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="CA Foundation Business Laws (Monthly Access)">CA Foundation Business Laws (₹99/Month)</option>
-                  <option value="CSEET Business Law & Management (Monthly Access)">CSEET Business Law &amp; Management (₹99/Month)</option>
+                  <option value="CSEET Business Laws and Management (Monthly Access)">CSEET Business Laws and Management (₹99/Month)</option>
                 </select>
               </div>
 
@@ -3860,7 +3539,7 @@ export default function AdminPortalPage() {
                   className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="CA Foundation Paper 2">CA Foundation Paper 2 (Business Laws)</option>
-                  <option value="CSEET Law & Management">CSEET Paper 2 (Business Law &amp; Management)</option>
+                  <option value="CSEET Business Laws and Management">CSEET Business Laws and Management</option>
                 </select>
               </div>
             </div>

@@ -3,7 +3,7 @@
  * Verifies:
  * 1. GET /api/admin/courses returns courses with availability, price, and accessDays
  * 2. PUT /api/admin/courses/:id toggles availability (live <-> coming_soon) and updates price/accessDays
- * 3. GET /api/admin/acts returns acts for course and PUT /api/admin/acts/:id updates act availability
+ * 3. GET /api/admin/acts returns acts for course, POST creates an act, and PUT updates availability
  * 4. GET /api/admin/units and POST /api/admin/units creates unit under act
  * 5. POST /api/admin/content-items creates content item with isSample & samplePagesRange
  * 6. PUT /api/admin/content-items/:id toggles isPublished status
@@ -70,6 +70,35 @@ describe("Phase P5: Admin Courses, Content Hierarchy & Site Details Tests", () =
     assert.ok(["live", "coming_soon"].includes(caCourse.availability));
     assert.ok(typeof caCourse.price === "number");
     assert.ok(typeof caCourse.accessDays === "number");
+  });
+
+  test("P5 Course Creation: Admin can create a course with pricing, exam body, and availability", async () => {
+    const title = `Test Course ${Date.now()}`;
+    const res = await fetch(`${API_URL}/api/admin/courses`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        exam_body: "ICSI",
+        description: "Created by the P5 course builder test.",
+        price: 149,
+        mrp: 399,
+        accessDays: 45,
+        availability: "coming_soon",
+      }),
+    });
+    assert.strictEqual(res.status, 201);
+    const data = await res.json();
+    assert.strictEqual(data.success, true);
+    assert.strictEqual(data.course.title, title);
+    assert.ok(data.course.slug, "Course slug must be generated");
+    assert.strictEqual(data.course.exam_body, "ICSI");
+    assert.strictEqual(data.course.price, 149);
+    assert.strictEqual(data.course.accessDays, 45);
+    assert.strictEqual(data.course.availability, "coming_soon");
   });
 
   test("P5 Course Pricing & Availability: Admin can toggle live/coming_soon and update accessDays", async () => {
@@ -150,6 +179,36 @@ describe("Phase P5: Admin Courses, Content Hierarchy & Site Details Tests", () =
       },
       body: JSON.stringify({ availability: firstAct.availability }),
     });
+  });
+
+  test("P5 Act Creation: Admin can create a new act under a course", async () => {
+    const createdActId = `act-p5-test-${Date.now()}`;
+    const createRes = await fetch(`${API_URL}/api/admin/acts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        id: createdActId,
+        courseId: "course-ca-foundation",
+        title: "P5 Test Act",
+        availability: "live",
+        order: 99,
+      }),
+    });
+    assert.strictEqual(createRes.status, 201);
+    const createData = await createRes.json();
+    assert.strictEqual(createData.success, true);
+    assert.strictEqual(createData.act.id, createdActId);
+    assert.strictEqual(createData.act.title, "P5 Test Act");
+
+    const listRes = await fetch(`${API_URL}/api/admin/acts?courseId=course-ca-foundation`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.strictEqual(listRes.status, 200);
+    const listData = await listRes.json();
+    assert.ok(listData.acts.some((act) => act.id === createdActId));
   });
 
   test("P5 Unit Management: Admin can create and list units under an act", async () => {

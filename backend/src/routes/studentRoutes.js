@@ -832,10 +832,10 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       });
 
       // Fetch all courses sorted by curriculum order
-      const allCourses = await Course.find({ isLive: true }).sort({ order: 1, display_order: 1 }).lean();
+      const allCourses = await Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
       const allActs = await Act.find().sort({ order: 1 }).lean();
       const allUnits = await Unit.find().sort({ order: 1 }).lean();
-      const allItems = await ContentItem.find({ status: "Published" }).sort({ order: 1 }).lean();
+      const allItems = await ContentItem.find({ isPublished: { $ne: false } }).sort({ order: 1 }).lean();
 
       const enrolledCourses = allCourses
         .map((course) => {
@@ -851,12 +851,17 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                     .map((item) => ({
                       id: item.id,
                       title: item.title,
-                      contentType: item.contentType,
+                      contentType: item.contentType || item.type || "notes",
                       description: item.description,
-                      duration: item.duration,
-                      pages: item.pages,
-                      isFreeSample: Boolean(item.isFreeSample),
-                      samplePagesRange: item.samplePagesRange || "",
+                      duration: item.duration || "",
+                      pages: item.pages || item.fileName || "",
+                      fileUrl: `/api/content/${item.id}/file`,
+                      isFreeSample: Boolean(item.isFreeSample || item.isSample),
+                      samplePagesRange:
+                        item.samplePagesRange ||
+                        (item.sampleFromPage && item.sampleToPage
+                          ? `${item.sampleFromPage}-${item.sampleToPage}`
+                          : ""),
                       order: item.order,
                     }));
                   return {
@@ -949,12 +954,17 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                   .map((item) => ({
                     id: item.id,
                     title: item.title,
-                    contentType: item.contentType,
+                    contentType: item.contentType || item.type || "notes",
                     description: item.description,
-                    duration: item.duration,
-                    pages: item.pages,
-                    isFreeSample: Boolean(item.isFreeSample),
-                    samplePagesRange: item.samplePagesRange || "",
+                    duration: item.duration || "",
+                    pages: item.pages || item.fileName || "",
+                    fileUrl: `/api/content/${item.id}/file`,
+                    isFreeSample: Boolean(item.isFreeSample || item.isSample),
+                    samplePagesRange:
+                      item.samplePagesRange ||
+                      (item.sampleFromPage && item.sampleToPage
+                        ? `${item.sampleFromPage}-${item.sampleToPage}`
+                        : ""),
                     order: item.order,
                   }));
                 return {

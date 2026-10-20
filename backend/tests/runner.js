@@ -3,6 +3,9 @@
  * Automatically boots server in-process on an ephemeral port, executes node:test suites, and shuts down cleanly.
  */
 
+process.env.NODE_ENV = "test";
+const fs = require("fs");
+const path = require("path");
 const app = require("../src/server");
 const { spawn } = require("child_process");
 
@@ -23,6 +26,14 @@ const server = app.listen(0, "127.0.0.1", () => {
 
   testProcess.on("exit", (code) => {
     console.log(`[Test Runner] Tests exited with code ${code}. Tearing down server...`);
+    // Clean up ephemeral test DB file
+    const testDbPath = path.resolve(__dirname, "../data/lawkaksha_db.test.json");
+    try {
+      if (fs.existsSync(testDbPath)) {
+        fs.unlinkSync(testDbPath);
+      }
+    } catch (_) {}
+
     server.close(() => {
       process.exit(code || 0);
     });

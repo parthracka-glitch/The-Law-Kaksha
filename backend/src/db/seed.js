@@ -1,7 +1,7 @@
 /**
  * The Law Kaksha - Core Database Seeder
  * Implements Course → Act → Unit hierarchy per Phase P2
- * CA Foundation Paper 2 (Live) & CSEET Business Laws & Management (Coming Soon)
+ * CA Foundation Paper 2 (Live) & CSEET Business Laws and Management (Coming Soon)
  */
 
 const bcrypt = require("bcryptjs");
@@ -51,7 +51,7 @@ async function seed() {
     },
     {
       id: "course-cseet",
-      title: "CSEET Business Laws & Business Management",
+      title: "CSEET Business Laws and Management",
       slug: "cseet-business-laws-management",
       availability: "coming_soon",
       price: 99,
@@ -308,6 +308,7 @@ async function seed() {
   const settingsTable = Database.table("site_settings");
   if (settingsTable.count() === 0) {
     settingsTable.insert({
+      id: "set-site-details",
       key: "site_details",
       value: {
         whatsapp_number: "", // Empty by default; button hidden if empty
@@ -318,6 +319,7 @@ async function seed() {
     });
 
     settingsTable.insert({
+      id: "set-footer-details",
       key: "footer_details",
       value: {
         brand: "The Law Kaksha",
@@ -330,6 +332,7 @@ async function seed() {
     });
 
     settingsTable.insert({
+      id: "set-social-links",
       key: "social_links",
       value: {
         instagram: "https://instagram.com/thelawkaksha",

@@ -1,6 +1,6 @@
 /**
  * The Law Kaksha - Express Backend API Server
- * CA Foundation Business Laws + CSEET Business Law & Management
+ * CA Foundation Business Laws + CSEET Business Laws and Management
  * Connected to MongoDB Atlas Cluster0 with Local Fault-Tolerant Fallback
  */
 
@@ -20,15 +20,24 @@ const seedLocal = require("./db/seed");
 const { connectMongo, isConnected } = require("./db/mongo");
 const seedMongo = require("./db/mongoSeed");
 
-// Run local seeder
-seedLocal();
+const autoSeedDisabled =
+  process.env.NODE_ENV !== "test" &&
+  (process.env.DISABLE_AUTO_SEED === "true" ||
+    (process.env.NODE_ENV === "production" && process.env.ALLOW_AUTO_SEED !== "true"));
 
-// Connect to MongoDB Atlas in background and seed
-connectMongo().then(() => {
-  seedMongo();
-}).catch((err) => {
-  console.warn("[MongoDB] Startup connection error:", err.message);
-});
+// Run local seeder unless launch data has been intentionally locked
+if (!autoSeedDisabled) {
+  seedLocal();
+}
+
+// Connect to MongoDB Atlas in background and seed (when not running automated test suites)
+if (process.env.NODE_ENV !== "test") {
+  connectMongo().then(() => {
+    if (!autoSeedDisabled) seedMongo();
+  }).catch((err) => {
+    console.warn("[MongoDB] Startup connection error:", err.message);
+  });
+}
 
 // Import Routers
 const authRoutes = require("./routes/authRoutes");

@@ -8,20 +8,68 @@ export function FaqSection() {
 
   const faqs = [
     {
-      q: "What is included in the ₹99/month CA Foundation & CSEET subscription?",
-      a: "The ₹99/month subscription gives you complete access to all 7 ICAI CA Foundation Business Laws chapters or all 8 ICSI CSEET units, comprehensive simplified PDF notes, weekly case studies, weekly 30-question MCQ tests, and 1.5-day LDR quick revision flowcharts.",
+      q: "What is The Law कक्षा?",
+      a: "The Law कक्षा is an online learning and revision platform that brings study notes, practice questions, previous-year paper analysis, flowcharts, revision resources, and application-based case studies together in one place. The idea is simple: spend less time searching for study material and more time learning, practising, and revising — all under one dashboard.",
     },
     {
-      q: "Where can I find the free sample notes for Indian Partnership Act, 1932?",
-      a: "You can download all 3 sample unit PDFs (Unit 1: General Nature of Partnership, Unit 2: Relations of Partners, Unit 3: Registration and Dissolution of Firm) directly in the free sample preview modal or under the Notes section in the student dashboard.",
+      q: "How much does a subscription cost?",
+      a: "A subscription costs just ₹99 per month, making structured, exam-focused law preparation accessible and affordable. Your subscription provides access to the resources available under your selected course and plan.",
     },
     {
-      q: "What are the Weekly 3 Case Studies for CA Foundation?",
-      a: "Every week, CA Foundation students receive 3 high-yield practical case studies: Monster Monday (complex application), Midweek Law Madness (statutory trick questions), and Final Boss Friday (exam-standard simulation) with step-by-step model answers.",
+      q: "What resources are available for CA Foundation students?",
+      a: "Our CA Foundation Business Laws resources include detailed notes, practice questions, previous-year paper analysis, Last Day Revision (LDR) topics, flowcharts, revision material, and three new application-based case studies every week.",
     },
     {
-      q: "How do the CSEET Weekly 30-Question MCQ Tests work?",
-      a: "CSEET students get a real-time timed test every week covering the 8 ICSI units (Business Laws & Management) with instant score calculation, question-by-question explanations, and platform leaderboard ranking.",
+      q: "Are the study materials and Question Banks downloadable?",
+      a: "No. Subscription resources and digital Question Banks are available for online viewing only and cannot be downloaded as soft-copy files.",
+    },
+    {
+      q: "Can I purchase a printed Question Bank?",
+      a: "Yes. If you prefer a printed copy of our Question Bank, contact us at thelawkaksha@gmail.com or send us a DM on Instagram for availability, pricing, and delivery details.",
+    },
+    {
+      q: "Which courses are available on The Law कक्षा?",
+      a: "We are launching initially with CA Foundation Business Laws. CSEET Business Laws and Management resources are planned to launch in November 2026. Follow us on Instagram or visit our website for updates.",
+    },
+    {
+      q: "How can I access my resources or get help?",
+      a: "Sign up on our website, select the available course or product, and follow the instructions to complete your subscription or purchase. If you face any difficulty or need assistance, contact us through the support email listed on our website.",
+    },
+    {
+      q: "How does the subscription work?",
+      a: "Students can sign up on the website, select the relevant course, and purchase the applicable subscription plan to access its resources through their dashboard.",
+    },
+    {
+      q: "What is the weekly case-study series for CA Foundation?",
+      a: "Every week, students can look forward to three new application-based case studies: Monday — Monster Monday Case, Wednesday — Midweek Law Madness, and Friday — Final Boss Friday. Each case is designed to help students read the facts, identify the relevant legal provisions, analyse the situation, and apply the law.",
+    },
+    {
+      q: "Will the resources be updated regularly?",
+      a: "The platform is designed to provide additional learning and practice resources over time, including new weekly case studies. Updates and new content will be made available according to the relevant course and subscription offerings.",
+    },
+    {
+      q: "How do I get started on The Law कक्षा?",
+      a: "Sign up on the website, enter the requested details, select the available course or product, and follow the instructions to complete registration or purchase.",
+    },
+    {
+      q: "What should I do if my payment is successful but I cannot access my resources?",
+      a: "Please contact our support team at thelawkaksha@gmail.com. Include your registered email address, order or transaction details, and a brief description of the issue so that we can assist you.",
+    },
+    {
+      q: "What if I forget my login details or experience a technical issue?",
+      a: "Use the available account recovery option on the website. If the issue persists, contact our support team at thelawkaksha@gmail.com.",
+    },
+    {
+      q: "Where can I find the current subscription price and validity?",
+      a: "The subscription price and validity are displayed on the relevant course or subscription page. Please check the website for current pricing and any introductory offers.",
+    },
+    {
+      q: "Is the subscription self-paced?",
+      a: "Yes. Students can use the available resources at their own pace during their subscription period and follow the structured learning and revision journey provided on the platform.",
+    },
+    {
+      q: "What happens when my subscription expires?",
+      a: "For uninterrupted access, your subscription must be renewed after each monthly billing period. Where auto-renewal is enabled, the subscription renews automatically according to the applicable payment and renewal terms.",
     },
   ];
 

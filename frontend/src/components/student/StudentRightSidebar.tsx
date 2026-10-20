@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Flame, Zap, Sparkles } from "lucide-react";
-import { StudentSchedulePanel } from "./StudentSchedulePanel";
+import { StudentSchedulePanel, type RecentActivityItem } from "./StudentSchedulePanel";
 
 interface StudentRightSidebarProps {
   streak: number;
@@ -11,6 +11,7 @@ interface StudentRightSidebarProps {
   studyHours?: number;
   userRank?: number;
   onOpenStreakLog?: () => void;
+  recentActivities?: RecentActivityItem[];
 }
 
 export function StudentRightSidebar({
@@ -20,6 +21,7 @@ export function StudentRightSidebar({
   studyHours = 0,
   userRank = 0,
   onOpenStreakLog,
+  recentActivities = [],
 }: StudentRightSidebarProps) {
   return (
     <aside className="w-full space-y-4 text-[#221D1D] select-none font-sans">
@@ -101,7 +103,7 @@ export function StudentRightSidebar({
       {/* ========================================================================= */}
       {/* 2. CALENDAR & SCHEDULE WIDGET                                             */}
       {/* ========================================================================= */}
-      <StudentSchedulePanel />
+      <StudentSchedulePanel recentActivities={recentActivities} />
     </aside>
   );
 }

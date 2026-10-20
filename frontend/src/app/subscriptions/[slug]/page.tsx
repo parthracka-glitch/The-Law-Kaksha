@@ -144,25 +144,6 @@ const FALLBACK_SUBSCRIPTION_DATA: Record<string, SubscriptionDetail> = {
       },
     ],
   },
-  "ca-cs-combo-monthly": {
-    id: "sub-ca-cs-combo-monthly",
-    title: "CA Foundation + CSEET Dual Access Pass",
-    slug: "ca-cs-combo-monthly",
-    description: "The complete commerce law combo. Gain simultaneous unrestricted access to both CA Foundation Paper 2 and CSEET Paper 2 study portals.",
-    price: 179,
-    mrp: 598,
-    duration_days: 30,
-    badge: "BEST VALUE COMBO",
-    features: [
-      "Complete 15 Acts & Units across CA Foundation and CSEET",
-      "Full access to both study codices in the DRM Reader",
-      "Over 1,200+ Chapter MCQs and Daily Case Studies",
-      "Combined Live Google Meet Sessions & Doubt Solving",
-      "Cross-Stream Legal Comparison Frameworks",
-      "30-Day Unrestricted Pass for Dual Aspirants",
-    ],
-    courses_included: ["ca-foundation-business-laws", "cseet-legal-aptitude-management"],
-  },
 };
 
 export default function SubscriptionDetailPage() {
@@ -182,8 +163,21 @@ export default function SubscriptionDetailPage() {
       try {
         setLoading(true);
         const res = await apiRequest<SubscriptionDetail>(`/api/subscriptions/${slug}`);
-        if (res.success && res.data) {
-          if (isMounted) setSubData(res.data);
+        const payload = res.data as unknown as { subscription?: SubscriptionDetail } | SubscriptionDetail | undefined;
+        const plan: SubscriptionDetail | undefined =
+          payload && typeof payload === "object" && "subscription" in payload
+            ? (payload as { subscription?: SubscriptionDetail }).subscription
+            : (payload as SubscriptionDetail | undefined);
+        if (res.success && plan) {
+          const fallback = FALLBACK_SUBSCRIPTION_DATA[slug];
+          if (isMounted) {
+            setSubData({
+              ...fallback,
+              ...plan,
+              title: fallback?.title || plan.title,
+              syllabus: plan.syllabus?.length ? plan.syllabus : fallback?.syllabus,
+            });
+          }
         }
       } catch (err) {
         // Fallback remains
@@ -197,6 +191,7 @@ export default function SubscriptionDetailPage() {
     };
   }, [slug]);
 
+  const comingSoon = `${subData.id || ""} ${subData.slug || ""} ${subData.title || ""}`.toLowerCase().includes("cseet");
   const discountPercent = Math.round(((subData.mrp - subData.price) / subData.mrp) * 100);
 
   const handleBuyNow = () => {
@@ -254,12 +249,10 @@ export default function SubscriptionDetailPage() {
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
-              {subData.badge && (
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
-                  {subData.badge}
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9]">
+                <Sparkles className="w-3.5 h-3.5 text-[#221D1D]" />
+                {comingSoon ? "COMING SOON" : subData.badge}
+              </span>
 
               <h1 className="text-3xl sm:text-5xl font-serif font-black text-[#221D1D] leading-tight">
                 {subData.title}
@@ -291,39 +284,60 @@ export default function SubscriptionDetailPage() {
                 <p className="text-xs uppercase tracking-wider text-[#77716E] font-bold mb-1">
                   Subscription Pass
                 </p>
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-serif font-black text-[#221D1D]">
-                    ₹{subData.price}
-                  </span>
-                  <span className="text-lg text-[#77716E] line-through font-medium">
-                    ₹{subData.mrp}
-                  </span>
-                  {discountPercent > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] text-xs font-bold">
-                      {discountPercent}% OFF
+                {comingSoon ? (
+                  <div className="mb-2">
+                    <span className="text-2xl font-serif font-black text-[#4D433F]">Launching Soon</span>
+                  </div>
+                ) : (
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-serif font-black text-[#221D1D]">
+                      ₹{subData.price}
                     </span>
-                  )}
-                </div>
+                    <span className="text-lg text-[#77716E] line-through font-medium">
+                      ₹{subData.mrp}
+                    </span>
+                    {discountPercent > 0 && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#C4E1EC] text-[#221D1D] border border-[#AED7E9] text-xs font-bold">
+                        {discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
+                )}
                 <p className="text-xs text-[#77716E] mb-6 font-medium">
-                  One-time payment for {subData.duration_days} days. Instant access.
+                  {comingSoon
+                    ? "This pass is being finalised. Enrolment opens shortly."
+                    : `One-time payment for ${subData.duration_days} days. Instant access.`}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <button
-                  onClick={handleBuyNow}
-                  className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all active:scale-95 cursor-pointer min-h-[46px]"
-                >
-                  <span>Buy Now</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#221D1D] bg-white border border-[#221D1D] hover:bg-[#F7F7F5] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
-                >
-                  <ShoppingCart className="w-4 h-4 text-[#221D1D]" />
-                  <span>Add to Cart</span>
-                </button>
+                {comingSoon ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed min-h-[46px]"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Coming Soon</span>
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleBuyNow}
+                      className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all active:scale-95 cursor-pointer min-h-[46px]"
+                    >
+                      <span>Buy Now</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#221D1D] bg-white border border-[#221D1D] hover:bg-[#F7F7F5] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
+                    >
+                      <ShoppingCart className="w-4 h-4 text-[#221D1D]" />
+                      <span>Add to Cart</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

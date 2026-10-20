@@ -7,21 +7,13 @@ import {
   Plus,
   Edit3,
   Trash2,
-  CheckCircle2,
-  Clock,
   Eye,
   UploadCloud,
   FileText,
-  DollarSign,
-  Calendar,
   ChevronRight,
   RefreshCw,
   Save,
   X,
-  AlertTriangle,
-  Lock,
-  Unlock,
-  Sparkles,
 } from "lucide-react";
 
 export interface CourseRecord {
@@ -78,47 +70,47 @@ interface Props {
   onPreviewPdf?: (item: { title: string; pdfUrl: string; isSample?: boolean }) => void;
 }
 
-const DEFAULT_ADMIN_COURSES: CourseRecord[] = [
-  {
-    id: "course-ca-foundation",
-    title: "CA Foundation Paper 2: Business Laws",
-    availability: "live",
-    price: 99,
-    mrp: 299,
-    accessDays: 30,
-    exam_body: "ICAI",
-    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
-  },
-  {
-    id: "course-cseet",
-    title: "CSEET Business Laws & Business Management",
-    availability: "coming_soon",
-    price: 99,
-    mrp: 299,
-    accessDays: 30,
-    exam_body: "ICSI",
-    description: "Comprehensive Business Laws & Management preparation platform for CSEET.",
-  },
-];
-
 export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: Props) {
   // Courses state
-  const [courses, setCourses] = useState<CourseRecord[]>(DEFAULT_ADMIN_COURSES);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("course-ca-foundation");
+  const [courses, setCourses] = useState<CourseRecord[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [courseLoading, setCourseLoading] = useState<boolean>(true);
   const [editingCourse, setEditingCourse] = useState<{ [id: string]: { price: number; accessDays: number; saving: boolean } }>({});
+
+  const [courseModalOpen, setCourseModalOpen] = useState<boolean>(false);
+  const [newCourseForm, setNewCourseForm] = useState({
+    title: "",
+    examBody: "ICAI",
+    description: "",
+    price: 99,
+    mrp: 299,
+    accessDays: 30,
+    availability: "live" as "live" | "coming_soon",
+  });
 
   // Acts state
   const [acts, setActs] = useState<ActRecord[]>([]);
   const [selectedActId, setSelectedActId] = useState<string>("");
   const [actsLoading, setActsLoading] = useState<boolean>(false);
+  const [actModalOpen, setActModalOpen] = useState<boolean>(false);
+  const [newActForm, setNewActForm] = useState({
+    title: "",
+    description: "",
+    availability: "live" as "live" | "coming_soon",
+  });
 
   // Units state
   const [units, setUnits] = useState<UnitRecord[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [unitsLoading, setUnitsLoading] = useState<boolean>(false);
   const [unitModalOpen, setUnitModalOpen] = useState<boolean>(false);
-  const [newUnitTitle, setNewUnitTitle] = useState<string>("");
+  const [bulkUnitsModalOpen, setBulkUnitsModalOpen] = useState<boolean>(false);
+  const [bulkUnitsText, setBulkUnitsText] = useState<string>("");
+  const [bulkUnitsSaving, setBulkUnitsSaving] = useState<boolean>(false);
+  const [newUnitForm, setNewUnitForm] = useState({
+    title: "",
+    summary: "",
+  });
 
   // Content Items state
   const [contentItems, setContentItems] = useState<ContentItemRecord[]>([]);
@@ -144,9 +136,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       const res = await adminFetch("/api/admin/courses");
       const data = await res.json();
       const rawCourses: CourseRecord[] =
-        data.success && data.courses && data.courses.length > 0
-          ? data.courses
-          : DEFAULT_ADMIN_COURSES;
+        data.success && Array.isArray(data.courses) ? data.courses : [];
 
       const sorted = [...rawCourses].sort((a, b) => {
         const ordA =
@@ -173,12 +163,12 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
       setSelectedCourseId((prev) => {
         if (prev && sorted.some((c) => c.id === prev)) return prev;
-        return sorted[0]?.id || "course-ca-foundation";
+        return sorted[0]?.id || "";
       });
     } catch (err) {
       console.error("Failed to load courses:", err);
-      setCourses(DEFAULT_ADMIN_COURSES);
-      setSelectedCourseId((prev) => prev || "course-ca-foundation");
+      setCourses([]);
+      setSelectedCourseId("");
     } finally {
       setCourseLoading(false);
     }
@@ -196,46 +186,19 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       try {
         const res = await adminFetch(`/api/admin/acts?courseId=${selectedCourseId}`);
         const data = await res.json();
-        if (data.success && data.acts && data.acts.length > 0) {
+        if (data.success && Array.isArray(data.acts)) {
           setActs(data.acts);
           setSelectedActId((prev) =>
-            prev && data.acts.some((a: ActRecord) => a.id === prev) ? prev : data.acts[0].id
+            prev && data.acts.some((a: ActRecord) => a.id === prev) ? prev : data.acts[0]?.id || ""
           );
-        } else {
-          // Provide default acts for CA Foundation if empty or unseeded
-          if (selectedCourseId === "course-ca-foundation" || selectedCourseId === "ca-foundation") {
-            const fallbackActs: ActRecord[] = [
-              { id: "act-ca-contract", courseId: selectedCourseId, title: "The Indian Contract Act, 1872", availability: "live", order: 1 },
-              { id: "act-ca-soga", courseId: selectedCourseId, title: "The Sale of Goods Act, 1930", availability: "live", order: 2 },
-              { id: "act-ca-partnership", courseId: selectedCourseId, title: "The Indian Partnership Act, 1932", availability: "live", order: 3 },
-              { id: "act-ca-llp", courseId: selectedCourseId, title: "The Limited Liability Partnership Act, 2008", availability: "live", order: 4 },
-              { id: "act-ca-companies", courseId: selectedCourseId, title: "The Companies Act, 2013", availability: "coming_soon", order: 5 },
-            ];
-            setActs(fallbackActs);
-            setSelectedActId((prev) =>
-              prev && fallbackActs.some((a) => a.id === prev) ? prev : fallbackActs[0].id
-            );
-          } else {
-            setActs([]);
-            setSelectedActId("");
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load acts:", err);
-        if (selectedCourseId === "course-ca-foundation" || selectedCourseId === "ca-foundation") {
-          const fallbackActs: ActRecord[] = [
-            { id: "act-ca-contract", courseId: selectedCourseId, title: "The Indian Contract Act, 1872", availability: "live", order: 1 },
-            { id: "act-ca-soga", courseId: selectedCourseId, title: "The Sale of Goods Act, 1930", availability: "live", order: 2 },
-            { id: "act-ca-partnership", courseId: selectedCourseId, title: "The Indian Partnership Act, 1932", availability: "live", order: 3 },
-            { id: "act-ca-llp", courseId: selectedCourseId, title: "The Limited Liability Partnership Act, 2008", availability: "live", order: 4 },
-            { id: "act-ca-companies", courseId: selectedCourseId, title: "The Companies Act, 2013", availability: "coming_soon", order: 5 },
-          ];
-          setActs(fallbackActs);
-          setSelectedActId(fallbackActs[0].id);
         } else {
           setActs([]);
           setSelectedActId("");
         }
+      } catch (err) {
+        console.error("Failed to load acts:", err);
+        setActs([]);
+        setSelectedActId("");
       } finally {
         setActsLoading(false);
       }
@@ -255,25 +218,14 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       try {
         const res = await adminFetch(`/api/admin/units?actId=${selectedActId}`);
         const data = await res.json();
-        if (data.success && data.units && data.units.length > 0) {
+        if (data.success && Array.isArray(data.units)) {
           setUnits(data.units);
           setSelectedUnitId((prev) =>
-            prev && data.units.some((u: UnitRecord) => u.id === prev) ? prev : data.units[0].id
+            prev && data.units.some((u: UnitRecord) => u.id === prev) ? prev : data.units[0]?.id || ""
           );
         } else {
-          if (selectedActId === "act-ca-contract") {
-            const fallbackUnits: UnitRecord[] = [
-              { id: "unit-ca-contract-1", actId: "act-ca-contract", title: "Unit 1: Nature of Contracts & Essentials of Valid Offer", order: 1 },
-              { id: "unit-ca-contract-2", actId: "act-ca-contract", title: "Unit 2: Consideration & Capacity to Contract", order: 2 },
-            ];
-            setUnits(fallbackUnits);
-            setSelectedUnitId((prev) =>
-              prev && fallbackUnits.some((u) => u.id === prev) ? prev : fallbackUnits[0].id
-            );
-          } else {
-            setUnits([]);
-            setSelectedUnitId("");
-          }
+          setUnits([]);
+          setSelectedUnitId("");
         }
       } catch (err) {
         console.error("Failed to load units:", err);
@@ -394,10 +346,89 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     }
   };
 
+  // Handle Add Course
+  const handleCreateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCourseForm.title.trim()) return;
+
+    try {
+      const res = await adminFetch("/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newCourseForm.title.trim(),
+          exam_body: newCourseForm.examBody,
+          description: newCourseForm.description.trim(),
+          price: Number(newCourseForm.price),
+          mrp: Number(newCourseForm.mrp),
+          accessDays: Number(newCourseForm.accessDays),
+          availability: newCourseForm.availability,
+          display_order: courses.length + 1,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.course) {
+        setCourses((prev) => [...prev, data.course]);
+        setEditingCourse((prev) => ({
+          ...prev,
+          [data.course.id]: { price: data.course.price || 0, accessDays: data.course.accessDays || 30, saving: false },
+        }));
+        setSelectedCourseId(data.course.id);
+        setNewCourseForm({
+          title: "",
+          examBody: "ICAI",
+          description: "",
+          price: 99,
+          mrp: 299,
+          accessDays: 30,
+          availability: "live",
+        });
+        setCourseModalOpen(false);
+        showToast(`Created Course: ${data.course.title}. Now add its first Act.`);
+      } else {
+        alert(data.message || "Failed to create course.");
+      }
+    } catch (err: any) {
+      alert("Error creating course: " + err.message);
+    }
+  };
+
+  // Handle Add Act
+  const handleCreateAct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newActForm.title.trim() || !selectedCourseId) return;
+
+    try {
+      const res = await adminFetch("/api/admin/acts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: selectedCourseId,
+          title: newActForm.title.trim(),
+          description: newActForm.description.trim(),
+          availability: newActForm.availability,
+          order: acts.length + 1,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.act) {
+        setActs((prev) => [...prev, data.act]);
+        setSelectedActId(data.act.id);
+        setNewActForm({ title: "", description: "", availability: "live" });
+        setActModalOpen(false);
+        showToast(`Created Act: ${data.act.title}. Now add its first Unit.`);
+      } else {
+        alert(data.message || "Failed to create act.");
+      }
+    } catch (err: any) {
+      alert("Error creating act: " + err.message);
+    }
+  };
+
   // Handle Add Unit
   const handleCreateUnit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUnitTitle.trim() || !selectedActId) return;
+    if (!newUnitForm.title.trim() || !selectedActId) return;
 
     try {
       const res = await adminFetch("/api/admin/units", {
@@ -405,7 +436,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           actId: selectedActId,
-          title: newUnitTitle.trim(),
+          title: newUnitForm.title.trim(),
+          summary: newUnitForm.summary.trim(),
           order: units.length + 1,
         }),
       });
@@ -413,12 +445,59 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       if (data.success && data.unit) {
         setUnits((prev) => [...prev, data.unit]);
         setSelectedUnitId(data.unit.id);
-        setNewUnitTitle("");
+        setNewUnitForm({ title: "", summary: "" });
         setUnitModalOpen(false);
-        showToast(`Created Unit: ${data.unit.title}`);
+        showToast(`Created Unit: ${data.unit.title}. Now add its content.`);
+      } else {
+        alert(data.message || "Failed to create unit.");
       }
     } catch (err: any) {
       alert("Error creating unit: " + err.message);
+    }
+  };
+
+  // Handle Bulk Add Units (one title per line)
+  const handleBulkCreateUnits = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const titles = bulkUnitsText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (!selectedActId || titles.length === 0) return;
+
+    setBulkUnitsSaving(true);
+    const created: UnitRecord[] = [];
+    try {
+      for (let i = 0; i < titles.length; i += 1) {
+        const res = await adminFetch("/api/admin/units", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: `unit-${Date.now()}-${i + 1}`,
+            actId: selectedActId,
+            title: titles[i],
+            order: units.length + i + 1,
+            summary: "",
+          }),
+        });
+        const data = await res.json();
+        if (!data.success || !data.unit) {
+          throw new Error(data.message || `Failed to create "${titles[i]}".`);
+        }
+        created.push(data.unit);
+      }
+      setUnits((prev) => [...prev, ...created]);
+      setSelectedUnitId(created[0].id);
+      setBulkUnitsText("");
+      setBulkUnitsModalOpen(false);
+      showToast(`Added ${created.length} units. Add content to each unit next.`);
+    } catch (err: any) {
+      if (created.length > 0) {
+        setUnits((prev) => [...prev, ...created]);
+      }
+      alert("Bulk unit creation stopped: " + err.message);
+    } finally {
+      setBulkUnitsSaving(false);
     }
   };
 
@@ -464,6 +543,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("PDF is larger than 10 MB, which is the Cloudinary upload limit. Compress or split it first.");
+      e.target.value = "";
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -476,15 +560,24 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       });
       const data = await res.json();
       if (data.success) {
+        const inferredTitle = file.name
+          .replace(/\.pdf$/i, "")
+          .replace(/[_-]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
         setContentModal((prev) => ({
           ...prev,
           data: {
             ...prev.data,
+            title: prev.data.title?.trim() ? prev.data.title : inferredTitle,
             fileName: file.name,
             fileSize: file.size,
             cloudinaryPublicId: data.publicId || data.url || "",
           },
         }));
+        if (data.isLocal) {
+          alert("Cloudinary upload failed, so this file was saved to local disk. It may not persist in production. Check Cloudinary credentials or file size.");
+        }
         showToast(`Uploaded ${file.name}`);
       } else {
         alert(data.message || "Upload failed.");
@@ -564,25 +657,72 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     <div className="space-y-6 font-sans">
       {/* 1. COURSES OVERVIEW & PRICING CONTROL STRIP */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-serif font-bold text-[#221D1D]">Courses &amp; Content Management</h2>
             <p className="text-xs text-[#77716E] mt-0.5">
-              Control course live availability, access validity, and structured Course → Act → Unit content hierarchy.
+              Create a course, add its Acts and Units, then upload study resources — all from one place.
             </p>
           </div>
-          <button
-            onClick={() => loadCourses()}
-            className="p-2 rounded-2xl bg-white border border-[#E7E4E7] text-[#77716E] hover:text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-            title="Refresh Courses"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${courseLoading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setCourseModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Course</span>
+            </button>
+            <button
+              onClick={() => loadCourses()}
+              className="p-2 rounded-2xl bg-white border border-[#E7E4E7] text-[#77716E] hover:text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              title="Refresh Courses"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${courseLoading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </div>
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {courses.length === 0 && !courseLoading && (
+            <div className="lg:col-span-2 rounded-3xl border-2 border-dashed border-[#AED7E9] bg-[#F7FBFD] p-6 sm:p-8">
+              <div className="max-w-2xl mx-auto text-center space-y-5">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-[#AED7E9] flex items-center justify-center mx-auto shadow-sm">
+                  <BookOpen className="w-7 h-7 text-[#4B8097]" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-[#221D1D]">Start building your curriculum</h3>
+                  <p className="text-xs text-[#77716E] mt-1.5 max-w-lg mx-auto">
+                    Create your first course, then add Acts, Units, and study resources in a simple three-step flow.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
+                  {[
+                    ["1", "Create Course", "Title, exam body, price and access days."],
+                    ["2", "Add Acts", "Group the syllabus into statutory Acts."],
+                    ["3", "Add Units & Content", "Build units and upload notes, PYQs and flowcharts."],
+                  ].map(([step, label, help]) => (
+                    <div key={step} className="rounded-2xl bg-white border border-[#E7E4E7] p-3">
+                      <span className="w-6 h-6 rounded-full bg-[#AED7E9] text-[#221D1D] text-[11px] font-bold flex items-center justify-center mb-2">
+                        {step}
+                      </span>
+                      <p className="text-xs font-bold text-[#221D1D]">{label}</p>
+                      <p className="text-[11px] text-[#77716E] mt-0.5 leading-relaxed">{help}</p>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCourseModalOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-[#221D1D] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create First Course</span>
+                </button>
+              </div>
+            </div>
+          )}
           {courses.map((course) => {
             const edit = editingCourse[course.id] || { price: course.price, accessDays: course.accessDays, saving: false };
             const isLive = course.availability === "live";
@@ -716,17 +856,32 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           {/* Step 1: Select Course */}
           <div className="space-y-1.5">
-            <label className="block font-bold text-slate-700">1. Select Course</label>
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-700">1. Select Course</label>
+              <button
+                type="button"
+                onClick={() => setCourseModalOpen(true)}
+                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Course</span>
+              </button>
+            </div>
             <select
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="w-full p-2.5 rounded-2xl border border-slate-200 font-semibold text-slate-800 bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#AED7E9]"
+              disabled={courseLoading || courses.length === 0}
+              className="w-full p-2.5 rounded-2xl border border-slate-200 font-semibold text-slate-800 bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#AED7E9] disabled:opacity-50"
             >
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title} ({c.availability === "live" ? "Live" : "Coming Soon"})
-                </option>
-              ))}
+              {courses.length === 0 ? (
+                <option value="">No Courses Found</option>
+              ) : (
+                courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title} ({c.availability === "live" ? "Live" : "Coming Soon"})
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -734,20 +889,31 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="font-bold text-slate-700">2. Select Act</label>
-              {selectedAct && (
+              <div className="flex items-center gap-2">
+                {selectedAct && (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActAvailability(selectedAct)}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer ${
+                      selectedAct.availability === "live"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border-amber-200"
+                    }`}
+                    title="Toggle Act Live vs Coming Soon"
+                  >
+                    {selectedAct.availability === "live" ? "Live" : "Coming Soon"}
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => handleToggleActAvailability(selectedAct)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer ${
-                    selectedAct.availability === "live"
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                      : "bg-amber-50 text-amber-800 border-amber-200"
-                  }`}
-                  title="Toggle Act Live vs Coming Soon"
+                  onClick={() => setActModalOpen(true)}
+                  disabled={!selectedCourseId}
+                  className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {selectedAct.availability === "live" ? "Live" : "Coming Soon"}
+                  <Plus className="w-3 h-3" />
+                  <span>Add Act</span>
                 </button>
-              )}
+              </div>
             </div>
             <select
               value={selectedActId}
@@ -773,9 +939,19 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               <label className="font-bold text-slate-700">3. Select Unit</label>
               <button
                 type="button"
+                onClick={() => setBulkUnitsModalOpen(true)}
+                disabled={!selectedActId}
+                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Add multiple units at once"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Bulk Units</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setUnitModalOpen(true)}
                 disabled={!selectedActId}
-                className="text-[10px] font-bold text-[#4B8097] hover:underline flex items-center gap-0.5 cursor-pointer disabled:opacity-40"
+                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add Unit</span>
@@ -848,8 +1024,37 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         ) : contentItems.length === 0 ? (
           <div className="p-8 text-center text-xs text-[#77716E] bg-white rounded-3xl border border-[#E7E4E7] space-y-2">
             <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="font-semibold text-slate-700">No content items in this unit yet.</p>
-            <p className="text-[11px] text-slate-400">Click &quot;Add Content Item&quot; to upload chapter notes, practice questions, or revision flowcharts.</p>
+            {selectedUnitId ? (
+              <>
+                <p className="font-semibold text-slate-700">No content items in this unit yet.</p>
+                <p className="text-[11px] text-slate-400">Upload chapter notes, practice questions, or revision flowcharts.</p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setContentModal({
+                      open: true,
+                      mode: "add",
+                      data: {
+                        unitId: selectedUnitId,
+                        type: "notes",
+                        isPublished: true,
+                        isSample: false,
+                        samplePagesRange: "1-5",
+                      },
+                    })
+                  }
+                  className="mt-2 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add First Content Item
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-slate-700">Select a unit to manage its content.</p>
+                <p className="text-[11px] text-slate-400">Choose a course, then an Act and Unit above to upload study material.</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -973,7 +1178,189 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         )}
       </div>
 
-      {/* 4. CREATE NEW UNIT MODAL */}
+      {/* 4. CREATE NEW COURSE MODAL */}
+      {courseModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="font-serif font-bold text-sm text-[#221D1D]">Create New Course</h3>
+              <button onClick={() => setCourseModalOpen(false)} className="p-1 rounded-xl hover:bg-[#F7F7F5]">
+                <X className="w-4 h-4 text-[#77716E]" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateCourse} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Course Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. CA Foundation Paper 2: Business Laws"
+                  value={newCourseForm.title}
+                  onChange={(e) => setNewCourseForm({ ...newCourseForm, title: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Exam Body</label>
+                  <select
+                    value={newCourseForm.examBody}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, examBody: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#AED7E9]"
+                  >
+                    <option value="ICAI">ICAI</option>
+                    <option value="ICSI">ICSI</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Availability</label>
+                  <select
+                    value={newCourseForm.availability}
+                    onChange={(e) =>
+                      setNewCourseForm({
+                        ...newCourseForm,
+                        availability: e.target.value as "live" | "coming_soon",
+                      })
+                    }
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#AED7E9]"
+                  >
+                    <option value="live">Live</option>
+                    <option value="coming_soon">Coming Soon</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Short Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="What does this course cover?"
+                  value={newCourseForm.description}
+                  onChange={(e) => setNewCourseForm({ ...newCourseForm, description: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] resize-y"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Price (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newCourseForm.price}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, price: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">MRP (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newCourseForm.mrp}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, mrp: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Access (days)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newCourseForm.accessDays}
+                    onChange={(e) => setNewCourseForm({ ...newCourseForm, accessDays: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCourseModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E7E4E7] text-slate-600 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#221D1D] text-white font-semibold cursor-pointer"
+                >
+                  Create Course
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. CREATE NEW ACT MODAL */}
+      {actModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <h3 className="font-serif font-bold text-sm text-[#221D1D]">Create New Act</h3>
+              <button onClick={() => setActModalOpen(false)} className="p-1 rounded-xl hover:bg-[#F7F7F5]">
+                <X className="w-4 h-4 text-[#77716E]" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateAct} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Act Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. The Indian Contract Act, 1872"
+                  value={newActForm.title}
+                  onChange={(e) => setNewActForm({ ...newActForm, title: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Optional summary of this Act"
+                  value={newActForm.description}
+                  onChange={(e) => setNewActForm({ ...newActForm, description: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] resize-y"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Availability</label>
+                <select
+                  value={newActForm.availability}
+                  onChange={(e) =>
+                    setNewActForm({
+                      ...newActForm,
+                      availability: e.target.value as "live" | "coming_soon",
+                    })
+                  }
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#AED7E9]"
+                >
+                  <option value="live">Live</option>
+                  <option value="coming_soon">Coming Soon</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E7E4E7] text-slate-600 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#221D1D] text-white font-semibold cursor-pointer"
+                >
+                  Create Act
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. CREATE NEW UNIT MODAL */}
       {unitModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-[#E7E4E7] space-y-4">
@@ -985,14 +1372,24 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             </div>
             <form onSubmit={handleCreateUnit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Unit Title</label>
+                <label className="block font-semibold text-slate-700 mb-1">Unit Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Unit 3: Registration and Dissolution of Firm"
-                  value={newUnitTitle}
-                  onChange={(e) => setNewUnitTitle(e.target.value)}
+                  value={newUnitForm.title}
+                  onChange={(e) => setNewUnitForm({ ...newUnitForm, title: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Summary</label>
+                <textarea
+                  rows={3}
+                  placeholder="Optional short summary shown to students"
+                  value={newUnitForm.summary}
+                  onChange={(e) => setNewUnitForm({ ...newUnitForm, summary: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] resize-y"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -1008,6 +1405,65 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                   className="px-4 py-2 rounded-xl bg-[#221D1D] text-white font-semibold cursor-pointer"
                 >
                   Create Unit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. BULK ADD UNITS MODAL */}
+      {bulkUnitsModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <div>
+                <h3 className="font-serif font-bold text-sm text-[#221D1D]">Bulk Add Units</h3>
+                <p className="text-[11px] text-[#77716E] mt-0.5">
+                  Paste one unit title per line into {selectedAct?.title || "the selected Act"}.
+                </p>
+              </div>
+              <button
+                onClick={() => setBulkUnitsModalOpen(false)}
+                className="p-1 rounded-xl hover:bg-[#F7F7F5] cursor-pointer"
+              >
+                <X className="w-4 h-4 text-[#77716E]" />
+              </button>
+            </div>
+            <form onSubmit={handleBulkCreateUnits} className="space-y-4 text-xs">
+              <textarea
+                rows={9}
+                required
+                value={bulkUnitsText}
+                onChange={(e) => setBulkUnitsText(e.target.value)}
+                placeholder={"Unit 1: Formation of Contract of Sale\nUnit 2: Conditions and Warranties\nUnit 3: Transfer of Ownership and Delivery of Goods"}
+                className="w-full p-3 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#AED7E9] resize-y"
+              />
+              <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <span>
+                  {bulkUnitsText.split(/\r?\n/).filter((line) => line.trim()).length} units detected
+                </span>
+                <span>Order follows the list</span>
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setBulkUnitsModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E7E4E7] text-slate-600 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={bulkUnitsSaving || !bulkUnitsText.trim()}
+                  className="px-4 py-2 rounded-xl bg-[#221D1D] text-white font-semibold cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {bulkUnitsSaving ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Plus className="w-3.5 h-3.5" />
+                  )}
+                  <span>{bulkUnitsSaving ? "Adding..." : "Add Units"}</span>
                 </button>
               </div>
             </form>

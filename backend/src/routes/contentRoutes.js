@@ -158,6 +158,7 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
         const signedUrl = cloudinary.utils.private_download_url(targetPublicId, "pdf", {
           expires_at: Math.floor(Date.now() / 1000) + 60,
           resource_type: "raw",
+          type: "upload",
         });
 
         return https
@@ -350,7 +351,7 @@ const VERIFIED_REVIEWS = [
   {
     id: "rev-006",
     student_name: "CSEET Law Candidate",
-    student_rank: "Business Law & Mgt — 88%",
+    student_rank: "CSEET Business Laws and Management — 88%",
     rating: 5,
     title: "The only material you need for law mastery.",
     comment:

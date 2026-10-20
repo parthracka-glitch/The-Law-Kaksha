@@ -36,6 +36,7 @@ backend/.env.production
 
 # Database & Backups (OWASP / Sensitive PII)
 backend/data/*.json
+backend/data/*.backup-*
 backend/data/backups/
 backend/data/*.tmp
 backend/uploads/
@@ -64,3 +65,6 @@ Thumbs.db
 # Agent shared memory private notes
 docs/audit/private/
 shannon_setup_plan.md
+
+# Local scratch uploads
+/h/

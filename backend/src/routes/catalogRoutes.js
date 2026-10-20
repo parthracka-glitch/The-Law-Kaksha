@@ -8,57 +8,55 @@ const router = express.Router();
 const Product = require("../models/Product");
 const Resource = require("../models/Resource");
 const SiteSetting = require("../models/SiteSetting");
+const Course = require("../models/Course");
+const Act = require("../models/Act");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { serializeProduct, serializeCourse, serializeResource } = require("../utils/responseSerializer");
 
-// Base courses
-const DEFAULT_COURSES = [
-  {
-    id: "course-ca-foundation-sub",
-    slug: "ca-foundation-business-laws-monthly-access",
+const DEFAULT_COURSES = [];
+
+async function getActiveCourses() {
+  if (isConnected()) {
+    return Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
+  }
+  return Database.table("courses")
+    .find((c) => c.is_active !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+}
+
+function courseToCatalogItem(course, syllabus = []) {
+  const price = Number(course.price ?? 99);
+  const mrp = Number(course.mrp ?? 0);
+  const examBody = course.exam_body || "ICAI";
+  const category = examBody === "ICSI" ? "CSEET" : "CA Foundation";
+  const comingSoon = course.availability === "coming_soon";
+
+  return {
+    id: course.id,
+    slug: course.slug,
     type: "course",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Business Laws",
-    subtitle: "Complete 7 Chapters Study Notes, Case Studies & Question Bank",
-    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes, practice questions, weekly case problems, and model solutions.",
-    price: 99,
-    original_price: 299,
-    badge: "₹99 / Month",
-    category: "CA Foundation",
-    examBody: "ICAI",
-    pages_or_duration: "7 Chapters (ICAI Scheme)",
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-    highlights: [
-      "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
-      "Weekly descriptive case study practice with model solutions",
-      "Downloadable DRM-protected study PDFs",
-      "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
-    ],
-  },
-  {
-    id: "course-cseet-sub",
-    slug: "cseet-business-law-management-monthly-access",
-    type: "course",
-    courseId: "course-cseet",
-    title: "CSEET Business Law & Management",
-    subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
-    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
-    price: 99,
-    original_price: 299,
-    badge: "₹99 / Month",
-    category: "CSEET",
-    examBody: "ICSI",
-    pages_or_duration: "8 Units (ICSI Syllabus)",
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-    highlights: [
-      "Comprehensive notes for all 8 Business Law and Management units",
-      "Chapter-wise practice MCQs with explanations for each option",
-      "Weekly timed mock tests with instant score reports",
-      "Last Day Revision (LDR) summaries and concept flowcharts",
-    ],
-  },
-];
+    courseId: course.id,
+    title: course.title,
+    subtitle: course.description || `${category} Business Laws curriculum`,
+    description: course.description || "",
+    price,
+    original_price: mrp > price ? mrp : 0,
+    badge: comingSoon ? "Coming Soon" : `₹${price} / ${course.accessDays || 30} Days`,
+    category,
+    examBody,
+    pages_or_duration: course.units_count
+      ? `${course.units_count} Units`
+      : comingSoon
+      ? "Launching Soon"
+      : "Self-paced",
+    cover_image: course.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
+    highlights: course.highlights || [],
+    paymentType: "monthly",
+    comingSoon,
+    ...(syllabus.length > 0 ? { syllabus } : {}),
+  };
+}
 
 // GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
 router.get("/public/site-data", async (req, res) => {
@@ -113,7 +111,10 @@ router.get("/catalog", async (req, res) => {
       badge: `₹${p.price}`,
     }));
 
-    let allProducts = [...DEFAULT_COURSES, ...formattedDbProducts];
+    const courses = await getActiveCourses();
+    const courseItems = courses.map((course) => courseToCatalogItem(course));
+
+    let allProducts = [...DEFAULT_COURSES, ...courseItems, ...formattedDbProducts];
 
     if (req.query.type && req.query.type !== "all") {
       allProducts = allProducts.filter((p) => p.type === req.query.type);
@@ -133,7 +134,9 @@ router.get("/catalog", async (req, res) => {
       );
     }
 
-    const serializedProducts = allProducts.map(serializeProduct);
+    const serializedProducts = allProducts.map((p) =>
+      p.type === "course" ? p : serializeProduct(p)
+    );
 
     res.status(200).json({
       success: true,
@@ -147,12 +150,42 @@ router.get("/catalog", async (req, res) => {
   }
 });
 
-// GET /api/catalog/:id — Get a single product's complete details
+// GET /api/catalog/:id — Get a single course/product's complete details
 router.get("/catalog/:id", async (req, res) => {
   const id = req.params.id;
   try {
     // Check in default courses
     let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id);
+
+    let course = null;
+    if (!product) {
+      if (isConnected()) {
+        course = await Course.findOne({ $or: [{ id }, { slug: id }] }).lean();
+      } else {
+        course = Database.table("courses").findOne((c) => c.id === id || c.slug === id);
+      }
+    }
+
+    if (course) {
+      let acts = [];
+      if (isConnected()) {
+        acts = await Act.find({ courseId: course.id }).sort({ order: 1 }).lean();
+      } else {
+        acts = Database.table("acts")
+          .find((a) => a.courseId === course.id)
+          .sort((a, b) => (a.order || 0) - (b.order || 0));
+      }
+      const syllabus = acts.map((act, index) => ({
+        chapter: `Chapter ${index + 1}`,
+        title: act.title,
+      }));
+      const cleanCourse = courseToCatalogItem(course, syllabus);
+      return res.status(200).json({
+        success: true,
+        product: cleanCourse,
+        item: cleanCourse,
+      });
+    }
 
     if (!product) {
       if (isConnected()) {
@@ -179,29 +212,50 @@ router.get("/catalog/:id", async (req, res) => {
 });
 
 // GET /api/courses — List all courses
-router.get("/courses", (req, res) => {
-  const coursesTable = Database.table("courses");
-  const courses = coursesTable.find();
-  res.status(200).json({ success: true, courses: courses.map(serializeCourse) });
+router.get("/courses", async (req, res) => {
+  try {
+    const courses = await getActiveCourses();
+    res.status(200).json({ success: true, courses: courses.map(serializeCourse) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching courses." });
+  }
 });
 
 // GET /api/courses/:courseId — Get a specific course
-router.get("/courses/:courseId", (req, res) => {
-  const coursesTable = Database.table("courses");
-  const course = coursesTable.findOne((c) => c.id === req.params.courseId);
-  if (!course) {
-    return res.status(404).json({ success: false, message: "Course not found" });
+router.get("/courses/:courseId", async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    let course = null;
+    if (isConnected()) {
+      course = await Course.findOne({ $or: [{ id: courseId }, { slug: courseId }] }).lean();
+    } else {
+      course = Database.table("courses").findOne((c) => c.id === courseId || c.slug === courseId);
+    }
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+    res.status(200).json({ success: true, course: serializeCourse(course) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching course." });
   }
-  res.status(200).json({ success: true, course: serializeCourse(course) });
 });
 
 // GET /api/courses/:courseId/acts — Get acts/units for a course
-router.get("/courses/:courseId/acts", (req, res) => {
-  const actsTable = Database.table("acts");
-  const acts = actsTable
-    .find((a) => a.courseId === req.params.courseId)
-    .sort((a, b) => a.order - b.order);
-  res.status(200).json({ success: true, acts });
+router.get("/courses/:courseId/acts", async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    let acts = [];
+    if (isConnected()) {
+      acts = await Act.find({ courseId }).sort({ order: 1 }).lean();
+    } else {
+      acts = Database.table("acts")
+        .find((a) => a.courseId === courseId)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+    res.status(200).json({ success: true, acts });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching course acts." });
+  }
 });
 
 // GET /api/courses/:courseId/content — Get all content for a course

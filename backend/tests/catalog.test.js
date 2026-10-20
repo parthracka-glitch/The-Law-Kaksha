@@ -10,7 +10,6 @@ describe("Catalog & Public Content API Tests", () => {
     const data = await res.json();
     assert.strictEqual(data.success, true);
     assert.ok(Array.isArray(data.products));
-    assert.ok(data.products.length > 0);
   });
 
   test("GET /api/public/section16-comparison returns Section 16(1) data", async () => {

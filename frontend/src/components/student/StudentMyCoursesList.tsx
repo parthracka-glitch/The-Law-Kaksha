@@ -158,7 +158,11 @@ export function StudentMyCoursesList({
       <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1.5 scroll-smooth divide-y divide-[#F1F5F9]/60">
         {filteredCourses.length === 0 ? (
           <div className="p-6 text-center bg-white rounded-2xl border border-[#E7ECF7] text-[#6C7893]">
-            <p className="text-xs font-medium">No courses match your filter.</p>
+            <p className="text-xs font-medium">
+              {courses.length === 0
+                ? "No live courses are available yet."
+                : "No courses match your filter."}
+            </p>
           </div>
         ) : (
           filteredCourses.map((course) => (
@@ -189,7 +193,7 @@ export function StudentMyCoursesList({
                     <div className="w-full bg-[#DCE6F8] rounded-full h-1.5 overflow-hidden mr-2">
                       <div
                         className="bg-gradient-to-r from-[#2F55E8] to-[#4F80F7] h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(4, course.progressPercent)}%` }}
+                        style={{ width: `${course.progressPercent > 0 ? Math.max(4, course.progressPercent) : 0}%` }}
                       />
                     </div>
                     <span className="shrink-0">{course.progressPercent}%</span>

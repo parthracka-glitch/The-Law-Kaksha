@@ -55,7 +55,7 @@ export function CseetComingSoonShell({ onOpenSampleReader, onPreOrder }: CseetCo
               <span>Under Active Production · Nov 2026 Batch</span>
             </div>
             <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">
-              CSEET Paper 2: Business Law & Management
+              CSEET Business Laws and Management
             </h1>
             <p className="text-xs text-white/60 leading-relaxed max-w-xl">
               Complete 8-Unit ICSI syllabus — unit-wise notes, question banks & timed mock evaluations for CS Executive Entrance Test.

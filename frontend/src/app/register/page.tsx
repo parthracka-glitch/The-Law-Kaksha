@@ -32,7 +32,7 @@ function RegisterForm() {
     password: "",
     targetCourse:
       initialCourse === "cseet"
-        ? "CSEET Business Law & Management"
+        ? "CSEET Business Laws and Management"
         : "CA Foundation Paper 2: Business Laws",
   });
 
@@ -129,8 +129,8 @@ function RegisterForm() {
               <option value="CA Foundation Paper 2: Business Laws">
                 CA Foundation Paper 2: Business Laws (7 Chapters)
               </option>
-              <option value="CSEET Business Law & Management">
-                CSEET Business Law &amp; Management (8 Units)
+              <option value="CSEET Business Laws and Management">
+                CSEET Business Laws and Management (8 Units)
               </option>
             </select>
           </div>

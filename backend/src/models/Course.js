@@ -17,6 +17,7 @@ const CourseSchema = new mongoose.Schema(
     display_order: { type: Number, default: 0 },
     exam_body: { type: String, default: "ICAI" },
     units_count: { type: Number, default: 0 },
+    highlights: [{ type: String }],
   },
   { timestamps: true }
 );

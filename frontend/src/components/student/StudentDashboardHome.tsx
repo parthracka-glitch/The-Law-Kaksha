@@ -4,34 +4,17 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Search,
   ChevronLeft,
   ChevronRight,
-  Star,
   Clock,
-  Play,
-  Info,
   Sparkles,
   ArrowRight,
   BookOpen,
-  Scale,
-  Landmark,
-  FileText,
   CheckCircle2,
   Zap,
-  Flame,
-  Trophy,
-  Award,
   Gift,
-  Calendar,
-  Target,
-  Check,
   ShieldCheck,
-  TrendingUp,
-  Lock,
   ShoppingBag,
-  GraduationCap,
-  Crown,
   RefreshCw,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -59,6 +42,7 @@ export interface ShowcaseResourceItem {
   accentColor: string;
   buttonGradient: string;
   validityTag: string;
+  comingSoon?: boolean;
   cartPayload?: {
     id: string;
     title: string;
@@ -69,39 +53,87 @@ export interface ShowcaseResourceItem {
   };
 }
 
-export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
+const SHOWCASE_STYLE_PRESETS = [
   {
-    id: "prod-combo",
-    courseType: "all-access",
-    title: "All-Access Dual Codex Combo Pass",
-    badge: "⭐ BEST VALUE • 64% OFF",
-    category: "Full Curriculum Dual Pass",
-    examBody: "ICAI & ICSI Dual Coverage",
-    subtitle: "Complete access to BOTH CA Foundation & CSEET statutory codices, case study vaults & mock simulators.",
-    coverImage: "/covers/combo-codex.webp",
-    price: 180,
-    originalPrice: 499,
-    discount: "64% OFF",
-    savings: "Save ₹319",
-    highlights: [
-      "All 15 Chapters & Units across CA Foundation + CSEET",
-      "Dual In-Web 3D DRM Reader with instant soft-copy activation",
-      "Ranker Fellowship Guarantee: 100% fee reimbursement eligibility",
-    ],
-    bannerGradient: "from-[#2E1065] via-[#4C1D95] to-[#581C87]",
-    borderTheme: "border-[#7E22CE]/40 hover:border-[#C084FC]",
+    bannerGradient: "from-[#451A03] via-[#78350F] to-[#92400E]",
+    borderTheme: "border-[#F59E0B]/40 hover:border-[#FBBF24]",
     accentColor: "text-amber-300",
-    buttonGradient: "bg-gradient-to-r from-[#9333EA] to-[#7E22CE] hover:from-[#A855F7] hover:to-[#9333EA] text-white shadow-purple-950/40",
-    validityTag: "Dual Pass • Instant Access",
-    cartPayload: {
-      id: "prod-combo",
-      title: "All-Access Dual Codex Pass (CA Foundation + CSEET)",
-      price: 180,
-      originalPrice: 499,
-      category: "Full Course Subscription",
-      badge: "Dual Pass • 15 Chapters",
-    },
+    buttonGradient: "bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#F59E0B] hover:to-[#D97706] text-white shadow-amber-950/40",
+    coverImage: "/covers/vol1-codex.webp",
   },
+  {
+    bannerGradient: "from-[#082F49] via-[#075985] to-[#0284C7]",
+    borderTheme: "border-[#38BDF8]/40 hover:border-[#7DD3FC]",
+    accentColor: "text-sky-300",
+    buttonGradient: "bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:from-[#38BDF8] hover:to-[#0284C7] text-white shadow-sky-950/40",
+    coverImage: "/covers/vol2-codex.webp",
+  },
+  {
+    bannerGradient: "from-[#7C2D12] via-[#9A3412] to-[#C2410C]",
+    borderTheme: "border-[#FB923C]/40 hover:border-[#FDBA74]",
+    accentColor: "text-orange-200",
+    buttonGradient: "bg-gradient-to-r from-[#EA580C] to-[#C2410C] hover:from-[#F97316] hover:to-[#EA580C] text-white shadow-orange-950/40",
+    coverImage: "/covers/vol1-codex.webp",
+  },
+  {
+    bannerGradient: "from-[#14532D] via-[#166534] to-[#15803D]",
+    borderTheme: "border-[#4ADE80]/40 hover:border-[#86EFAC]",
+    accentColor: "text-emerald-200",
+    buttonGradient: "bg-gradient-to-r from-[#16A34A] to-[#15803D] hover:from-[#22C55E] hover:to-[#16A34A] text-white shadow-emerald-950/40",
+    coverImage: "/covers/vol2-codex.webp",
+  },
+];
+
+function buildShowcaseResource(product: any, index: number): ShowcaseResourceItem | null {
+  if (!product?.id || !product?.title) return null;
+
+  const preset = SHOWCASE_STYLE_PRESETS[index % SHOWCASE_STYLE_PRESETS.length];
+  const price = Number(product.price) || 0;
+  const originalPrice = Number(product.original_price ?? product.originalPrice) || price;
+  const isCs =
+    String(product.courseId || "").toLowerCase().includes("cseet") ||
+    String(product.category || "").toLowerCase().includes("cseet");
+  const category = product.category || (isCs ? "CSEET" : "CA Foundation");
+  const badge = product.badge || (isCs ? "ICSI CSEET" : "ICAI CA FOUNDATION");
+  const discount = originalPrice > price
+    ? `${Math.round(((originalPrice - price) / originalPrice) * 100)}% OFF`
+    : "AVAILABLE NOW";
+
+  return {
+    id: product.id,
+    courseType: isCs ? "cs" : "ca",
+    title: product.title,
+    badge,
+    category,
+    examBody: product.examBody || (isCs ? "ICSI" : "ICAI"),
+    subtitle: product.subtitle || product.description || "",
+    ...preset,
+    coverImage: product.cover_image || preset.coverImage,
+    price,
+    originalPrice,
+    discount,
+    savings: originalPrice > price ? `Save ₹${originalPrice - price}` : "Available Now",
+    highlights: Array.isArray(product.highlights) && product.highlights.length > 0
+      ? product.highlights
+      : [
+          product.description || "Live study material",
+          product.pages_or_duration || product.pages || "Digital codex",
+          "Instant access in your student dashboard",
+        ],
+    validityTag: product.pages_or_duration || product.pages || "Digital Codex",
+    comingSoon: Boolean(product.comingSoon),
+    cartPayload: {
+      id: product.id,
+      title: product.title,
+      price,
+      originalPrice,
+      category,
+      badge,
+    },
+  };
+}
+
+export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
   {
     id: "course-ca-foundation-sub",
     courseType: "ca",
@@ -137,7 +169,7 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
   {
     id: "course-cseet-sub",
     courseType: "cs",
-    title: "CSEET Business Law & Management Master Pass",
+    title: "CSEET Business Laws and Management Master Pass",
     badge: "⚡ ICSI SYLLABUS • 8 UNITS",
     category: "ICSI Paper 2 • Complete Syllabus",
     examBody: "ICSI Executive Entrance",
@@ -156,10 +188,11 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
     borderTheme: "border-[#38BDF8]/40 hover:border-[#7DD3FC]",
     accentColor: "text-sky-300",
     buttonGradient: "bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:from-[#38BDF8] hover:to-[#0284C7] text-white shadow-sky-950/40",
-    validityTag: "CSEET Pass • Instant Activation",
+    validityTag: "CSEET Pass • Launching Soon",
+    comingSoon: true,
     cartPayload: {
       id: "course-cseet-sub",
-      title: "CSEET Business Law & Management Master Pass",
+      title: "CSEET Business Laws and Management Master Pass",
       price: 99,
       originalPrice: 299,
       category: "Full Course Subscription",
@@ -223,7 +256,7 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
     validityTag: "120+ Pages • Digital Codex",
     cartPayload: {
       id: "prod-vol2",
-      title: "Volume 2: Business Law & Management (CSEET)",
+      title: "Volume 2: CSEET Business Laws and Management",
       price: 99,
       originalPrice: 249,
       category: "Digital Codex",
@@ -296,22 +329,6 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
   },
 ];
 
-interface EnrolledCourseItem {
-  id: string;
-  courseType: "ca" | "cs" | "shared";
-  title: string;
-  category: string;
-  enrolledDate: string;
-  progress: number;
-  pdfUrl: string;
-  iconBg: string;
-  iconType: "yellow" | "dark" | "blue" | "emerald";
-  iconEmoji: string;
-  isFavorite?: boolean;
-  isUnlocked: boolean;
-  price?: number;
-}
-
 interface LevelInfo {
   level: number;
   title: string;
@@ -345,6 +362,9 @@ interface StudentDashboardHomeProps {
   isAllAccessUnlocked?: boolean;
   onBuyCourse?: (courseType: "ca" | "cs" | "all-access") => void;
   purchasedBooks?: string[];
+  studentCourses?: any[];
+  completedUnits?: string[];
+  catalogProducts?: any[];
 }
 
 export interface FreeResourceItem {
@@ -363,6 +383,20 @@ export interface FreeResourceItem {
 }
 
 export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
+  {
+    id: "free-smart-question-bank-sample",
+    actName: "Smart Question Bank",
+    unitNumber: 1,
+    title: "Free Sample: Smart Question Bank",
+    subtitle: "Preview the question bank format, case-based questions and answer structure.",
+    badge: "🎁 FREE SAMPLE",
+    pages: "Sample PDF",
+    pdfUrl: "/samples/Smart_Question_Bank_Sample.pdf",
+    courseType: "ca",
+    gradient: "from-[#F0FDF4] via-white to-white",
+    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
+    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
+  },
   {
     id: "free-soga-1",
     actName: "The Sale of Goods Act, 1930",
@@ -505,58 +539,6 @@ export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
   },
 ];
 
-interface RecommendedCourseItem {
-  num: string;
-  courseType: "ca" | "cs" | "shared";
-  title: string;
-  subtitle: string;
-  duration: string;
-  streamLabel: string;
-  icon: any;
-  iconBg: string;
-  pdfUrl: string;
-  isFree?: boolean;
-}
-
-const RECOMMENDED_COURSES: RecommendedCourseItem[] = [
-  {
-    num: "1",
-    courseType: "ca",
-    title: "The Sale of Goods Act, 1930 Masterclass",
-    subtitle: "Formation of contract of sale, goods classification, conditions & warranties",
-    duration: "2 Units • 22 Pages",
-    streamLabel: "ICAI CA Foundation",
-    icon: Scale,
-    iconBg: "bg-[#7E22CE]",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    isFree: true,
-  },
-  {
-    num: "2",
-    courseType: "ca",
-    title: "Conditions & Warranties Codex (Sec 11-17)",
-    subtitle: "Implied conditions of fitness, Priest v. Last, Caveat Emptor & landmark case law",
-    duration: "Unit 2 • 10 Pages",
-    streamLabel: "ICAI CA Foundation",
-    icon: Landmark,
-    iconBg: "bg-[#0F172A]",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    isFree: true,
-  },
-  {
-    num: "3",
-    courseType: "cs",
-    title: "CSEET Management & Corporate Governance",
-    subtitle: "Henri Fayol's 14 principles, Taylor's scientific management & CSR ethics framework",
-    duration: "8 Units • 120 Pages",
-    streamLabel: "ICSI CSEET",
-    icon: GraduationCap,
-    iconBg: "bg-[#0284C7]",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    isFree: false,
-  },
-];
-
 export function StudentDashboardHome({
   studentName = "Student",
   streak = 0,
@@ -581,17 +563,15 @@ export function StudentDashboardHome({
   qotdSubmitted,
   onSelectQotdOption,
   onSubmitQotd,
-  completedUnitsCount = 0,
-  totalUnitsCount = 15,
   isCaUnlocked = false,
   isCsUnlocked = false,
-  isAllAccessUnlocked = false,
   onBuyCourse,
   purchasedBooks = [],
+  studentCourses = [],
+  completedUnits = [],
+  catalogProducts = [],
 }: StudentDashboardHomeProps) {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
-  const carouselRef = useRef<HTMLDivElement>(null);
   const promoCarouselRef = useRef<HTMLDivElement>(null);
   const freeNotesCarouselRef = useRef<HTMLDivElement>(null);
   const quizSectionRef = useRef<HTMLDivElement>(null);
@@ -635,91 +615,9 @@ export function StudentDashboardHome({
     }
   };
 
-  // Dynamic enrolled courses strictly reflecting student's subscribed stream
-  const dynamicCourses: EnrolledCourseItem[] = useMemo(() => {
-    const list: EnrolledCourseItem[] = [];
-
-    // Show CA Foundation if student subscribed to CA or dual access, or active in CA
-    if (isCaUnlocked || (!isCsUnlocked && activeCourse === "ca")) {
-      list.push({
-        id: "ca-foundation-course",
-        courseType: "ca",
-        title: "CA Foundation Business Laws Codex",
-        category: "ICAI Paper 2 • 7 Chapters",
-        enrolledDate: `Active ${new Date().getFullYear()} Batch • ICAI`,
-        progress: isCaUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 14)) : 0,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-        iconBg: "from-[#F59E0B] via-[#D97706] to-[#B45309]",
-        iconType: "yellow",
-        iconEmoji: "⚖️",
-        isUnlocked: Boolean(isCaUnlocked),
-        price: 99,
-      });
-    }
-
-    // Show CSEET if student subscribed to CSEET or dual access, or active in CS
-    if (isCsUnlocked || (!isCaUnlocked && activeCourse === "cs")) {
-      list.push({
-        id: "cseet-course",
-        courseType: "cs",
-        title: "CSEET Legal Aptitude & Management",
-        category: "ICSI Paper 2 • 8 Units",
-        enrolledDate: `Active ${new Date().getFullYear()} Batch • ICSI`,
-        progress: isCsUnlocked ? Math.min(100, Math.max(0, completedUnitsCount * 12)) : 0,
-        pdfUrl: "/notes/cseet-management-full.pdf",
-        iconBg: "from-[#1E293B] to-[#0F172A]",
-        iconType: "dark",
-        iconEmoji: "📜",
-        isUnlocked: Boolean(isCsUnlocked),
-        price: 99,
-      });
-    }
-
-    // Shared Study Vaults
-    list.push({
-      id: "cases-course",
-      courseType: "shared",
-      title: "Landmark Case Laws & Solved Precedents",
-      category: activeCourse === "ca" ? "ICAI Problem Vault" : "ICSI Problem Vault",
-      enrolledDate: `Active ${new Date().getFullYear()} Batch`,
-      progress: (isCaUnlocked || isCsUnlocked) ? Math.min(100, completedUnitsCount * 10) : 0,
-      pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-      iconBg: "from-[#3B0764] to-[#1E1B4B]",
-      iconType: "blue",
-      iconEmoji: "🏛️",
-      isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
-      price: 99,
-    });
-
-    list.push({
-      id: "mcq-simulator-course",
-      courseType: "shared",
-      title: "Timed MCQ Mock Test Simulators",
-      category: activeCourse === "ca" ? "ICAI Pattern Test Series" : "ICSI Pattern Test Series",
-      enrolledDate: `Active ${new Date().getFullYear()} Batch`,
-      progress: (isCaUnlocked || isCsUnlocked) ? Math.min(100, completedUnitsCount * 10) : 0,
-      pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-      iconBg: "from-[#047857] to-[#064E3B]",
-      iconType: "emerald",
-      iconEmoji: "🎯",
-      isUnlocked: Boolean(isCaUnlocked || isCsUnlocked),
-      price: 49,
-    });
-
-    return list;
-  }, [isCaUnlocked, isCsUnlocked, activeCourse, completedUnitsCount]);
-
-  const [courses, setCourses] = useState<EnrolledCourseItem[]>(dynamicCourses);
-
-  useEffect(() => {
-    setCourses(dynamicCourses);
-  }, [dynamicCourses]);
-
   // Helper to determine if a course / codex / pass is already owned or subscribed to by the student
   const isResourceOwned = useCallback(
     (resource: ShowcaseResourceItem): boolean => {
-      if (isAllAccessUnlocked) return true;
-
       if (resource.courseType === "all-access" || resource.id === "prod-combo") {
         return Boolean(
           (isCaUnlocked && isCsUnlocked) ||
@@ -796,13 +694,40 @@ export function StudentDashboardHome({
         (resource.cartPayload && purchasedBooks.includes(resource.cartPayload.id))
       );
     },
-    [isCaUnlocked, isCsUnlocked, isAllAccessUnlocked, purchasedBooks]
+    [isCaUnlocked, isCsUnlocked, purchasedBooks]
   );
 
-  // ONLY show courses/passes that the student HAS NOT subscribed to yet
+  // ONLY show live catalog products that the student has NOT subscribed to yet
+  const liveShowcaseResources = useMemo(() => {
+    const seen = new Set<string>();
+    const resources: ShowcaseResourceItem[] = [];
+
+    catalogProducts.forEach((product, index) => {
+      if (
+        !product?.id ||
+        product.comingSoon ||
+        product.isComingSoon ||
+        product.availability === "coming_soon" ||
+        product.status === "Draft" ||
+        product.status === "Coming Soon"
+      ) {
+        return;
+      }
+      if (seen.has(product.id)) return;
+
+      const resource = buildShowcaseResource(product, index);
+      if (!resource) return;
+
+      seen.add(product.id);
+      resources.push(resource);
+    });
+
+    return resources;
+  }, [catalogProducts]);
+
   const unsubscribedShowcaseResources = useMemo(() => {
-    return SHOWCASE_RESOURCES.filter((resource) => !isResourceOwned(resource));
-  }, [isResourceOwned]);
+    return liveShowcaseResources.filter((resource) => !isResourceOwned(resource));
+  }, [isResourceOwned, liveShowcaseResources]);
 
   const [isHovered, setIsHovered] = useState(false);
 
@@ -836,15 +761,6 @@ export function StudentDashboardHome({
 
     return () => clearInterval(interval);
   }, [isHovered, unsubscribedShowcaseResources.length]);
-
-  const scrollCarousel = (direction: "left" | "right") => {
-    if (carouselRef.current) {
-      const container = carouselRef.current;
-      const firstCard = container.querySelector<HTMLElement>(":scope > div");
-      const offset = (firstCard ? firstCard.offsetWidth + 16 : 300) * (direction === "left" ? -1 : 1);
-      carouselRef.current.scrollBy({ left: offset, behavior: "smooth" });
-    }
-  };
 
   const scrollFreeNotes = (direction: "left" | "right") => {
     if (freeNotesCarouselRef.current) {
@@ -921,134 +837,68 @@ export function StudentDashboardHome({
     setCheckoutStep("details");
   };
 
-  const toggleFavorite = (id: string) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isFavorite: !c.isFavorite } : c))
-    );
-  };
-
-  const filteredCourses = courses.filter((c) =>
-    c.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const studentCourseList: StudentCourseProgressItem[] = useMemo(() => {
-    if (activeCourse === "cs") {
-      return [
-        {
-          id: "cs-u1",
-          name: "Indian Contract Act, 1872",
-          code: "Unit 1",
-          weightage: "15 - 20 M",
-          description: "Essentials of Contract, Offer & Acceptance",
-          totalLessons: 4,
-          completedLessons: isCsUnlocked ? Math.min(4, Math.max(1, completedUnitsCount)) : 1,
-          progressPercent: isCsUnlocked ? 65 : 25,
-          pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-          isUnlocked: Boolean(isCsUnlocked),
-          category: "cs",
-        },
-        {
-          id: "cs-u2",
-          name: "Sale of Goods Act, 1930",
-          code: "Unit 2",
-          weightage: "10 - 15 M",
-          description: "Contract of Sale, Conditions & Warranties",
-          totalLessons: 3,
-          completedLessons: isCsUnlocked ? 2 : 1,
-          progressPercent: isCsUnlocked ? 50 : 20,
-          pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-          isUnlocked: Boolean(isCsUnlocked),
-          category: "cs",
-        },
-        {
-          id: "cs-u7",
-          name: "General Principles of Management",
-          code: "Unit 7",
-          weightage: "15 - 20 M",
-          description: "Henri Fayol 14 Principles, Scientific Management",
-          totalLessons: 8,
-          completedLessons: isCsUnlocked ? 6 : 2,
-          progressPercent: isCsUnlocked ? 75 : 25,
-          pdfUrl: "/notes/cseet-management-full.pdf",
-          isUnlocked: Boolean(isCsUnlocked),
-          category: "cs",
-        },
-      ];
-    }
+    const items: StudentCourseProgressItem[] = [];
+    const completedSet = new Set(completedUnits);
 
-    return [
-      {
-        id: "ca-ch2",
-        name: "The Indian Contract Act, 1872",
-        code: "Chapter 2",
-        weightage: "20 - 25 M",
-        description: "Nature of Contracts, Offer & Acceptance, Consideration",
-        totalLessons: 12,
-        completedLessons: isCaUnlocked ? 8 : 4,
-        progressPercent: isCaUnlocked ? 65 : 30,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-        isUnlocked: Boolean(isCaUnlocked),
-        category: "ca",
-      },
-      {
-        id: "ca-ch6",
-        name: "The Companies Act, 2013",
-        code: "Chapter 6",
-        weightage: "15 - 20 M",
-        description: "Meaning & Characteristics, Corporate Veil, MOA & AOA",
-        totalLessons: 12,
-        completedLessons: isCaUnlocked ? 5 : 2,
-        progressPercent: isCaUnlocked ? 40 : 15,
-        pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-        isUnlocked: Boolean(isCaUnlocked),
-        category: "ca",
-      },
-      {
-        id: "ca-ch3",
-        name: "The Sale of Goods Act, 1930",
-        code: "Chapter 3",
-        weightage: "15 - 20 M",
-        description: "Formation of Contract of Sale, Conditions & Warranties",
-        totalLessons: 12,
-        completedLessons: isCaUnlocked ? 3 : 1,
-        progressPercent: isCaUnlocked ? 25 : 10,
-        pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-        isUnlocked: true,
-        category: "ca",
-      },
-      {
-        id: "ca-ch4",
-        name: "The Indian Partnership Act, 1932",
-        code: "Chapter 4",
-        weightage: "15 - 20 M",
-        description: "General Nature, Relations of Partners, Registration & Dissolution",
-        totalLessons: 10,
-        completedLessons: isCaUnlocked ? 8 : 3,
-        progressPercent: isCaUnlocked ? 80 : 30,
-        pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-        isUnlocked: true,
-        category: "ca",
-      },
-    ];
-  }, [activeCourse, isCaUnlocked, isCsUnlocked, completedUnitsCount]);
+    (Array.isArray(studentCourses) ? studentCourses : []).forEach((course: any) => {
+      if (!course?.isEnrolled) return;
+
+      const courseId = String(course?.id || "").toLowerCase();
+      const courseTitle = String(course?.title || "").toLowerCase();
+      const isCsCourse =
+        courseId.includes("cseet") ||
+        courseId.includes("cs-") ||
+        courseTitle.includes("cseet");
+      const courseCategory: "ca" | "cs" = isCsCourse ? "cs" : "ca";
+
+      if (courseCategory !== activeCourse) return;
+
+      (Array.isArray(course?.acts) ? course.acts : []).forEach((act: any) => {
+        if (act?.isComingSoon) return;
+
+        const units = Array.isArray(act?.units) ? act.units : [];
+        const totalLessons = units.length;
+        const completedLessons = units.filter((unit: any) => completedSet.has(unit.id)).length;
+        const firstContent = units
+          .flatMap((unit: any) => (Array.isArray(unit?.contentItems) ? unit.contentItems : []))
+          .find((item: any) => item?.id);
+
+        items.push({
+          id: act.id,
+          name: act.title,
+          code: `Chapter ${act.order || items.length + 1}`,
+          weightage: `${totalLessons} ${totalLessons === 1 ? "Unit" : "Units"}`,
+          description: units[0]?.title || "Live statutory module",
+          totalLessons,
+          completedLessons,
+          progressPercent: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
+          pdfUrl: firstContent?.id ? `/api/content/${firstContent.id}/file` : "",
+          isUnlocked: true,
+          category: courseCategory,
+        });
+      });
+    });
+
+    return items;
+  }, [activeCourse, completedUnits, isCaUnlocked, isCsUnlocked, studentCourses]);
 
   const handleContinueLearning = () => {
-    const targetPdf = activeCourse === "ca" 
-      ? "/notes/sale-of-goods-unit-1.pdf" 
-      : "/notes/cseet-management-full.pdf";
-    const targetTitle = activeCourse === "ca"
-      ? "The Indian Contract Act, 1872"
-      : "CSEET Management & Corporate Governance";
-    onOpenPdf(targetPdf, targetTitle, "Unit 1: Formation of Contract", activeCourse, true);
+    const firstCourse = studentCourseList[0];
+    if (firstCourse?.pdfUrl) {
+      onOpenPdf(firstCourse.pdfUrl, firstCourse.name, firstCourse.description, firstCourse.category, true);
+      return;
+    }
+    onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet");
   };
 
   const handleOpenStudentCourse = (courseItem: StudentCourseProgressItem) => {
-    if (courseItem.isUnlocked) {
+    if (courseItem.isUnlocked && courseItem.pdfUrl) {
       onOpenPdf(courseItem.pdfUrl, courseItem.name, courseItem.code, courseItem.category, true);
+    } else if (!courseItem.isUnlocked && onBuyCourse) {
+      onBuyCourse(courseItem.category);
     } else {
-      if (onBuyCourse) {
-        onBuyCourse(courseItem.category);
-      }
+      onExploreCourse(courseItem.category === "ca" ? "ca-foundation" : "course-cseet");
     }
   };
 
@@ -1068,9 +918,9 @@ export function StudentDashboardHome({
       {/* 2. THREE STAT CARDS (COURSES, LESSONS, CERTIFICATES - SVG EXACT DESIGN)    */}
       {/* ========================================================================= */}
       <StudentMetricStats
-        coursesCount={activeCourse === "ca" ? 7 : 8}
-        lessonsCount={activeCourse === "ca" ? 15 : 12}
-        certificatesCount={2}
+        coursesCount={studentCourseList.length}
+        lessonsCount={studentCourseList.reduce((total, course) => total + course.totalLessons, 0)}
+        certificatesCount={0}
         onViewCourses={() => onExploreCourse && onExploreCourse("ca-foundation")}
         onViewLessons={() => onExploreCourse && onExploreCourse("ca-foundation")}
         onViewCertificates={() => onExploreCourse && onExploreCourse("ca-foundation")}
@@ -1125,30 +975,24 @@ export function StudentDashboardHome({
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                  <span>All Curriculum Passes Unlocked</span>
+                  <span>No New Passes Available</span>
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
-                  You Have Full Access to All Master Codices &amp; Courses!
+                  All Live Curriculum Passes Are Already in Your Dashboard
                 </h3>
                 <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-                  All statutory bare act codices, CA Foundation &amp; CSEET curriculum materials, case study question banks, and timed mock simulators are active in your student dashboard.
+                  New passes will appear here automatically as soon as they are published on the main website.
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => {
-                if (onOpenPdf) {
-                  onOpenPdf("/notes/sale-of-goods-unit-1.pdf", "Volume 1: Statutory Bare Act Codex", "Bare Act Codex", "ca", false);
-                } else if (onExploreCourse) {
-                  onExploreCourse("ca");
-                }
-              }}
+            <Link
+              href="/courses"
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md cursor-pointer active:scale-98"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Study In Codex Reader</span>
+              <span>Browse Catalog</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
         </section>
       ) : (
@@ -1295,17 +1139,23 @@ export function StudentDashboardHome({
                   {/* Bottom: Price row & Direct Buy CTA */}
                   <div className="space-y-1.5 sm:space-y-2 pt-1 sm:pt-2 border-t border-white/15">
                     <div className="flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1 sm:gap-1.5">
+                      {resource.comingSoon ? (
                         <span className="text-base sm:text-2xl font-black text-white">
-                          ₹{resource.price}
+                          Launching Soon
                         </span>
-                        <span className="text-[10px] sm:text-xs text-white/60 line-through font-mono">
-                          ₹{resource.originalPrice}
-                        </span>
-                        <span className="text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 font-sans shadow-2xs">
-                          {resource.savings}
-                        </span>
-                      </div>
+                      ) : (
+                        <div className="flex items-baseline gap-1 sm:gap-1.5">
+                          <span className="text-base sm:text-2xl font-black text-white">
+                            ₹{resource.price}
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-white/60 line-through font-mono">
+                            ₹{resource.originalPrice}
+                          </span>
+                          <span className="text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-400 text-amber-950 font-sans shadow-2xs">
+                            {resource.savings}
+                          </span>
+                        </div>
+                      )}
                       <span className="text-[9px] sm:text-[10px] font-medium text-white/70 hidden sm:inline">
                         {resource.validityTag}
                       </span>
@@ -1313,14 +1163,25 @@ export function StudentDashboardHome({
 
                     {/* Direct Buy Button: Instant In-Dashboard Checkout */}
                     <div className="space-y-1 sm:space-y-1.5">
-                      <button
-                        onClick={() => handleBuyItem(resource)}
-                        className={`w-full py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl ${resource.buttonGradient} font-black text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
-                      >
-                        <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                        <span className="truncate">Buy Now • ₹{resource.price}</span>
-                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                      </button>
+                      {resource.comingSoon ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl bg-white/10 border border-white/20 text-white/60 font-black text-[11px] sm:text-xs flex items-center justify-center gap-1.5 cursor-not-allowed"
+                        >
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                          <span>Coming Soon</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleBuyItem(resource)}
+                          className={`w-full py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl ${resource.buttonGradient} font-black text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shadow-md hover:shadow-lg`}
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                          <span className="truncate">Buy Now • ₹{resource.price}</span>
+                          <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                        </button>
+                      )}
 
                       <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-white/70 px-0.5">
                         <span className="flex items-center gap-1">
@@ -1377,13 +1238,13 @@ export function StudentDashboardHome({
               </span>
             </div>
             <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
-              Free Chapter Notes &amp; Statutory Samples
+              Free Sample Papers
             </h3>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-center">
             <span className="text-xs text-[#6B7280] hidden md:block">
-              Scroll to explore all 8 sample units
+              Preview before you subscribe
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -1411,7 +1272,9 @@ export function StudentDashboardHome({
           className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar snap-x touch-pan-x"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {FREE_STUDY_RESOURCES.map((res) => (
+          {FREE_STUDY_RESOURCES.filter(
+            (resource) => resource.pdfUrl === "/samples/Smart_Question_Bank_Sample.pdf"
+          ).map((res) => (
             <div
               key={res.id}
               className={`w-[260px] sm:w-[285px] shrink-0 snap-start rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
@@ -1459,102 +1322,7 @@ export function StudentDashboardHome({
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. RECOMMENDED FOR YOU (WATERMARK 1, 2, 3 COMPACT ROW)                    */}
-      {/* ========================================================================= */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight">
-            Recommended for You
-          </h3>
-          <span className="text-[11px] sm:text-xs text-[#6B7280]">Curated Study Material</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-3.5">
-          {RECOMMENDED_COURSES.map((item) => {
-            const IconComponent = item.icon;
-            const isItemUnlocked =
-              item.courseType === "ca"
-                ? Boolean(isCaUnlocked)
-                : item.courseType === "cs"
-                ? Boolean(isCsUnlocked)
-                : Boolean(isCaUnlocked || isCsUnlocked);
-
-            return (
-              <div
-                key={item.num}
-                onClick={() => {
-                  if (isItemUnlocked || item.isFree) {
-                    onOpenPdf(
-                      item.pdfUrl,
-                      item.title,
-                      item.subtitle,
-                      item.courseType === "shared" ? activeCourse : item.courseType,
-                      item.isFree
-                    );
-                  } else {
-                    if (onBuyCourse) {
-                      onBuyCourse(item.courseType === "shared" ? "all-access" : item.courseType);
-                    } else {
-                      onOpenPdf(
-                        item.pdfUrl,
-                        item.title,
-                        item.subtitle,
-                        item.courseType === "shared" ? activeCourse : item.courseType,
-                        false
-                      );
-                    }
-                  }
-                }}
-                className="relative bg-white rounded-2xl border border-[#E7E4E7] p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
-              >
-                {/* Large Faint Watermark Number in Top-Right Corner */}
-                <span className="absolute top-2 right-3 text-4xl font-black text-[#F3F4F6] select-none pointer-events-none group-hover:text-[#EDE9FE] transition-colors">
-                  {item.num}
-                </span>
-
-                <div className="space-y-2 relative z-10 pr-4">
-                  {/* Dark App Icon Square */}
-                  <div
-                    className={`w-9 h-9 rounded-xl ${item.iconBg} text-white flex items-center justify-center shadow-xs shrink-0`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] group-hover:text-[#7E22CE] transition-colors leading-snug">
-                      {item.title}
-                    </h4>
-                    <p className="text-[11px] text-[#6B7280] mt-0.5 leading-relaxed line-clamp-2">
-                      {item.subtitle}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-2.5 mt-2 border-t border-[#F3F4F6] flex items-center justify-between text-xs text-[#6B7280] relative z-10">
-                  <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[#4B5563]">
-                    <BookOpen className="w-3 h-3 text-[#7E22CE]" />
-                    <span>{item.duration}</span>
-                  </span>
-                  {isItemUnlocked || item.isFree ? (
-                    <span className="text-[#7E22CE] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                      <span>{item.isFree ? "Free Read" : "Open"}</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  ) : (
-                    <span className="text-[#B45309] font-bold text-xs group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-[#B45309]" />
-                      <span>Unlock Pass</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. DAILY PRACTICE & STUDY DRILL (CLEAN & MINIMAL GAMIFICATION)             */}
+      {/* 3. DAILY PRACTICE & STUDY DRILL (CLEAN & MINIMAL GAMIFICATION)             */}
       {/* ========================================================================= */}
       <div
         ref={quizSectionRef}

@@ -1,86 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight, CheckCircle2, Clock, Calendar, PlayCircle, Award, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, CheckCircle2, BookOpen, Award, FileText } from "lucide-react";
 
-interface LiveClassScheduleItem {
-  id: string;
-  subject: string;
-  topic: string;
-  timeLabel: string;
-  status: "ongoing" | "upcoming";
-  link?: string;
-  instructor?: string;
-}
-
-interface RecentActivityItem {
+export interface RecentActivityItem {
   id: string;
   subject: string;
   actionText: string;
-  timeAgo: string;
-  type: "completed_lesson" | "submitted_quiz" | "passed_test";
+  timeAgo?: string;
+  type: "completed_lesson" | "submitted_quiz" | "passed_test" | "read";
 }
 
-const DEFAULT_UPCOMING_CLASSES: LiveClassScheduleItem[] = [
-  {
-    id: "live-1",
-    subject: "The Indian Contract Act, 1872",
-    topic: "Section 73 Damages & Anticipatory Breach",
-    timeLabel: "Today, 10:00 AM",
-    status: "ongoing",
-    instructor: "Advocate Faculty",
-  },
-  {
-    id: "live-2",
-    subject: "The Sale of Goods Act, 1930",
-    topic: "Caveat Emptor & Priest v. Last Case Law",
-    timeLabel: "Tomorrow, 02:00 PM",
-    status: "upcoming",
-    instructor: "Law Kaksha Faculty",
-  },
-  {
-    id: "live-3",
-    subject: "The Companies Act, 2013",
-    topic: "Corporate Veil & Lifting of Veil Exceptions",
-    timeLabel: "Friday, 11:00 AM",
-    status: "upcoming",
-    instructor: "Law Kaksha Faculty",
-  },
-];
-
-const DEFAULT_RECENT_ACTIVITIES: RecentActivityItem[] = [
-  {
-    id: "act-1",
-    subject: "The Indian Contract Act, 1872",
-    actionText: "Completed lesson: Essentials of Valid Contract (Sec 1-10)",
-    timeAgo: "2h ago",
-    type: "completed_lesson",
-  },
-  {
-    id: "act-2",
-    subject: "Practice Question Bank",
-    actionText: "Submitted mock test: Indian Regulatory Framework",
-    timeAgo: "1 day ago",
-    type: "submitted_quiz",
-  },
-  {
-    id: "act-3",
-    subject: "The Companies Act, 2013",
-    actionText: "Passed quiz: Salomon v. Salomon Precedent Drill",
-    timeAgo: "2 days ago",
-    type: "passed_test",
-  },
-];
-
 interface StudentSchedulePanelProps {
-  onSelectClass?: (item: LiveClassScheduleItem) => void;
-  onViewAllClasses?: () => void;
+  recentActivities?: RecentActivityItem[];
   onViewAllActivity?: () => void;
 }
 
 export function StudentSchedulePanel({
-  onSelectClass,
-  onViewAllClasses,
+  recentActivities = [],
   onViewAllActivity,
 }: StudentSchedulePanelProps) {
   // Current live calendar date state
@@ -172,67 +109,7 @@ export function StudentSchedulePanel({
         </div>
       </div>
 
-      {/* 2. Upcoming Classes List matching SVG Phone 3 */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base sm:text-lg font-bold text-[#13264F]">
-            Upcoming Classes
-          </h3>
-          {onViewAllClasses && (
-            <button
-              onClick={onViewAllClasses}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#3558E8] hover:underline cursor-pointer"
-            >
-              <span>View all</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-
-        <div className="space-y-2.5">
-          {DEFAULT_UPCOMING_CLASSES.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelectClass && onSelectClass(item)}
-              className="bg-white rounded-2xl border border-[#E7ECF7] p-3 sm:p-3.5 shadow-[0_2px_8px_rgba(30,58,138,0.06)] hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
-            >
-              {/* Left icon / art */}
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#173684] to-[#2546A3] flex items-center justify-center text-white shrink-0 shadow-2xs">
-                <PlayCircle className="w-5 h-5 text-amber-300" />
-              </div>
-
-              {/* Title & Time */}
-              <div className="flex-1 min-w-0 space-y-0.5">
-                <h4 className="text-xs sm:text-sm font-bold text-[#13264F] truncate group-hover:text-[#3558E8] transition-colors">
-                  {item.subject}
-                </h4>
-                <p className="text-[11px] text-[#6C7893] truncate">
-                  Live Class • {item.topic}
-                </p>
-                <p className="text-[10px] font-semibold text-[#5B6788]">
-                  {item.timeLabel}
-                </p>
-              </div>
-
-              {/* Status Pill matching SVG (Green On Going vs Blue Upcoming) */}
-              <div className="shrink-0 flex items-center gap-1.5">
-                {item.status === "ongoing" ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#DDF5E6] text-[#22A05A] shadow-2xs animate-pulse">
-                    On Going
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#E2E9FC] text-[#3552E0]">
-                    Upcoming
-                  </span>
-                )}
-                <ChevronRight className="w-4 h-4 text-[#6C7893] group-hover:text-[#3558E8] transition-colors" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 3. Recent Activity Feed matching SVG Phone 3 */}
+      {/* 2. Recent Activity Feed (real student actions only) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-lg font-bold text-[#13264F]">
@@ -250,43 +127,61 @@ export function StudentSchedulePanel({
         </div>
 
         <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7ECF7] p-3.5 sm:p-4.5 shadow-[0_2px_8px_rgba(30,58,138,0.06)] space-y-3.5">
-          {DEFAULT_RECENT_ACTIVITIES.map((act) => {
-            return (
-              <div key={act.id} className="flex items-start gap-3">
-                {/* Circle Icon Badge */}
-                {act.type === "completed_lesson" && (
-                  <div className="w-8 h-8 rounded-full bg-[#3DBF6E] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-2xs">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                )}
-                {act.type === "submitted_quiz" && (
-                  <div className="w-8 h-8 rounded-full bg-[#FDE8AE] flex items-center justify-center text-[#F5A623] shrink-0 mt-0.5 shadow-2xs">
-                    <FileText className="w-4 h-4" />
-                  </div>
-                )}
-                {act.type === "passed_test" && (
-                  <div className="w-8 h-8 rounded-full bg-[#D6F2E0] flex items-center justify-center text-[#27A862] shrink-0 mt-0.5 shadow-2xs">
-                    <Award className="w-4 h-4" />
-                  </div>
-                )}
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h5 className="text-xs font-bold text-[#13264F] truncate">
-                      {act.subject}
-                    </h5>
-                    <span className="text-[10px] text-[#7A859F] shrink-0">
-                      {act.timeAgo}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#6C7893] leading-snug mt-0.5">
-                    {act.actionText}
-                  </p>
-                </div>
+          {recentActivities.length === 0 ? (
+            <div className="flex items-center gap-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3558E8] shrink-0">
+                <BookOpen className="w-4 h-4" />
               </div>
-            );
-          })}
+              <p className="text-[11px] text-[#6C7893] leading-snug">
+                Your completed lessons and reading sessions will appear here.
+              </p>
+            </div>
+          ) : (
+            recentActivities.map((act) => {
+              return (
+                <div key={act.id} className="flex items-start gap-3">
+                  {/* Circle Icon Badge */}
+                  {act.type === "completed_lesson" && (
+                    <div className="w-8 h-8 rounded-full bg-[#3DBF6E] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-2xs">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
+                  {act.type === "submitted_quiz" && (
+                    <div className="w-8 h-8 rounded-full bg-[#FDE8AE] flex items-center justify-center text-[#F5A623] shrink-0 mt-0.5 shadow-2xs">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                  )}
+                  {act.type === "passed_test" && (
+                    <div className="w-8 h-8 rounded-full bg-[#D6F2E0] flex items-center justify-center text-[#27A862] shrink-0 mt-0.5 shadow-2xs">
+                      <Award className="w-4 h-4" />
+                    </div>
+                  )}
+                  {act.type === "read" && (
+                    <div className="w-8 h-8 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3558E8] shrink-0 mt-0.5 shadow-2xs">
+                      <BookOpen className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h5 className="text-xs font-bold text-[#13264F] truncate">
+                        {act.subject}
+                      </h5>
+                      {act.timeAgo && (
+                        <span className="text-[10px] text-[#7A859F] shrink-0">
+                          {act.timeAgo}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#6C7893] leading-snug mt-0.5">
+                      {act.actionText}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

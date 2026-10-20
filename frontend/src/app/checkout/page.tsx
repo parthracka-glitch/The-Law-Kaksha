@@ -515,7 +515,7 @@ export default function CheckoutPage() {
                       className="w-full px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] text-xs sm:text-sm text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20"
                     >
                       <option value="CA Foundation Paper 2: Business Laws">CA Foundation (Paper 2: Business Laws)</option>
-                      <option value="CSEET Paper 2: Business Law & Management">CSEET (Paper 2: Law &amp; Management)</option>
+                      <option value="CSEET Business Laws and Management">CSEET Business Laws and Management</option>
                       <option value="CA Foundation (Nov Batch)">CA Foundation (Nov Attempt)</option>
                       <option value="CA Foundation (May Batch)">CA Foundation (May Attempt)</option>
                     </select>

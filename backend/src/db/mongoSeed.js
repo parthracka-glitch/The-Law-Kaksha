@@ -114,7 +114,7 @@ const INITIAL_COURSES = [
   },
   {
     id: "course-cseet",
-    title: "CSEET Business Laws & Business Management",
+    title: "CSEET Business Laws and Management",
     slug: "cseet-business-laws-management",
     availability: "coming_soon",
     price: 99,
@@ -150,7 +150,7 @@ const INITIAL_PRODUCTS = [
   },
   {
     id: "prod-vol2",
-    title: "Volume 2: Business Law & Management (CSEET)",
+    title: "Volume 2: CSEET Business Laws and Management",
     subtitle: "Principles of Management, Ethics & Business Environment",
     category: "CSEET",
     format: "Digital Codex (In-Web DRM)",

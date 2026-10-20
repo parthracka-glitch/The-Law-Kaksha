@@ -20,6 +20,7 @@ import {
   Lock,
   Check,
   FileText,
+  Clock,
 } from "lucide-react";
 
 const FALLBACK_CATALOG: Record<string, any> = {
@@ -121,7 +122,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     slug: "cseet-business-law-management-monthly-access",
     type: "course",
     courseId: "course-cseet",
-    title: "CSEET Business Law & Management",
+    title: "CSEET Business Laws and Management",
     subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
     description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
     price: 99,
@@ -153,7 +154,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     slug: "cseet-business-law-management-monthly-access",
     type: "course",
     courseId: "course-cseet",
-    title: "CSEET Business Law & Management",
+    title: "CSEET Business Laws and Management",
     subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
     description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
     price: 99,
@@ -185,7 +186,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     slug: "cseet-business-law-management-monthly-access",
     type: "course",
     courseId: "course-cseet",
-    title: "CSEET Business Law & Management",
+    title: "CSEET Business Laws and Management",
     subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
     description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
     price: 99,
@@ -277,6 +278,10 @@ export default function ProductDetailPage() {
 
   const currentPrice = product.price || 99;
   const originalPrice = product.original_price || 299;
+  const comingSoon =
+    String(product.id || "").includes("cseet") ||
+    product.courseId === "course-cseet" ||
+    String(product.title || "").includes("CSEET");
 
   const handleAddToCart = () => {
     addToCart({
@@ -379,8 +384,10 @@ export default function ProductDetailPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-base font-bold text-[#221D1D] font-serif">₹{currentPrice}</span>
-                    <span className="text-[10px] text-[#77716E] block">/month</span>
+                    <span className="text-base font-bold text-[#221D1D] font-serif">
+                      {comingSoon ? "Launching Soon" : `₹${currentPrice}`}
+                    </span>
+                    {!comingSoon && <span className="text-[10px] text-[#77716E] block">/month</span>}
                   </div>
                 </div>
               </div>
@@ -404,43 +411,60 @@ export default function ProductDetailPage() {
             {/* Price & Action CTA */}
             <div className="space-y-4 pt-6 border-t border-[#E7E4E7]">
               <div className="flex items-baseline justify-between flex-wrap gap-2">
-                <div>
-                  <span className="text-3xl sm:text-4xl font-bold text-[#221D1D] tracking-tight font-serif">
-                    ₹{currentPrice}
+                {comingSoon ? (
+                  <span className="text-2xl sm:text-3xl font-bold text-[#4D433F] tracking-tight font-serif">
+                    Launching Soon
                   </span>
-                  {originalPrice > currentPrice && (
-                    <span className="ml-2.5 text-sm text-[#77716E] line-through">
-                      ₹{originalPrice}
+                ) : (
+                  <div>
+                    <span className="text-3xl sm:text-4xl font-bold text-[#221D1D] tracking-tight font-serif">
+                      ₹{currentPrice}
                     </span>
-                  )}
-                  {originalPrice > currentPrice && (
-                    <span className="ml-2.5 text-xs font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
-                      Save ₹{originalPrice - currentPrice}
-                    </span>
-                  )}
-                </div>
+                    {originalPrice > currentPrice && (
+                      <span className="ml-2.5 text-sm text-[#77716E] line-through">
+                        ₹{originalPrice}
+                      </span>
+                    )}
+                    {originalPrice > currentPrice && (
+                      <span className="ml-2.5 text-xs font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
+                        Save ₹{originalPrice - currentPrice}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="text-xs text-[#77716E] flex items-center gap-1.5 font-medium">
-                  <Lock className="w-3.5 h-3.5 text-[#4B8097]" />
-                  <span>Instant Access • Online Browser Reading</span>
+                  {comingSoon ? <Clock className="w-3.5 h-3.5 text-[#4B8097]" /> : <Lock className="w-3.5 h-3.5 text-[#4B8097]" />}
+                  <span>{comingSoon ? "Enrolment Opening Soon" : "Instant Access • Online Browser Reading"}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {comingSoon ? (
                 <button
-                  onClick={handleBuyNow}
-                  className="order-1 sm:order-2 py-3.5 px-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
+                  type="button"
+                  disabled
+                  className="w-full py-3.5 px-4 rounded-full bg-[#F1F5F9] text-[#94A3B8] text-xs sm:text-sm font-semibold border border-[#E2E8F0] flex items-center justify-center gap-2 cursor-not-allowed min-h-[48px]"
                 >
-                  <span>Proceed to Checkout</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <Clock className="w-4 h-4" />
+                  <span>Coming Soon</span>
                 </button>
-                <button
-                  onClick={handleAddToCart}
-                  className="order-2 sm:order-1 py-3.5 px-4 rounded-full border border-[#221D1D] bg-white hover:bg-[#F7F7F5] text-[#221D1D] text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
-                >
-                  <ShoppingBag className="w-4 h-4 text-[#221D1D]" />
-                  <span>Add to Bag</span>
-                </button>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    onClick={handleBuyNow}
+                    className="order-1 sm:order-2 py-3.5 px-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
+                  >
+                    <span>Proceed to Checkout</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleAddToCart}
+                    className="order-2 sm:order-1 py-3.5 px-4 rounded-full border border-[#221D1D] bg-white hover:bg-[#F7F7F5] text-[#221D1D] text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 min-h-[48px]"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-[#221D1D]" />
+                    <span>Add to Bag</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

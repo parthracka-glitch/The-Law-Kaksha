@@ -74,7 +74,7 @@ const FALLBACK_REVIEWS: Review[] = [
   {
     id: "rev-006",
     student_name: "CSEET Law Candidate",
-    student_rank: "Business Law & Mgt — 88%",
+    student_rank: "CSEET Business Laws and Management — 88%",
     rating: 5,
     title: "The only material you need for law mastery.",
     comment:

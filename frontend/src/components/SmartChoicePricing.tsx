@@ -64,7 +64,7 @@ const CA_FOUNDATION_PLAN: CoursePlan = {
 
 const CSEET_PLAN: CoursePlan = {
   id: "cseet-sub",
-  title: "CSEET Business Law & Management",
+  title: "CSEET Business Laws and Management",
   badge: "ICSI • 8 Units",
   subtitle: "8 Units Syllabus • Weekly 30-Q MCQ Tests • Concept Question Bank",
   price: 99,
@@ -156,7 +156,7 @@ export function SmartChoicePricing() {
                 }`}
               >
                 <span className="sm:hidden">CSEET Law</span>
-                <span className="hidden sm:inline">CSEET (Business Law &amp; Mgt)</span>
+                <span className="hidden sm:inline">CSEET Business Laws and Management</span>
               </button>
             </div>
           </div>
@@ -369,7 +369,7 @@ export function SmartChoicePricing() {
             <strong>CA Foundation Business Laws:</strong> This platform is a supplementary practice resource. Refer to the latest applicable ICAI syllabus and official study material for your examination attempt.
           </p>
           <p>
-            <strong>CSEET Business Law &amp; Management:</strong> This platform is a supplementary practice resource. Follow the latest applicable ICSI syllabus and official study material for your examination attempt.
+            <strong>CSEET Business Laws and Management:</strong> This platform is a supplementary practice resource. Follow the latest applicable ICSI syllabus and official study material for your examination attempt.
           </p>
         </div>
 

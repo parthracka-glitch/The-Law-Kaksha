@@ -1,7 +1,7 @@
 <!-- SHARED-MEMORY:START -->
 # AGENTS.md: all agents read this first
 
-**Project:** The Law Kaksha: Premier CA Foundation & CSEET Business Law learning platform offering structured video lectures, digital study material, tests, and mentorship.
+**Project:** The Law Kaksha: Premier CA Foundation & CSEET Business Laws and Management learning platform offering structured video lectures, digital study material, tests, and mentorship.
 **Stack:** Next.js 16 (React 19, Tailwind CSS v4) frontend on Vercel, Express.js (Node.js, MongoDB/Mongoose, local JSON DB fallback) backend on Render.
 **Commands:** install `npm install` · dev `npm run dev` (frontend) / `npm run dev:backend` · build `npm run build:frontend` · test `npm test` · lint `npm run lint` (frontend) (all unverified until Phase 0 confirms them)
 **Master plan:** `docs/agent/MASTER_PROMPT.md` (read only the phase you are working on, plus its Sections 2 and 3A)

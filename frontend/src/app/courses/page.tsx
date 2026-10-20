@@ -15,12 +15,8 @@ import {
   ArrowRight,
   Eye,
   ShoppingBag,
-  Zap,
   GraduationCap,
-  Layers,
-  FileText,
   Clock,
-  Check,
 } from "lucide-react";
 
 interface Product {
@@ -45,108 +41,10 @@ interface Product {
   paymentType?: "monthly" | "one-time";
   accentColor?: string;
   iconEmoji?: string;
+  comingSoon?: boolean;
 }
 
-const FALLBACK_PRODUCTS: Product[] = [
-  {
-    id: "course-ca-foundation-sub",
-    slug: "ca-foundation-business-laws-monthly-access",
-    type: "course",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Business Laws",
-    subtitle: "Complete 7 Chapters Study Notes, Case Studies & Question Bank",
-    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes, practice questions, weekly case problems, and model solutions.",
-    price: 99,
-    original_price: 299,
-    badge: "₹99 / Month",
-    category: "CA Foundation Paper 2",
-    examBody: "ICAI",
-    pages_or_duration: "7 Chapters (ICAI Scheme)",
-    paymentType: "monthly",
-    accentColor: "from-[#AED7E9] to-[#7BB8CE]",
-    iconEmoji: "⚖️",
-    highlights: [
-      "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
-      "Weekly descriptive case study practice with model solutions",
-      "DRM-protected study PDFs in secure 3D reader",
-      "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
-    ],
-  },
-  {
-    id: "course-cseet-sub",
-    slug: "cseet-business-law-management-monthly-access",
-    type: "course",
-    courseId: "course-cseet",
-    title: "CSEET Business Law & Management",
-    subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
-    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
-    price: 99,
-    original_price: 299,
-    badge: "₹99 / Month",
-    category: "CSEET Paper 2",
-    examBody: "ICSI",
-    pages_or_duration: "8 Units (ICSI Syllabus)",
-    paymentType: "monthly",
-    accentColor: "from-[#BFAFE5] to-[#A08DC9]",
-    iconEmoji: "📋",
-    highlights: [
-      "Comprehensive notes for all 8 Business Law and Management units",
-      "Chapter-wise practice MCQs with explanations for each option",
-      "Weekly timed mock tests with instant score reports",
-      "Last Day Revision (LDR) summaries and concept flowcharts",
-    ],
-  },
-  {
-    id: "ca-qbank-vol1",
-    slug: "ca-foundation-question-bank-volume-1",
-    type: "question-bank",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Question Bank — Volume 1",
-    subtitle: "Indian Contract Act, Sale of Goods Act & Indian Partnership Act",
-    description: "Exhaustive chapter-wise MCQ + descriptive question bank for CA Foundation Paper 2 (Volume 1). Covers Chapters 2, 3 & 4 with solved examples, past year questions, and exam-pattern practice sets.",
-    price: 299,
-    original_price: 599,
-    badge: "₹299 • One-Time",
-    category: "CA Foundation Paper 2",
-    examBody: "ICAI",
-    pages_or_duration: "Chapters 2, 3 & 4",
-    paymentType: "one-time",
-    accentColor: "from-[#F4C5C0] to-[#E8A09A]",
-    iconEmoji: "📚",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    highlights: [
-      "Chapter 2 — Indian Contract Act, 1872: 200+ MCQs & 40 descriptive problems",
-      "Chapter 3 — Sale of Goods Act, 1930: 150+ MCQs including Caveat Emptor sets",
-      "Chapter 4 — Indian Partnership Act, 1932: 180+ MCQs with case-based questions",
-      "Lifetime access • No subscription required",
-    ],
-  },
-  {
-    id: "ca-qbank-vol2",
-    slug: "ca-foundation-question-bank-volume-2",
-    type: "question-bank",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Question Bank — Volume 2",
-    subtitle: "LLP Act, Companies Act & Negotiable Instruments Act",
-    description: "Exhaustive chapter-wise MCQ + descriptive question bank for CA Foundation Paper 2 (Volume 2). Covers Chapters 5, 6 & 7 with solved examples, past year questions, and exam-pattern practice sets.",
-    price: 299,
-    original_price: 599,
-    badge: "₹299 • One-Time",
-    category: "CA Foundation Paper 2",
-    examBody: "ICAI",
-    pages_or_duration: "Chapters 5, 6 & 7",
-    paymentType: "one-time",
-    accentColor: "from-[#B8DDCA] to-[#7EBB9E]",
-    iconEmoji: "📖",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    highlights: [
-      "Chapter 5 — LLP Act, 2008: 120+ MCQs covering formation & designated partners",
-      "Chapter 6 — Companies Act, 2013: 220+ MCQs including Corporate Veil & MOA/AOA",
-      "Chapter 7 — Negotiable Instruments Act: 160+ MCQs with Section 138 focus",
-      "Lifetime access • No subscription required",
-    ],
-  },
-];
+const FALLBACK_PRODUCTS: Product[] = [];
 
 function CoursesCatalogContent() {
   const searchParams = useSearchParams();
@@ -239,44 +137,44 @@ function CoursesCatalogContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between text-[#221D1D]">
+    <div className="min-h-screen bg-[#F0F7FF]/30 flex flex-col justify-between text-[#0A192F]">
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full space-y-10">
         {/* 1. Header & Hero Banner */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9] text-[#221D1D] text-xs font-semibold mb-1">
-            <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] text-xs font-semibold mb-1 shadow-2xs">
+            <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
             <span>Curriculum &amp; Study Notes</span>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#221D1D] tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0A192F] tracking-tight">
             Courses, Smart Question Banks &amp; Study Notes
           </h1>
-          <p className="text-sm sm:text-base text-[#4D433F] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-[#64748B] leading-relaxed max-w-2xl mx-auto">
             Browse all available statutory question banks, unit-wise notes, weekly case studies, and examination test series for CA Foundation and CSEET.
           </p>
         </div>
 
-        {/* 2. Simple Minimal Filter & Search Bar */}
-        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-[#E7E4E7] shadow-xs">
+        {/* 2. Minimal Filter & Search Bar */}
+        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-[#DBEAFE] shadow-sm">
           {/* Program Toggle */}
-          <div className="flex p-1 bg-[#F7F7F5] rounded-xl w-full sm:w-auto gap-1 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x border border-[#E7E4E7]">
+          <div className="flex p-1 bg-[#F0F7FF] rounded-xl w-full sm:w-auto gap-1 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x border border-[#DBEAFE]">
             <button
               onClick={() => setSelectedCourse("all")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center active:scale-95 ${
                 selectedCourse === "all"
-                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
-                  : "text-[#77716E] hover:text-[#221D1D]"
+                  ? "bg-[#005A9C] text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
               }`}
             >
               All ({products.length})
             </button>
             <button
               onClick={() => setSelectedCourse("course-ca-foundation")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 active:scale-95 ${
                 selectedCourse === "course-ca-foundation"
-                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
-                  : "text-[#77716E] hover:text-[#221D1D]"
+                  ? "bg-[#005A9C] text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -284,10 +182,10 @@ function CoursesCatalogContent() {
             </button>
             <button
               onClick={() => setSelectedCourse("course-cseet")}
-              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 active:scale-95 ${
                 selectedCourse === "course-cseet"
-                  ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs"
-                  : "text-[#77716E] hover:text-[#221D1D]"
+                  ? "bg-[#005A9C] text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
               }`}
             >
               <GraduationCap className="w-3.5 h-3.5" />
@@ -297,23 +195,23 @@ function CoursesCatalogContent() {
 
           {/* Simple Search Input */}
           <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#77716E]" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search curriculum..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] focus:outline-none focus:ring-2 focus:ring-[#BFAFE5] focus:border-transparent text-[#221D1D]"
+              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[#DBEAFE] bg-[#F0F7FF] focus:outline-none focus:ring-2 focus:ring-[#005A9C] focus:bg-white text-[#0A192F] placeholder-[#64748B] transition"
             />
           </div>
         </div>
 
-        {/* 3. The 2 Dedicated Course Cards */}
+        {/* 3. The Dedicated Course Cards */}
         {filteredProducts.length === 0 ? (
-          <div className="bg-white border border-[#E7E4E7] rounded-3xl p-12 text-center space-y-4 shadow-xs max-w-xl mx-auto">
-            <BookOpen className="w-10 h-10 text-[#77716E] mx-auto" />
-            <h3 className="text-base font-bold text-[#221D1D]">No course found</h3>
-            <p className="text-xs text-[#77716E]">
+          <div className="bg-white border border-[#DBEAFE] rounded-3xl p-12 text-center space-y-4 shadow-sm max-w-xl mx-auto">
+            <BookOpen className="w-10 h-10 text-[#64748B] mx-auto" />
+            <h3 className="text-base font-bold text-[#0A192F]">No course found</h3>
+            <p className="text-xs text-[#64748B]">
               Clear your search keyword to view the CA Foundation and CSEET courses.
             </p>
             <button
@@ -321,7 +219,7 @@ function CoursesCatalogContent() {
                 setSearch("");
                 setSelectedCourse("all");
               }}
-              className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold cursor-pointer shadow-xs"
+              className="px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition"
             >
               Reset Filters
             </button>
@@ -332,36 +230,36 @@ function CoursesCatalogContent() {
               return (
                 <div
                   key={product.id}
-                  className="bg-white border border-[#E7E4E7] rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs hover:border-[#AED7E9] hover:shadow-sm transition-all duration-300 flex flex-col justify-between space-y-6 relative group"
+                  className="bg-white border border-[#DBEAFE] rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs hover:border-[#005A9C]/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 relative group hover:-translate-y-1"
                 >
                   <div className="space-y-5">
                     {/* Header Badges */}
                     <div className="flex items-center justify-between gap-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#BFAFE5]/40 text-[#221D1D] border border-[#BFAFE5]">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FDF8E8] text-[#8C6D1F] border border-[#E8D8A6]">
                         {product.badge || "Launch Offer @ ₹99/mo"}
                       </span>
-                      <span className="text-xs font-medium text-[#77716E] flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
+                      <span className="text-xs font-medium text-[#64748B] flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#005A9C]" />
                         <span>{product.pages_or_duration}</span>
                       </span>
                     </div>
 
-                    {/* Visual Icon Card — replaces cover image */}
-                    <div className={`w-full rounded-2xl bg-gradient-to-br ${product.accentColor || "from-[#AED7E9] to-[#7BB8CE]"} p-5 flex items-center justify-between gap-4 border border-white/30`}>
+                    {/* Academic Visual Banner */}
+                    <div className={`w-full rounded-2xl bg-gradient-to-br ${product.accentColor || "from-[#0A192F] via-[#102A4C] to-[#004275]"} p-5 sm:p-6 flex items-center justify-between gap-4 border border-white/10 shadow-inner`}>
                       <div className="space-y-1.5">
                         <div className="text-3xl">{product.iconEmoji || "📘"}</div>
-                        <p className="text-xs font-bold text-[#221D1D]/80 uppercase tracking-wider">{product.category}</p>
-                        <p className="text-sm font-semibold text-[#221D1D] leading-snug max-w-[200px]">{product.subtitle}</p>
+                        <p className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">{product.category}</p>
+                        <p className="text-sm font-semibold text-white leading-snug max-w-[220px]">{product.subtitle}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className="px-2.5 py-1 rounded-full bg-white/50 border border-white/40 text-[10px] font-bold text-[#221D1D] uppercase tracking-wider">
+                        <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-[10px] font-bold text-white uppercase tracking-wider">
                           {product.examBody}
                         </span>
-                        <span className="px-2.5 py-1 rounded-full bg-[#221D1D]/10 border border-[#221D1D]/15 text-[10px] font-bold text-[#221D1D]">
+                        <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-white/90">
                           {product.pages_or_duration}
                         </span>
                         {product.paymentType === "one-time" && (
-                          <span className="px-2.5 py-1 rounded-full bg-white/70 border border-white/50 text-[10px] font-bold text-[#221D1D]">
+                          <span className="px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[10px] font-bold text-[#FDF8E8]">
                             Lifetime Access
                           </span>
                         )}
@@ -371,33 +269,33 @@ function CoursesCatalogContent() {
                     {/* Course Title & Overview */}
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#221D1D] bg-[#C4E1EC]/60 px-2 py-0.5 rounded-full border border-[#AED7E9]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C] bg-[#EFF6FF] px-2.5 py-0.5 rounded-full border border-[#DBEAFE]">
                           {product.examBody}
                         </span>
-                        <span className="text-xs text-[#77716E] font-medium">
+                        <span className="text-xs text-[#64748B] font-medium">
                           {product.category}
                         </span>
                       </div>
 
-                      <Link href={`/product/${product.id}`} className="block group-hover:text-[#4B8097] transition-colors">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#221D1D] leading-snug font-serif">
+                      <Link href={`/product/${product.id}`} className="block group-hover:text-[#005A9C] transition-colors">
+                        <h2 className="text-xl sm:text-2xl font-bold text-[#0A192F] leading-snug font-serif">
                           {product.title}
                         </h2>
                       </Link>
 
-                      <p className="text-xs sm:text-sm text-[#4D433F] leading-relaxed mt-2 font-normal">
+                      <p className="text-xs sm:text-sm text-[#334155] leading-relaxed mt-2 font-normal">
                         {product.description}
                       </p>
                     </div>
 
                     {/* Key Highlights Checklist */}
-                    <div className="space-y-2 pt-4 border-t border-[#E7E4E7]">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-[#77716E]">
+                    <div className="space-y-2 pt-4 border-t border-[#DBEAFE]">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                         Everything Included in Plan:
                       </h4>
                       {(product.highlights || []).map((hl, idx) => (
-                        <div key={idx} className="flex items-start gap-2 text-xs text-[#4D433F]">
-                          <CheckCircle2 className="w-4 h-4 text-[#4B8097] shrink-0 mt-0.5" />
+                        <div key={idx} className="flex items-start gap-2 text-xs text-[#334155]">
+                          <CheckCircle2 className="w-4 h-4 text-[#005A9C] shrink-0 mt-0.5" />
                           <span className="leading-snug">{hl}</span>
                         </div>
                       ))}
@@ -405,55 +303,77 @@ function CoursesCatalogContent() {
                   </div>
 
                   {/* Pricing & CTA Controls */}
-                  <div className="space-y-4 pt-5 border-t border-[#E7E4E7]">
+                  <div className="space-y-4 pt-5 border-t border-[#DBEAFE]">
                     <div className="flex items-baseline justify-between">
-                      <div>
-                        <span className="text-3xl font-extrabold text-[#221D1D] tracking-tight font-serif">
-                          ₹{product.price}
+                      {product.comingSoon ? (
+                        <span className="text-2xl font-extrabold text-[#64748B] tracking-tight font-serif">
+                          Launching Soon
                         </span>
-                        <span className="text-xs font-bold text-[#77716E] ml-1">
-                          {product.paymentType === "one-time" ? "one-time" : "/month"}
-                        </span>
-                        {product.original_price > product.price && (
-                          <span className="ml-2 text-xs text-[#77716E] line-through">
-                            ₹{product.original_price}
+                      ) : (
+                        <div>
+                          <span className="text-3xl font-extrabold text-[#0A192F] tracking-tight font-serif">
+                            ₹{product.price}
                           </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] font-semibold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">
-                        {product.paymentType === "one-time" ? "Lifetime Access • One-Time" : "Monthly Access • Cancel Anytime"}
+                          <span className="text-xs font-bold text-[#64748B] ml-1">
+                            {product.paymentType === "one-time" ? "one-time" : "/month"}
+                          </span>
+                          {product.original_price > product.price && (
+                            <span className="ml-2 text-xs text-[#94A3B8] line-through">
+                              ₹{product.original_price}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <span className="text-[11px] font-bold text-[#005A9C] bg-[#EFF6FF] px-2.5 py-0.5 rounded-full border border-[#DBEAFE]">
+                        {product.comingSoon
+                          ? "Enrolment Opening Soon"
+                          : product.paymentType === "one-time"
+                            ? "Lifetime Access • One-Time"
+                            : "Monthly Access • Cancel Anytime"}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button
-                        onClick={() => handleOpenPreview(product)}
-                        className="py-3 px-4 rounded-full border border-[#221D1D] hover:bg-[#F7F7F5] bg-white text-[#221D1D] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        onClick={() => product.pdfUrl && handleOpenPreview(product)}
+                        disabled={!product.pdfUrl || product.comingSoon}
+                        className="py-3 px-4 rounded-full border border-[#0A192F] hover:bg-[#F0F7FF] hover:border-[#005A9C] hover:text-[#005A9C] bg-white text-[#0A192F] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#0A192F]"
                       >
-                        <Eye className="w-4 h-4 text-[#221D1D]" />
-                        <span>Free Sample</span>
+                        <Eye className="w-4 h-4" />
+                        <span>{product.comingSoon ? "Sample Coming Soon" : product.pdfUrl ? "Free Sample" : "Sample Coming Soon"}</span>
                       </button>
 
                       <Link
                         href={`/product/${product.id}`}
-                        className="py-3 px-4 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] border border-[#E7E4E7] text-[#221D1D] text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 text-center"
+                        className="py-3 px-4 rounded-full bg-[#F0F7FF] hover:bg-[#DBEAFE] border border-[#DBEAFE] text-[#005A9C] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 text-center"
                       >
                         <span>View Details</span>
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
 
-                    <button
-                      onClick={() => handleSubscribeNow(product)}
-                      className="w-full py-3.5 px-4 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                    >
-                      <ShoppingBag className="w-4 h-4 text-[#221D1D]" />
-                      <span>
-                        {product.paymentType === "one-time"
-                          ? `Buy Now (₹${product.price} One-Time)`
-                          : `Enroll Now (₹${product.price}/mo)`}
-                      </span>
-                    </button>
+                    {product.comingSoon ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full py-3.5 px-4 rounded-full bg-[#F1F5F9] text-[#94A3B8] text-xs font-bold border border-[#E2E8F0] flex items-center justify-center gap-2 cursor-not-allowed"
+                      >
+                        <Clock className="w-4 h-4" />
+                        <span>Coming Soon</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleSubscribeNow(product)}
+                        className="w-full py-3.5 px-4 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                      >
+                        <ShoppingBag className="w-4 h-4 text-white" />
+                        <span>
+                          {product.paymentType === "one-time"
+                            ? `Buy Now (₹${product.price} One-Time)`
+                            : `Enroll Now (₹${product.price}/mo)`}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );

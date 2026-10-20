@@ -62,7 +62,7 @@ const DEFAULT_EXAMS: ExamTargetItem[] = [
   },
   {
     id: "cseet",
-    name: "CSEET Business Law & Management",
+    name: "CSEET Business Laws and Management",
     level: "ICSI • 8 Units",
     targetDate: "2026-11-08T10:00:00",
     syllabusCoverage: 100,

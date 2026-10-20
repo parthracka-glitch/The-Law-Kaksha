@@ -48,7 +48,7 @@ export const DEFAULT_PROMO_BANNERS: PromoBannersSetting = {
     id: "card_cs",
     streamBadge: "ICSI • 8 Exam Units",
     discountBadge: "67% OFF",
-    title: "CSEET Business Law & Management",
+    title: "CSEET Business Laws and Management",
     subtitle: "Master Question Bank",
     price: 99,
     originalPrice: 299,

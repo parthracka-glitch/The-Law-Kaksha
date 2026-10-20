@@ -59,31 +59,27 @@ const FALLBACK_PLANS: SubscriptionPlanItem[] = [
       "Mobile & Desktop In-Browser DRM",
       "30 Days Continuous Content Updates",
     ],
-    badge: "ICSI SYLLABUS",
-    is_popular: false,
-    is_active: true,
-  },
-  {
-    id: "sub-ca-cs-combo-monthly",
-    title: "CA + CSEET Dual Pass",
-    slug: "ca-cs-combo-monthly",
-    description: "The complete commerce law power pack. Unlocks both CA Foundation & CSEET portals simultaneously.",
-    price: 179,
-    mrp: 598,
-    duration_days: 30,
-    features: [
-      "Includes BOTH CA Foundation & CSEET Codices",
-      "Full 15 Subjects & Acts Access",
-      "Unlimited Mock Exams & Evaluation",
-      "Priority Google Meet Q&A Sessions",
-      "Personalized Study Streak Tracking",
-      "Full 30-Day Dual Pass Access",
-    ],
-    badge: "BEST VALUE",
+    badge: "COMING SOON",
     is_popular: false,
     is_active: true,
   },
 ];
+
+const planKey = (plan: SubscriptionPlanItem) =>
+  `${plan.id || ""} ${plan.slug || ""}`.toLowerCase();
+
+const isCseetPlan = (plan: SubscriptionPlanItem) => planKey(plan).includes("cseet");
+const isCaPlan = (plan: SubscriptionPlanItem) => planKey(plan).includes("ca-foundation");
+
+const visiblePlans = (plans: SubscriptionPlanItem[]) =>
+  plans
+    .filter((plan) => !planKey(plan).includes("combo"))
+    .filter((plan) => isCaPlan(plan) || isCseetPlan(plan))
+    .sort((a, b) => Number(isCseetPlan(a)) - Number(isCseetPlan(b)))
+    .map((plan) => ({
+      ...plan,
+      title: isCseetPlan(plan) ? "CSEET Legal Aptitude & Management" : "CA Foundation Business Laws",
+    }));
 
 export function SubscriptionOverview() {
   const router = useRouter();
@@ -97,8 +93,11 @@ export function SubscriptionOverview() {
       try {
         setLoading(true);
         const res = await apiRequest<SubscriptionPlanItem[]>("/api/subscriptions");
-        if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
-          if (isMounted) setPlans(res.data);
+        const payload = res.data as unknown as { subscriptions?: SubscriptionPlanItem[] } | SubscriptionPlanItem[] | undefined;
+        const remotePlans = Array.isArray(payload) ? payload : payload?.subscriptions;
+        const livePlans = Array.isArray(remotePlans) ? visiblePlans(remotePlans).slice(0, 2) : [];
+        if (res.success && livePlans.length === 2 && isMounted) {
+          setPlans(livePlans);
         }
       } catch (err) {
         // Fallback remains
@@ -162,10 +161,12 @@ export function SubscriptionOverview() {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
           {plans.map((plan) => {
-            const isHighlighted = plan.is_popular || plan.badge === "MOST POPULAR" || plan.badge === "BEST VALUE";
+            const comingSoon = isCseetPlan(plan);
+            const isHighlighted = !comingSoon;
             const discountPct = Math.round(((plan.mrp - plan.price) / plan.mrp) * 100);
+            const displayBadge = comingSoon ? "COMING SOON" : plan.badge || "MOST POPULAR";
 
             return (
               <div
@@ -177,11 +178,17 @@ export function SubscriptionOverview() {
                 }`}
               >
                 {/* Header Badge */}
-                {plan.badge && (
+                {displayBadge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#005A9C] text-white shadow-xs border border-[#004F8A]">
-                      <Sparkles className="w-3 h-3 text-white" />
-                      {plan.badge}
+                    <span
+                      className={`inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-xs border ${
+                        comingSoon
+                          ? "bg-[#F8FAFC] text-[#64748B] border-[#CBD5E1]"
+                          : "bg-[#005A9C] text-white border-[#004F8A]"
+                      }`}
+                    >
+                      <Sparkles className={`w-3 h-3 ${comingSoon ? "text-[#64748B]" : "text-white"}`} />
+                      {displayBadge}
                     </span>
                   </div>
                 )}
@@ -239,21 +246,34 @@ export function SubscriptionOverview() {
 
                   {/* CTAs */}
                   <div className="space-y-3 pt-4 border-t border-[#DBEAFE]">
-                    <button
-                      onClick={() => handleBuyNow(plan)}
-                      className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-[0_2px_8px_rgba(0,90,156,0.35)] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
-                    >
-                      <span>Buy Now</span>
-                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                    </button>
+                    {comingSoon ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed min-h-[46px]"
+                      >
+                        <Clock className="w-4 h-4" />
+                        <span>Coming Soon</span>
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleBuyNow(plan)}
+                          className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-[0_2px_8px_rgba(0,90,156,0.35)] transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
+                        >
+                          <span>Buy Now</span>
+                          <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                        </button>
 
-                    <button
-                      onClick={() => handleAddToCart(plan)}
-                      className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#005A9C] bg-white border border-[#005A9C] hover:bg-[#EFF6FF] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
-                    >
-                      <ShoppingCart className="w-4 h-4 text-[#005A9C]" />
-                      <span>Add to Cart</span>
-                    </button>
+                        <button
+                          onClick={() => handleAddToCart(plan)}
+                          className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#005A9C] bg-white border border-[#005A9C] hover:bg-[#EFF6FF] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
+                        >
+                          <ShoppingCart className="w-4 h-4 text-[#005A9C]" />
+                          <span>Add to Cart</span>
+                        </button>
+                      </>
+                    )}
 
                     <div className="text-center pt-1">
                       <Link
@@ -278,13 +298,13 @@ export function SubscriptionOverview() {
               <ShieldCheck className="w-6 h-6 text-[#005A9C]" />
             </div>
             <div>
-              <p className="font-bold text-sm text-[#221D1D]">Strict Single-Device Protection</p>
-              <p className="text-xs text-[#4D433F]">All materials are served securely inside the in-browser reader with custom dynamic watermarking.</p>
+              <p className="font-bold text-sm text-[#0A192F]">Strict Single-Device Protection</p>
+              <p className="text-xs text-[#64748B]">All materials are served securely inside the in-browser reader with custom dynamic watermarking.</p>
             </div>
           </div>
           <Link
             href="/login"
-            className="text-xs font-bold text-[#221D1D] hover:text-[#221D1D] bg-[#F7F7F5] hover:bg-[#AED7E9]/40 px-5 py-2.5 rounded-full border border-[#E7E4E7] transition-all cursor-pointer whitespace-nowrap"
+            className="text-xs font-bold text-[#005A9C] bg-[#EFF6FF] hover:bg-[#DBEAFE] px-5 py-2.5 rounded-full border border-[#DBEAFE] transition-all cursor-pointer whitespace-nowrap active:scale-95 shadow-2xs"
           >
             Already enrolled? Sign in to Portal &rarr;
           </Link>
