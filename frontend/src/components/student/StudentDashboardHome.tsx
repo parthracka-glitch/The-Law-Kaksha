@@ -384,18 +384,32 @@ export interface FreeResourceItem {
 
 export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
   {
-    id: "free-smart-question-bank-sample",
-    actName: "Smart Question Bank",
+    id: "free-smart-question-bank-part1-sample",
+    actName: "Smart Revision Question Bank • Part 1",
     unitNumber: 1,
-    title: "Free Sample: Smart Question Bank",
-    subtitle: "Preview the question bank format, case-based questions and answer structure.",
+    title: "Question Bank Part 1 — Free Sample",
+    subtitle: "The Indian Contract Act, 1872 (Units 1 - 9) • Complete Unit 2 & Part Unit 9 with full model answers.",
     badge: "🎁 FREE SAMPLE",
-    pages: "Sample PDF",
-    pdfUrl: "/samples/Smart_Question_Bank_Sample.pdf",
+    pages: "30 Pages",
+    pdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
     courseType: "ca",
     gradient: "from-[#F0FDF4] via-white to-white",
     borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
     accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
+  },
+  {
+    id: "free-smart-question-bank-part2-sample",
+    actName: "Smart Revision Question Bank • Part 2",
+    unitNumber: 2,
+    title: "Question Bank Part 2 — Free Sample",
+    subtitle: "Rest of the Acts (SOGA, Partnership, LLP, Companies, N.I. Act) • 24 Hand-Picked Case Studies with full model answers.",
+    badge: "🎁 FREE SAMPLE",
+    pages: "43 Pages",
+    pdfUrl: "/samples/Part 2_Sample Copy.pdf",
+    courseType: "ca",
+    gradient: "from-[#F0F9FF] via-white to-white",
+    borderTheme: "border-[#BAE6FD] hover:border-[#0284C7]",
+    accentBadge: "bg-[#E0F2FE] text-[#0369A1] border-[#7DD3FC]",
   },
   {
     id: "free-soga-1",
@@ -1273,7 +1287,10 @@ export function StudentDashboardHome({
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {FREE_STUDY_RESOURCES.filter(
-            (resource) => resource.pdfUrl === "/samples/Smart_Question_Bank_Sample.pdf"
+            (resource) =>
+              resource.id.includes("question-bank") ||
+              resource.pdfUrl.includes("Sample") ||
+              resource.pdfUrl.includes("sample")
           ).map((res) => (
             <div
               key={res.id}

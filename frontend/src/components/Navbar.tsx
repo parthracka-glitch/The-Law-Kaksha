@@ -287,6 +287,19 @@ export function Navbar() {
               )}
             </div>
 
+            {/* Free Resources */}
+            <div className="relative py-1 flex flex-col items-center">
+              <Link
+                href="/#free-resources"
+                className="text-[#334155] hover:text-[#005A9C] font-semibold transition-colors duration-200 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C] flex items-center gap-1.5"
+              >
+                <span>Free Resources</span>
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  PDF
+                </span>
+              </Link>
+            </div>
+
             {/* Pricing */}
             <div className="relative py-1 flex flex-col items-center">
               <Link
@@ -572,7 +585,22 @@ export function Navbar() {
                 </div>
 
                 <Link
+                  href="/#free-resources"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#005A9C] bg-[#EFF6FF] rounded-xl transition-colors min-h-[44px] active:scale-[0.98] border border-[#BFDBFE]"
+                >
+                  <span className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-[#005A9C]" />
+                    <span>Free Resource Samples</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white text-[#005A9C] border border-[#DBEAFE]">
+                    PDF
+                  </span>
+                </Link>
+
+                <Link
                   href="/#pricing"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center px-4 py-3 text-sm font-medium text-[#334155] hover:bg-[#F0F7FF] hover:text-[#005A9C] rounded-xl transition-colors min-h-[44px] active:scale-[0.98]"
                 >
                   Pricing

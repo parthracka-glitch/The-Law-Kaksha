@@ -118,15 +118,26 @@ export async function GET(
 
     const possiblePaths = [
       path.join(process.cwd(), "public", "notes", safeFilename),
+      path.join(process.cwd(), "public", "samples", safeFilename),
       path.join(process.cwd(), "..", "backend", "uploads", safeFilename),
       path.join(process.cwd(), "public", safeFilename),
       path.join(process.cwd(), "public", "uploads", safeFilename),
       path.join(process.cwd(), "uploads", safeFilename),
       path.join(process.cwd(), "public", "notes", path.basename(filename)),
+      path.join(process.cwd(), "public", "samples", path.basename(filename)),
       path.join(process.cwd(), "..", "backend", "uploads", path.basename(filename)),
     ];
 
     // Canonical aliases for specific units
+    if (lowerName.includes("part 1") || lowerName.includes("part1") || lowerName.includes("contract")) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "samples", "Question Bank Part 1- Sample Copy.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "qbank-part1-sample.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "smart-revision-question-bank-part-1.pdf"));
+    }
+    if (lowerName.includes("part 2") || lowerName.includes("part2")) {
+      possiblePaths.unshift(path.join(process.cwd(), "public", "samples", "Part 2_Sample Copy.pdf"));
+      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "qbank-part2-sample.pdf"));
+    }
     if (lowerName.includes("infographic") || lowerName.includes("infogarphic")) {
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-infographics.pdf"));
       possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "Partnership Infogarphics.pdf"));
