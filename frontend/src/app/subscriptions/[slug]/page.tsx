@@ -12,9 +12,6 @@ import {
   CheckCircle2,
   ShieldCheck,
   Sparkles,
-  BookOpen,
-  Calendar,
-  Layers,
   Award,
   Video,
   FileText,
@@ -155,7 +152,7 @@ export default function SubscriptionDetailPage() {
   const [subData, setSubData] = useState<SubscriptionDetail>(
     FALLBACK_SUBSCRIPTION_DATA[slug] || FALLBACK_SUBSCRIPTION_DATA["ca-foundation-monthly"]
   );
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -179,7 +176,7 @@ export default function SubscriptionDetailPage() {
             });
           }
         }
-      } catch (err) {
+      } catch {
         // Fallback remains
       } finally {
         if (isMounted) setLoading(false);

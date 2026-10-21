@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Privacy Policy | The Law कक्षा",
   description:
     "Privacy Policy and Candidate Data Protection guidelines for The Law कक्षा under the Digital Personal Data Protection Act 2023 (DPDP Act).",
+  alternates: {
+    canonical: "https://lawkaksha.in/privacy",
+  },
 };
 
 export default function PrivacyPage() {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   X,
   User,
@@ -9,7 +9,6 @@ import {
   BookOpen,
   Award,
   CheckCircle2,
-  Calendar,
   Save,
   ShieldCheck,
   Sparkles,
@@ -21,6 +20,7 @@ import {
   Gift,
   Check,
 } from "lucide-react";
+import type { AuthUser } from "@/lib/api";
 
 export interface StudentProfileData {
   id?: string;
@@ -30,6 +30,13 @@ export interface StudentProfileData {
   phone?: string;
   targetExam: string;
   role?: string;
+  city?: string;
+  goalScore?: string;
+  studyMode?: string;
+  avatarColor?: string;
+}
+
+interface StudentSessionProfile extends AuthUser {
   city?: string;
   goalScore?: string;
   studyMode?: string;
@@ -52,6 +59,17 @@ const AVATAR_COLORS = [
   { id: "terracotta", bg: "bg-[#C35F3B]", text: "text-white", border: "border-[#F7892A]" },
 ];
 
+function readStudentSession(): StudentSessionProfile | null {
+  if (typeof window === "undefined") return null;
+  const sessionStr = localStorage.getItem("lawkaksha_student_session");
+  if (!sessionStr) return null;
+  try {
+    return JSON.parse(sessionStr) as StudentSessionProfile;
+  } catch {
+    return null;
+  }
+}
+
 export function StudentProfileModal({
   isOpen,
   onClose,
@@ -73,29 +91,28 @@ export function StudentProfileModal({
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "academic" | "stats" | "referral">("general");
   const [copiedReferral, setCopiedReferral] = useState(false);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && isOpen) {
-      const sessionStr = localStorage.getItem("lawkaksha_student_session");
-      if (sessionStr) {
-        try {
-          const parsed = JSON.parse(sessionStr);
-          setFormData((prev) => ({
-            ...prev,
-            name: parsed.name || prev.name,
-            email: parsed.email || prev.email,
-            phone: parsed.phone || prev.phone,
-            student_id: parsed.student_id || parsed.id || prev.student_id,
-            targetExam: parsed.targetExam || prev.targetExam,
-            city: parsed.city || prev.city,
-            goalScore: parsed.goalScore || prev.goalScore,
-            studyMode: parsed.studyMode || prev.studyMode,
-            avatarColor: parsed.avatarColor || prev.avatarColor || "sky_blue",
-          }));
-        } catch (e) {}
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      const session = readStudentSession();
+      if (session) {
+        setFormData((prev) => ({
+          ...prev,
+          name: session.name || prev.name,
+          email: session.email || prev.email,
+          phone: session.phone || prev.phone,
+          student_id: session.student_id || session.id || prev.student_id,
+          targetExam: session.targetExam || prev.targetExam,
+          city: session.city || prev.city,
+          goalScore: session.goalScore || prev.goalScore,
+          studyMode: session.studyMode || prev.studyMode,
+          avatarColor: session.avatarColor || prev.avatarColor || "sky_blue",
+        }));
       }
     }
-  }, [isOpen]);
+  }
 
   if (!isOpen) return null;
 
@@ -460,7 +477,7 @@ export function StudentProfileModal({
                       <span>For You</span>
                     </p>
                     <p className="text-[11px] text-[#77716E]">
-                      Free pass extension credited automatically upon your peer's successful enrollment.
+                      Free pass extension credited automatically upon your peer&apos;s successful enrollment.
                     </p>
                   </div>
                 </div>

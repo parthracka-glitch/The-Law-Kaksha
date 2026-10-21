@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   BookOpen,
   Layers,
@@ -70,6 +70,10 @@ interface Props {
   onPreviewPdf?: (item: { title: string; pdfUrl: string; isSample?: boolean }) => void;
 }
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: Props) {
   // Courses state
   const [courses, setCourses] = useState<CourseRecord[]>([]);
@@ -129,11 +133,17 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const adminFetchRef = useRef(adminFetch);
+
+  useEffect(() => {
+    adminFetchRef.current = adminFetch;
+  }, [adminFetch]);
+
   // 1. Fetch Courses
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     setCourseLoading(true);
     try {
-      const res = await adminFetch("/api/admin/courses");
+      const res = await adminFetchRef.current("/api/admin/courses");
       const data = await res.json();
       const rawCourses: CourseRecord[] =
         data.success && Array.isArray(data.courses) ? data.courses : [];
@@ -172,11 +182,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     } finally {
       setCourseLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [loadCourses]);
 
   // 2. Fetch Acts whenever selectedCourseId changes
   useEffect(() => {
@@ -184,7 +194,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     const loadActs = async () => {
       setActsLoading(true);
       try {
-        const res = await adminFetch(`/api/admin/acts?courseId=${selectedCourseId}`);
+        const res = await adminFetchRef.current(`/api/admin/acts?courseId=${selectedCourseId}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.acts)) {
           setActs(data.acts);
@@ -216,7 +226,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     const loadUnits = async () => {
       setUnitsLoading(true);
       try {
-        const res = await adminFetch(`/api/admin/units?actId=${selectedActId}`);
+        const res = await adminFetchRef.current(`/api/admin/units?actId=${selectedActId}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.units)) {
           setUnits(data.units);
@@ -247,7 +257,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     const loadContentItems = async () => {
       setContentLoading(true);
       try {
-        const res = await adminFetch(`/api/admin/content-items?unitId=${selectedUnitId}`);
+        const res = await adminFetchRef.current(`/api/admin/content-items?unitId=${selectedUnitId}`);
         const data = await res.json();
         if (data.success && data.items) {
           setContentItems(data.items);
@@ -279,8 +289,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Failed to update course availability.");
       }
-    } catch (err: any) {
-      alert("Error updating course: " + err.message);
+    } catch (err) {
+      alert("Error updating course: " + errorMessage(err));
     }
   };
 
@@ -315,8 +325,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Failed to update pricing.");
       }
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err) {
+      alert("Error: " + errorMessage(err));
     } finally {
       setEditingCourse((prev) => ({
         ...prev,
@@ -341,8 +351,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         );
         showToast(`${act.title} is now ${nextAvailability === "live" ? "Live" : "Coming Soon"}.`);
       }
-    } catch (err: any) {
-      alert("Error updating act: " + err.message);
+    } catch (err) {
+      alert("Error updating act: " + errorMessage(err));
     }
   };
 
@@ -388,8 +398,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Failed to create course.");
       }
-    } catch (err: any) {
-      alert("Error creating course: " + err.message);
+    } catch (err) {
+      alert("Error creating course: " + errorMessage(err));
     }
   };
 
@@ -420,8 +430,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Failed to create act.");
       }
-    } catch (err: any) {
-      alert("Error creating act: " + err.message);
+    } catch (err) {
+      alert("Error creating act: " + errorMessage(err));
     }
   };
 
@@ -451,8 +461,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Failed to create unit.");
       }
-    } catch (err: any) {
-      alert("Error creating unit: " + err.message);
+    } catch (err) {
+      alert("Error creating unit: " + errorMessage(err));
     }
   };
 
@@ -491,11 +501,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       setBulkUnitsText("");
       setBulkUnitsModalOpen(false);
       showToast(`Added ${created.length} units. Add content to each unit next.`);
-    } catch (err: any) {
+    } catch (err) {
       if (created.length > 0) {
         setUnits((prev) => [...prev, ...created]);
       }
-      alert("Bulk unit creation stopped: " + err.message);
+      alert("Bulk unit creation stopped: " + errorMessage(err));
     } finally {
       setBulkUnitsSaving(false);
     }
@@ -517,8 +527,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         );
         showToast(`${item.title} is now ${nextPublished ? "Published" : "Unpublished (Draft)"}.`);
       }
-    } catch (err: any) {
-      alert("Error updating status: " + err.message);
+    } catch (err) {
+      alert("Error updating status: " + errorMessage(err));
     }
   };
 
@@ -534,8 +544,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         setContentItems((prev) => prev.filter((i) => i.id !== item.id));
         showToast("Content item deleted.");
       }
-    } catch (err: any) {
-      alert("Error deleting item: " + err.message);
+    } catch (err) {
+      alert("Error deleting item: " + errorMessage(err));
     }
   };
 
@@ -582,8 +592,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       } else {
         alert(data.message || "Upload failed.");
       }
-    } catch (err: any) {
-      alert("File upload error: " + err.message);
+    } catch (err) {
+      alert("File upload error: " + errorMessage(err));
     } finally {
       setIsUploading(false);
     }
@@ -644,8 +654,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
           alert(data.message || "Failed to update content item.");
         }
       }
-    } catch (err: any) {
-      alert("Error saving content: " + err.message);
+    } catch (err) {
+      alert("Error saving content: " + errorMessage(err));
     }
   };
 
@@ -1513,7 +1523,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     onChange={(e) =>
                       setContentModal({
                         ...contentModal,
-                        data: { ...contentModal.data, type: e.target.value as any },
+                        data: { ...contentModal.data, type: e.target.value as ContentItemRecord["type"] },
                       })
                     }
                     className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#AED7E9]"

@@ -1,22 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
-  Sparkles,
   Plus,
   Edit3,
   Trash2,
   RefreshCw,
-  Eye,
   EyeOff,
   CheckCircle2,
   X,
-  Layers,
   ArrowRight,
-  ExternalLink,
-  ImageIcon,
-  LayoutTemplate,
 } from "lucide-react";
 
 export interface SlideData {
@@ -32,6 +26,30 @@ export interface SlideData {
   is_active: boolean;
   order: number;
   display_order?: number;
+}
+
+interface CarouselApiResponse {
+  success?: boolean;
+  message?: string;
+  data?: SlideData[];
+  slides?: SlideData[];
+}
+
+const FALLBACK_SLIDE_IMAGE = "/images/hero_ca_foundation.jpg";
+
+function SlideImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const [fallbackApplied, setFallbackApplied] = useState(false);
+  const resolvedSrc = fallbackApplied ? FALLBACK_SLIDE_IMAGE : src;
+
+  return (
+    <Image
+      src={resolvedSrc}
+      alt={alt}
+      fill
+      className={className}
+      onError={() => setFallbackApplied(true)}
+    />
+  );
 }
 
 export const CANONICAL_HERO_SLIDES: SlideData[] = [
@@ -117,12 +135,12 @@ export function AdminCarouselTab({
     order: 1,
   });
 
-  const fetchSlides = async () => {
+  const fetchSlides = useCallback(async () => {
     try {
       setLoading(true);
       const res = await adminFetch("/api/admin/carousel");
-      const data = await res.json();
-      const rawList = Array.isArray(data.data)
+      const data: CarouselApiResponse = await res.json();
+      const rawList: SlideData[] = Array.isArray(data.data)
         ? data.data
         : Array.isArray(data.slides)
         ? data.slides
@@ -130,7 +148,7 @@ export function AdminCarouselTab({
 
       if (rawList && rawList.length > 0) {
         setSlides(
-          rawList.map((s: any, idx: number) => ({
+          rawList.map((s, idx) => ({
             ...s,
             order: s.order || s.display_order || idx + 1,
             image: s.image || CANONICAL_HERO_SLIDES[idx % CANONICAL_HERO_SLIDES.length].image,
@@ -141,15 +159,20 @@ export function AdminCarouselTab({
       } else {
         setSlides(CANONICAL_HERO_SLIDES);
       }
-    } catch (e) {
+    } catch {
       setSlides(CANONICAL_HERO_SLIDES);
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminFetch]);
+
+  const fetchSlidesRef = useRef(fetchSlides);
+  useEffect(() => {
+    fetchSlidesRef.current = fetchSlides;
+  }, [fetchSlides]);
 
   useEffect(() => {
-    fetchSlides();
+    fetchSlidesRef.current();
   }, []);
 
   const handleSyncWithLiveWebsite = async () => {
@@ -158,15 +181,15 @@ export function AdminCarouselTab({
       const res = await adminFetch("/api/admin/carousel/sync-defaults", {
         method: "POST",
       });
-      const data = await res.json();
+      const data: CarouselApiResponse = await res.json();
       if (data.success && (Array.isArray(data.data) || Array.isArray(data.slides))) {
-        setSlides(data.data || data.slides);
+        setSlides(data.data || data.slides || []);
         showToast("Synchronized with current live website hero carousel!");
       } else {
         setSlides(CANONICAL_HERO_SLIDES);
         showToast("Synchronized with live website hero carousel defaults.");
       }
-    } catch (e) {
+    } catch {
       setSlides(CANONICAL_HERO_SLIDES);
       showToast("Applied live website carousel hero defaults.");
     } finally {
@@ -182,14 +205,14 @@ export function AdminCarouselTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: nextActive }),
       });
-      const data = await res.json();
+      const data: CarouselApiResponse = await res.json();
       if (data.success) {
         showToast(`Slide "${slide.title}" is now ${nextActive ? "Active" : "Hidden"}.`);
         setSlides((prev) =>
           prev.map((s) => (s.id === slide.id ? { ...s, is_active: nextActive } : s))
         );
       }
-    } catch (e) {
+    } catch {
       alert("Failed to toggle visibility status.");
     }
   };
@@ -212,7 +235,7 @@ export function AdminCarouselTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const data: CarouselApiResponse = await res.json();
       if (data.success) {
         showToast(isEdit ? "Slide updated successfully." : "Slide created successfully.");
         setModalOpen(false);
@@ -220,8 +243,8 @@ export function AdminCarouselTab({
       } else {
         alert(data.message || "Failed to save slide.");
       }
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -229,14 +252,14 @@ export function AdminCarouselTab({
     if (!confirm("Are you sure you want to delete this carousel slide?")) return;
     try {
       const res = await adminFetch(`/api/admin/carousel/${id}`, { method: "DELETE" });
-      const data = await res.json();
+      const data: CarouselApiResponse = await res.json();
       if (data.success) {
         showToast("Slide removed from carousel.");
         fetchSlides();
       } else {
         alert(data.message || "Delete failed.");
       }
-    } catch (e) {
+    } catch {
       alert("Delete failed.");
     }
   };
@@ -321,13 +344,11 @@ export function AdminCarouselTab({
             <div>
               {/* Image Preview with Badges */}
               <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-100 border border-[#E7E4E7] mb-4">
-                <img
-                  src={s.image || "/images/hero_ca_foundation.jpg"}
+                <SlideImage
+                  key={s.image || FALLBACK_SLIDE_IMAGE}
+                  src={s.image || FALLBACK_SLIDE_IMAGE}
                   alt={s.title}
                   className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/images/hero_ca_foundation.jpg";
-                  }}
                 />
 
                 {/* Badge Overlay */}
@@ -487,10 +508,11 @@ export function AdminCarouselTab({
                             : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                       >
-                        <div className="w-full h-14 rounded-lg overflow-hidden bg-slate-100">
-                          <img
+                        <div className="relative w-full h-14 rounded-lg overflow-hidden bg-slate-100">
+                          <Image
                             src={preset.src}
                             alt={preset.label}
+                            fill
                             className="w-full h-full object-cover"
                           />
                         </div>

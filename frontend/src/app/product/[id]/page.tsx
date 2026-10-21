@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Eye,
   ShoppingBag,
-  Sparkles,
   BookOpen,
   ChevronRight,
   Lock,
@@ -23,7 +22,36 @@ import {
   Clock,
 } from "lucide-react";
 
-const FALLBACK_CATALOG: Record<string, any> = {
+interface ProductSyllabusItem {
+  chapter: string;
+  title: string;
+}
+
+interface ProductItem {
+  id: string;
+  slug: string;
+  type: string;
+  courseId: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  price: number;
+  original_price: number;
+  badge?: string;
+  category: string;
+  examBody: string;
+  pages_or_duration: string;
+  cover_image: string;
+  highlights?: string[];
+  syllabus?: ProductSyllabusItem[];
+}
+
+interface ProductCatalogResponse {
+  product?: ProductItem;
+  item?: ProductItem;
+}
+
+const FALLBACK_CATALOG: Record<string, ProductItem> = {
   "course-ca-foundation-sub": {
     id: "course-ca-foundation-sub",
     slug: "ca-foundation-business-laws-monthly-access",
@@ -42,7 +70,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
-      "Downloadable DRM-protected study PDFs",
+      "In-Browser DRM-protected study codices (Single-device reading vault)",
       "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
     ],
     syllabus: [
@@ -73,7 +101,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
-      "Downloadable DRM-protected study PDFs",
+      "In-Browser DRM-protected study codices (Single-device reading vault)",
       "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
     ],
     syllabus: [
@@ -104,7 +132,7 @@ const FALLBACK_CATALOG: Record<string, any> = {
     highlights: [
       "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
       "Weekly descriptive case study practice with model solutions",
-      "Downloadable DRM-protected study PDFs",
+      "In-Browser DRM-protected study codices (Single-device reading vault)",
       "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
     ],
     syllabus: [
@@ -217,20 +245,19 @@ const FALLBACK_CATALOG: Record<string, any> = {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const productId = params?.id as string;
 
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
-  const [product, setProduct] = useState<any | null>(null);
+  const [product, setProduct] = useState<ProductItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadProduct() {
       setLoading(true);
-      const res = await apiRequest(`/api/catalog/${productId}`);
+      const res = await apiRequest<ProductCatalogResponse>(`/api/catalog/${productId}`);
       if (res.success && res.data) {
-        setProduct(res.data.product || res.data.item);
+        setProduct(res.data.product || res.data.item || null);
       } else if (FALLBACK_CATALOG[productId]) {
         setProduct(FALLBACK_CATALOG[productId]);
       }
@@ -487,7 +514,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="divide-y divide-[#E7E4E7]">
-              {product.syllabus.map((ch: any, idx: number) => (
+              {product.syllabus.map((ch: ProductSyllabusItem, idx: number) => (
                 <div key={idx} className="py-3.5 flex items-center justify-between text-xs sm:text-sm">
                   <div className="flex items-center gap-4">
                     <span className="font-mono text-xs font-bold text-[#4B8097] w-28 shrink-0">

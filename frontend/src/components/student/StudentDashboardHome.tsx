@@ -84,8 +84,32 @@ const SHOWCASE_STYLE_PRESETS = [
   },
 ];
 
-function buildShowcaseResource(product: any, index: number): ShowcaseResourceItem | null {
-  if (!product?.id || !product?.title) return null;
+interface CatalogProduct {
+  id?: string;
+  title?: string;
+  price?: number | string;
+  original_price?: number | string;
+  originalPrice?: number | string;
+  courseId?: string;
+  category?: string;
+  badge?: string;
+  examBody?: string;
+  subtitle?: string;
+  description?: string;
+  cover_image?: string;
+  highlights?: string[];
+  pages_or_duration?: string;
+  pages?: string;
+  comingSoon?: boolean;
+  isComingSoon?: boolean;
+  availability?: string;
+  status?: string;
+}
+
+function buildShowcaseResource(product: CatalogProduct, index: number): ShowcaseResourceItem | null {
+  const productId = product?.id;
+  const productTitle = product?.title;
+  if (!productId || !productTitle) return null;
 
   const preset = SHOWCASE_STYLE_PRESETS[index % SHOWCASE_STYLE_PRESETS.length];
   const price = Number(product.price) || 0;
@@ -100,9 +124,9 @@ function buildShowcaseResource(product: any, index: number): ShowcaseResourceIte
     : "AVAILABLE NOW";
 
   return {
-    id: product.id,
+    id: productId,
     courseType: isCs ? "cs" : "ca",
-    title: product.title,
+    title: productTitle,
     badge,
     category,
     examBody: product.examBody || (isCs ? "ICSI" : "ICAI"),
@@ -123,8 +147,8 @@ function buildShowcaseResource(product: any, index: number): ShowcaseResourceIte
     validityTag: product.pages_or_duration || product.pages || "Digital Codex",
     comingSoon: Boolean(product.comingSoon),
     cartPayload: {
-      id: product.id,
-      title: product.title,
+      id: productId,
+      title: productTitle,
       price,
       originalPrice,
       category,
@@ -197,70 +221,6 @@ export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
       originalPrice: 299,
       category: "Full Course Subscription",
       badge: "ICSI • 8 Units",
-    },
-  },
-  {
-    id: "prod-vol1",
-    courseType: "volume",
-    title: "Volume 1: Statutory Bare Act Codex & Case Bank",
-    badge: "📚 BARE ACT CODEX",
-    category: "Bare Act & Precedent Repository",
-    examBody: "ICAI & ICSI",
-    subtitle: "Complete statutory codex with landmark Supreme Court & High Court precedent rulings and trap-avoidance notes.",
-    coverImage: "/covers/vol1-codex.webp",
-    price: 99,
-    originalPrice: 249,
-    discount: "60% OFF",
-    savings: "Save ₹150",
-    highlights: [
-      "180+ pages of simplified bare-act wordings & visual section flowcharts",
-      "Landmark rulings: Balfour v. Balfour, Carlill, Salomon, Chinnaya",
-      "Section-by-section exam answer templates for maximum score",
-    ],
-    bannerGradient: "from-[#7C2D12] via-[#9A3412] to-[#C2410C]",
-    borderTheme: "border-[#FB923C]/40 hover:border-[#FDBA74]",
-    accentColor: "text-orange-200",
-    buttonGradient: "bg-gradient-to-r from-[#EA580C] to-[#C2410C] hover:from-[#F97316] hover:to-[#EA580C] text-white shadow-orange-950/40",
-    validityTag: "180+ Pages • Digital Codex",
-    cartPayload: {
-      id: "prod-vol1",
-      title: "Volume 1: Business Law (CA Foundation & CSEET)",
-      price: 99,
-      originalPrice: 249,
-      category: "Digital Codex",
-      badge: "Bare Act • 180+ Pages",
-    },
-  },
-  {
-    id: "prod-vol2",
-    courseType: "volume",
-    title: "Volume 2: Management Theories & Corporate Environment",
-    badge: "💼 MANAGEMENT MASTER",
-    category: "Management, CSR & Corporate Ethics",
-    examBody: "ICSI CSEET",
-    subtitle: "In-depth study codex for Henri Fayol, F.W. Taylor, PESTLE analysis, Corporate Social Responsibility & Ethics.",
-    coverImage: "/covers/vol2-codex.webp",
-    price: 99,
-    originalPrice: 249,
-    discount: "60% OFF",
-    savings: "Save ₹150",
-    highlights: [
-      "Complete 14 Principles of Fayol & Taylor Scientific Management",
-      "Business environment models, Corporate Governance & CSR",
-      "Chapter-wise conceptual MCQs with detailed explanations for options",
-    ],
-    bannerGradient: "from-[#14532D] via-[#166534] to-[#15803D]",
-    borderTheme: "border-[#4ADE80]/40 hover:border-[#86EFAC]",
-    accentColor: "text-emerald-200",
-    buttonGradient: "bg-gradient-to-r from-[#16A34A] to-[#15803D] hover:from-[#22C55E] hover:to-[#16A34A] text-white shadow-emerald-950/40",
-    validityTag: "120+ Pages • Digital Codex",
-    cartPayload: {
-      id: "prod-vol2",
-      title: "Volume 2: CSEET Business Laws and Management",
-      price: 99,
-      originalPrice: 249,
-      category: "Digital Codex",
-      badge: "Management • 120+ Pages",
     },
   },
   {
@@ -338,6 +298,42 @@ interface LevelInfo {
   progress: number;
 }
 
+interface QotdData {
+  id?: string;
+  subject?: string;
+  section?: string;
+  question?: string;
+  options?: string[];
+  correctIndex?: number;
+  explanation?: string;
+  xpReward?: number;
+}
+
+interface CourseUnitContentItem {
+  id?: string;
+}
+
+interface CourseUnit {
+  id?: string;
+  title?: string;
+  contentItems?: CourseUnitContentItem[];
+}
+
+interface CourseAct {
+  id?: string;
+  title?: string;
+  order?: number;
+  isComingSoon?: boolean;
+  units?: CourseUnit[];
+}
+
+interface StudentCoursePayload {
+  id?: string;
+  title?: string;
+  isEnrolled?: boolean;
+  acts?: CourseAct[];
+}
+
 interface StudentDashboardHomeProps {
   studentName?: string;
   streak?: number;
@@ -350,7 +346,7 @@ interface StudentDashboardHomeProps {
   onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs", isFreeSample?: boolean) => void;
   onExploreCourse: (courseId: string) => void;
   activeCourse?: "ca" | "cs";
-  qotdData: any;
+  qotdData: QotdData;
   qotdSelected: number | null;
   qotdSubmitted: boolean;
   onSelectQotdOption: (idx: number) => void;
@@ -362,9 +358,9 @@ interface StudentDashboardHomeProps {
   isAllAccessUnlocked?: boolean;
   onBuyCourse?: (courseType: "ca" | "cs" | "all-access") => void;
   purchasedBooks?: string[];
-  studentCourses?: any[];
+  studentCourses?: StudentCoursePayload[];
   completedUnits?: string[];
-  catalogProducts?: any[];
+  catalogProducts?: CatalogProduct[];
 }
 
 export interface FreeResourceItem {
@@ -555,20 +551,6 @@ export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
 
 export function StudentDashboardHome({
   studentName = "Student",
-  streak = 0,
-  longestStreak = 0,
-  lawXp = 0,
-  levelInfo = {
-    level: 1,
-    title: "Legal Intern",
-    badge: "🥉 Intern",
-    nextXp: 100,
-    minXp: 0,
-    progress: 0,
-  },
-  awardXp,
-  onOpenStreakLog,
-  onOpenBadgesModal,
   onOpenPdf,
   activeCourse = "ca",
   onExploreCourse,
@@ -576,7 +558,6 @@ export function StudentDashboardHome({
   qotdSelected,
   qotdSubmitted,
   onSelectQotdOption,
-  onSubmitQotd,
   isCaUnlocked = false,
   isCsUnlocked = false,
   onBuyCourse,
@@ -622,8 +603,8 @@ export function StudentDashboardHome({
       } else {
         alert(data.message || "No pending payment found to restore.");
       }
-    } catch (e: any) {
-      alert("Error checking access status: " + e.message);
+    } catch (e) {
+      alert("Error checking access status: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setIsReconciling(false);
     }
@@ -717,8 +698,13 @@ export function StudentDashboardHome({
     const resources: ShowcaseResourceItem[] = [];
 
     catalogProducts.forEach((product, index) => {
+      const productId = product?.id;
       if (
-        !product?.id ||
+        !productId ||
+        productId === "prod-vol1" ||
+        productId === "prod-vol2" ||
+        product.title?.includes("Volume 1: Business Law") ||
+        product.title?.includes("Volume 2: CSEET") ||
         product.comingSoon ||
         product.isComingSoon ||
         product.availability === "coming_soon" ||
@@ -727,12 +713,12 @@ export function StudentDashboardHome({
       ) {
         return;
       }
-      if (seen.has(product.id)) return;
+      if (seen.has(productId)) return;
 
       const resource = buildShowcaseResource(product, index);
       if (!resource) return;
 
-      seen.add(product.id);
+      seen.add(productId);
       resources.push(resource);
     });
 
@@ -853,9 +839,9 @@ export function StudentDashboardHome({
 
   const studentCourseList: StudentCourseProgressItem[] = useMemo(() => {
     const items: StudentCourseProgressItem[] = [];
-    const completedSet = new Set(completedUnits);
+    const completedSet = new Set<string | undefined>(completedUnits);
 
-    (Array.isArray(studentCourses) ? studentCourses : []).forEach((course: any) => {
+    (Array.isArray(studentCourses) ? studentCourses : []).forEach((course) => {
       if (!course?.isEnrolled) return;
 
       const courseId = String(course?.id || "").toLowerCase();
@@ -868,19 +854,19 @@ export function StudentDashboardHome({
 
       if (courseCategory !== activeCourse) return;
 
-      (Array.isArray(course?.acts) ? course.acts : []).forEach((act: any) => {
+      (Array.isArray(course?.acts) ? course.acts : []).forEach((act) => {
         if (act?.isComingSoon) return;
 
         const units = Array.isArray(act?.units) ? act.units : [];
         const totalLessons = units.length;
-        const completedLessons = units.filter((unit: any) => completedSet.has(unit.id)).length;
+        const completedLessons = units.filter((unit) => completedSet.has(unit.id)).length;
         const firstContent = units
-          .flatMap((unit: any) => (Array.isArray(unit?.contentItems) ? unit.contentItems : []))
-          .find((item: any) => item?.id);
+          .flatMap((unit) => (Array.isArray(unit?.contentItems) ? unit.contentItems : []))
+          .find((item) => item?.id);
 
         items.push({
-          id: act.id,
-          name: act.title,
+          id: act.id ?? "",
+          name: act.title ?? "",
           code: `Chapter ${act.order || items.length + 1}`,
           weightage: `${totalLessons} ${totalLessons === 1 ? "Unit" : "Units"}`,
           description: units[0]?.title || "Live statutory module",
@@ -895,7 +881,7 @@ export function StudentDashboardHome({
     });
 
     return items;
-  }, [activeCourse, completedUnits, isCaUnlocked, isCsUnlocked, studentCourses]);
+  }, [activeCourse, completedUnits, studentCourses]);
 
   const handleContinueLearning = () => {
     const firstCourse = studentCourseList[0];
@@ -971,6 +957,7 @@ export function StudentDashboardHome({
         <StudentMyCoursesList
           courses={studentCourseList}
           onOpenCourse={handleOpenStudentCourse}
+          onExploreMore={() => onExploreCourse && onExploreCourse("ca-foundation")}
           showSearchAndFilters={true}
         />
       </section>

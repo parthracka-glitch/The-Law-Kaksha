@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   HelpCircle,
   MessageSquare,
   Send,
-  Clock,
   CheckCircle2,
   AlertCircle,
   Mail,
   ExternalLink,
-  ShieldAlert,
-  Sparkles,
 } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
@@ -67,7 +64,7 @@ export function StudentHelpSupportTab() {
   }, [API_URL]);
 
   // Load student's support tickets
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       setLoadingTickets(true);
       const token =
@@ -88,11 +85,11 @@ export function StudentHelpSupportTab() {
     } finally {
       setLoadingTickets(false);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
     fetchTickets();
-  }, [API_URL]);
+  }, [fetchTickets]);
 
   // Handle ticket submission
   const handleSubmitTicket = async (e: React.FormEvent) => {
@@ -136,8 +133,10 @@ export function StudentHelpSupportTab() {
       } else {
         setSubmitError(data.message || "Failed to create support ticket.");
       }
-    } catch (err: any) {
-      setSubmitError(err.message || "Network error. Please try again.");
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Network error. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -240,7 +239,7 @@ export function StudentHelpSupportTab() {
               </label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
+                onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
                 className="w-full px-3 py-2.5 rounded-xl border border-[#DBEAFE] bg-[#F8FAFC] text-xs font-semibold text-[#0A192F] focus:outline-hidden focus:ring-2 focus:ring-[#005A9C]"
               >
                 <option value="low">Low — General Question</option>

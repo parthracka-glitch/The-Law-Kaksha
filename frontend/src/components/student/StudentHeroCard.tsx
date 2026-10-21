@@ -12,8 +12,6 @@ interface StudentHeroCardProps {
 
 export function StudentHeroCard({
   studentName = "Student",
-  lastReadTitle = "The Indian Contract Act, 1872",
-  lastReadSubtitle = "Unit 1: Nature & Essentials of Valid Contract",
   onContinueLearning,
 }: StudentHeroCardProps) {
   // Determine greeting based on current local hour

@@ -58,6 +58,17 @@ function courseToCatalogItem(course, syllabus = []) {
   };
 }
 
+// Discontinued course IDs permanently purged from public catalog
+const REMOVED_PRODUCT_IDS = new Set(["prod-vol1", "prod-vol2"]);
+
+function isRemovedProduct(item) {
+  if (!item) return false;
+  if (REMOVED_PRODUCT_IDS.has(item.id)) return true;
+  const title = (item.title || "").toLowerCase();
+  if (title.includes("volume 1: business law") || title.includes("volume 2: cseet")) return true;
+  return false;
+}
+
 // GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
 router.get("/public/site-data", async (req, res) => {
   try {
@@ -81,10 +92,12 @@ router.get("/public/site-data", async (req, res) => {
       }
     }
 
+    const filteredProducts = products.filter((p) => !isRemovedProduct(p));
+
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
-      products: products.map(serializeProduct),
+      products: filteredProducts.map(serializeProduct),
       examSettings,
       qotd,
       mcqPool,
@@ -104,17 +117,21 @@ router.get("/catalog", async (req, res) => {
       dbProducts = Database.table("products").find((p) => p.status === "Active");
     }
 
-    // Adapt DB products into catalog format
-    const formattedDbProducts = dbProducts.map((p) => ({
-      ...p,
-      original_price: p.originalPrice || 499,
-      badge: `₹${p.price}`,
-    }));
+    // Adapt DB products into catalog format and filter removed courses
+    const formattedDbProducts = dbProducts
+      .filter((p) => !isRemovedProduct(p))
+      .map((p) => ({
+        ...p,
+        original_price: p.originalPrice || 499,
+        badge: `₹${p.price}`,
+      }));
 
     const courses = await getActiveCourses();
     const courseItems = courses.map((course) => courseToCatalogItem(course));
 
-    let allProducts = [...DEFAULT_COURSES, ...courseItems, ...formattedDbProducts];
+    let allProducts = [...DEFAULT_COURSES, ...courseItems, ...formattedDbProducts].filter(
+      (p) => !isRemovedProduct(p)
+    );
 
     if (req.query.type && req.query.type !== "all") {
       allProducts = allProducts.filter((p) => p.type === req.query.type);
@@ -153,6 +170,9 @@ router.get("/catalog", async (req, res) => {
 // GET /api/catalog/:id — Get a single course/product's complete details
 router.get("/catalog/:id", async (req, res) => {
   const id = req.params.id;
+  if (REMOVED_PRODUCT_IDS.has(id)) {
+    return res.status(404).json({ success: false, message: "Course discontinued and removed from catalog." });
+  }
   try {
     // Check in default courses
     let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id);

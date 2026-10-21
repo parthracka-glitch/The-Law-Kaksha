@@ -16,7 +16,6 @@ import {
   CreditCard,
   QrCode,
   Lock,
-  ChevronLeft,
   BookOpen,
   Printer,
   Sparkles,
@@ -28,13 +27,54 @@ import {
   KeyRound,
   AlertCircle,
 } from "lucide-react";
-import { useCart, BookFormat, FORMAT_PRICING } from "@/context/CartContext";
+import { useCart, type CartItem } from "@/context/CartContext";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import { getApiBaseUrl } from "@/lib/api";
 
+interface RazorpayPaymentResponse {
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image: string;
+  order_id?: string;
+  handler: (response: RazorpayPaymentResponse) => void | Promise<void>;
+  prefill: { name: string; email: string; contact: string };
+  theme: { color: string };
+  modal: { ondismiss: () => void };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
+interface RazorpayConstructor {
+  new (options: RazorpayOptions): RazorpayInstance;
+}
+
+interface RazorpayWindow extends Window {
+  Razorpay?: RazorpayConstructor;
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const message = err.message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
+}
+
 const loadRazorpayCheckoutScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    if (typeof window !== "undefined" && (window as any).Razorpay) {
+    if (typeof window !== "undefined" && (window as RazorpayWindow).Razorpay) {
       resolve(true);
       return;
     }
@@ -54,7 +94,6 @@ export function CartDrawer() {
     setIsCartOpen,
     removeFromCart,
     updateQuantity,
-    changeFormat,
     couponCode,
     couponDiscount,
     couponError,
@@ -111,7 +150,7 @@ export function CartDrawer() {
               exam: parsed.targetExam || prev.exam,
             }));
           }
-        } catch (e) {}
+        } catch {}
       }
     }
   }, [isCartOpen]);
@@ -184,7 +223,7 @@ export function CartDrawer() {
       const currentDeviceName = getDeviceFriendlyName();
 
       // 3. Configure Razorpay Standard Checkout options
-      const options: any = {
+      const options: RazorpayOptions = {
         key: keyId,
         amount: amountPaise,
         currency,
@@ -192,7 +231,7 @@ export function CartDrawer() {
         description: items.map((i) => i.title).join(", ") || "CA Foundation / CSEET Codex Pass",
         image: "/assets/logo-transparent.png",
         order_id: razorpayOrderId,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayPaymentResponse) {
           setIsProcessingPayment(true);
           try {
             const verifyRes = await fetch(
@@ -290,7 +329,7 @@ export function CartDrawer() {
                 try {
                   const p = JSON.parse(saved);
                   if (p && Array.isArray(p.unlockedItemIds)) priorUnlocked = p.unlockedItemIds;
-                } catch (e) {}
+                } catch {}
               }
             }
 
@@ -379,9 +418,11 @@ export function CartDrawer() {
             setLastOrderDetails(generatedOrder);
             setCheckoutStep("success");
             clearCart();
-          } catch (verifyErr: any) {
+          } catch (verifyErr: unknown) {
             console.error("Verification error:", verifyErr);
-            setPaymentError(verifyErr?.message || "Payment verification failed. Please contact support.");
+            setPaymentError(
+              getErrorMessage(verifyErr, "Payment verification failed. Please contact support.")
+            );
           } finally {
             setIsProcessingPayment(false);
           }
@@ -401,11 +442,15 @@ export function CartDrawer() {
         },
       };
 
-      const rzp = new (window as any).Razorpay(options);
+      const RazorpayCtor = (window as RazorpayWindow).Razorpay;
+      if (!RazorpayCtor) {
+        throw new Error("Razorpay checkout script is not loaded.");
+      }
+      const rzp = new RazorpayCtor(options);
       rzp.open();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Payment error:", err);
-      setPaymentError(err?.message || "Failed to complete payment transaction.");
+      setPaymentError(getErrorMessage(err, "Failed to complete payment transaction."));
       setIsProcessingPayment(false);
     }
   };
@@ -1083,7 +1128,7 @@ export function CartDrawer() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E7E4E7] text-[11px]">
-                  {lastOrderDetails.items.map((it: any, iIdx: number) => (
+                  {lastOrderDetails.items.map((it: CartItem, iIdx: number) => (
                     <tr key={iIdx}>
                       <td className="p-3 font-semibold text-[#221D1D]">{it.title}</td>
                       <td className="p-3 text-center uppercase font-mono text-[10px] text-[#4B8097] font-bold">

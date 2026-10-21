@@ -9,8 +9,6 @@ import {
   ArrowRight,
   FileText,
   Sparkles,
-  BookOpen,
-  CheckCircle2,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
@@ -268,7 +266,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
             </div>
 
             <div className="space-y-2 text-xs">
-              <h3 className="font-bold text-slate-900">What's Inside Volume 2:</h3>
+              <h3 className="font-bold text-slate-900">What&apos;s Inside Volume 2:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <p className="font-bold text-[#0284C7]">📚 9-Attempt Solved RTPs &amp; MTPs</p>
@@ -429,7 +427,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
                   <tr>
                     <td className="py-2 px-3 font-bold text-slate-900">Indian Partnership Act, 1932</td>
                     <td className="py-2 px-3 font-mono font-bold text-[#0284C7]">15 – 20 M</td>
-                    <td className="py-2 px-3 text-slate-600">Mutual Agency, Minor's Rights</td>
+                    <td className="py-2 px-3 text-slate-600">Mutual Agency, Minor&apos;s Rights</td>
                   </tr>
                 </tbody>
               </table>
@@ -465,7 +463,7 @@ const BOOK_SAMPLES: Record<string, (price: number) => BookSampleData> = {
             </h3>
             <p><strong>Rule:</strong> &ldquo;Let the buyer beware.&rdquo; Buyer takes risk regarding quality and fitness.</p>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-[11px]">
-              <p>1. Buyer informs purpose and relies on seller's skill [§16(1)].</p>
+              <p>1. Buyer informs purpose and relies on seller&apos;s skill [§16(1)].</p>
               <p>2. Goods bought by description from regular dealer [§16(2)].</p>
             </div>
           </div>

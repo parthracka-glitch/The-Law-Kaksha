@@ -1,26 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  CreditCard,
   Search,
-  Filter,
-  Eye,
   RefreshCw,
   Download,
   CheckCircle2,
-  AlertTriangle,
   RotateCcw,
-  ShieldAlert,
-  Calendar,
   User,
   Phone,
   Mail,
   MapPin,
   X,
-  Plus,
 } from "lucide-react";
-import { apiRequest } from "@/lib/api";
 
 interface OrderRecord {
   id: string;
@@ -51,6 +43,10 @@ interface OrderRecord {
   entitlement_id?: string;
 }
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: string, init?: RequestInit) => Promise<Response>; showToast: (msg: string) => void }) {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,24 +55,30 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
   const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchOrders = async () => {
+  const adminFetchRef = useRef(adminFetch);
+
+  useEffect(() => {
+    adminFetchRef.current = adminFetch;
+  }, [adminFetch]);
+
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await adminFetch("/api/admin/orders");
+      const res = await adminFetchRef.current("/api/admin/orders");
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setOrders(data.data);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleRefund = async (orderId: string) => {
     if (!confirm("Are you sure you want to issue a full refund for this booking? This will automatically revoke all associated course entitlements.")) {
@@ -96,8 +98,8 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
       } else {
         alert(data.message || "Failed to process refund.");
       }
-    } catch (err: any) {
-      alert("Error processing refund: " + err.message);
+    } catch (err) {
+      alert("Error processing refund: " + errorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -123,8 +125,8 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
       } else {
         alert(data.message || "Failed to recheck payment.");
       }
-    } catch (err: any) {
-      alert("Error rechecking payment: " + err.message);
+    } catch (err) {
+      alert("Error rechecking payment: " + errorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -152,30 +154,8 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
       } else {
         alert(data.message || "Failed to grant access.");
       }
-    } catch (err: any) {
-      alert("Error granting access: " + err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleExtendEntitlement = async (entitlementId: string) => {
-    try {
-      setActionLoading(true);
-      const res = await adminFetch(`/api/admin/entitlements/${entitlementId}/extend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ days: 30 }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast("Entitlement extended by 30 days.");
-        fetchOrders();
-      } else {
-        alert(data.message || "Failed to extend entitlement.");
-      }
-    } catch (e: any) {
-      alert(e.message);
+    } catch (err) {
+      alert("Error granting access: " + errorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -192,7 +172,7 @@ export function AdminOrdersTab({ adminFetch, showToast }: { adminFetch: (url: st
       a.click();
       window.URL.revokeObjectURL(url);
       showToast("Orders CSV exported successfully.");
-    } catch (e) {
+    } catch {
       alert("Export failed.");
     }
   };

@@ -6,13 +6,10 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { apiRequest } from "@/lib/api";
 import {
-  Sparkles,
   Tag,
   Copy,
   Check,
-  Calendar,
   ArrowRight,
-  ShieldCheck,
   Gift,
   Clock,
   Percent,
@@ -66,7 +63,7 @@ const FALLBACK_OFFERS: OfferItem[] = [
 export default function OffersPage() {
   const [offers, setOffers] = useState<OfferItem[]>(FALLBACK_OFFERS);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,7 +74,7 @@ export default function OffersPage() {
         if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
           if (isMounted) setOffers(res.data);
         }
-      } catch (err) {
+      } catch {
         // Fallback remains
       } finally {
         if (isMounted) setLoading(false);

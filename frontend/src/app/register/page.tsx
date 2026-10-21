@@ -20,6 +20,21 @@ import {
 import { apiRequest } from "@/lib/api";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
+interface RegisterStudent {
+  name?: string;
+  email?: string;
+  phone?: string;
+  student_id?: string;
+}
+
+interface RegisterResponse {
+  token?: string;
+  student_id?: string;
+  student?: RegisterStudent;
+  user?: RegisterStudent;
+  data?: RegisterResponse;
+}
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,7 +67,7 @@ function RegisterForm() {
     setErrorMsg("");
 
     try {
-      const res = await apiRequest("/api/auth/register", {
+      const res = await apiRequest<RegisterResponse>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(formData),
       });
@@ -60,7 +75,7 @@ function RegisterForm() {
       if (res && res.success && res.data) {
         const respData = res.data;
         const innerData = respData.data || respData;
-        const token = respData.token || (res as any).token || innerData.token;
+        const token = respData.token || res.token || innerData.token;
         const student =
           innerData.student ||
           innerData.user ||
@@ -79,8 +94,8 @@ function RegisterForm() {
       } else {
         setErrorMsg(res?.message || "Failed to complete registration.");
       }
-    } catch (err: any) {
-      setErrorMsg(err?.message || "Network error. Please try again.");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -242,9 +257,9 @@ function RegisterForm() {
           const role =
             res?.data?.role || res?.data?.user?.role || res?.data?.student?.role;
           if (role === "admin") {
-            window.location.href = "/admin";
+            router.push("/admin");
           } else {
-            window.location.href = "/";
+            router.push("/");
           }
         }}
       />

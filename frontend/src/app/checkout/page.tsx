@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useCart } from "@/context/CartContext";
-import { apiRequest, setAuthSession, getActiveUser } from "@/lib/api";
+import { useCart, type CartItem } from "@/context/CartContext";
+import { apiRequest, setAuthSession, getActiveUser, type ApiResponse } from "@/lib/api";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import {
   ShieldCheck,
@@ -20,9 +19,103 @@ import {
   BookOpen,
 } from "lucide-react";
 
+interface OrderCreateData {
+  success?: boolean;
+  message?: string;
+  orderId?: string;
+  id?: string;
+  order_id?: string;
+  razorpayOrderId?: string;
+  key_id?: string;
+  amount?: number;
+  currency?: string;
+  data?: OrderCreateData;
+}
+
+interface VerifiedOrder {
+  id?: string;
+  total_amount?: number;
+  amount?: number;
+  currency?: string;
+  [key: string]: unknown;
+}
+
+interface VerifiedStudent {
+  name?: string;
+  email?: string;
+  student_id?: string;
+}
+
+interface VerifyPayload {
+  order?: VerifiedOrder;
+  student?: VerifiedStudent;
+  unlockedItemIds?: string[];
+  token?: string;
+}
+
+interface CompletedOrder extends VerifiedOrder {
+  items: CartItem[];
+  unlockedItemIds: string[];
+  studentId: string;
+  studentName: string;
+}
+
+interface RazorpayPaymentResponse {
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+}
+
+interface RazorpayFailureResponse {
+  error?: {
+    description?: string;
+    code?: string;
+  };
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image: string;
+  order_id?: string;
+  handler: (response: RazorpayPaymentResponse) => void | Promise<void>;
+  prefill: { name: string; email: string; contact: string };
+  notes?: Record<string, string | undefined>;
+  theme: { color: string };
+  modal: { ondismiss: () => void };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (
+    event: "payment.failed",
+    handler: (response: RazorpayFailureResponse) => void
+  ) => void;
+}
+
+interface RazorpayConstructor {
+  new (options: RazorpayOptions): RazorpayInstance;
+}
+
+interface RazorpayWindow extends Window {
+  Razorpay?: RazorpayConstructor;
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const message = err.message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
+}
+
 const loadRazorpayCheckoutScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    if (typeof window !== "undefined" && (window as any).Razorpay) {
+    if (typeof window !== "undefined" && (window as RazorpayWindow).Razorpay) {
       resolve(true);
       return;
     }
@@ -36,7 +129,6 @@ const loadRazorpayCheckoutScript = (): Promise<boolean> => {
 };
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const {
     items,
     cartTotal,
@@ -57,7 +149,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "card">("upi");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [completedOrder, setCompletedOrder] = useState<any | null>(null);
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
 
   // Auto-fill student session if logged in
   useEffect(() => {
@@ -77,8 +169,15 @@ export default function CheckoutPage() {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
   };
 
-  const completeEnrollment = (verifyRes: any, orderId: string, finalAmount: number) => {
-    const serverOrder = verifyRes?.data?.order || { id: orderId, total_amount: finalAmount };
+  const completeEnrollment = (
+    verifyRes: ApiResponse<VerifyPayload>,
+    orderId: string | undefined,
+    finalAmount: number
+  ) => {
+    const serverOrder: VerifiedOrder = verifyRes?.data?.order || {
+      id: orderId,
+      total_amount: finalAmount,
+    };
     const student = verifyRes?.data?.student;
     const newlyUnlocked = verifyRes?.data?.unlockedItemIds || [];
 
@@ -226,9 +325,9 @@ export default function CheckoutPage() {
     }
 
     // 2. Call backend to create Razorpay Order
-    let createRes: any;
+    let createRes: ApiResponse<OrderCreateData>;
     try {
-      createRes = await apiRequest("/api/orders/create", {
+      createRes = await apiRequest<OrderCreateData>("/api/orders/create", {
         method: "POST",
         body: JSON.stringify({
           items,
@@ -236,8 +335,8 @@ export default function CheckoutPage() {
           couponCode: couponCode || null,
         }),
       });
-    } catch (err: any) {
-      setError(err?.message || "Failed to initiate payment order.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to initiate payment order."));
       setLoading(false);
       return;
     }
@@ -248,7 +347,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    const orderData = createRes.data || createRes;
+    const orderData: OrderCreateData = createRes.data || createRes;
     const orderId = orderData.orderId || orderData.id;
     const razorpayOrderId = orderData.order_id || orderData.razorpayOrderId;
     const keyId =
@@ -262,7 +361,7 @@ export default function CheckoutPage() {
       setLoading(false);
       return;
     }
-    const options: any = {
+    const options: RazorpayOptions = {
       key: keyId,
       amount: amountPaise,
       currency: currency,
@@ -270,14 +369,14 @@ export default function CheckoutPage() {
       description: items.map((i) => i.title).join(", ") || "CA Foundation / CSEET Codex Pass",
       image: "/assets/logo-transparent.png",
       order_id: razorpayOrderId,
-      handler: async function (response: any) {
+      handler: async function (response: RazorpayPaymentResponse) {
         // response: { razorpay_payment_id, razorpay_order_id, razorpay_signature }
         setLoading(true);
         try {
           const currentDeviceId = getOrCreateDeviceId();
           const currentDeviceName = getDeviceFriendlyName();
 
-          const verifyRes = (await apiRequest("/api/orders/verify", {
+          const verifyRes = await apiRequest<VerifyPayload>("/api/orders/verify", {
             method: "POST",
             body: JSON.stringify({
               orderId,
@@ -290,16 +389,18 @@ export default function CheckoutPage() {
               deviceId: currentDeviceId,
               deviceName: currentDeviceName,
             }),
-          })) as any;
+          });
 
           if (!verifyRes || !verifyRes.success) {
             throw new Error(verifyRes?.message || "Payment signature verification failed.");
           }
 
           completeEnrollment(verifyRes, orderId, orderData.amount || cartTotal);
-        } catch (verifyErr: any) {
+        } catch (verifyErr: unknown) {
           console.error("[Payment Verification Error]", verifyErr);
-          setError(verifyErr?.message || "Payment verification failed. Please contact support.");
+          setError(
+            getErrorMessage(verifyErr, "Payment verification failed. Please contact support.")
+          );
         } finally {
           setLoading(false);
         }
@@ -325,8 +426,12 @@ export default function CheckoutPage() {
     };
 
     try {
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (failResponse: any) {
+      const RazorpayCtor = (window as RazorpayWindow).Razorpay;
+      if (!RazorpayCtor) {
+        throw new Error("Razorpay checkout script is not loaded.");
+      }
+      const rzp = new RazorpayCtor(options);
+      rzp.on("payment.failed", function (failResponse: RazorpayFailureResponse) {
         console.error("[Razorpay Payment Failed]", failResponse.error);
         setLoading(false);
         setError(
@@ -335,7 +440,7 @@ export default function CheckoutPage() {
         );
       });
       rzp.open();
-    } catch (modalErr: any) {
+    } catch (modalErr: unknown) {
       console.error("[Razorpay Modal Error]", modalErr);
       setError("Unable to open Razorpay payment window. Please check your browser pop-up permissions.");
       setLoading(false);

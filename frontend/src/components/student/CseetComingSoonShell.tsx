@@ -39,7 +39,7 @@ export function CseetComingSoonShell({ onOpenSampleReader, onPreOrder }: CseetCo
         const stored = JSON.parse(localStorage.getItem("lawkaksha_cseet_notify_list") || "[]");
         stored.push({ email: notifyEmail, date: new Date().toISOString() });
         localStorage.setItem("lawkaksha_cseet_notify_list", JSON.stringify(stored));
-      } catch (err) {}
+      } catch {}
     }
   };
 
@@ -131,7 +131,7 @@ export function CseetComingSoonShell({ onOpenSampleReader, onPreOrder }: CseetCo
           {isNotified ? (
             <div className="px-4 py-2.5 rounded-xl bg-[#AED7E9]/20 border border-[#AED7E9] text-[#221D1D] text-xs font-bold flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
-              <span>You're on the priority list!</span>
+              <span>You&apos;re on the priority list!</span>
             </div>
           ) : (
             <form onSubmit={handleNotifySubmit} className="flex gap-2">

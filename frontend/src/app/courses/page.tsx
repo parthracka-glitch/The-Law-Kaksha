@@ -44,6 +44,17 @@ interface Product {
   comingSoon?: boolean;
 }
 
+interface FreeResource {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  actName: string;
+  pages?: string;
+  sampleUrl?: string;
+  fileUrl?: string;
+}
+
 const FALLBACK_PRODUCTS: Product[] = [];
 
 function CoursesCatalogContent() {
@@ -60,6 +71,12 @@ function CoursesCatalogContent() {
       : "all"
   );
   const [search, setSearch] = useState("");
+  const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
+  const [freePreview, setFreePreview] = useState({
+    open: false,
+    title: "",
+    pdfUrl: "",
+  });
 
   // Preview Reader state (DRM-protected with preview page limits)
   const [previewState, setPreviewState] = useState<{
@@ -82,8 +99,14 @@ function CoursesCatalogContent() {
     async function loadCatalog() {
       const res = await apiRequest<{ items?: Product[]; products?: Product[] }>("/api/catalog");
       if (res.success && res.data) {
-        const fetched = res.data.products || res.data.items;
-        if (Array.isArray(fetched) && fetched.length > 0) {
+        const fetched = (res.data.products || res.data.items || []).filter(
+          (p) =>
+            p.id !== "prod-vol1" &&
+            p.id !== "prod-vol2" &&
+            !p.title.includes("Volume 1: Business Law") &&
+            !p.title.includes("Volume 2: CSEET")
+        );
+        if (Array.isArray(fetched)) {
           setProducts(fetched);
         }
       }
@@ -91,7 +114,29 @@ function CoursesCatalogContent() {
     loadCatalog();
   }, []);
 
+  useEffect(() => {
+    async function loadFreeResources() {
+      const res = await apiRequest<{ resources?: FreeResource[] }>(
+        "/api/resources?course=ca-foundation&sampleOnly=true"
+      );
+      if (res.success && Array.isArray(res.data?.resources)) {
+        setFreeResources(res.data.resources);
+      }
+    }
+    loadFreeResources();
+  }, []);
+
   const filteredProducts = products.filter((p) => {
+    // Explicitly exclude discontinued Volume 1 & Volume 2 courses
+    if (
+      p.id === "prod-vol1" ||
+      p.id === "prod-vol2" ||
+      p.title.includes("Volume 1: Business Law") ||
+      p.title.includes("Volume 2: CSEET")
+    ) {
+      return false;
+    }
+
     const matchesCourse =
       selectedCourse === "all" ||
       p.courseId === selectedCourse ||
@@ -108,14 +153,27 @@ function CoursesCatalogContent() {
     return matchesCourse && matchesSearch;
   });
 
+  const filteredFreeResources =
+    selectedCourse === "course-cseet"
+      ? []
+      : freeResources.filter((resource) => {
+          const query = search.trim().toLowerCase();
+          if (!query) return true;
+          return [resource.title, resource.description, resource.actName]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(query));
+        });
+
   const handleOpenPreview = (product: Product) => {
     const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
       ? "/notes/cseet-management-full.pdf"
       : "/notes/sale-of-goods-unit-1.pdf";
+    const rawPdf = product.pdfUrl || defaultPdf;
+    const samplePdfUrl = rawPdf.includes("sample=true") ? rawPdf : `${rawPdf}?sample=true`;
     setPreviewState({
       open: true,
       title: product.title,
-      pdfUrl: product.pdfUrl || defaultPdf,
+      pdfUrl: samplePdfUrl,
       previewLimit: product.previewPagesLimit || 5,
       price: product.price,
       product,
@@ -381,6 +439,77 @@ function CoursesCatalogContent() {
           </div>
         )}
 
+        {/* Free Watermarked Resources */}
+        {filteredFreeResources.length > 0 && (
+          <section className="max-w-5xl mx-auto space-y-5 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold uppercase tracking-wider">
+                  <Eye className="w-3.5 h-3.5" />
+                  Free Watermarked Resources
+                </div>
+                <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#0A192F] mt-2">
+                  Read Free Samples
+                </h2>
+                <p className="text-xs sm:text-sm text-[#64748B] mt-1">
+                  Every page is watermarked and protected in our secure reader. Downloading, copying, and printing are disabled.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-[#64748B] bg-white border border-[#DBEAFE] rounded-full px-3 py-1.5">
+                {filteredFreeResources.length} free files
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {filteredFreeResources.map((resource) => (
+                <div
+                  key={resource.id}
+                  className="bg-white border border-[#DBEAFE] rounded-2xl p-5 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between gap-4"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+                        {resource.type === "practice" ? "Question Bank" : "Study Notes"}
+                      </span>
+                      <span className="text-[10px] font-semibold text-[#64748B]">
+                        {resource.pages || "Free Sample"}
+                      </span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-[#0A192F] leading-snug">
+                      {resource.title}
+                    </h3>
+                    <p className="text-xs text-[#64748B] leading-relaxed">
+                      {resource.description || "Watermarked free study resource from The Law Kaksha."}
+                    </p>
+                    <p className="text-[10px] font-semibold text-[#005A9C]">
+                      {resource.actName}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const rawUrl = resource.sampleUrl || resource.fileUrl;
+                      if (rawUrl) {
+                        const url = rawUrl.includes("sample=true") ? rawUrl : `${rawUrl}?sample=true`;
+                        setFreePreview({
+                          open: true,
+                          title: resource.title,
+                          pdfUrl: url,
+                        });
+                      }
+                    }}
+                    className="w-full py-2.5 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Read Free (Watermarked)</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
       </main>
 
       {/* Real DRM Protected Canvas PDF Reader with Preview Limit Enforcement */}
@@ -398,6 +527,17 @@ function CoursesCatalogContent() {
           }
           setPreviewState((prev) => ({ ...prev, open: false }));
         }}
+      />
+
+      <SecurePdfReader
+        isOpen={freePreview.open}
+        onClose={() => setFreePreview((prev) => ({ ...prev, open: false }))}
+        pdfUrl={freePreview.pdfUrl}
+        title={freePreview.title}
+        isPurchased
+        price={0}
+        studentName="Free Resource"
+        studentRoll="PUBLIC-SAMPLE"
       />
 
       <Footer />

@@ -7,12 +7,9 @@ import {
   Scale,
   BookOpen,
   CheckCircle2,
-  ChevronRight,
   ShieldCheck,
   Sparkles,
   ArrowRight,
-  FileText,
-  Lock,
 } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 

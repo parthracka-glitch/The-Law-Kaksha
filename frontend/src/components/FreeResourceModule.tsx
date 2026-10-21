@@ -12,7 +12,6 @@ import {
   Scale,
   Award,
   ArrowRight,
-  Eye,
 } from "lucide-react";
 import { SecurePdfReader } from "./SecurePdfReader";
 
@@ -137,7 +136,7 @@ export function FreeResourceModule() {
           <div className="flex flex-wrap items-center justify-center gap-6 pt-2 text-xs font-semibold text-[#475569]">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
-              Direct Soft Copy PDF
+              In-Browser Reading Vault
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />

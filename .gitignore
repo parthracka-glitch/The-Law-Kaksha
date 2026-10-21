@@ -45,6 +45,7 @@ backend/uploads/
 frontend/public/notes/*.pdf
 assets/source-materials/*.pdf
 Assets/source-materials/*.pdf
+/free resources/
 /*.pdf
 
 # Vercel & Render

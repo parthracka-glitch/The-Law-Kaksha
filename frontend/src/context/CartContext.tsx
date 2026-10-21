@@ -15,6 +15,35 @@ export interface CartItem {
   badge?: string;
 }
 
+/**
+ * Receipt / enrolment summary produced after a successful payment.
+ * `id`, `total_amount`, `amount` and `currency` mirror the server order payload,
+ * the remaining fields are the client-side receipt details.
+ */
+export interface LastOrderDetails {
+  orderId?: string;
+  razorpayPaymentId?: string;
+  items: CartItem[];
+  totalAmount: number;
+  discountGiven?: number;
+  date: string;
+  studentName: string;
+  email: string;
+  phone?: string;
+  studentId: string;
+  tempPassword: string;
+  boundGmail?: string;
+  deviceId?: string;
+  deviceName?: string;
+  unlockedItemIds?: string[];
+  accessType?: string;
+  id?: string;
+  total_amount?: number;
+  amount?: number;
+  currency?: string;
+  [key: string]: unknown;
+}
+
 interface CartContextType {
   items: CartItem[];
   isCartOpen: boolean;
@@ -22,7 +51,6 @@ interface CartContextType {
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
-  changeFormat?: (id: string, currentFormat: BookFormat, newFormat: BookFormat) => void;
   couponCode: string;
   couponDiscount: number;
   couponError: string;
@@ -36,8 +64,8 @@ interface CartContextType {
   clearCart: () => void;
   checkoutStep: "cart" | "details" | "payment" | "success";
   setCheckoutStep: (step: "cart" | "details" | "payment" | "success" | "shipping") => void;
-  lastOrderDetails: any | null;
-  setLastOrderDetails: (details: any) => void;
+  lastOrderDetails: LastOrderDetails | null;
+  setLastOrderDetails: (details: Partial<LastOrderDetails>) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -54,7 +82,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
   const [checkoutStep, setInternalCheckoutStep] = useState<"cart" | "details" | "payment" | "success">("cart");
-  const [lastOrderDetails, setLastOrderDetails] = useState<any | null>(null);
+  const [lastOrderDetails, setLastOrderDetailsState] = useState<LastOrderDetails | null>(null);
+
+  // The checkout flow stores a partial order payload (server order first, receipt
+  // fields added later), so the setter accepts a partial summary.
+  const setLastOrderDetails = (details: Partial<LastOrderDetails>) => {
+    setLastOrderDetailsState(details as LastOrderDetails);
+  };
 
   const setCheckoutStep = (step: "cart" | "details" | "payment" | "success" | "shipping") => {
     if (step === "shipping") {
@@ -66,15 +100,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("lawkaksha_cart_items");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) setItems(parsed);
-        } catch (e) {}
-      }
+    if (typeof window === "undefined") return;
+
+    const saved = localStorage.getItem("lawkaksha_cart_items");
+    if (!saved) return;
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(saved);
+    } catch {
+      return;
     }
+    if (!Array.isArray(parsed)) return;
+
+    const restoreTimer = window.setTimeout(() => {
+      setItems(parsed);
+    }, 0);
+    return () => window.clearTimeout(restoreTimer);
   }, []);
 
   // Save cart to localStorage on changes
@@ -110,10 +152,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) =>
       prev.map((i) => (i.id === id ? { ...i, quantity } : i))
     );
-  };
-
-  const changeFormat = (id: string, currentFormat: BookFormat, newFormat: BookFormat) => {
-    // Single format: PDF
   };
 
   const applyCoupon = (code: string) => {
@@ -165,7 +203,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
-        changeFormat,
         couponCode,
         couponDiscount,
         couponError,

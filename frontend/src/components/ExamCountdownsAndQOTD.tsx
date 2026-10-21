@@ -2,20 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, type JsonObject } from "@/lib/api";
 import {
   Clock,
-  Calendar,
-  Sparkles,
   CheckCircle2,
   XCircle,
   BookOpen,
   ArrowRight,
   Flame,
-  Award,
   ChevronRight,
   Bookmark,
-  Share2,
   RotateCcw,
 } from "lucide-react";
 
@@ -28,6 +24,49 @@ interface ExamTarget {
   totalHoursNeeded: number;
   buttonText?: string;
   buttonUrl?: string;
+  exam?: string;
+  session?: string;
+  date?: string;
+}
+
+interface ExamSettingPayload extends JsonObject {
+  id?: string;
+  name?: string;
+  exam?: string;
+  level?: string;
+  session?: string;
+  targetDate?: string;
+  date?: string;
+  syllabusCoverage?: number;
+  totalHoursNeeded?: number;
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
+interface McqOptionPayload extends JsonObject {
+  text?: string;
+  isCorrect?: boolean;
+  pct?: number;
+}
+
+interface QotdPayload extends JsonObject {
+  subject?: string;
+  act?: string;
+  statutoryRef?: string;
+  section?: string;
+  question?: string;
+  options?: Array<string | McqOptionPayload>;
+  correctOption?: number;
+  explanationTitle?: string;
+  explanation?: string;
+  keyDistinction?: string;
+}
+
+interface SiteDataPayload extends JsonObject {
+  success?: boolean;
+  examSettings?: ExamSettingPayload[];
+  mcqPool?: MCQScenario[];
+  qotd?: QotdPayload;
 }
 
 const EXAM_TARGETS: ExamTarget[] = [
@@ -328,10 +367,10 @@ export function ExamCountdownsAndQOTD() {
       try {
         const res = await fetch(`${API_URL}/api/public/site-data`);
         if (!res.ok) return;
-        const data = await res.json();
+        const data: SiteDataPayload = await res.json();
         if (data.success) {
           if (Array.isArray(data.examSettings) && data.examSettings.length > 0) {
-            const normalized: ExamTarget[] = data.examSettings.map((e: any) => ({
+            const normalized: ExamTarget[] = data.examSettings.map((e) => ({
               id: e.id || `exam-${Math.random()}`,
               name: e.name || e.exam || "CA Foundation Business Laws",
               level: e.level || e.session || "ICAI Paper 2 • 7 Chapters",
@@ -349,17 +388,27 @@ export function ExamCountdownsAndQOTD() {
           if (Array.isArray(data.mcqPool) && data.mcqPool.length > 0) {
             setMcqList(data.mcqPool);
           } else if (data.qotd && data.qotd.question) {
+            const correctIndex = data.qotd.correctOption ?? 0;
             const formattedLiveQotd: MCQScenario = {
               id: "live-qotd",
               subject: data.qotd.subject || data.qotd.act || "Daily Legal Drill",
               statutoryRef: data.qotd.statutoryRef || data.qotd.section || "High Yield Topic",
               question: data.qotd.question,
               options: Array.isArray(data.qotd.options)
-                ? data.qotd.options.map((opt: any, idx: number) => ({
-                    text: typeof opt === "string" ? opt : opt.text,
-                    isCorrect: idx === (data.qotd.correctOption ?? 0) || Boolean(opt.isCorrect),
-                    pct: typeof opt === "object" && opt.pct ? opt.pct : (idx === (data.qotd.correctOption ?? 0) ? 78 : 7),
-                  }))
+                ? data.qotd.options.map((opt, idx) => {
+                    if (typeof opt === "string") {
+                      return {
+                        text: opt,
+                        isCorrect: idx === correctIndex,
+                        pct: idx === correctIndex ? 78 : 7,
+                      };
+                    }
+                    return {
+                      text: opt.text ?? "",
+                      isCorrect: idx === correctIndex || Boolean(opt.isCorrect),
+                      pct: opt.pct ? opt.pct : idx === correctIndex ? 78 : 7,
+                    };
+                  })
                 : MCQ_POOL[0].options,
               explanationTitle: data.qotd.explanationTitle || "Concept Rationale",
               explanation: data.qotd.explanation || "Direct statutory interpretation.",
@@ -368,7 +417,7 @@ export function ExamCountdownsAndQOTD() {
             setMcqList([formattedLiveQotd, ...MCQ_POOL]);
           }
         }
-      } catch (e) {
+      } catch {
         // Fallback silently to pre-bundled local data
       }
     }
@@ -382,7 +431,7 @@ export function ExamCountdownsAndQOTD() {
   // Dynamic Countdown Timer Calculation
   useEffect(() => {
     const calculateTime = () => {
-      const examDateStr = activeExam?.targetDate || (activeExam as any)?.date || "2026-12-15T09:00:00";
+      const examDateStr = activeExam?.targetDate || activeExam?.date || "2026-12-15T09:00:00";
       const targetDate = examDateStr.includes("T") ? examDateStr : `${examDateStr}T09:00:00`;
       const difference = +new Date(targetDate) - +new Date();
       if (difference > 0) {
@@ -460,7 +509,7 @@ export function ExamCountdownsAndQOTD() {
               {/* Course Selection Tabs */}
               <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
                 {examTargets.map((exam) => {
-                  const examName = exam?.name || (exam as any)?.exam || "";
+                  const examName = exam?.name || exam?.exam || "";
                   const isCA = examName.toLowerCase().includes("ca") || (exam?.id || "").includes("ca");
                   return (
                     <button
@@ -482,9 +531,9 @@ export function ExamCountdownsAndQOTD() {
             {/* Exam Title & Details */}
             <div className="space-y-1">
               <h3 className="text-base sm:text-lg font-bold text-[#221D1D] tracking-tight">
-                {activeExam?.name || (activeExam as any)?.exam || "CA Foundation Business Laws"}
+                {activeExam?.name || activeExam?.exam || "CA Foundation Business Laws"}
               </h3>
-              <p className="text-xs text-[#77716E]">{activeExam?.level || (activeExam as any)?.session || "ICAI Paper 2 • 7 Chapters"}</p>
+              <p className="text-xs text-[#77716E]">{activeExam?.level || activeExam?.session || "ICAI Paper 2 • 7 Chapters"}</p>
             </div>
 
             {/* 4-Digit Timer Block */}

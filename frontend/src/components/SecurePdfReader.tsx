@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
+import { getApiBaseUrl } from "@/lib/api";
 import {
   X,
   ChevronLeft,
@@ -14,8 +16,6 @@ import {
   Moon,
   Coffee,
   Maximize2,
-  Minimize2,
-  List,
   Bookmark,
   RotateCw,
   HelpCircle,
@@ -44,17 +44,25 @@ interface PdfOutlineItem {
   page: number;
 }
 
+interface Uint8ArrayPolyfill {
+  toHex?: (this: Uint8Array) => string;
+  toBase64?: (this: Uint8Array) => string;
+}
+
+type PolyfilledUint8Array = Uint8Array & Uint8ArrayPolyfill;
+
 // Polyfill ECMAScript Uint8Array.prototype.toHex and toBase64 for pdfjs-dist v6 support across all browsers
 if (typeof Uint8Array !== "undefined") {
-  if (!(Uint8Array.prototype as any).toHex) {
-    (Uint8Array.prototype as any).toHex = function () {
-      return Array.from(this as any)
-        .map((b: any) => Number(b).toString(16).padStart(2, "0"))
+  const proto = Uint8Array.prototype as PolyfilledUint8Array;
+  if (!proto.toHex) {
+    proto.toHex = function (this: Uint8Array) {
+      return Array.from(this)
+        .map((b) => Number(b).toString(16).padStart(2, "0"))
         .join("");
     };
   }
-  if (!(Uint8Array.prototype as any).toBase64) {
-    (Uint8Array.prototype as any).toBase64 = function () {
+  if (!proto.toBase64) {
+    proto.toBase64 = function (this: Uint8Array) {
       let binary = "";
       const len = this.byteLength;
       for (let i = 0; i < len; i++) {
@@ -65,15 +73,262 @@ if (typeof Uint8Array !== "undefined") {
   }
 }
 
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binaryString = window.atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
+function isRenderCancelledError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "RenderingCancelledException"
+  );
 }
+
+// Design Token Theming Palette
+const THEME_STYLES = {
+  dark: {
+    appBg: "#1A1E24",
+    headerBg: "bg-[#1A1E24]/90 backdrop-blur-xl border-white/[0.08] text-slate-100",
+    canvasBg: "#111418",
+    pageShadow: "shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]",
+    tocBg: "bg-[#1A1E24] border-white/[0.08] text-slate-100",
+    dockBg: "bg-[#242B35]/90 backdrop-blur-xl border-white/[0.1] text-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.45)]",
+    btnGhost: "hover:bg-white/10 active:bg-white/15 text-slate-300 hover:text-white",
+    btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+    accent: "text-[#BFAFE5]",
+    watermarkColor: "text-[#221D1D]",
+  },
+  sepia: {
+    appBg: "#F7F4EB",
+    headerBg: "bg-[#F7F4EB]/90 backdrop-blur-xl border-[#AED7E9]/[0.15] text-[#221D1D]",
+    canvasBg: "#EDE7D9",
+    pageShadow: "shadow-[0_20px_50px_-12px_rgba(60,40,15,0.15),0_0_0_1px_rgba(100,70,20,0.08)]",
+    tocBg: "bg-[#F7F4EB] border-[#AED7E9]/[0.15] text-[#221D1D]",
+    dockBg: "bg-[#EFE8DC]/90 backdrop-blur-xl border-[#AED7E9]/[0.2] text-[#221D1D] shadow-[0_12px_40px_rgba(60,40,15,0.12)]",
+    btnGhost: "hover:bg-[#AED7E9]/10 active:bg-[#AED7E9]/15 text-[#4D433F] hover:text-[#221D1D]",
+    btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+    accent: "text-[#4B8097]",
+    watermarkColor: "text-[#3D332A]",
+  },
+  light: {
+    appBg: "#F7F7F5",
+    headerBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D]",
+    canvasBg: "#EFEFEA",
+    pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(231,228,231,0.8)]",
+    tocBg: "bg-white border-[#E7E4E7] text-[#221D1D]",
+    dockBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D] shadow-[0_12px_40px_rgba(0,0,0,0.08)]",
+    btnGhost: "hover:bg-[#F7F7F5] active:bg-[#E7E4E7] text-[#4D433F] hover:text-[#221D1D]",
+    btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+    accent: "text-[#4B8097]",
+    watermarkColor: "text-[#221D1D]",
+  },
+  oled: {
+    appBg: "#000000",
+    headerBg: "bg-black/90 backdrop-blur-xl border-neutral-800 text-neutral-100",
+    canvasBg: "#000000",
+    pageShadow: "shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_25px_60px_rgba(0,0,0,1)]",
+    tocBg: "bg-black border-neutral-800 text-neutral-100",
+    dockBg: "bg-[#0A0A0A]/90 backdrop-blur-xl border-neutral-800 text-neutral-100 shadow-[0_12px_40px_rgba(0,0,0,0.8)]",
+    btnGhost: "hover:bg-neutral-800 active:bg-neutral-700 text-neutral-300 hover:text-white",
+    btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
+    accent: "text-[#BFAFE5]",
+    watermarkColor: "text-[#221D1D]",
+  },
+};
+
+/**
+ * Single Scrollable PDF Page with Lazy Canvas Rendering & Student ID Watermarking
+ */
+interface ScrollablePageProps {
+  pageNum: number;
+  pdfDoc: PDFDocumentProxy;
+  scale: number;
+  rotation: number;
+  activeRoll: string;
+  themeStyles: typeof THEME_STYLES.dark;
+  pageWidth: number;
+  pageHeight: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  onVisible: (pageNum: number) => void;
+}
+
+const ScrollablePdfPage = React.memo(function ScrollablePdfPage({
+  pageNum,
+  pdfDoc,
+  scale,
+  rotation,
+  activeRoll,
+  themeStyles,
+  pageWidth,
+  pageHeight,
+  containerRef,
+  onVisible,
+}: ScrollablePageProps) {
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isInView, setIsInView] = useState(false);
+  const [isRendered, setIsRendered] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
+  const renderTaskRef = useRef<RenderTask | null>(null);
+
+  // Lazy Intersection Observer: Observe when page comes near viewport
+  useEffect(() => {
+    const el = pageContainerRef.current;
+    const root = containerRef.current;
+    if (!el || !root) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          onVisible(pageNum);
+        } else {
+          // Keep rendered if within reasonable distance, or allow cleanup on very large documents
+          if (entry.boundingClientRect.top > window.innerHeight * 3 || entry.boundingClientRect.bottom < -window.innerHeight * 3) {
+            setIsInView(false);
+          }
+        }
+      },
+      {
+        root: root,
+        rootMargin: "500px 0px 500px 0px", // Pre-render 500px before scrolling into view
+        threshold: [0, 0.2, 0.6],
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [containerRef, onVisible, pageNum]);
+
+  // Render PDF page to canvas once in view
+  useEffect(() => {
+    if (!isInView || !pdfDoc) return;
+    let cancelled = false;
+
+    async function renderPageCanvas() {
+      if (!canvasRef.current || !pdfDoc) return;
+      try {
+        setIsRendering(true);
+        if (renderTaskRef.current) {
+          try {
+            renderTaskRef.current.cancel();
+          } catch {}
+          renderTaskRef.current = null;
+        }
+
+        const page = await pdfDoc.getPage(pageNum);
+        if (cancelled) return;
+
+        const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+        const viewport = page.getViewport({ scale: scale * dpr, rotation });
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (!ctx) return;
+
+        const cssWidth = Math.round(viewport.width / dpr);
+        const cssHeight = Math.round(viewport.height / dpr);
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.width = `${cssWidth}px`;
+        canvas.style.height = `${cssHeight}px`;
+
+        const renderTask = page.render({ canvas, canvasContext: ctx, viewport });
+        renderTaskRef.current = renderTask;
+        await renderTask.promise;
+        renderTaskRef.current = null;
+        if (!cancelled) {
+          setIsRendered(true);
+        }
+      } catch (err) {
+        if (!isRenderCancelledError(err)) {
+          console.error(`Render error on page ${pageNum}:`, err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsRendering(false);
+        }
+      }
+    }
+
+    renderPageCanvas();
+
+    return () => {
+      cancelled = true;
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel();
+        } catch {}
+        renderTaskRef.current = null;
+      }
+    };
+  }, [isInView, pdfDoc, pageNum, scale, rotation]);
+
+  return (
+    <div
+      ref={pageContainerRef}
+      id={`pdf-page-${pageNum}`}
+      data-page-number={pageNum}
+      className={`relative my-3 sm:my-5 select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} shrink-0 transition-shadow`}
+      style={{
+        width: pageWidth > 0 ? `${pageWidth}px` : "auto",
+        height: pageHeight > 0 ? `${pageHeight}px` : "auto",
+        background: "#ffffff",
+      }}
+    >
+      {/* CANVAS RENDERING SURFACE */}
+      <canvas
+        ref={canvasRef}
+        className="block bg-white"
+        style={{
+          width: pageWidth > 0 ? `${pageWidth}px` : "auto",
+          height: pageHeight > 0 ? `${pageHeight}px` : "auto",
+          display: isRendered ? "block" : "none",
+        }}
+      />
+
+      {/* SKELETON / LOADING PLACEHOLDER */}
+      {(!isRendered || isRendering) && (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center bg-white text-slate-400 gap-2"
+          style={{ width: `${pageWidth}px`, height: `${pageHeight}px` }}
+        >
+          <Loader2 className="w-6 h-6 animate-spin text-[#4B8097]" />
+          <span className="text-[11px] font-mono text-slate-500">Page {pageNum} • Rendering Codex...</span>
+        </div>
+      )}
+
+      {/* ANTI-SCREENSHOT / DRM WATERMARK OVERLAY WITH STUDENT ROLL NO */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5 z-10">
+        {/* Top Header Watermark */}
+        <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
+          <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
+          <span className="bg-black/5 px-1.5 py-0.5 rounded font-extrabold text-[#000]">ROLL: {activeRoll}</span>
+        </div>
+
+        {/* Multi-point Center Diagonal Watermark Grid */}
+        <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
+          <div className="text-[10px] sm:text-xs font-bold text-[#221D1D] tracking-wider">
+            CONFIDENTIAL STUDY NOTES • THE LAW KAKSHA
+          </div>
+          <div className="text-xs sm:text-sm font-black text-[#221D1D] tracking-widest uppercase">
+            STUDENT ID: {activeRoll}
+          </div>
+          <div className="text-[9px] sm:text-[10px] font-bold text-[#4D433F] tracking-wider">
+            STRICTLY FORBIDDEN TO SCREENSHOT, DOWNLOAD OR DISTRIBUTE
+          </div>
+        </div>
+
+        {/* Bottom Footer Watermark */}
+        <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
+          <span>STUDENT ID: {activeRoll}</span>
+          <span>PG {pageNum} • ENCRYPTED DRM READER</span>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export function SecurePdfReader({
   isOpen,
@@ -87,9 +342,8 @@ export function SecurePdfReader({
   price,
   onBuy,
 }: SecurePdfReaderProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [pdfOutline, setPdfOutline] = useState<PdfOutlineItem[]>([]);
@@ -100,10 +354,8 @@ export function SecurePdfReader({
   const [theme, setTheme] = useState<ReaderTheme>("dark");
   const [sidebarTab, setSidebarTab] = useState<"contents" | "bookmarks" | "shortcuts" | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [readingTime, setReadingTime] = useState(0);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
-  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
-  const renderTaskRef = useRef<any>(null);
+  const [basePageSize, setBasePageSize] = useState<{ width: number; height: number }>({ width: 595, height: 842 });
 
   // Preview Mode Calculation
   const isPreviewMode = !isPurchased && typeof previewPagesLimit === "number" && previewPagesLimit > 0;
@@ -111,27 +363,23 @@ export function SecurePdfReader({
     ? Math.min(previewPagesLimit, totalPages > 0 ? totalPages : previewPagesLimit)
     : totalPages;
 
-  // Multi-Touch Pinch and Swipe Tracking
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const initialPinchDistRef = useRef<number | null>(null);
-  const initialPinchScaleRef = useRef<number>(1.1);
-  const lastTapTimeRef = useRef<number>(0);
-
   // Student Profile Data
   const [activeStudent, setActiveStudent] = useState({ name: studentName, roll: studentRoll });
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const raw = localStorage.getItem("lawkaksha_student_session");
+        const raw =
+          localStorage.getItem("lawkaksha_student_session") ||
+          localStorage.getItem("lawkaksha_active_student") ||
+          localStorage.getItem("lawkaksha_student_user");
         if (raw) {
           const parsed = JSON.parse(raw);
           setActiveStudent({
             name: parsed.name || studentName,
-            roll: parsed.student_id || studentRoll,
+            roll: parsed.student_id || parsed.rollNumber || studentRoll,
           });
         }
-      } catch (e) {}
+      } catch {}
     }
   }, [isOpen, studentName, studentRoll]);
 
@@ -142,40 +390,24 @@ export function SecurePdfReader({
       try {
         const saved = localStorage.getItem(bookmarkKey);
         if (saved) setBookmarks(JSON.parse(saved));
-      } catch (e) {}
+      } catch {}
     }
   }, [bookmarkKey, isOpen]);
 
-  const toggleBookmark = (page: number) => {
-    setBookmarks((prev) => {
-      const next = prev.includes(page) ? prev.filter((p) => p !== page) : [...prev, page].sort((a, b) => a - b);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(bookmarkKey, JSON.stringify(next));
-        } catch (e) {}
-      }
-      return next;
-    });
-  };
-
-  // Timer for active reading duration
-  useEffect(() => {
-    let interval: any = null;
-    if (isOpen) {
-      interval = setInterval(() => {
-        setReadingTime((t) => t + 1);
-      }, 1000);
-    } else {
-      setReadingTime(0);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isOpen]);
-
-  const cleanFilename = useMemo(() => {
-    return pdfUrl.split("?")[0].split("/").pop() || "study-codex.pdf";
-  }, [pdfUrl]);
+  const toggleBookmark = useCallback(
+    (page: number) => {
+      setBookmarks((prev) => {
+        const next = prev.includes(page) ? prev.filter((p) => p !== page) : [...prev, page].sort((a, b) => a - b);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(bookmarkKey, JSON.stringify(next));
+          } catch {}
+        }
+        return next;
+      });
+    },
+    [bookmarkKey]
+  );
 
   // Main PDF Loader — direct binary streaming with HTTP range support + outline extraction
   const loadPdf = useCallback(async (url: string) => {
@@ -197,13 +429,30 @@ export function SecurePdfReader({
 
       let token = "";
       if (typeof window !== "undefined") {
-        token = localStorage.getItem("lawkaksha_token") || "";
+        token =
+          localStorage.getItem("lawkaksha_student_token") ||
+          localStorage.getItem("lawkaksha_token") ||
+          localStorage.getItem("token") ||
+          "";
       }
 
-      // Use HTTP range loading — PDF.js fetches only the pages it renders, not the whole file
-      const pdfEndpoint = token
-        ? `/api/pdf/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}`
-        : `/api/pdf/${encodeURIComponent(filename)}`;
+      const isAbsoluteUrl = /^https?:\/\//i.test(url);
+      const isBackendContent = url.startsWith("/api/content/");
+      const isSample =
+        url.includes("sample=true") ||
+        url.includes("sample=1") ||
+        url.toLowerCase().includes("sample") ||
+        !isPurchased ||
+        isPreviewMode;
+      const sampleQuery = isSample ? (token ? "&sample=true" : "?sample=true") : "";
+
+      const pdfEndpoint = isAbsoluteUrl
+        ? url
+        : isBackendContent
+        ? `${getApiBaseUrl()}${url}`
+        : token
+        ? `/api/pdf/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}${sampleQuery}`
+        : `/api/pdf/${encodeURIComponent(filename)}${sampleQuery}`;
 
       const loadingTask = pdfjsLib.getDocument({
         url: pdfEndpoint,
@@ -211,7 +460,6 @@ export function SecurePdfReader({
         cMapUrl: "/cmaps/",
         cMapPacked: true,
         standardFontDataUrl: "/standard_fonts/",
-        // Range requests enabled: PDF.js will lazily fetch only needed byte ranges
         disableRange: false,
         disableStream: false,
         disableAutoFetch: false,
@@ -220,6 +468,13 @@ export function SecurePdfReader({
       const doc = await loadingTask.promise;
       setPdfDoc(doc);
       setTotalPages(doc.numPages);
+
+      // Measure Page 1 viewport to establish document aspect ratio
+      try {
+        const firstPage = await doc.getPage(1);
+        const vp = firstPage.getViewport({ scale: 1 });
+        setBasePageSize({ width: vp.width, height: vp.height });
+      } catch {}
 
       // Extract real embedded outline
       try {
@@ -244,92 +499,57 @@ export function SecurePdfReader({
         } else {
           setPdfOutline([]);
         }
-      } catch (e) {
+      } catch {
         setPdfOutline([]);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("PDF load failed:", err);
+      // Fallback
+      if (url.startsWith("/api/content/")) {
+        try {
+          const pdfjsLib = await import("pdfjs-dist");
+          const fallbackTask = pdfjsLib.getDocument({
+            url: `/api/pdf/${encodeURIComponent(filename)}?sample=true`,
+            cMapUrl: "/cmaps/",
+            cMapPacked: true,
+            standardFontDataUrl: "/standard_fonts/",
+          });
+          const fallbackDoc = await fallbackTask.promise;
+          setPdfDoc(fallbackDoc);
+          setTotalPages(fallbackDoc.numPages);
+          return;
+        } catch (fallbackErr) {
+          console.error("Fallback PDF proxy also failed:", fallbackErr);
+        }
+      }
       setError("Unable to load the study book. Please click Retry below.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isPreviewMode, isPurchased]);
 
-  // Fit to Width calculation - strictly preserves aspect ratio
-  const handleFitWidth = useCallback(async () => {
-    if (!containerRef.current || !pdfDoc) return;
-    try {
-      const page = await pdfDoc.getPage(currentPage);
-      const viewport = page.getViewport({ scale: 1, rotation });
-      const horizontalPadding = window.innerWidth < 640 ? 16 : 48;
-      const availableWidth = Math.max(containerRef.current.clientWidth - horizontalPadding, 240);
-      if (availableWidth > 0 && viewport.width > 0) {
-        const targetScale = availableWidth / viewport.width;
-        setScale(targetScale);
-      }
-    } catch (e) {}
-  }, [currentPage, pdfDoc, rotation]);
+  // Fit to Width calculation
+  const handleFitWidth = useCallback(() => {
+    if (!containerRef.current || basePageSize.width <= 0) return;
+    const horizontalPadding = window.innerWidth < 640 ? 16 : 48;
+    const availableWidth = Math.max(containerRef.current.clientWidth - horizontalPadding, 260);
+    const targetScale = Math.min(Math.max(availableWidth / basePageSize.width, 0.4), 2.5);
+    setScale(Number(targetScale.toFixed(2)));
+  }, [basePageSize.width]);
 
-  // Fit to Page calculation - strictly preserves aspect ratio
-  const handleFitPage = useCallback(async () => {
-    if (!containerRef.current || !pdfDoc) return;
-    try {
-      const page = await pdfDoc.getPage(currentPage);
-      const viewport = page.getViewport({ scale: 1, rotation });
-      const verticalPadding = window.innerWidth < 640 ? 110 : 130;
-      const availableHeight = Math.max(containerRef.current.clientHeight - verticalPadding, 300);
-      if (availableHeight > 0 && viewport.height > 0) {
-        const targetScale = availableHeight / viewport.height;
-        setScale(targetScale);
-      }
-    } catch (e) {}
-  }, [currentPage, pdfDoc, rotation]);
+  // Fit to Page calculation
+  const handleFitPage = useCallback(() => {
+    if (!containerRef.current || basePageSize.height <= 0) return;
+    const verticalPadding = window.innerWidth < 640 ? 110 : 130;
+    const availableHeight = Math.max(containerRef.current.clientHeight - verticalPadding, 300);
+    const targetScale = Math.min(Math.max(availableHeight / basePageSize.height, 0.4), 2.5);
+    setScale(Number(targetScale.toFixed(2)));
+  }, [basePageSize.height]);
 
-  // Rotate Page
+  // Rotate Pages
   const handleRotate = () => {
     setRotation((r) => (r + 90) % 360);
   };
-
-  // Render Page onto Canvas with High-DPI support and locked aspect ratio
-  const renderPage = useCallback(
-    async (doc: any, pageNum: number, zoom: number, rot: number) => {
-      if (!canvasRef.current || !doc) return;
-      try {
-        if (renderTaskRef.current) {
-          try {
-            renderTaskRef.current.cancel();
-          } catch (e) {}
-          renderTaskRef.current = null;
-        }
-
-        const page = await doc.getPage(pageNum);
-        const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
-        const viewport = page.getViewport({ scale: zoom * dpr, rotation: rot });
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d", { alpha: false });
-        if (!ctx) return;
-
-        const cssWidth = Math.round(viewport.width / dpr);
-        const cssHeight = Math.round(viewport.height / dpr);
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        canvas.style.width = `${cssWidth}px`;
-        canvas.style.height = `${cssHeight}px`;
-        setCanvasSize({ width: cssWidth, height: cssHeight });
-
-        const renderTask = page.render({ canvasContext: ctx, viewport });
-        renderTaskRef.current = renderTask;
-        await renderTask.promise;
-        renderTaskRef.current = null;
-      } catch (err: any) {
-        if (err?.name !== "RenderingCancelledException") {
-          console.error("Render error:", err);
-        }
-      }
-    },
-    []
-  );
 
   useEffect(() => {
     if (isOpen && pdfUrl) {
@@ -347,7 +567,7 @@ export function SecurePdfReader({
     if (pdfDoc) {
       const timer = setTimeout(() => {
         handleFitWidth();
-      }, 80);
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [pdfDoc, handleFitWidth]);
@@ -361,127 +581,51 @@ export function SecurePdfReader({
     return () => window.removeEventListener("resize", onResize);
   }, [pdfDoc, handleFitWidth]);
 
-  useEffect(() => {
-    if (pdfDoc) {
-      renderPage(pdfDoc, currentPage, scale, rotation);
+  // Scroll to a specific page smoothly
+  const scrollToPage = useCallback((pageNum: number) => {
+    const pageEl = document.getElementById(`pdf-page-${pageNum}`);
+    if (pageEl) {
+      pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      setCurrentPage(pageNum);
     }
-  }, [pdfDoc, currentPage, scale, rotation, renderPage]);
+  }, []);
 
-  // Multi-touch Pinch to Zoom, Double Tap, and Swipe Page Turn Handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      initialPinchDistRef.current = dist;
-      initialPinchScaleRef.current = scale;
-      touchStartX.current = null;
-      touchStartY.current = null;
-    } else if (e.touches.length === 1) {
-      touchStartX.current = e.touches[0].clientX;
-      touchStartY.current = e.touches[0].clientY;
-    }
-  };
+  // Update current page as user scrolls through pages
+  const handlePageVisible = useCallback((pageNum: number) => {
+    setCurrentPage(pageNum);
+  }, []);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
-      const currentDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const factor = currentDist / initialPinchDistRef.current;
-      const newScale = Math.min(Math.max(initialPinchScaleRef.current * factor, 0.4), 3.0);
-      setScale(newScale);
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (initialPinchDistRef.current !== null && e.touches.length < 2) {
-      initialPinchDistRef.current = null;
-      return;
-    }
-
-    const now = Date.now();
-    if (now - lastTapTimeRef.current < 280) {
-      if (scale > 1.3) {
-        handleFitWidth();
-      } else {
-        setScale(1.5);
-      }
-      lastTapTimeRef.current = 0;
-      touchStartX.current = null;
-      touchStartY.current = null;
-      return;
-    }
-    lastTapTimeRef.current = now;
-
-    if (touchStartX.current === null || touchStartY.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-
-    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
-      if (deltaX < 0) {
-        const limit = isPreviewMode ? maxAllowedPage : totalPages;
-        setCurrentPage((p) => Math.min(p + 1, limit));
-      } else {
-        setCurrentPage((p) => Math.max(p - 1, 1));
-      }
-    }
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
-
-  // Comprehensive Keyboard & DRM Anti-Piracy Protection
+  // Keyboard navigation & anti-copy / anti-print event interceptors
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKey = (e: KeyboardEvent) => {
-      // 1. Block PrintScreen and wipe clipboard
-      if (e.key === "PrintScreen") {
-        e.preventDefault();
-        try {
-          navigator.clipboard.writeText("");
-        } catch (err) {}
-        return;
-      }
-
-      // 2. Block Ctrl/Cmd + P (Print), S (Save), U (Source), C (Copy), X (Cut), V (Paste)
+      // Prevent Print, Save, Copy, View Source
       if (
         (e.ctrlKey || e.metaKey) &&
-        (e.key === "p" || e.key === "s" || e.key === "u" || e.key === "c" || e.key === "x" || e.key === "v")
+        (e.key === "p" || e.key === "P" || e.key === "s" || e.key === "S" || e.key === "c" || e.key === "C" || e.key === "u" || e.key === "U")
       ) {
         e.preventDefault();
         return;
       }
 
-      // 3. Block Developer Tools & Inspect Combos (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C)
-      if (
-        e.key === "F12" ||
-        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c"))
-      ) {
+      if (e.key === "F12") {
         e.preventDefault();
         return;
       }
 
-      // 4. Block Mac Screen Capture Shortcuts (Cmd + Shift + 3 / 4 / 5)
-      if (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5")) {
+      if (e.key === "ArrowRight" || e.key === "PageDown") {
         e.preventDefault();
-        return;
-      }
-
-      // Navigation Shortcuts
-      if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) {
+        const next = Math.min(currentPage + 1, isPreviewMode ? maxAllowedPage : totalPages);
+        scrollToPage(next);
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
         e.preventDefault();
-        const limit = isPreviewMode ? maxAllowedPage : totalPages;
-        setCurrentPage((p) => (p >= limit ? limit : Math.min(p + 1, limit)));
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp" || (e.key === " " && e.shiftKey)) {
-        e.preventDefault();
-        setCurrentPage((p) => Math.max(p - 1, 1));
+        const prev = Math.max(currentPage - 1, 1);
+        scrollToPage(prev);
       } else if (e.key === "+" || e.key === "=") {
-        setScale((s) => Math.min(Number((s + 0.15).toFixed(2)), 3.0));
+        setScale((s) => Math.min(Number((s + 0.15).toFixed(2)), 2.5));
       } else if (e.key === "-" || e.key === "_") {
-        setScale((s) => Math.max(Number((s - 0.15).toFixed(2)), 0.6));
+        setScale((s) => Math.max(Number((s - 0.15).toFixed(2)), 0.5));
       } else if (e.key === "w" || e.key === "W") {
         handleFitWidth();
       } else if (e.key === "p" || e.key === "P") {
@@ -508,7 +652,7 @@ export function SecurePdfReader({
       window.removeEventListener("copy", handleCopy);
       window.removeEventListener("cut", handleCopy);
     };
-  }, [isOpen, totalPages, onClose, currentPage, handleFitWidth, handleFitPage]);
+  }, [isOpen, totalPages, onClose, currentPage, handleFitWidth, handleFitPage, isPreviewMode, maxAllowedPage, toggleBookmark, scrollToPage]);
 
   // Fullscreen toggle
   const toggleFullscreen = () => {
@@ -529,55 +673,14 @@ export function SecurePdfReader({
 
   if (!isOpen) return null;
 
-  // Design Token Theming Palette
-  const themeStyles = {
-    dark: {
-      appBg: "#1A1E24",
-      headerBg: "bg-[#1A1E24]/90 backdrop-blur-xl border-white/[0.08] text-slate-100",
-      canvasBg: "#111418",
-      pageShadow: "shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)]",
-      tocBg: "bg-[#1A1E24] border-white/[0.08] text-slate-100",
-      dockBg: "bg-[#242B35]/90 backdrop-blur-xl border-white/[0.1] text-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.45)]",
-      btnGhost: "hover:bg-white/10 active:bg-white/15 text-slate-300 hover:text-white",
-      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
-      accent: "text-[#BFAFE5]",
-    },
-    sepia: {
-      appBg: "#F7F4EB",
-      headerBg: "bg-[#F7F4EB]/90 backdrop-blur-xl border-[#AED7E9]/[0.15] text-[#221D1D]",
-      canvasBg: "#EDE7D9",
-      pageShadow: "shadow-[0_20px_50px_-12px_rgba(60,40,15,0.15),0_0_0_1px_rgba(100,70,20,0.08)]",
-      tocBg: "bg-[#F7F4EB] border-[#AED7E9]/[0.15] text-[#221D1D]",
-      dockBg: "bg-[#EFE8DC]/90 backdrop-blur-xl border-[#AED7E9]/[0.2] text-[#221D1D] shadow-[0_12px_40px_rgba(60,40,15,0.12)]",
-      btnGhost: "hover:bg-[#AED7E9]/10 active:bg-[#AED7E9]/15 text-[#4D433F] hover:text-[#221D1D]",
-      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
-      accent: "text-[#4B8097]",
-    },
-    light: {
-      appBg: "#F7F7F5",
-      headerBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D]",
-      canvasBg: "#EFEFEA",
-      pageShadow: "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1),0_0_0_1px_rgba(231,228,231,0.8)]",
-      tocBg: "bg-white border-[#E7E4E7] text-[#221D1D]",
-      dockBg: "bg-white/95 backdrop-blur-xl border-[#E7E4E7] text-[#221D1D] shadow-[0_12px_40px_rgba(0,0,0,0.08)]",
-      btnGhost: "hover:bg-[#F7F7F5] active:bg-[#E7E4E7] text-[#4D433F] hover:text-[#221D1D]",
-      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
-      accent: "text-[#4B8097]",
-    },
-    oled: {
-      appBg: "#000000",
-      headerBg: "bg-black/90 backdrop-blur-xl border-neutral-800 text-neutral-100",
-      canvasBg: "#000000",
-      pageShadow: "shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_25px_60px_rgba(0,0,0,1)]",
-      tocBg: "bg-black border-neutral-800 text-neutral-100",
-      dockBg: "bg-[#0A0A0A]/90 backdrop-blur-xl border-neutral-800 text-neutral-100 shadow-[0_12px_40px_rgba(0,0,0,0.8)]",
-      btnGhost: "hover:bg-neutral-800 active:bg-neutral-700 text-neutral-300 hover:text-white",
-      btnActive: "bg-[#AED7E9] text-[#221D1D] font-bold",
-      accent: "text-[#BFAFE5]",
-    },
-  }[theme];
+  const themeStyles = THEME_STYLES[theme];
 
-  const isBookmarked = bookmarks.includes(currentPage);
+  // Calculate rendered dimensions preserving aspect ratio
+  const isRotated = rotation % 180 !== 0;
+  const effectiveBaseWidth = isRotated ? basePageSize.height : basePageSize.width;
+  const effectiveBaseHeight = isRotated ? basePageSize.width : basePageSize.height;
+  const computedPageWidth = Math.round(effectiveBaseWidth * scale);
+  const computedPageHeight = Math.round(effectiveBaseHeight * scale);
 
   // 1-Tap Minimal Theme Switcher
   const cycleTheme = () => {
@@ -601,159 +704,106 @@ export function SecurePdfReader({
         }
       `}</style>
 
-      {/* 1. ULTRA-MINIMAL TOP BAR */}
+      {/* 1. TOP HEADER BAR */}
       <header
         className={`h-12 sm:h-13 px-3 sm:px-5 border-b shrink-0 z-30 flex items-center justify-between transition-colors ${themeStyles.headerBg}`}
       >
         {/* LEFT: TOC / CONTENTS BUTTON + REAL TITLE */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
-            onClick={() => setSidebarTab(sidebarTab ? null : "contents")}
-            className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-              sidebarTab ? themeStyles.btnActive : themeStyles.btnGhost
+            onClick={() => setSidebarTab((t) => (t === "contents" ? null : "contents"))}
+            className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              sidebarTab === "contents" ? themeStyles.btnActive : themeStyles.btnGhost
             }`}
-            title="Document Contents & Pages"
+            title="Table of Contents & Pages"
           >
-            <List className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs font-medium">Contents</span>
-            {totalPages > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#AED7E9]/40 text-[#221D1D] font-mono font-bold">
-                {totalPages} {totalPages === 1 ? "Page" : "Pages"}
-              </span>
-            )}
+            <BookOpen className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline text-xs font-semibold">Contents</span>
           </button>
 
-          <div className="w-px h-4 bg-current opacity-10 hidden sm:block" />
+          <div className="h-4 w-px bg-current opacity-20 hidden sm:block" />
 
-          {/* Book Title */}
-          <div className="min-w-0 flex items-center gap-2 truncate">
-            <h1 className="text-xs sm:text-sm font-semibold tracking-tight truncate">
+          <div className="min-w-0">
+            <h1 className="text-xs sm:text-sm font-bold truncate max-w-[200px] sm:max-w-md md:max-w-lg leading-tight">
               {title}
             </h1>
+            <div className="flex items-center gap-2 text-[10px] opacity-65 font-mono">
+              <span>Student: {activeStudent.roll}</span>
+              {isPreviewMode && (
+                <span className="text-[#F7892A] font-bold">
+                  • Preview Limit: {maxAllowedPage} Pages
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* RIGHT: 1-TAP ICONS */}
-        <div className="flex items-center gap-1 shrink-0">
-          {/* 1-Tap Theme Toggle */}
+        {/* RIGHT: THEME CYCLER, ZOOM CONTROLS, FULLSCREEN, CLOSE */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             onClick={cycleTheme}
-            className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs ${themeStyles.btnGhost}`}
-            title={`Theme: ${theme.toUpperCase()} (Tap to switch)`}
+            className={`p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium ${themeStyles.btnGhost}`}
+            title={`Current: ${theme.toUpperCase()} (Click to toggle)`}
           >
             {theme === "dark" && <Moon className="w-4 h-4 text-[#BFAFE5]" />}
-            {theme === "sepia" && <Coffee className="w-4 h-4 text-[#4B8097]" />}
-            {theme === "light" && <Sun className="w-4 h-4 text-[#F7892A]" />}
-            {theme === "oled" && <Moon className="w-4 h-4 text-neutral-400" />}
-            <span className="hidden sm:inline capitalize text-[11px] font-medium opacity-80">{theme}</span>
+            {theme === "sepia" && <Coffee className="w-4 h-4 text-[#F7892A]" />}
+            {theme === "light" && <Sun className="w-4 h-4 text-amber-500" />}
+            {theme === "oled" && <div className="w-3.5 h-3.5 rounded-full border border-white/50 bg-black" />}
+            <span className="hidden md:inline uppercase text-[10px] tracking-wider font-mono">
+              {theme}
+            </span>
           </button>
 
-          {/* Bookmark Toggle */}
           <button
             onClick={() => toggleBookmark(currentPage)}
             className={`p-2 rounded-xl transition-all cursor-pointer ${
-              isBookmarked ? "text-[#F7892A]" : themeStyles.btnGhost
+              bookmarks.includes(currentPage) ? "text-[#F7892A] bg-[#F7892A]/10 font-bold" : themeStyles.btnGhost
             }`}
-            title={isBookmarked ? "Page Bookmarked" : "Bookmark this Page (B)"}
+            title={bookmarks.includes(currentPage) ? "Remove Bookmark" : "Bookmark Current Page"}
           >
-            <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-[#F7892A]" : "opacity-70"}`} />
+            <Bookmark className={`w-4 h-4 ${bookmarks.includes(currentPage) ? "fill-current" : ""}`} />
           </button>
 
-          {/* Rotate (Desktop) */}
-          <button
-            onClick={handleRotate}
-            className={`p-2 rounded-xl transition-all cursor-pointer hidden sm:flex ${themeStyles.btnGhost}`}
-            title="Rotate 90° (R)"
-          >
-            <RotateCw className="w-4 h-4 opacity-70" />
-          </button>
-
-          {/* Fullscreen (Desktop) */}
           <button
             onClick={toggleFullscreen}
-            className={`p-2 rounded-xl transition-all cursor-pointer hidden md:flex ${themeStyles.btnGhost}`}
+            className={`hidden sm:flex p-2 rounded-xl transition-all cursor-pointer ${themeStyles.btnGhost}`}
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4 opacity-70" /> : <Maximize2 className="w-4 h-4 opacity-70" />}
+            <Maximize2 className="w-4 h-4" />
           </button>
 
-          <div className="w-px h-4 bg-current opacity-10 mx-0.5" />
-
-          {/* Main Website Return Button */}
           <button
             onClick={onClose}
-            className="px-2.5 py-1.5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer opacity-80 hover:opacity-100"
-            title="Return to Main Website (The Law Kaksha)"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Main Website</span>
-          </button>
-
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            title="Close (Esc)"
-            className="p-2 rounded-xl hover:bg-[#C35F3B]/15 text-[#77716E] hover:text-[#C35F3B] transition-colors cursor-pointer"
-            aria-label="Close"
+            className="p-2 rounded-xl hover:bg-[#C35F3B]/20 text-[#C35F3B] hover:text-[#C35F3B] transition-all cursor-pointer ml-1"
+            title="Close Reader (Esc)"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      {/* PREVIEW MODE TOP NOTIFICATION BAR */}
-      {isPreviewMode && (
-        <div className="bg-[#BFAFE5] text-[#221D1D] px-3 sm:px-5 py-2 flex items-center justify-between text-xs font-semibold shrink-0 z-30 shadow-xs border-b border-[#A08DC9]">
-          <div className="flex items-center gap-2 truncate mr-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-white text-[10px] font-bold uppercase tracking-wider text-[#221D1D] border border-[#A08DC9] shrink-0">
-              Free Sample Preview ({maxAllowedPage} Pages Limit)
-            </span>
-            <span className="hidden sm:inline text-xs text-[#221D1D] font-medium truncate">
-              You are reading free sample pages. Full study codex contains {totalPages > 0 ? totalPages : "complete"} pages.
-            </span>
-          </div>
-          {onBuy && (
-            <button
-              onClick={onBuy}
-              className="px-3.5 py-1 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs active:scale-95"
-            >
-              <span>Unlock Full Book {price ? `• ₹${price}` : ""}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#AED7E9]" />
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* 2. MAIN READING WORKSPACE & NAVIGATION DRAWER */}
-      <div className="flex-1 flex min-h-0 relative">
-        {/* MOBILE BACKDROP FOR SIDEBAR DRAWER */}
-        {sidebarTab && (
-          <div
-            className="fixed inset-0 bg-[#221D1D]/50 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-150"
-            onClick={() => setSidebarTab(null)}
-          />
-        )}
-
-        {/* COLLAPSIBLE SIDEBAR DRAWER */}
+      {/* 2. MAIN WORKSPACE WITH SIDEBAR & CONTINUOUS VERTICAL SCROLL CANVAS */}
+      <div className="flex-1 relative flex overflow-hidden">
+        {/* SIDEBAR DRAWER (TOC / BOOKMARKS / SHORTCUTS) */}
         {sidebarTab && (
           <aside
-            className={`fixed md:relative inset-y-0 left-0 w-[85vw] max-w-sm md:w-80 shrink-0 border-r flex flex-col z-40 shadow-2xl animate-in slide-in-from-left duration-200 ${themeStyles.tocBg}`}
+            className={`w-72 sm:w-80 border-r shrink-0 flex flex-col z-20 shadow-2xl transition-all ${themeStyles.tocBg}`}
           >
-            {/* Drawer Header */}
-            <div className="p-3 border-b border-inherit flex items-center justify-between gap-1">
-              <div className="flex items-center gap-1 bg-black/10 rounded-xl p-1 w-full">
+            {/* TABS HEADER */}
+            <div className="p-3 border-b flex items-center justify-between border-inherit/15">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => setSidebarTab("contents")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    sidebarTab === "contents" ? "bg-[#AED7E9] text-[#221D1D] shadow-xs font-bold" : "opacity-70 hover:opacity-100"
+                  className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    sidebarTab === "contents" ? "bg-[#4D433F] text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
-                  {pdfOutline.length > 0 ? "Sections" : "Pages"}
+                  Contents
                 </button>
                 <button
                   onClick={() => setSidebarTab("bookmarks")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    sidebarTab === "bookmarks" ? "bg-[#F7892A] text-white shadow-xs" : "opacity-70 hover:opacity-100"
+                  className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                    sidebarTab === "bookmarks" ? "bg-[#4D433F] text-white shadow-xs" : "opacity-70 hover:opacity-100"
                   }`}
                 >
                   <span>Bookmarks</span>
@@ -798,7 +848,7 @@ export function SecurePdfReader({
                         <button
                           key={idx}
                           onClick={() => {
-                            setCurrentPage(item.page);
+                            scrollToPage(item.page);
                             if (typeof window !== "undefined" && window.innerWidth < 768) {
                               setSidebarTab(null);
                             }
@@ -822,7 +872,7 @@ export function SecurePdfReader({
                         All Pages ({totalPages})
                       </span>
                       <span className="text-[10px] opacity-60">
-                        Tap any page to jump
+                        Tap any page to scroll
                       </span>
                     </div>
 
@@ -833,7 +883,7 @@ export function SecurePdfReader({
                           <button
                             key={pNum}
                             onClick={() => {
-                              setCurrentPage(pNum);
+                              scrollToPage(pNum);
                               if (typeof window !== "undefined" && window.innerWidth < 768) {
                                 setSidebarTab(null);
                               }
@@ -882,19 +932,19 @@ export function SecurePdfReader({
                   bookmarks.map((bmPage) => (
                     <div
                       key={bmPage}
-                      className="p-2.5 rounded-xl bg-black/[0.04] hover:bg-black/[0.08] border border-inherit/30 flex items-center justify-between gap-3 transition-colors"
+                      className="p-2.5 rounded-xl bg-black/[0.03] border border-inherit/20 flex items-center justify-between gap-2"
                     >
                       <button
                         onClick={() => {
-                          setCurrentPage(bmPage);
+                          scrollToPage(bmPage);
                           if (typeof window !== "undefined" && window.innerWidth < 768) {
                             setSidebarTab(null);
                           }
                         }}
-                        className="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
+                        className="flex-1 text-left flex items-center gap-2 cursor-pointer hover:opacity-100 opacity-80"
                       >
-                        <div className="w-6 h-6 rounded-lg bg-[#F7892A]/20 text-[#F7892A] font-mono text-xs font-semibold flex items-center justify-center">
-                          {bmPage}
+                        <div className="w-6 h-6 rounded-lg bg-[#F7892A]/10 text-[#F7892A] flex items-center justify-center shrink-0">
+                          <Bookmark className="w-3.5 h-3.5 fill-current" />
                         </div>
                         <p className="text-xs font-medium">Page {bmPage}</p>
                       </button>
@@ -921,9 +971,10 @@ export function SecurePdfReader({
                 </div>
 
                 {[
-                  { key: "Swipe / ← →", label: "Flip Page" },
-                  { key: "Double Tap", label: "Auto Fit / Zoom" },
-                  { key: "Pinch", label: "Smooth Zoom" },
+                  { key: "Scroll / ↑ ↓", label: "Continuous Scroll" },
+                  { key: "PageUp / PageDn", label: "Jump Page" },
+                  { key: "W", label: "Fit Width" },
+                  { key: "+ / -", label: "Zoom In / Out" },
                   { key: "B", label: "Bookmark Page" },
                   { key: "R", label: "Rotate 90°" },
                   { key: "Esc", label: "Close Reader" },
@@ -943,24 +994,21 @@ export function SecurePdfReader({
           </aside>
         )}
 
-        {/* CANVAS WORKSPACE */}
+        {/* CONTINUOUS VERTICAL DOCUMENT SCROLL WORKSPACE */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-auto"
+          className="flex-1 overflow-y-auto flex flex-col items-center justify-start py-6 sm:py-8 px-2 sm:px-4 relative scroll-smooth touch-auto"
           style={{ background: themeStyles.canvasBg }}
           onContextMenu={blockContext}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
-          {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS (Desktop only) */}
+          {/* FLOATING PREVIOUS / NEXT SIDE CHEVRONS (Desktop Jump Controls) */}
           {totalPages > 0 && (
             <>
               <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                onClick={() => scrollToPage(Math.max(currentPage - 1, 1))}
                 disabled={currentPage === 1}
                 className="hidden md:flex fixed left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-0 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
-                title="Previous Page (←)"
+                title="Scroll to Previous Page"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -971,11 +1019,11 @@ export function SecurePdfReader({
                     if (onBuy) onBuy();
                     return;
                   }
-                  setCurrentPage((p) => Math.min(p + 1, isPreviewMode ? maxAllowedPage : totalPages));
+                  scrollToPage(Math.min(currentPage + 1, isPreviewMode ? maxAllowedPage : totalPages));
                 }}
                 disabled={currentPage >= (isPreviewMode ? maxAllowedPage : totalPages)}
                 className="hidden md:flex fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/40 hover:bg-[#AED7E9] hover:text-[#221D1D] text-white backdrop-blur-md border border-white/15 items-center justify-center transition-all disabled:opacity-30 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
-                title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Next Page (→)"}
+                title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Scroll to Next Page"}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -986,7 +1034,7 @@ export function SecurePdfReader({
           {loading && (
             <div className="flex flex-col items-center justify-center my-auto gap-3 text-white/70 py-20">
               <Loader2 className="w-7 h-7 animate-spin text-[#4B8097]" />
-              <p className="text-xs font-medium opacity-80">Loading Study Codex...</p>
+              <p className="text-xs font-medium opacity-80">Loading Study Codex Pages...</p>
             </div>
           )}
 
@@ -1005,116 +1053,79 @@ export function SecurePdfReader({
             </div>
           )}
 
-          {/* LOADED PDF PAGE: FLAT CANVAS */}
-          {!loading && !error && (
-            <div className="relative my-auto flex flex-col items-center pb-24 sm:pb-20">
-                <div
-                  className={`relative select-none rounded-xl overflow-hidden ${themeStyles.pageShadow} shrink-0`}
-                  style={{
-                    width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
-                    height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
-                    background: "#ffffff",
-                  }}
-                  onContextMenu={blockContext}
-                >
-                  {/* CANVAS RENDERING SURFACE */}
-                  <canvas
-                    ref={canvasRef}
-                    className="block"
-                    style={{
-                      width: canvasSize.width > 0 ? `${canvasSize.width}px` : "auto",
-                      height: canvasSize.height > 0 ? `${canvasSize.height}px` : "auto",
-                    }}
-                  />
+          {/* LOADED PDF PAGES: CONTINUOUS VERTICAL SCROLL STREAM */}
+          {!loading && !error && pdfDoc && totalPages > 0 && (
+            <div className="flex flex-col items-center w-full pb-28">
+              {Array.from({ length: maxAllowedPage }, (_, i) => i + 1).map((pNum) => (
+                <ScrollablePdfPage
+                  key={`${pNum}-${scale}-${rotation}`}
+                  pageNum={pNum}
+                  pdfDoc={pdfDoc}
+                  scale={scale}
+                  rotation={rotation}
+                  activeRoll={activeStudent.roll}
+                  themeStyles={themeStyles}
+                  pageWidth={computedPageWidth}
+                  pageHeight={computedPageHeight}
+                  containerRef={containerRef}
+                  onVisible={handlePageVisible}
+                />
+              ))}
 
-                  {/* ANTI-SCREENSHOT / DRM MULTI-LAYER WATERMARK OVERLAY */}
-                  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex flex-col justify-between p-3 sm:p-5">
-                    {/* Top Header Watermark */}
-                    <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
-                      <span>THE LAW KAKSHA • LICENSED STUDENT COPY</span>
-                      <span>ROLL: {activeStudent.roll}</span>
-                    </div>
-
-                    {/* Multi-point Center Diagonal Watermark Grid */}
-                    <div className="my-auto space-y-8 sm:space-y-12 transform -rotate-12 select-none opacity-20 text-center font-mono">
-                      <div className="text-[11px] sm:text-xs font-bold text-[#221D1D] tracking-wider">
-                        CONFIDENTIAL STUDY NOTES • PROPERTY OF THE LAW KAKSHA
-                      </div>
-                      <div className="text-xs sm:text-sm font-extrabold text-[#221D1D] tracking-widest uppercase">
-                        LICENSED TO: {activeStudent.name.toUpperCase()} • ID: {activeStudent.roll}
-                      </div>
-                      <div className="text-[10px] sm:text-[11px] font-bold text-[#4D433F] tracking-wider">
-                        STRICTLY FORBIDDEN TO SCREENSHOT, COPY OR DISTRIBUTE
-                      </div>
-                    </div>
-
-                    {/* Bottom Footer Watermark */}
-                    <div className="flex justify-between items-center text-[9px] sm:text-[11px] font-mono opacity-25 text-[#221D1D] font-bold uppercase tracking-wider">
-                      <span>STUDENT: {activeStudent.name}</span>
-                      <span>SECURE IN-WEB DRM READER</span>
-                    </div>
+              {/* UNLOCK CARD WHEN REACHING PREVIEW LIMIT IN SCROLL VIEW */}
+              {isPreviewMode && maxAllowedPage < totalPages && (
+                <div className="w-full max-w-xl mx-auto my-8 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A1E24] border-2 border-[#BFAFE5] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 z-20">
+                  <div className="w-12 h-12 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] dark:text-white flex items-center justify-center mx-auto shadow-xs">
+                    <Lock className="w-6 h-6 text-[#221D1D] dark:text-[#AED7E9]" />
                   </div>
-                </div>
-
-                {/* FOOTNOTE */}
-                <div className="mt-3 text-[11px] opacity-60 font-mono text-center">
-                  Page {currentPage} of {isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}
-                </div>
-
-                {/* UNLOCK CARD WHEN REACHING PREVIEW LIMIT */}
-                {isPreviewMode && currentPage >= maxAllowedPage && (
-                  <div className="w-full max-w-xl mx-auto my-6 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A1E24] border-2 border-[#BFAFE5] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 z-20">
-                    <div className="w-12 h-12 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] dark:text-white flex items-center justify-center mx-auto shadow-xs">
-                      <Lock className="w-6 h-6 text-[#221D1D] dark:text-[#AED7E9]" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B] bg-[#F4C5C0]/40 px-3 py-1 rounded-full border border-[#F4C5C0]">
-                        End of Sample Preview ({maxAllowedPage} / {totalPages > 0 ? totalPages : maxAllowedPage} Pages)
-                      </span>
-                      <h4 className="text-base sm:text-xl font-bold font-serif text-[#221D1D] dark:text-white mt-2">
-                        Unlock the Complete Edition of {title}
-                      </h4>
-                      <p className="text-xs text-[#4D433F] dark:text-slate-300 max-w-md mx-auto leading-relaxed mt-1">
-                        Get instant digital access to all chapters, unit breakdowns, practice questions, and landmark case precedents inside your personal Student Dashboard with continuous DRM watermark security.
-                      </p>
-                    </div>
-                    {onBuy && (
-                      <div className="pt-2 flex justify-center">
-                        <button
-                          onClick={onBuy}
-                          className="px-6 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
-                        >
-                          <span>Unlock Full Codex {price ? `• ₹${price}` : ""}</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B] bg-[#F4C5C0]/40 px-3 py-1 rounded-full border border-[#F4C5C0]">
+                      End of Sample Preview ({maxAllowedPage} / {totalPages} Pages)
+                    </span>
+                    <h4 className="text-base sm:text-xl font-bold font-serif text-[#221D1D] dark:text-white mt-2">
+                      Unlock the Complete Edition of {title}
+                    </h4>
+                    <p className="text-xs text-[#4D433F] dark:text-slate-300 max-w-md mx-auto leading-relaxed mt-1">
+                      Get instant access to all remaining chapters, statutory breakdown charts, practice questions, and model answers with secure student ID watermarking.
+                    </p>
                   </div>
-                )}
-              </div>
+                  {onBuy && (
+                    <div className="pt-2 flex justify-center">
+                      <button
+                        onClick={onBuy}
+                        className="px-6 py-3 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
+                      >
+                        <span>Unlock Full Course Codex {price ? `• ₹${price}` : ""}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
 
-      {/* 3. ULTRA-SLEEK FLOATING CONTROLLER ISLAND */}
+      {/* 3. ULTRA-SLEEK FLOATING CONTROLLER DOCK */}
       {totalPages > 0 && (
         <footer
           className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[95%] sm:w-auto min-w-0 sm:min-w-[420px] h-12 px-2 sm:px-4 rounded-full border shadow-xl flex items-center justify-between gap-1.5 sm:gap-4 transition-all duration-200 ${themeStyles.dockBg}`}
         >
           {/* PREVIOUS PAGE BUTTON */}
           <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            onClick={() => scrollToPage(Math.max(currentPage - 1, 1))}
             disabled={currentPage === 1}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
-            title="Previous Page (←)"
+            title="Previous Page"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
           {/* ZOOM MINUS */}
           <button
-            onClick={() => setScale((s) => Math.max(Number((s - 0.2).toFixed(2)), 0.6))}
-            disabled={scale <= 0.65}
+            onClick={() => setScale((s) => Math.max(Number((s - 0.15).toFixed(2)), 0.5))}
+            disabled={scale <= 0.55}
             className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
             title="Zoom Out (-)"
           >
@@ -1128,7 +1139,7 @@ export function SecurePdfReader({
               min={1}
               max={isPreviewMode ? maxAllowedPage : totalPages}
               value={currentPage}
-              onChange={(e) => setCurrentPage(Number(e.target.value))}
+              onChange={(e) => scrollToPage(Number(e.target.value))}
               className="w-full h-1 bg-current opacity-20 hover:opacity-40 rounded-full appearance-none cursor-pointer accent-[#AED7E9] focus:outline-none transition-opacity"
               title={`Page ${currentPage} of ${isPreviewMode ? `${maxAllowedPage} (Preview)` : totalPages}`}
             />
@@ -1138,7 +1149,7 @@ export function SecurePdfReader({
                 if (target) {
                   const p = parseInt(target);
                   if (!isNaN(p) && p >= 1 && p <= (isPreviewMode ? maxAllowedPage : totalPages)) {
-                    setCurrentPage(p);
+                    scrollToPage(p);
                   }
                 }
               }}
@@ -1151,8 +1162,8 @@ export function SecurePdfReader({
 
           {/* ZOOM PLUS */}
           <button
-            onClick={() => setScale((s) => Math.min(Number((s + 0.2).toFixed(2)), 3.0))}
-            disabled={scale >= 2.95}
+            onClick={() => setScale((s) => Math.min(Number((s + 0.15).toFixed(2)), 2.5))}
+            disabled={scale >= 2.45}
             className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
             title="Zoom In (+)"
           >
@@ -1166,11 +1177,11 @@ export function SecurePdfReader({
                 if (onBuy) onBuy();
                 return;
               }
-              setCurrentPage((p) => Math.min(p + 1, isPreviewMode ? maxAllowedPage : totalPages));
+              scrollToPage(Math.min(currentPage + 1, isPreviewMode ? maxAllowedPage : totalPages));
             }}
             disabled={currentPage >= (isPreviewMode ? maxAllowedPage : totalPages)}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
-            title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Next Page (→)"}
+            title={isPreviewMode && currentPage >= maxAllowedPage ? "Preview Limit Reached • Unlock Full Book" : "Next Page"}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -1184,14 +1195,13 @@ export function SecurePdfReader({
             <Maximize2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* NEXT PAGE BUTTON */}
+          {/* ROTATE BUTTON */}
           <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed shrink-0 ${themeStyles.btnGhost}`}
-            title="Next Page (→)"
+            onClick={handleRotate}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer opacity-70 hover:opacity-100 shrink-0 ${themeStyles.btnGhost}`}
+            title="Rotate 90°"
           >
-            <ChevronRight className="w-4 h-4" />
+            <RotateCw className="w-3.5 h-3.5" />
           </button>
         </footer>
       )}

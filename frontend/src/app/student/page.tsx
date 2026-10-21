@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useTransition, useCallback } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  BookOpen, CheckCircle2, FileText, Eye, Flame,
-  Bookmark, Clock, LogOut, Sparkles, ArrowRight, LayoutDashboard,
-  Lock, BookMarked, Calendar, Edit3, User, Menu, X,
-  Trophy, Award, Zap, ChevronRight, Search, CheckSquare,
-  Square, BarChart3, HelpCircle, ShieldCheck, Share2, PlayCircle, Star, ExternalLink,
-  ShoppingBag, CreditCard, Workflow, AlertCircle, Printer, Download
+  BookOpen, CheckCircle2, Eye, Flame,
+  Bookmark, Clock, Sparkles, LayoutDashboard,
+  Lock, Calendar, User, Menu, X,
+  Trophy, Award, Search, CheckSquare,
+  Square, HelpCircle, ShieldCheck, ExternalLink,
+  ShoppingBag, Workflow, Printer, Download
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
@@ -27,7 +27,7 @@ import { StudentCoursesHierarchyTab } from "@/components/student/StudentCoursesH
 import { StudentBookmarksTab, StudentBookmarkItem } from "@/components/student/StudentBookmarksTab";
 import { StudentProgressTab } from "@/components/student/StudentProgressTab";
 import { StudentHelpSupportTab } from "@/components/student/StudentHelpSupportTab";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, type AuthUser } from "@/lib/api";
 
 interface ChapterUnit {
   unitNumber: number;
@@ -54,7 +54,7 @@ export interface GoogleFormTestItem {
 
 export interface SupplementaryResource {
   id: string;
-  type: "notes" | "flowchart" | "infographic" | "practice" | "pyq" | "ldr";
+  type: "notes" | "flowchart" | "infographic" | "practice" | "pyq" | "ldr" | "qbank";
   title: string;
   description: string;
   pdfUrl: string;
@@ -75,6 +75,76 @@ interface ChapterItem {
   mcqCount: number;
   caseCount: number;
   peerReaders?: number;
+}
+
+interface CatalogProduct {
+  id: string;
+  _id?: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  category?: string;
+  badge?: string;
+  price?: number;
+  originalPrice?: number;
+  pages?: string;
+  previewPagesLimit?: number;
+  pdfUrl?: string;
+  slug?: string;
+  courseId?: string;
+}
+
+interface LiveResource {
+  id?: string;
+  title?: string;
+  [key: string]: unknown;
+}
+
+interface StudentCourseUnit {
+  id?: string;
+  title?: string;
+  [key: string]: unknown;
+}
+
+interface StudentCourseAct {
+  id?: string;
+  title?: string;
+  units?: StudentCourseUnit[];
+  [key: string]: unknown;
+}
+
+interface StudentCourse {
+  id?: string;
+  title?: string;
+  isEnrolled?: boolean;
+  acts?: StudentCourseAct[];
+  [key: string]: unknown;
+}
+
+interface WeeklyCase {
+  id?: string;
+  _id?: string;
+  day?: string;
+  badge?: string;
+  badgeColor?: string;
+  subject?: string;
+  title?: string;
+  scenario?: string;
+  modelAnswer?: string;
+  precedent?: string;
+}
+
+interface BookmarkSourceItem {
+  id: string;
+  title?: string;
+  contentType?: string;
+  type?: string;
+  fileUrl?: string;
+  url?: string;
+}
+
+interface StudentUpdatedEvent extends Event {
+  detail?: string[];
 }
 
 const CA_FOUNDATION_CHAPTERS: ChapterItem[] = [
@@ -326,7 +396,7 @@ const CSEET_UNITS: ChapterItem[] = [
   },
 ];
 
-const WEEKLY_CASES = [
+const WEEKLY_CASES: WeeklyCase[] = [
   { id: "monster-monday", day: "Monster Monday", badge: "High Difficulty", badgeColor: "bg-[#F4C5C0] text-[#221D1D] border-[#C35F3B]/30", subject: "Indian Contract Act, 1872", title: "The Anticipatory Breach & Measure of Damages", scenario: "A agreed to supply 500 MT of industrial chemicals to B at Rs.20,000/MT on 1st November. On 15th October, A informed B that he would not deliver. Market price on 15th October was Rs.22,000/MT but B waited until 1st November when market price surged to Rs.26,000/MT. B sued for Rs.30,00,000 damages. Decide the quantum of damages under Section 73.", modelAnswer: "Under Section 73 of Indian Contract Act 1872 (and Frost v. Knight), B has two options: (1) Treat contract as rescinded on 15th Oct and claim difference (Rs.2,000/MT = Rs.10 Lakhs), OR (2) Keep contract alive till 1st Nov and claim difference on date of performance (Rs.6,000/MT = Rs.30 Lakhs). Since contract was kept alive, B is entitled to Rs.30 Lakhs.", precedent: "Frost v. Knight (1872) L.R. 7 Ex. 111" },
   { id: "midweek-madness", day: "Midweek Law Madness", badge: "Statutory Trap", badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/30", subject: "Indian Partnership Act, 1932", title: "Retirement without Notice & Doctrine of Holding Out", scenario: "Karan, partner in M/s Apex Builders, retired in January but no public notice was given in the Official Gazette. In March, firm borrowed Rs.15 Lakhs from Indus Bank. Karan was unaware. Is Karan personally liable to Indus Bank?", modelAnswer: "Under Section 32(3) read with Section 28 of Indian Partnership Act 1932, a retired partner continues to be liable to third parties unless public notice is published in the Official Gazette and at least one local language newspaper. Karan is personally liable to Indus Bank under the doctrine of Holding Out.", precedent: "Scarf v. Jardine (1882) 7 App Cas 345" },
   { id: "final-boss-friday", day: "Final Boss Friday", badge: "Exam Simulation", badgeColor: "bg-[#BFAFE5]/30 text-[#221D1D] border-[#BFAFE5]", subject: "Companies Act, 2013", title: "Ultra Vires Borrowing & Subrogation Remedy", scenario: "A company's MOA authorizes borrowing up to Rs.1 Crore. The Directors borrowed Rs.2.5 Crores from a private financier without member approval. The entire Rs.2.5 Crores was used to pay off lawful trade debts of the company. Can the lender recover money from the company?", modelAnswer: "The loan is Ultra Vires the borrowing powers of the company and void ab initio (Ashbury Railway Carriage Co. v. Riche). However, under the equitable doctrine of Subrogation (Sinclair v. Brougham), since the money was used to discharge lawful intra-vires liabilities, the lender stands in shoes of discharged creditors and can recover the debt.", precedent: "Sinclair v. Brougham [1914] AC 398" },
@@ -473,8 +543,6 @@ const DAILY_QOTD_DATA = {
   xpReward: 15,
 };
 
-const SHOW_MCQ_TAB = false;
-
 type TabType =
   | "home"
   | "courses"
@@ -488,7 +556,7 @@ type TabType =
   | "mcqtest"
   | "ldr";
 
-const NAV_ITEMS: { id: TabType; label: string; icon: any; badge?: string }[] = [
+const NAV_ITEMS: { id: TabType; label: string; icon: LucideIcon; badge?: string }[] = [
   { id: "home", label: "Dashboard", icon: LayoutDashboard },
   { id: "courses", label: "My Courses", icon: BookOpen },
   { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
@@ -507,22 +575,22 @@ export default function StudentDashboardPage() {
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [activeCourse, setActiveCourse] = useState<"ca" | "cs">("ca");
   const [activeTab, _setActiveTab] = useState<TabType>("home");
-  const [isPendingTab, startTabTransition] = useTransition();
+  const [, startTabTransition] = useTransition();
 
   const setActiveTab = useCallback((action: TabType | ((prev: TabType) => TabType)) => {
     startTabTransition(() => {
       _setActiveTab(action);
     });
   }, []);
-  const [selectedChapterId, setSelectedChapterId] = useState<string>("ca-ch3");
+  const [, setSelectedChapterId] = useState<string>("ca-ch3");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedActFilter, setSelectedActFilter] = useState<string>("all");
   const [ldrFilter, setLdrFilter] = useState<string>("all");
 
   // Modals
   const [sampleModalOpen, setSampleModalOpen] = useState<boolean>(false);
-  const [sampleBookTitle, setSampleBookTitle] = useState<string>("The Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale");
-  const [sampleBookId, setSampleBookId] = useState<string>("ca-foundation");
+  const [sampleBookTitle] = useState<string>("The Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale");
+  const [sampleBookId] = useState<string>("ca-foundation");
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [streakModalOpen, setStreakModalOpen] = useState<boolean>(false);
   const [badgesModalOpen, setBadgesModalOpen] = useState<boolean>(false);
@@ -560,7 +628,7 @@ export default function StudentDashboardPage() {
   const [lawXp, setLawXp] = useState<number>(0);
   const [completedUnits, setCompletedUnits] = useState<string[]>([]);
   const [bookmarkedUnits, setBookmarkedUnits] = useState<string[]>([]);
-  const [xpToast, setXpToast] = useState<{ show: boolean; msg: string; xp: number } | null>(null);
+  const [, setXpToast] = useState<{ show: boolean; msg: string; xp: number } | null>(null);
 
   // Last Read State for Quick Resume
   const [lastRead, setLastRead] = useState<{
@@ -583,11 +651,11 @@ export default function StudentDashboardPage() {
 
   // Live Atlas & Catalog data
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>([]);
-  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
-  const [liveResources, setLiveResources] = useState<any[]>([]);
-  const [studentCourses, setStudentCourses] = useState<any[]>([]);
-  const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
-  const [liveCases, setLiveCases] = useState<any[]>(WEEKLY_CASES);
+  const [availableProducts, setAvailableProducts] = useState<CatalogProduct[]>([]);
+  const [, setLiveResources] = useState<LiveResource[]>([]);
+  const [studentCourses, setStudentCourses] = useState<StudentCourse[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [liveCases, setLiveCases] = useState<WeeklyCase[]>(WEEKLY_CASES);
   const [liveMcqTests, setLiveMcqTests] = useState<GoogleFormTestItem[]>(DEFAULT_GOOGLE_TESTS);
   const [activeFormModal, setActiveFormModal] = useState<{
     open: boolean;
@@ -643,23 +711,28 @@ export default function StudentDashboardPage() {
 
   // Auto-detect active course stream based on student's actual subscription
   useEffect(() => {
-    if (isCsUnlocked && !isCaUnlocked) {
-      if (activeCourse !== "cs") {
-        setActiveCourse("cs");
-        setSelectedChapterId("cs-u7");
-        setSelectedActFilter("all");
+    const syncActiveCourse = () => {
+      if (isCsUnlocked && !isCaUnlocked) {
+        if (activeCourse !== "cs") {
+          setActiveCourse("cs");
+          setSelectedChapterId("cs-u7");
+          setSelectedActFilter("all");
+        }
+      } else if (isCaUnlocked && !isCsUnlocked) {
+        if (activeCourse !== "ca") {
+          setActiveCourse("ca");
+          setSelectedChapterId("ca-ch4");
+          setSelectedActFilter("all");
+        }
       }
-    } else if (isCaUnlocked && !isCsUnlocked) {
-      if (activeCourse !== "ca") {
-        setActiveCourse("ca");
-        setSelectedChapterId("ca-ch4");
-        setSelectedActFilter("all");
-      }
-    }
+    };
+    syncActiveCourse();
   }, [isCsUnlocked, isCaUnlocked, activeCourse]);
 
   const handleBuyCourse = (courseType: "ca" | "cs" | string) => {
-    if (courseType === "ca" || courseType === "course-ca-foundation-sub") {
+    const isCa = courseType === "ca" || courseType === "ca-foundation" || courseType === "course-ca-foundation-sub";
+    const isCs = courseType === "cs" || courseType === "cseet" || courseType === "course-cseet" || courseType === "course-cseet-sub";
+    if (isCa) {
       addToCart({
         id: "course-ca-foundation-sub",
         title: "CA Foundation Business Laws Master Pass",
@@ -671,7 +744,7 @@ export default function StudentDashboardPage() {
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
-    } else if (courseType === "cs" || courseType === "course-cseet-sub") {
+    } else if (isCs) {
       addToCart({
         id: "course-cseet-sub",
         title: "CSEET Business Laws and Management Master Pass",
@@ -683,30 +756,8 @@ export default function StudentDashboardPage() {
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
-    } else if (courseType === "prod-vol1") {
-      addToCart({
-        id: "prod-vol1",
-        title: "Volume 1: Business Law (CA Foundation & CSEET)",
-        format: "pdf",
-        price: 99,
-        originalPrice: 249,
-        category: "Digital Codex",
-        badge: "Bare Act • 180+ Pages",
-      });
-      setIsCartOpen(true);
-      setCheckoutStep("details");
-    } else if (courseType === "prod-vol2") {
-      addToCart({
-        id: "prod-vol2",
-        title: "Volume 2: CSEET Business Laws and Management",
-        format: "pdf",
-        price: 99,
-        originalPrice: 249,
-        category: "Digital Codex",
-        badge: "Management • 120+ Pages",
-      });
-      setIsCartOpen(true);
-      setCheckoutStep("details");
+    } else {
+      router.push("/courses");
     }
   };
 
@@ -735,7 +786,7 @@ export default function StudentDashboardPage() {
           }),
         }).catch(() => {});
       }
-    } catch (e) {}
+    } catch {}
     setTimeout(() => setXpToast(null), 4000);
   };
 
@@ -768,11 +819,11 @@ export default function StudentDashboardPage() {
         },
         body: JSON.stringify({ unitId, completed: !isDone }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
   };
 
   // Toggle Bookmark item with API sync
-  const handleToggleBookmark = (item: any) => {
+  const handleToggleBookmark = (item: BookmarkSourceItem) => {
     const itemId = item.id;
     const isBookmarked = bookmarksList.some((b) => b.id === itemId);
     const token =
@@ -792,7 +843,7 @@ export default function StudentDashboardPage() {
           method: "DELETE",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }).catch(() => {});
-      } catch (e) {}
+      } catch {}
     } else {
       const newItem: StudentBookmarkItem = {
         id: itemId,
@@ -814,7 +865,7 @@ export default function StudentDashboardPage() {
           },
           body: JSON.stringify(newItem),
         }).catch(() => {});
-      } catch (e) {}
+      } catch {}
     }
   };
 
@@ -861,7 +912,7 @@ export default function StudentDashboardPage() {
     setLastRead(newLastRead);
     try {
       localStorage.setItem("lawkaksha_last_read", JSON.stringify(newLastRead));
-    } catch (e) {}
+    } catch {}
     setPdfViewer({
       open: true,
       url,
@@ -876,17 +927,21 @@ export default function StudentDashboardPage() {
 
   // Session & Local Storage Loading
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+
+    let removeSessionListeners: (() => void) | undefined;
+
+    const hydrateSession = () => {
       const studentToken = localStorage.getItem("lawkaksha_student_token") || localStorage.getItem("lawkaksha_token");
       const studentSession = localStorage.getItem("lawkaksha_student_session");
       const studentUser = localStorage.getItem("lawkaksha_student_user") || localStorage.getItem("lawkaksha_active_student");
       const adminSession = localStorage.getItem("lawkaksha_admin_session");
 
-      let authenticatedUser: any = null;
+      let authenticatedUser: AuthUser | null = null;
       if (studentSession) {
-        try { authenticatedUser = JSON.parse(studentSession); } catch (e) {}
+        try { authenticatedUser = JSON.parse(studentSession); } catch {}
       } else if (studentUser) {
-        try { authenticatedUser = JSON.parse(studentUser); } catch (e) {}
+        try { authenticatedUser = JSON.parse(studentUser); } catch {}
       }
 
       let isAdmin = false;
@@ -896,7 +951,7 @@ export default function StudentDashboardPage() {
           if (adm && adm.role === "admin") {
             isAdmin = true;
           }
-        } catch (e) {}
+        } catch {}
       }
 
       const hasValidStudent = Boolean(
@@ -929,7 +984,13 @@ export default function StudentDashboardPage() {
       const initialUnlocked: string[] = [];
       if (authenticatedUser?.name) {
         setStudentName(authenticatedUser.name);
-        setStudentProfile((prev) => ({ ...prev, ...authenticatedUser }));
+        setStudentProfile((prev) => ({
+          ...prev,
+          name: authenticatedUser?.name ?? prev.name,
+          email: authenticatedUser?.email ?? prev.email,
+          targetExam: authenticatedUser?.targetExam ?? prev.targetExam,
+          student_id: authenticatedUser?.student_id ?? prev.student_id,
+        }));
         if (Array.isArray(authenticatedUser.unlockedItemIds)) {
           initialUnlocked.push(...authenticatedUser.unlockedItemIds);
         }
@@ -938,7 +999,7 @@ export default function StudentDashboardPage() {
           const adm = JSON.parse(adminSession);
           if (adm?.name) setStudentName(adm.name);
           setStudentProfile((prev) => ({ ...prev, ...adm }));
-        } catch (e) {}
+        } catch {}
       }
 
       const activeStudent = localStorage.getItem("lawkaksha_active_student");
@@ -948,7 +1009,7 @@ export default function StudentDashboardPage() {
           if (Array.isArray(act.unlockedItemIds)) {
             initialUnlocked.push(...act.unlockedItemIds);
           }
-        } catch (e) {}
+        } catch {}
       }
 
       const purchasedBooksStorage = localStorage.getItem("lawkaksha_purchased_books");
@@ -958,7 +1019,7 @@ export default function StudentDashboardPage() {
           if (Array.isArray(pb)) {
             initialUnlocked.push(...pb);
           }
-        } catch (e) {}
+        } catch {}
       }
 
       if (initialUnlocked.length > 0) {
@@ -966,8 +1027,8 @@ export default function StudentDashboardPage() {
       }
 
       // Listen for instant purchase unlocks from CartDrawer
-      const handleStudentUpdated = (e: any) => {
-        const detail = e?.detail;
+      const handleStudentUpdated = (e: Event) => {
+        const detail = (e as StudentUpdatedEvent).detail;
         if (Array.isArray(detail)) {
           setPurchasedBooks((prev) => Array.from(new Set([...prev, ...detail])));
         } else {
@@ -991,7 +1052,7 @@ export default function StudentDashboardPage() {
             if (newlyUnlocked.length > 0) {
               setPurchasedBooks((prev) => Array.from(new Set([...prev, ...newlyUnlocked])));
             }
-          } catch (err) {}
+          } catch {}
         }
       };
 
@@ -1043,15 +1104,15 @@ export default function StudentDashboardPage() {
         if (storedProducts) {
           try {
             setAvailableProducts(JSON.parse(storedProducts));
-          } catch (e) {}
+          } catch {}
         }
         const storedResources = localStorage.getItem("lawkaksha_admin_resources");
         if (storedResources) {
           try {
             setLiveResources(JSON.parse(storedResources));
-          } catch (e) {}
+          } catch {}
         }
-      } catch (e) {
+      } catch {
         setStreak(0);
         setLongestStreak(0);
         setLawXp(0);
@@ -1061,16 +1122,22 @@ export default function StudentDashboardPage() {
         try {
           const stored = localStorage.getItem("lawkaksha_admin_resources");
           if (stored) setLiveResources(JSON.parse(stored));
-        } catch (e) {}
+        } catch {}
       };
       window.addEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
 
-      return () => {
+      removeSessionListeners = () => {
         window.removeEventListener("lawkaksha_student_updated", handleStudentUpdated);
         window.removeEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
         window.removeEventListener("storage", handleStudentUpdated);
       };
-    }
+    };
+
+    hydrateSession();
+
+    return () => {
+      removeSessionListeners?.();
+    };
   }, [router]);
 
   // Sync Atlas Data
@@ -1104,8 +1171,8 @@ export default function StudentDashboardPage() {
           if (Array.isArray(data.mcqTests) && data.mcqTests.length > 0) {
             setLiveMcqTests(data.mcqTests);
           }
-          if (typeof data.lawXp === "number" && data.lawXp > lawXp) {
-            setLawXp(data.lawXp);
+          if (typeof data.lawXp === "number") {
+            setLawXp((prev) => (data.lawXp > prev ? data.lawXp : prev));
           }
           if (Array.isArray(data.completedUnits) && data.completedUnits.length > 0) {
             setCompletedUnits(data.completedUnits);
@@ -1122,7 +1189,7 @@ export default function StudentDashboardPage() {
             setStudentCourses(coursesData.courses);
           }
         }
-      } catch (err) {}
+      } catch {}
 
       // Fallback fetch resources endpoint
       try {
@@ -1133,7 +1200,7 @@ export default function StudentDashboardPage() {
             setLiveResources(rData.resources);
           }
         }
-      } catch (e) {}
+      } catch {}
     }
     syncAtlasData();
   }, [studentProfile.email, studentProfile.student_id, API_URL]);
@@ -1148,7 +1215,7 @@ export default function StudentDashboardPage() {
         if (data.success && Array.isArray(data.products)) {
           setCatalogProducts(data.products);
         }
-      } catch (err) {}
+      } catch {}
     }
     loadCatalog();
   }, [API_URL]);
@@ -1168,7 +1235,7 @@ export default function StudentDashboardPage() {
             body: JSON.stringify({ deviceId: devId }),
           }).catch(() => null);
         }
-      } catch (e) {}
+      } catch {}
 
       localStorage.removeItem("lawkaksha_student_session");
       localStorage.removeItem("lawkaksha_active_student");
@@ -1189,7 +1256,7 @@ export default function StudentDashboardPage() {
       }
       if (e.key === "PrintScreen") {
         e.preventDefault();
-        try { navigator.clipboard.writeText(""); } catch (err) {}
+        try { navigator.clipboard.writeText(""); } catch {}
       }
     };
     const handleCopy = (e: ClipboardEvent) => e.preventDefault();
@@ -1263,9 +1330,9 @@ export default function StudentDashboardPage() {
     }
 
     const unitTitles = new Map<string, string>();
-    studentCourses.forEach((course: any) => {
-      course.acts?.forEach((act: any) => {
-        act.units?.forEach((unit: any) => {
+    studentCourses.forEach((course) => {
+      course.acts?.forEach((act) => {
+        act.units?.forEach((unit) => {
           if (unit.id && unit.title) unitTitles.set(unit.id, unit.title);
         });
       });
@@ -1288,45 +1355,6 @@ export default function StudentDashboardPage() {
 
   const masteryPercent = Math.min(100, Math.round((completedCount / (totalUnitsCount || 1)) * 100));
 
-  // Course-specific unit & mastery tracking for Certificate Eligibility (Strict: 100% + Paid Subscription)
-  const caTotalUnits = useMemo(() => {
-    return CA_FOUNDATION_CHAPTERS.reduce((acc, ch) => acc + (ch.units?.length || 1), 0);
-  }, []);
-
-  const csTotalUnits = useMemo(() => {
-    return CSEET_UNITS.reduce((acc, ch) => acc + (ch.units?.length || 1), 0);
-  }, []);
-
-  const caCompletedCount = useMemo(() => {
-    return completedUnits.filter((id) => id.startsWith("ca")).length;
-  }, [completedUnits]);
-
-  const csCompletedCount = useMemo(() => {
-    return completedUnits.filter((id) => id.startsWith("cs")).length;
-  }, [completedUnits]);
-
-  const caProgress = Math.min(100, Math.round((caCompletedCount / (caTotalUnits || 1)) * 100));
-  const csProgress = Math.min(100, Math.round((csCompletedCount / (csTotalUnits || 1)) * 100));
-
-  // Strict Rule: ONLY AND ONLY IF subscription is active AND completion is 100%
-  const isCaCertEligible = isCaUnlocked && caProgress === 100;
-  const isCsCertEligible = isCsUnlocked && csProgress === 100;
-
-  const handleSimulateCompletion = (course: "ca" | "cs") => {
-    const list = course === "ca" ? CA_FOUNDATION_CHAPTERS : CSEET_UNITS;
-    const allIds = list.flatMap((ch) => ch.units?.map((u) => `${ch.id}-u${u.unitNumber}`) || [`${ch.id}-u1`]);
-    const isAlreadyFull = allIds.every((id) => completedUnits.includes(id));
-    if (isAlreadyFull) {
-      setCompletedUnits((prev) => prev.filter((id) => !allIds.includes(id)));
-    } else {
-      const newSet = Array.from(new Set([...completedUnits, ...allIds]));
-      setCompletedUnits(newSet);
-      try {
-        localStorage.setItem("lawkaksha_completed_units", JSON.stringify(newSet));
-      } catch (e) {}
-    }
-  };
-
   if (isCheckingAuth || !isAuthorized) {
     return (
       <div className="min-h-screen bg-[#F7F7F5] flex flex-col items-center justify-center p-6 text-center">
@@ -1336,7 +1364,6 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const formatTimer = (secs: number) => `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
   const initials = studentName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "AS";
 
   return (
@@ -1551,7 +1578,8 @@ export default function StudentDashboardPage() {
               onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
               bookmarks={bookmarksList}
               onToggleBookmark={(item) => handleToggleBookmark(item)}
-              onExploreMore={() => setActiveTab("courses")}
+              onExploreMore={() => router.push("/courses")}
+              onBuyCourse={(courseId) => handleBuyCourse(courseId)}
             />
           )}
 
@@ -1875,7 +1903,7 @@ export default function StudentDashboardPage() {
                             <span className="text-[10px] text-[#6B7280] font-medium">Included in Codex</span>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {ch.supplementaryResources.map((res: any, rIdx: number) => {
+                            {ch.supplementaryResources.map((res, rIdx) => {
                               const isResourceSample = res.isSample || isCaUnlocked || isAdminUser;
                               return (
                                 <div
@@ -1950,11 +1978,11 @@ export default function StudentDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                    {availableProducts.map((prod: any) => {
+                    {availableProducts.map((prod) => {
                       const isProdUnlocked =
                         isAdminUser ||
                         purchasedBooks.includes(prod.id) ||
-                        purchasedBooks.includes(prod._id) ||
+                        Boolean(prod._id && purchasedBooks.includes(prod._id)) ||
                         (prod.courseId === "course-ca-foundation" && isCaUnlocked) ||
                         (prod.courseId === "course-cseet" && isCsUnlocked) ||
                         (prod.category?.includes("CA") && isCaUnlocked) ||
@@ -2152,7 +2180,7 @@ export default function StudentDashboardPage() {
                 <p className="text-sm text-[#4D433F] mt-1">Master the 4-step answer structure: Monster Monday, Midweek Law Madness &amp; Final Boss Friday.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {(liveCases && liveCases.length > 0 ? liveCases : WEEKLY_CASES).map((cs: any) => (
+                {(liveCases && liveCases.length > 0 ? liveCases : WEEKLY_CASES).map((cs) => (
                   <div key={cs.id || cs._id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#4B8097] uppercase tracking-wide">{cs.day}</span>

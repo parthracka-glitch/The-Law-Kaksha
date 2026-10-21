@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
   Megaphone,
@@ -14,7 +14,6 @@ import {
   Flame,
   Radio,
   Clock,
-  Layers,
   BookOpen,
   Tag,
 } from "lucide-react";
@@ -78,8 +77,6 @@ export function AdminBroadcastTab({
   isSavingAnnouncement,
   showToast,
 }: AdminBroadcastTabProps) {
-  const [copiedLink, setCopiedLink] = useState(false);
-
   const applyPreset = (preset: (typeof PRESET_TEMPLATES)[0]) => {
     setAnnouncement({
       enabled: true,

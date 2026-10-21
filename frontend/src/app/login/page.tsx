@@ -20,9 +20,42 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, type ApiResponse, type JsonObject } from "@/lib/api";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+
+interface LoginUserPayload extends JsonObject {
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+interface AuthPayload extends JsonObject {
+  token?: string;
+  role?: string;
+  resetToken?: string;
+  activeDeviceName?: string;
+  user?: LoginUserPayload;
+  student?: LoginUserPayload;
+  data?: AuthPayload;
+}
+
+interface ThrownErrorPayload {
+  code?: string;
+  activeDeviceName?: string;
+  message?: string;
+}
+
+function toThrownErrorPayload(value: unknown): ThrownErrorPayload {
+  if (typeof value !== "object" || value === null) return {};
+  const record = value as Record<string, unknown>;
+  return {
+    code: typeof record.code === "string" ? record.code : undefined,
+    activeDeviceName:
+      typeof record.activeDeviceName === "string" ? record.activeDeviceName : undefined,
+    message: typeof record.message === "string" ? record.message : undefined,
+  };
+}
 
 function LoginContent() {
   const router = useRouter();
@@ -64,9 +97,7 @@ function LoginContent() {
   useEffect(() => {
     if (isDirectAdmin) {
       setPortalMode("admin");
-      if (!identifier) {
-        setIdentifier("admin@thelawkaksha.com");
-      }
+      setIdentifier((prev) => prev || "admin@thelawkaksha.com");
     }
   }, [isDirectAdmin]);
 
@@ -97,9 +128,9 @@ function LoginContent() {
       const currentDeviceId = getOrCreateDeviceId();
       const currentDeviceName = getDeviceFriendlyName();
 
-      let res: any = null;
+      let res: ApiResponse<AuthPayload> | null = null;
       try {
-        res = (await apiRequest("/api/auth/login", {
+        res = await apiRequest<AuthPayload>("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({
             identifier: cleanIdentifier,
@@ -108,8 +139,8 @@ function LoginContent() {
             deviceName: currentDeviceName,
             forceSwitchDevice: forceSwitch,
           }),
-        })) as any;
-      } catch (networkErr: any) {
+        });
+      } catch (networkErr: unknown) {
         // Fallback for offline local dev admin testing if backend is temporarily unreachable
         if (
           portalMode === "admin" &&
@@ -137,7 +168,7 @@ function LoginContent() {
 
       if (res && res.code === "DEVICE_CONFLICT") {
         setDeviceConflictData({
-          activeDeviceName: res.activeDeviceName || "Another Registered Workstation",
+          activeDeviceName: res.data?.activeDeviceName || "Another Registered Workstation",
         });
         setErrorMsg("");
         return;
@@ -146,9 +177,12 @@ function LoginContent() {
       if (res && res.success && res.data) {
         const respData = res.data;
         const innerData = respData.data || respData;
-        const token = respData.token || (res as any).token || innerData.token;
-        const user =
-          innerData.user || innerData.student || respData.user || respData.student || { name: "User" };
+        const token = respData.token || res.token || innerData.token;
+        const user: LoginUserPayload =
+          innerData.user ||
+          innerData.student ||
+          respData.user ||
+          respData.student || { name: "User" };
         const role = innerData.role || respData.role || user.role || "student";
 
         if (role === "admin") {
@@ -196,15 +230,16 @@ function LoginContent() {
               : "Invalid Email/Student ID or Password.")
         );
       }
-    } catch (err: any) {
-      if (err?.code === "DEVICE_CONFLICT") {
+    } catch (err: unknown) {
+      const thrown = toThrownErrorPayload(err);
+      if (thrown.code === "DEVICE_CONFLICT") {
         setDeviceConflictData({
-          activeDeviceName: err.activeDeviceName || "Another Registered Workstation",
+          activeDeviceName: thrown.activeDeviceName || "Another Registered Workstation",
         });
         setErrorMsg("");
       } else {
         setErrorMsg(
-          err?.message ||
+          thrown.message ||
             "Unable to connect to authorization server. Please verify your credentials."
         );
       }
@@ -219,21 +254,20 @@ function LoginContent() {
     setForgotError("");
     setForgotMsg("");
     try {
-      const res = (await apiRequest("/api/auth/forgot-password", {
+      const res = await apiRequest<AuthPayload>("/api/auth/forgot-password", {
         method: "POST",
         body: JSON.stringify({ identifier: forgotIdentifier.trim() }),
-      })) as any;
-      if (res && res.success) {
+      });
+      if (res.success) {
         setForgotMsg(res.message || "Reset instructions generated.");
-        if (res.resetToken) {
-          setForgotToken(res.resetToken);
+        const resetToken = res.data?.resetToken;
+        if (resetToken) {
+          setForgotToken(resetToken);
         }
         setForgotStep(2);
       } else {
-        setForgotError(res?.message || "Failed to process request.");
+        setForgotError(res.message || "Failed to process request.");
       }
-    } catch (err: any) {
-      setForgotError(err?.message || "Connection error. Please try again.");
     } finally {
       setForgotLoading(false);
     }
@@ -245,14 +279,14 @@ function LoginContent() {
     setForgotError("");
     setForgotMsg("");
     try {
-      const res = (await apiRequest("/api/auth/reset-password", {
+      const res = await apiRequest<AuthPayload>("/api/auth/reset-password", {
         method: "POST",
         body: JSON.stringify({
           token: forgotToken.trim(),
           newPassword: forgotNewPassword.trim(),
         }),
-      })) as any;
-      if (res && res.success) {
+      });
+      if (res.success) {
         setForgotMsg(res.message || "Password updated successfully!");
         setTimeout(() => {
           setShowForgotModal(false);
@@ -262,10 +296,8 @@ function LoginContent() {
           setForgotMsg("");
         }, 2000);
       } else {
-        setForgotError(res?.message || "Failed to reset password.");
+        setForgotError(res.message || "Failed to reset password.");
       }
-    } catch (err: any) {
-      setForgotError(err?.message || "Invalid or expired token.");
     } finally {
       setForgotLoading(false);
     }
@@ -324,18 +356,6 @@ function LoginContent() {
             >
               <User className="w-3.5 h-3.5" />
               <span>Student Dashboard</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handlePortalSwitch("admin")}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                portalMode === "admin"
-                  ? "bg-[#0A192F] text-white font-semibold shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-              <span>Admin Dashboard</span>
             </button>
           </div>
 
@@ -546,7 +566,7 @@ function LoginContent() {
                     const role =
                       res?.data?.role || res?.data?.user?.role || res?.data?.student?.role;
                     if (role === "admin") {
-                      window.location.href = "/admin";
+                      router.push("/admin");
                     } else {
                       window.location.href = redirectPath || "/";
                     }

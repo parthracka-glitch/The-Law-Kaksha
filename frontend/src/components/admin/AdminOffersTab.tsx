@@ -1,18 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Gift,
   Plus,
   Edit3,
   Trash2,
-  RefreshCw,
   Tag,
-  Clock,
-  CheckCircle2,
   X,
-  Sparkles,
 } from "lucide-react";
+import { type JsonObject } from "@/lib/api";
 
 interface OfferData {
   id: string;
@@ -26,6 +22,12 @@ interface OfferData {
   is_active: boolean;
 }
 
+interface OffersPayload extends JsonObject {
+  success?: boolean;
+  data?: OfferData[];
+  message?: string;
+}
+
 export function AdminOffersTab({
   adminFetch,
   showToast,
@@ -34,7 +36,7 @@ export function AdminOffersTab({
   showToast: (msg: string) => void;
 }) {
   const [offers, setOffers] = useState<OfferData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentOffer, setCurrentOffer] = useState<Partial<OfferData>>({
     title: "",
@@ -46,24 +48,24 @@ export function AdminOffersTab({
     is_active: true,
   });
 
-  const loadOffers = async () => {
+  const loadOffers = useCallback(async () => {
     try {
       setLoading(true);
       const res = await adminFetch("/api/admin/offers");
-      const data = await res.json();
+      const data: OffersPayload = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setOffers(data.data);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminFetch]);
 
   useEffect(() => {
     loadOffers();
-  }, []);
+  }, [loadOffers]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +79,7 @@ export function AdminOffersTab({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(currentOffer),
       });
-      const data = await res.json();
+      const data: OffersPayload = await res.json();
       if (data.success) {
         showToast(isEdit ? "Offer updated." : "Offer published.");
         setModalOpen(false);
@@ -85,8 +87,8 @@ export function AdminOffersTab({
       } else {
         alert(data.message || "Failed to save offer.");
       }
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err: unknown) {
+      alert("Error: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
@@ -94,12 +96,12 @@ export function AdminOffersTab({
     if (!confirm("Delete this promotional offer?")) return;
     try {
       const res = await adminFetch(`/api/admin/offers/${id}`, { method: "DELETE" });
-      const data = await res.json();
+      const data: OffersPayload = await res.json();
       if (data.success) {
         showToast("Offer removed.");
         loadOffers();
       }
-    } catch (e) {
+    } catch {
       alert("Delete failed.");
     }
   };

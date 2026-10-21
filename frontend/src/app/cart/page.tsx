@@ -2,31 +2,23 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useCart, BookFormat, FORMAT_PRICING } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext";
 import {
   Trash2,
   Plus,
   Minus,
   ArrowRight,
   ShoppingBag,
-  Sparkles,
-  ShieldCheck,
   Tag,
-  BookOpen,
-  Truck,
 } from "lucide-react";
 
 export default function CartPage() {
-  const router = useRouter();
   const {
     items,
     removeFromCart,
     updateQuantity,
-    changeFormat,
-    couponCode,
     couponDiscount,
     couponError,
     couponSuccess,

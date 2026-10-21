@@ -131,40 +131,8 @@ const INITIAL_COURSES = [
   },
 ];
 
-const INITIAL_PRODUCTS = [
-  {
-    id: "prod-vol1",
-    title: "Volume 1: Business Law (CA Foundation & CSEET)",
-    subtitle: "Complete Statutory Codex with In-Web DRM Reader Access",
-    category: "Both",
-    format: "Digital Codex (In-Web DRM)",
-    price: 249,
-    originalPrice: 499,
-    pages: "180+ Pages",
-    status: "Active",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    description: "Full statutory codex covering Indian Contract Act 1872, Sale of Goods Act 1930, Indian Partnership Act 1932, Limited Liability Partnership Act 2008, and Companies Act 2013.",
-    units: ["Indian Contract Act", "Sale of Goods Act", "Indian Partnership Act", "LLP Act", "Companies Act"],
-    highlights: ["In-Web DRM Protected Reading", "Section Flowcharts & Landmark Rulings", "Weekly Case Study Alignment", "Exam Drafting Answer Templates"],
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-  },
-  {
-    id: "prod-vol2",
-    title: "Volume 2: CSEET Business Laws and Management",
-    subtitle: "Principles of Management, Ethics & Business Environment",
-    category: "CSEET",
-    format: "Digital Codex (In-Web DRM)",
-    price: 249,
-    originalPrice: 499,
-    pages: "120+ Pages",
-    status: "Active",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    description: "In-depth study codex for General Principles of Management and Business Environment & Corporate Ethics.",
-    units: ["General Principles of Management", "Business Environment & Ethics"],
-    highlights: ["Complete Fayol & Taylor Principles", "Corporate Governance Frameworks", "Chapter-Wise Conceptual MCQs", "Memory Maps for Rapid Revision"],
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-  },
-];
+// Discontinued Volume 1 & Volume 2 products removed from platform catalog
+const INITIAL_PRODUCTS = [];
 
 const INITIAL_COUPONS = [
   { id: "cp-1", code: "LAUNCH50", discountPercent: 50, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31", status: "Active" },
@@ -221,9 +189,10 @@ async function seedMongo() {
     }
     console.log("[MongoDB Atlas Seeder] Acts and Units synchronized.");
 
-    // 3. Products (Backwards-compatibility for catalog / legacy readers)
+    // 3. Products (Purge discontinued Volume 1 & Volume 2 courses)
+    await Product.deleteMany({ id: { $in: ["prod-vol1", "prod-vol2"] } });
     const prodCount = await Product.countDocuments();
-    if (prodCount === 0) {
+    if (prodCount === 0 && INITIAL_PRODUCTS.length > 0) {
       await Product.insertMany(INITIAL_PRODUCTS);
       console.log("[MongoDB Atlas Seeder] Products seeded successfully.");
     }

@@ -85,7 +85,7 @@ export function SubscriptionOverview() {
   const router = useRouter();
   const { addToCart, setIsCartOpen } = useCart();
   const [plans, setPlans] = useState<SubscriptionPlanItem[]>(FALLBACK_PLANS);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,13 +99,26 @@ export function SubscriptionOverview() {
         if (res.success && livePlans.length === 2 && isMounted) {
           setPlans(livePlans);
         }
-      } catch (err) {
+      } catch {
         // Fallback remains
       } finally {
         if (isMounted) setLoading(false);
       }
     }
     fetchPlans();
+
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      if (hash === "#pricing" || hash === "#subscriptions") {
+        setTimeout(() => {
+          const el = document.getElementById(hash.slice(1));
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 200);
+      }
+    }
+
     return () => {
       isMounted = false;
     };
@@ -138,7 +151,11 @@ export function SubscriptionOverview() {
   };
 
   return (
-    <section id="subscriptions" className="py-16 sm:py-24 bg-[#F0F7FF] relative overflow-hidden border-t border-b border-[#DBEAFE]">
+    <section
+      id="pricing"
+      className="py-16 sm:py-24 bg-[#F0F7FF] relative overflow-hidden border-t border-b border-[#DBEAFE] scroll-mt-20"
+    >
+      <div id="subscriptions" className="absolute -top-24 left-0 pointer-events-none" />
       {/* Subtle background flourishes */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none opacity-40">
         <div className="absolute top-12 left-10 w-72 h-72 rounded-full bg-[#005A9C]/10 blur-3xl" />

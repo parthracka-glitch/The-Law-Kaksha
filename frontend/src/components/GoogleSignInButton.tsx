@@ -1,16 +1,78 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, type ApiResponse } from "@/lib/api";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 
+interface GoogleAuthUser {
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+interface GoogleAuthPayload {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  role?: string;
+  user?: GoogleAuthUser;
+  student?: GoogleAuthUser;
+  data?: GoogleAuthPayload;
+}
+
+interface GoogleCredentialResponse {
+  credential?: string;
+}
+
+interface GoogleAccountsId {
+  initialize: (params: {
+    client_id: string;
+    callback: (response: GoogleCredentialResponse) => void;
+    auto_select?: boolean;
+    cancel_on_tap_outside?: boolean;
+    ux_mode?: string;
+  }) => void;
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      theme?: string;
+      size?: string;
+      type?: string;
+      shape?: string;
+      text?: string;
+      logo_alignment?: string;
+      width?: number;
+    }
+  ) => void;
+  prompt: () => void;
+}
+
+interface GoogleNamespace {
+  accounts?: {
+    id?: GoogleAccountsId;
+  };
+}
+
+interface GoogleWindow extends Window {
+  google?: GoogleNamespace;
+}
+
 interface GoogleSignInButtonProps {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ApiResponse<GoogleAuthPayload>) => void;
   onError?: (error: string) => void;
   selectedCourse?: string;
   text?: "signin_with" | "signup_with" | "continue_with";
   className?: string;
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const message = err.message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
 }
 
 export function GoogleSignInButton({
@@ -29,92 +91,107 @@ export function GoogleSignInButton({
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
     "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com";
 
-  const handleGoogleCallback = async (response: any) => {
-    if (!response || !response.credential) {
-      const err = "Google did not provide a valid authentication token.";
-      setErrorMsg(err);
-      if (onError) onError(err);
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg("");
-
-    try {
-      const currentDeviceId = getOrCreateDeviceId();
-      const currentDeviceName = getDeviceFriendlyName();
-
-      const res = (await apiRequest("/api/auth/google", {
-        method: "POST",
-        body: JSON.stringify({
-          credential: response.credential,
-          deviceId: currentDeviceId,
-          deviceName: currentDeviceName,
-          selectedCourse: selectedCourse || "CA Foundation Paper 2: Business Laws",
-        }),
-      })) as any;
-
-      if (!res || !res.success) {
-        const msg = res?.message || "Google authentication failed. Please try again.";
-        setErrorMsg(msg);
-        if (onError) onError(msg);
-        setLoading(false);
+  const handleGoogleCallback = useCallback(
+    async (response: GoogleCredentialResponse) => {
+      if (!response || !response.credential) {
+        const err = "Google did not provide a valid authentication token.";
+        setErrorMsg(err);
+        if (onError) onError(err);
         return;
       }
 
-      const respData = res.data;
-      const innerData = respData?.data || respData;
-      const token = respData?.token || (res as any).token || innerData?.token;
-      const user = innerData?.user || innerData?.student || respData?.user || respData?.student || { name: "Student" };
-      const role = innerData?.role || respData?.role || user?.role || "student";
+      setLoading(true);
+      setErrorMsg("");
 
-      if (role === "admin") {
-        const adminSession = {
-          name: user.name || "The Law Kaksha Admin",
-          email: user.email || "admin@thelawkaksha.com",
-          role: "admin",
-          token: token,
-        };
-        localStorage.removeItem("lawkaksha_student_session");
-        localStorage.removeItem("lawkaksha_active_student");
-        localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
-        if (token) localStorage.setItem("lawkaksha_token", token);
-        window.dispatchEvent(new Event("storage"));
-        window.dispatchEvent(new Event("lawkaksha_student_updated"));
-        if (onSuccess) onSuccess(res);
-        else window.location.href = "/admin";
-      } else {
-        localStorage.removeItem("lawkaksha_admin_session");
-        localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
-        localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
-        if (token) localStorage.setItem("lawkaksha_token", token);
-        window.dispatchEvent(new Event("storage"));
-        window.dispatchEvent(new Event("lawkaksha_student_updated"));
-        if (onSuccess) onSuccess(res);
-        else window.location.href = "/";
+      try {
+        const currentDeviceId = getOrCreateDeviceId();
+        const currentDeviceName = getDeviceFriendlyName();
+
+        const res = await apiRequest<GoogleAuthPayload>("/api/auth/google", {
+          method: "POST",
+          body: JSON.stringify({
+            credential: response.credential,
+            deviceId: currentDeviceId,
+            deviceName: currentDeviceName,
+            selectedCourse: selectedCourse || "CA Foundation Paper 2: Business Laws",
+          }),
+        });
+
+        if (!res || !res.success) {
+          const msg = res?.message || "Google authentication failed. Please try again.";
+          setErrorMsg(msg);
+          if (onError) onError(msg);
+          setLoading(false);
+          return;
+        }
+
+        const respData = res.data;
+        const innerData = respData?.data || respData;
+        const token = respData?.token || res.token || innerData?.token;
+        const user =
+          innerData?.user ||
+          innerData?.student ||
+          respData?.user ||
+          respData?.student || { name: "Student" };
+        const role = innerData?.role || respData?.role || user?.role || "student";
+
+        if (role === "admin") {
+          const adminSession = {
+            name: user.name || "The Law Kaksha Admin",
+            email: user.email || "admin@thelawkaksha.com",
+            role: "admin",
+            token: token,
+          };
+          localStorage.removeItem("lawkaksha_student_session");
+          localStorage.removeItem("lawkaksha_active_student");
+          localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
+          if (token) localStorage.setItem("lawkaksha_token", token);
+          window.dispatchEvent(new Event("storage"));
+          window.dispatchEvent(new Event("lawkaksha_student_updated"));
+          if (onSuccess) onSuccess(res);
+          else router.push("/admin");
+        } else {
+          localStorage.removeItem("lawkaksha_admin_session");
+          localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
+          localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
+          if (token) localStorage.setItem("lawkaksha_token", token);
+          window.dispatchEvent(new Event("storage"));
+          window.dispatchEvent(new Event("lawkaksha_student_updated"));
+          if (onSuccess) onSuccess(res);
+          else router.push("/");
+        }
+      } catch (err: unknown) {
+        console.error("[Google Auth Error]", err);
+        const msg = getErrorMessage(err, "Connection error during Google Sign-In.");
+        setErrorMsg(msg);
+        if (onError) onError(msg);
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      console.error("[Google Auth Error]", err);
-      const msg = err?.message || "Connection error during Google Sign-In.";
-      setErrorMsg(msg);
-      if (onError) onError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [onError, onSuccess, router, selectedCourse]
+  );
+
+  const googleCallbackRef = useRef(handleGoogleCallback);
+
+  useEffect(() => {
+    googleCallbackRef.current = handleGoogleCallback;
+  }, [handleGoogleCallback]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     const initializeGoogle = () => {
       if (typeof window === "undefined" || !googleClientId) return;
-      const google = (window as any).google;
+      const google = (window as GoogleWindow).google;
 
       if (google?.accounts?.id) {
         try {
           google.accounts.id.initialize({
             client_id: googleClientId,
-            callback: handleGoogleCallback,
+            callback: (response: GoogleCredentialResponse) => {
+              void googleCallbackRef.current(response);
+            },
             auto_select: false,
             cancel_on_tap_outside: true,
             ux_mode: "popup",
@@ -137,11 +214,11 @@ export function GoogleSignInButton({
       }
     };
 
-    if ((window as any).google?.accounts?.id) {
+    if ((window as GoogleWindow).google?.accounts?.id) {
       initializeGoogle();
     } else {
       interval = setInterval(() => {
-        if ((window as any).google?.accounts?.id) {
+        if ((window as GoogleWindow).google?.accounts?.id) {
           clearInterval(interval);
           initializeGoogle();
         }
@@ -158,7 +235,7 @@ export function GoogleSignInButton({
       setErrorMsg("Google Client ID is not configured.");
       return;
     }
-    const google = typeof window !== "undefined" ? (window as any).google : null;
+    const google = typeof window !== "undefined" ? (window as GoogleWindow).google : null;
     if (google?.accounts?.id) {
       try {
         google.accounts.id.prompt();

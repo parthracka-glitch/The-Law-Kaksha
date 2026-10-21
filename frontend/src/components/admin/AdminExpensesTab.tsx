@@ -1,17 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  DollarSign,
   TrendingUp,
-  TrendingDown,
   Plus,
   Trash2,
-  RefreshCw,
-  PieChart,
-  Calendar,
   X,
-  Receipt,
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
@@ -34,6 +28,10 @@ interface ExpenseSummary {
   categoryBreakdown: Record<string, number>;
 }
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function AdminExpensesTab({
   adminFetch,
   showToast,
@@ -48,7 +46,7 @@ export function AdminExpensesTab({
     netProfit: 16950,
     categoryBreakdown: { Hosting: 2400, Software: 3500, Marketing: 1900 },
   });
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [newExpense, setNewExpense] = useState<Partial<ExpenseData>>({
     category: "Hosting",
@@ -58,12 +56,18 @@ export function AdminExpensesTab({
     notes: "",
   });
 
-  const loadData = async () => {
+  const adminFetchRef = useRef(adminFetch);
+
+  useEffect(() => {
+    adminFetchRef.current = adminFetch;
+  }, [adminFetch]);
+
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [expRes, sumRes] = await Promise.all([
-        adminFetch("/api/admin/expenses").then((r) => r.json()),
-        adminFetch("/api/admin/expenses/summary").then((r) => r.json()),
+        adminFetchRef.current("/api/admin/expenses").then((r) => r.json()),
+        adminFetchRef.current("/api/admin/expenses/summary").then((r) => r.json()),
       ]);
 
       if (expRes.success && Array.isArray(expRes.data)) {
@@ -72,16 +76,16 @@ export function AdminExpensesTab({
       if (sumRes.success && sumRes.data) {
         setSummary(sumRes.data);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,8 +105,8 @@ export function AdminExpensesTab({
       } else {
         alert(data.message || "Failed to record expense.");
       }
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err) {
+      alert("Error: " + errorMessage(err));
     }
   };
 
@@ -115,7 +119,7 @@ export function AdminExpensesTab({
         showToast("Expense removed.");
         loadData();
       }
-    } catch (e) {
+    } catch {
       alert("Failed to delete.");
     }
   };
@@ -283,7 +287,7 @@ export function AdminExpensesTab({
                   <label className="block font-semibold text-slate-700 mb-1">Category *</label>
                   <select
                     value={newExpense.category || "Hosting"}
-                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as any })}
+                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as ExpenseData["category"] })}
                     className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] bg-white"
                   >
                     <option value="Hosting">Hosting</option>

@@ -153,16 +153,31 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
     accessDays = Number(courseRecord.accessDays);
   }
 
+  const hasCa = (order.items || []).some((item) => {
+    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
+    return s.includes("ca-foundation") || s.includes("foundation") || s.includes("vol1") || s.includes("codex") || s.includes("paper-2") || s.includes("contract") || s.includes("business-law");
+  }) || (!isCSEET && (order.items || []).length > 0);
+
+  const hasCs = (order.items || []).some((item) => {
+    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
+    return s.includes("cseet") || s.includes("vol2") || s.includes("communication") || s.includes("management");
+  }) || (isCSEET && (order.items || []).length > 0);
+
   // Add standard alias IDs for seamless student reader access
-  if (primaryCourseId === "ca-foundation-paper-2") {
+  if (hasCa) {
     unlockedItemIds.add("ca-foundation-paper-2");
     unlockedItemIds.add("course-ca-foundation-sub");
     unlockedItemIds.add("ca-foundation-business-laws");
+    unlockedItemIds.add("ca-foundation");
+    unlockedItemIds.add("course-ca-foundation");
     unlockedItemIds.add("book-vol-1");
-  } else if (primaryCourseId === "cseet-business-communication") {
+  }
+  if (hasCs) {
     unlockedItemIds.add("cseet-business-communication");
     unlockedItemIds.add("course-cseet-sub");
     unlockedItemIds.add("cseet-business-law");
+    unlockedItemIds.add("cseet");
+    unlockedItemIds.add("course-cseet");
     unlockedItemIds.add("book-vol-2");
   }
 

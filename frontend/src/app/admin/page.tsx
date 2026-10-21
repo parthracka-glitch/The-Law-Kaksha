@@ -18,23 +18,17 @@ import {
   Edit3,
   Trash2,
   CheckCircle2,
-  Clock,
   X,
   Lock,
   Unlock,
   LogOut,
   ShieldCheck,
-  ChevronRight,
-  ChevronDown,
   TrendingUp,
   ExternalLink,
-  BookMarked,
   Key,
   Menu,
   UploadCloud,
-  FileText,
   Layers,
-  FileUp,
   RefreshCw,
   Eye,
   AlertTriangle,
@@ -45,7 +39,6 @@ import {
   Share2,
   ArrowRight,
   DollarSign,
-  Gift,
   FileSpreadsheet,
   Settings,
 } from "lucide-react";
@@ -192,6 +185,12 @@ export interface QotdSetting {
   explanation: string;
 }
 
+function normalizeUnits(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+  if (typeof value === "string") return value.split(",").map((s) => s.trim());
+  return ["Chapter 1"];
+}
+
 // --- INITIAL SEED DATA ---
 const INITIAL_PRODUCTS: ProductItem[] = [];
 
@@ -271,7 +270,7 @@ export default function AdminPortalPage() {
     | "promo_banners"
     | "broadcast";
   const [activeTab, _setActiveTab] = useState<TabType>("overview");
-  const [isPendingTab, startTabTransition] = useTransition();
+  const [, startTabTransition] = useTransition();
 
   const setActiveTab = useCallback((action: TabType | ((prev: TabType) => TabType)) => {
     startTabTransition(() => {
@@ -281,11 +280,10 @@ export default function AdminPortalPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [materialSubTab, setMaterialSubTab] = useState<"all" | "books" | "notes">("all");
+  const [, setMaterialSubTab] = useState<"all" | "books" | "notes">("all");
   const [subFilterTab, setSubFilterTab] = useState<"all" | "active" | "expiring_soon" | "revoked">("all");
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [studentStatusFilter, setStudentStatusFilter] = useState<"all" | "active" | "blocked">("all");
-  const [showAdvancedTabs, setShowAdvancedTabs] = useState(false);
 
   const handleToggleStudentDrm = async (std: StudentRecord) => {
     try {
@@ -299,7 +297,7 @@ export default function AdminPortalPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ drm_access: nextDrm }),
       });
-    } catch (e) {
+    } catch {
       showToast("Access updated locally.");
     }
   };
@@ -340,18 +338,16 @@ export default function AdminPortalPage() {
   // Entities state
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
   const [resources, setResources] = useState<ResourceItem[]>(INITIAL_RESOURCES);
-  const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("all");
-  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("all");
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>(INITIAL_SUBSCRIPTIONS);
   const [students, setStudents] = useState<StudentRecord[]>(INITIAL_STUDENTS);
   const [cases, setCases] = useState<CaseStudyItem[]>(INITIAL_CASES);
   const [mcqTests, setMcqTests] = useState<GoogleFormTestItem[]>(INITIAL_MCQ_TESTS);
   const [coupons, setCoupons] = useState<CouponRecord[]>(INITIAL_COUPONS);
-  const [examSettings, setExamSettings] = useState<ExamCountdownSetting[]>([
+  const [, setExamSettings] = useState<ExamCountdownSetting[]>([
     { id: "ex-1", exam: "CSEET Business Laws and Management", date: "2026-11-12", session: "November 2026 Attempt" },
     { id: "ex-2", exam: "CA Foundation Paper 2 (Business Laws)", date: "2026-12-20", session: "December 2026 Attempt" },
   ]);
-  const [qotd, setQotd] = useState<QotdSetting>({
+  const [, setQotd] = useState<QotdSetting>({
     id: "qotd-1",
     act: "Indian Partnership Act, 1932",
     section: "Section 28",
@@ -381,7 +377,7 @@ export default function AdminPortalPage() {
   const [isAtlasConnected, setIsAtlasConnected] = useState<boolean>(true);
 
   // Authenticated Admin API Fetch Helper with Bearer Token Injection
-  const adminFetch = (endpoint: string, init?: RequestInit) => {
+  const adminFetch = useCallback((endpoint: string, init?: RequestInit) => {
     let token = "";
     if (typeof window !== "undefined") {
       token = localStorage.getItem("lawkaksha_token") || "";
@@ -389,7 +385,7 @@ export default function AdminPortalPage() {
         try {
           const sess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
           token = sess.token || "";
-        } catch (e) {}
+        } catch {}
       }
     }
     const headers: Record<string, string> = {};
@@ -413,7 +409,7 @@ export default function AdminPortalPage() {
       ...init,
       headers,
     });
-  };
+  }, [API_URL]);
 
   // Load initial cache and sync with MongoDB Atlas
   useEffect(() => {
@@ -426,7 +422,7 @@ export default function AdminPortalPage() {
           if (parsed && parsed.role === "admin") {
             isValidAdmin = true;
           }
-        } catch (e) {}
+        } catch {}
       }
 
       if (!isValidAdmin) {
@@ -508,7 +504,7 @@ export default function AdminPortalPage() {
 
       syncWithAtlas();
     }
-  }, [router, API_URL]);
+  }, [router, API_URL, adminFetch]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -543,8 +539,8 @@ export default function AdminPortalPage() {
       } else {
         showToast("Upload failed: " + (data.message || "Unknown error"));
       }
-    } catch (err: any) {
-      showToast("Upload error: " + err.message);
+    } catch (err) {
+      showToast("Upload error: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsUploadingFile(false);
     }
@@ -649,7 +645,7 @@ export default function AdminPortalPage() {
         body: JSON.stringify({ announcement }),
       });
       showToast("Live broadcast announcement updated!");
-    } catch (e) {
+    } catch {
       showToast("Saved to local cache.");
     } finally {
       setIsSavingAnnouncement(false);
@@ -669,7 +665,7 @@ export default function AdminPortalPage() {
         body: JSON.stringify({ promoBanners }),
       });
       showToast("Student dashboard codex passes updated live!");
-    } catch (e) {
+    } catch {
       showToast("Saved to local cache.");
     } finally {
       setIsSavingPromo(false);
@@ -1156,7 +1152,7 @@ export default function AdminPortalPage() {
                         body: JSON.stringify({ announcement: updated }),
                       });
                       showToast(updated.enabled ? "Live broadcast turned ON!" : "Live broadcast turned OFF!");
-                    } catch (e) {
+                    } catch {
                       showToast("Saved locally");
                     }
                   }}
@@ -1526,7 +1522,7 @@ export default function AdminPortalPage() {
                 const currentCardKey = activePromoCardTab === "ca" ? "caCard" : activePromoCardTab === "cs" ? "csCard" : "comboCard";
                 const card = promoBanners[currentCardKey];
 
-                const updateCardField = (field: keyof PromoPassCard, val: any) => {
+                const updateCardField = <K extends keyof PromoPassCard>(field: K, val: PromoPassCard[K]) => {
                   setPromoBanners({
                     ...promoBanners,
                     [currentCardKey]: {
@@ -1658,7 +1654,7 @@ export default function AdminPortalPage() {
                         <label className="font-bold text-[#221D1D]">Click Action *</label>
                         <select
                           value={card.actionType}
-                          onChange={(e) => updateCardField("actionType", e.target.value as any)}
+                          onChange={(e) => updateCardField("actionType", e.target.value as PromoPassCard["actionType"])}
                           className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D] cursor-pointer"
                         >
                           <option value="ca">Open CA Foundation Notes (ca)</option>
@@ -2065,8 +2061,8 @@ export default function AdminPortalPage() {
                               <td className="py-3.5 px-4">
                                 <button
                                   onClick={async () => {
-                                    const nextStatus = sub.accessStatus === "Active" ? "Revoked" : "Active";
-                                    const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus as any } : item));
+                                    const nextStatus: SubscriptionRecord["accessStatus"] = sub.accessStatus === "Active" ? "Revoked" : "Active";
+                                    const updated = subscriptions.map((item) => (item.id === sub.id ? { ...item, accessStatus: nextStatus } : item));
                                     setSubscriptions(updated);
                                     localStorage.setItem("lawkaksha_admin_subs", JSON.stringify(updated));
                                     showToast(`Access ${nextStatus} for ${sub.studentName}`);
@@ -2076,7 +2072,7 @@ export default function AdminPortalPage() {
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ accessStatus: nextStatus }),
                                       });
-                                    } catch (e) {}
+                                    } catch {}
                                   }}
                                   className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
                                     sub.accessStatus === "Active"
@@ -2116,7 +2112,7 @@ export default function AdminPortalPage() {
                                           headers: { "Content-Type": "application/json" },
                                           body: JSON.stringify({ daysRemaining: 30, accessStatus: "Active" }),
                                         });
-                                      } catch (e) {}
+                                      } catch {}
                                     }}
                                     title="Renew 30 Days"
                                     className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 transition-colors cursor-pointer"
@@ -2139,7 +2135,7 @@ export default function AdminPortalPage() {
                                         showToast(`Subscription ${sub.id} deleted.`);
                                         try {
                                           await adminFetch(`/api/admin/subscriptions/${sub.id}`, { method: "DELETE" });
-                                        } catch (e) {}
+                                        } catch {}
                                       }
                                     }}
                                     title="Delete Subscription"
@@ -2402,7 +2398,7 @@ export default function AdminPortalPage() {
                                         localStorage.setItem("lawkaksha_admin_students", JSON.stringify(next));
                                         try {
                                           await adminFetch(`/api/admin/students/${std.id}`, { method: "DELETE" });
-                                        } catch (e) {}
+                                        } catch {}
                                         showToast("Student deleted.");
                                       }
                                     }}
@@ -2476,7 +2472,7 @@ export default function AdminPortalPage() {
                               localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
                               try {
                                 await adminFetch(`/api/admin/cases/${cs.id}`, { method: "DELETE" });
-                              } catch (e) {}
+                              } catch {}
                               showToast("Case deleted.");
                             }
                           }}
@@ -2652,7 +2648,7 @@ export default function AdminPortalPage() {
                                 localStorage.setItem("lawkaksha_admin_mcqs", JSON.stringify(next));
                                 try {
                                   await adminFetch(`/api/admin/mcq-tests/${test.id}`, { method: "DELETE" });
-                                } catch (e) {}
+                                } catch {}
                                 showToast("Test deleted.");
                               }
                             }}
@@ -2716,7 +2712,7 @@ export default function AdminPortalPage() {
                             localStorage.setItem("lawkaksha_admin_coupons", JSON.stringify(next));
                             try {
                               await adminFetch(`/api/admin/coupons/${cp.id}`, { method: "DELETE" });
-                            } catch (e) {}
+                            } catch {}
                             showToast("Coupon deleted.");
                           }
                         }}
@@ -2849,7 +2845,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Type</label>
                   <select
                     value={resourceModal.data.type || "notes"}
-                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, type: e.target.value as any } })}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, type: e.target.value as ResourceItem["type"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="notes">Chapter Notes</option>
@@ -2864,7 +2860,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
                   <select
                     value={resourceModal.data.status || "Published"}
-                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, status: e.target.value as any } })}
+                    onChange={(e) => setResourceModal({ ...resourceModal, data: { ...resourceModal.data, status: e.target.value as ResourceItem["status"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="Published">Published (Active)</option>
@@ -2937,7 +2933,7 @@ export default function AdminPortalPage() {
                               pdfUrl: preset.url,
                               samplePdfUrl: preset.url,
                               isSample: true,
-                              type: (preset.type as any) || prev.data.type,
+                              type: (preset.type as ResourceItem["type"]) || prev.data.type,
                               title: prev.data.title || preset.title,
                               pages: preset.pages || prev.data.pages,
                               actName: "The Indian Partnership Act, 1932",
@@ -3023,7 +3019,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("PDF Note saved!");
-                  } catch (e) {
+                  } catch {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
@@ -3170,7 +3166,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Subscription saved!");
-                  } catch (e) {
+                  } catch {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
@@ -3231,7 +3227,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Target Exam (Who can access) *</label>
                   <select
                     value={productModal.data.category || "CA Foundation"}
-                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category: e.target.value as any } })}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category: e.target.value as ProductItem["category"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D] font-medium"
                   >
                     <option value="CA Foundation">CA Foundation Students</option>
@@ -3243,7 +3239,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Publishing Status *</label>
                   <select
                     value={productModal.data.status || "Active"}
-                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, status: e.target.value as any } })}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, status: e.target.value as ProductItem["status"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D] font-medium"
                   >
                     <option value="Active">Active (Live on Website)</option>
@@ -3280,9 +3276,11 @@ export default function AdminPortalPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-14 rounded-xl border border-[#E7E4E7] bg-[#F7F7F5] overflow-hidden relative shrink-0 flex items-center justify-center">
                     {productModal.data.cover_image ? (
-                      <img
+                      <Image
                         src={productModal.data.cover_image}
                         alt="Thumbnail"
+                        fill
+                        unoptimized
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -3452,9 +3450,7 @@ export default function AdminPortalPage() {
                     pdfUrl: productModal.data.pdfUrl || "/notes/sale-of-goods-unit-1.pdf",
                     cover_image: productModal.data.cover_image || "/assets/ca-cs-hero-books-sharp.png",
                     description: productModal.data.description || "",
-                    units: Array.isArray(productModal.data.units)
-                      ? productModal.data.units
-                      : (productModal.data.units as any)?.split?.(",").map((s: string) => s.trim()) || ["Chapter 1"],
+                    units: normalizeUnits(productModal.data.units),
                     previewPagesLimit: Number(productModal.data.previewPagesLimit) || 5,
                     samplePagesRange: productModal.data.samplePagesRange || "1-5",
                   };
@@ -3470,7 +3466,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Codex published live!");
-                  } catch (e) {
+                  } catch {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
@@ -3578,7 +3574,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Student saved!");
-                  } catch (e) {}
+                  } catch {}
                 }}
                 className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
@@ -3729,7 +3725,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Case study saved!");
-                  } catch (e) {}
+                  } catch {}
                 }}
                 className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >
@@ -3770,7 +3766,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Target Course *</label>
                   <select
                     value={mcqModal.data.course || "ca"}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, course: e.target.value as any } })}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, course: e.target.value as GoogleFormTestItem["course"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="ca">CA Foundation (Paper 2)</option>
@@ -3783,7 +3779,7 @@ export default function AdminPortalPage() {
                   <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
                   <select
                     value={mcqModal.data.status || "Active"}
-                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, status: e.target.value as any } })}
+                    onChange={(e) => setMcqModal({ ...mcqModal, data: { ...mcqModal.data, status: e.target.value as GoogleFormTestItem["status"] } })}
                     className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-[#221D1D]"
                   >
                     <option value="Active">Active (Published to Students)</option>
@@ -3874,13 +3870,13 @@ export default function AdminPortalPage() {
                   const payload: GoogleFormTestItem = {
                     id: mcqModal.data.id || `gtest-${Date.now()}`,
                     title: mcqModal.data.title || "Weekly Google Form Mock Test",
-                    course: (mcqModal.data.course as any) || "ca",
+                    course: mcqModal.data.course || "ca",
                     subject: mcqModal.data.subject || "Business Laws",
                     formUrl: mcqModal.data.formUrl || "",
                     questionCount: Number(mcqModal.data.questionCount) || 30,
                     duration: Number(mcqModal.data.duration) || 30,
                     totalMarks: Number(mcqModal.data.totalMarks) || 30,
-                    status: (mcqModal.data.status as any) || "Active",
+                    status: mcqModal.data.status || "Active",
                     instructions: mcqModal.data.instructions || "Attempt in one continuous sitting.",
                   };
                   const next = isAdd ? [payload, ...mcqTests] : mcqTests.map((t) => (t.id === payload.id ? payload : t));
@@ -3895,7 +3891,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Google Form test saved to MongoDB Atlas!");
-                  } catch (e) {
+                  } catch {
                     showToast("Saved locally (offline mode)");
                   }
                 }}
@@ -4030,7 +4026,7 @@ export default function AdminPortalPage() {
                 <label className="block font-semibold text-[#4D433F] mb-1">Status</label>
                 <select
                   value={couponModal.data.status || "Active"}
-                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as any } })}
+                  onChange={(e) => setCouponModal({ ...couponModal, data: { ...couponModal.data, status: e.target.value as CouponRecord["status"] } })}
                   className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
                 >
                   <option value="Active">Active</option>
@@ -4072,7 +4068,7 @@ export default function AdminPortalPage() {
                       body: JSON.stringify(payload),
                     });
                     showToast("Coupon saved!");
-                  } catch (e) {}
+                  } catch {}
                 }}
                 className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
               >

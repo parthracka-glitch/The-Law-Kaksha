@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bookmark, Eye, Trash2, BookOpen, FileText, Workflow, Search, ArrowRight } from "lucide-react";
+import { Bookmark, Eye, Trash2, FileText, Workflow, Search, ArrowRight } from "lucide-react";
 
 export interface StudentBookmarkItem {
   id: string;

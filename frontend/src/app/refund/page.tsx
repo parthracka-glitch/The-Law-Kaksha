@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Refund & Cancellation Policy | The Law कक्षा",
   description:
     "Refund and digital fulfillment policy for subscriptions and codices on The Law कक्षा platform.",
+  alternates: {
+    canonical: "https://lawkaksha.in/refund",
+  },
 };
 
 export default function RefundPage() {

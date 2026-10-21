@@ -4,14 +4,10 @@ import React from "react";
 import {
   CheckSquare,
   Flame,
-  Award,
   Zap,
   Calendar,
   CheckCircle2,
   Circle,
-  BarChart3,
-  Trophy,
-  ArrowRight,
 } from "lucide-react";
 
 interface StudentProgressTabProps {

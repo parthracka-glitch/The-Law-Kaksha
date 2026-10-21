@@ -15,7 +15,6 @@ import {
   FileText,
   Target,
   Zap,
-  ChevronRight,
   Quote,
   Flame,
 } from "lucide-react";

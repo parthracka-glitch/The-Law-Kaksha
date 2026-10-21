@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import { getApiBaseUrl } from "@/lib/api";
-import { ShieldAlert, LogOut, ArrowRight, Laptop } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShieldAlert, ArrowRight, Laptop } from "lucide-react";
 import Link from "next/link";
 
 export interface BoundDevice {
@@ -31,6 +32,7 @@ interface DeviceSessionContextType {
 const DeviceSessionContext = createContext<DeviceSessionContextType | undefined>(undefined);
 
 export function DeviceSessionProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [activeDevice, setActiveDevice] = useState<BoundDevice>({
     deviceId: "",
     deviceName: "Current Device",
@@ -60,19 +62,24 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
 
   // Initialize current device identifiers on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const devId = getOrCreateDeviceId();
-      const devName = getDeviceFriendlyName();
-      setActiveDevice({
-        deviceId: devId,
-        deviceName: devName,
-        deviceType: /phone|android|iphone/i.test(devName) ? "mobile" : "desktop",
-        ipAddress: "Verified Device",
-        boundDate: "Active",
-        lastActive: "Just now",
-        status: "active",
-      });
-    }
+    if (typeof window === "undefined") return;
+
+    const devId = getOrCreateDeviceId();
+    const devName = getDeviceFriendlyName();
+    const detectedDevice: BoundDevice = {
+      deviceId: devId,
+      deviceName: devName,
+      deviceType: /phone|android|iphone/i.test(devName) ? "mobile" : "desktop",
+      ipAddress: "Verified Device",
+      boundDate: "Active",
+      lastActive: "Just now",
+      status: "active",
+    };
+
+    const initTimer = window.setTimeout(() => {
+      setActiveDevice(detectedDevice);
+    }, 0);
+    return () => window.clearTimeout(initTimer);
   }, []);
 
   const logout = useCallback(async () => {
@@ -90,7 +97,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
           body: JSON.stringify({ deviceId: devId }),
         }).catch(() => null);
       }
-    } catch (e) {}
+    } catch {}
 
     localStorage.removeItem("lawkaksha_token");
     localStorage.removeItem("lawkaksha_student_session");
@@ -98,8 +105,8 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
     setDeviceConflict(false);
     setConflictDetails(null);
     window.dispatchEvent(new Event("storage"));
-    window.location.href = "/login";
-  }, []);
+    router.push("/login");
+  }, [router]);
 
   // Periodic Single-Device Heartbeat (Runs every 45 seconds when logged in)
   useEffect(() => {
@@ -114,7 +121,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
       try {
         const parsed = JSON.parse(studentSessionStr);
         identifier = parsed.student_id || parsed.studentId || parsed.email || "";
-      } catch (e) {}
+      } catch {}
 
       const currentDevId = getOrCreateDeviceId();
 
@@ -150,7 +157,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
             window.dispatchEvent(new Event("storage"));
           }
         }
-      } catch (err) {
+      } catch {
         // Network or offline, ignore harmless heartbeat errors
       }
     };
@@ -264,7 +271,7 @@ export function DeviceSessionProvider({ children }: { children: React.ReactNode 
                 onClick={() => {
                   setDeviceConflict(false);
                   setConflictDetails(null);
-                  window.location.href = "/";
+                  router.push("/");
                 }}
                 className="w-full py-2 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#77716E] hover:text-[#221D1D] font-semibold text-xs border border-[#E7E4E7] transition cursor-pointer"
               >

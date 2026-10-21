@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   X,
   Flame,
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Trophy,
   CheckCircle2,
   Clock,
@@ -15,7 +14,6 @@ import {
   CalendarCheck,
   CheckSquare,
   Square,
-  ArrowRight,
   Target,
 } from "lucide-react";
 
@@ -103,7 +101,22 @@ const formatDateKey = (d: Date): string => {
   return `${y}-${m}-${day}`;
 };
 
-export function StreakCalendarModal({
+const readStoredStudyHistory = (): Record<string, StudyDayLog> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem("lawkaksha_study_history");
+    return raw ? (JSON.parse(raw) as Record<string, StudyDayLog>) : {};
+  } catch {
+    return {};
+  }
+};
+
+export function StreakCalendarModal(props: StreakCalendarModalProps) {
+  if (!props.isOpen) return null;
+  return <StreakCalendarModalContent {...props} />;
+}
+
+function StreakCalendarModalContent({
   isOpen,
   onClose,
   streak,
@@ -112,41 +125,14 @@ export function StreakCalendarModal({
 }: StreakCalendarModalProps) {
   // Real live system date reference
   const [currentRealTime, setCurrentRealTime] = useState<Date>(() => new Date());
-  const [viewDate, setViewDate] = useState<Date>(() => new Date());
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [studyHistory, setStudyHistory] = useState<Record<string, StudyDayLog>>({});
-  const [loggedToday, setLoggedToday] = useState(false);
-
-  // Synchronize with real date & load local persistent history
-  const syncWithRealDate = useCallback(() => {
+  const [viewDate, setViewDate] = useState<Date>(() => {
     const now = new Date();
-    setCurrentRealTime(now);
-    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1));
-    setSelectedDate(now);
-
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("lawkaksha_study_history");
-        const parsed: Record<string, StudyDayLog> = raw ? JSON.parse(raw) : {};
-        setStudyHistory(parsed);
-
-        const todayKey = formatDateKey(now);
-        if (parsed[todayKey]) {
-          setLoggedToday(true);
-        } else {
-          setLoggedToday(false);
-        }
-      } catch (e) {
-        // ignore parse error
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      syncWithRealDate();
-    }
-  }, [isOpen, syncWithRealDate]);
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [studyHistory, setStudyHistory] = useState<Record<string, StudyDayLog>>(
+    readStoredStudyHistory
+  );
 
   // Keep live time ticking while modal is open
   useEffect(() => {
@@ -159,6 +145,9 @@ export function StreakCalendarModal({
 
   // Real today key
   const realTodayKey = formatDateKey(currentRealTime);
+
+  // Today's status is derived from the synchronised study history
+  const loggedToday = Boolean(studyHistory[realTodayKey]);
 
   // Calculate real consecutive streak dates ending at realToday
   const activeStreakKeys = useMemo(() => {
@@ -222,7 +211,6 @@ export function StreakCalendarModal({
     setStudyHistory(updatedHistory);
 
     if (targetKey === realTodayKey) {
-      setLoggedToday(true);
       const newStreak = streak + 1;
       if (typeof window !== "undefined") {
         localStorage.setItem("lawkaksha_streak", String(newStreak));
@@ -273,7 +261,6 @@ export function StreakCalendarModal({
   const isSelectedToday = selectedDateKey === realTodayKey;
   const isSelectedInStreak = activeStreakKeys.has(selectedDateKey);
   const isSelectedFuture = selectedDate > currentRealTime && !isSelectedToday;
-  const isSelectedPast = selectedDate < currentRealTime && !isSelectedToday;
 
   const selectedLog: StudyDayLog =
     studyHistory[selectedDateKey] ||
@@ -292,9 +279,6 @@ export function StreakCalendarModal({
     day: "numeric",
     year: "numeric",
   });
-
-  // Calculate total study sessions logged
-  const totalDaysLogged = Object.keys(studyHistory).length + (activeStreakKeys.size > 0 ? 0 : 0);
 
   return (
     <div

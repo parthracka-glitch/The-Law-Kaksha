@@ -11,11 +11,9 @@ import {
   Scale,
   Sparkles,
   Award,
-  BookOpen,
   CheckCircle2,
   FileText,
   Share2,
-  Copy,
   Check,
 } from "lucide-react";
 
@@ -93,7 +91,7 @@ export default function CaseStudyDetailPage() {
         if (res.success && res.data) {
           if (isMounted) setCaseData(res.data);
         }
-      } catch (e) {
+      } catch {
         // Fallback remains
       }
     }

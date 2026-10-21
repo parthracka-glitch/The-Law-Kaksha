@@ -6,13 +6,10 @@ import {
   CheckCircle2,
   Sparkles,
   Layers,
-  ArrowRight,
   ShieldCheck,
   Eye,
   GraduationCap,
-  FileText,
 } from "lucide-react";
-import { useCart } from "@/context/CartContext";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 
 interface CoursePlan {
@@ -105,14 +102,10 @@ export function SmartChoicePricing() {
     price: 99,
   });
 
-  const { addToCart } = useCart();
-
   const handleOpenSample = (title: string, id: string, price: number) => {
     setSampleBook({ title, id: "ca-foundation", price });
     setSampleModalOpen(true);
   };
-
-  const currentPlan = activeTab === "ca" ? CA_FOUNDATION_PLAN : CSEET_PLAN;
 
   return (
     <section id="pricing" className="pt-4 sm:pt-6 pb-12 md:pb-16 bg-white relative">

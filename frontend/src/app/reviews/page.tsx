@@ -7,12 +7,7 @@ import { Footer } from "@/components/Footer";
 import { apiRequest } from "@/lib/api";
 import {
   Star,
-  Award,
-  CheckCircle2,
-  Sparkles,
   ArrowRight,
-  Quote,
-  ShieldCheck,
   Check,
 } from "lucide-react";
 

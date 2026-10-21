@@ -1,0 +1,28 @@
+{
+  "name": "The Law Kaksha | CA Foundation Business Laws & CSEET",
+  "short_name": "The Law Kaksha",
+  "description": "Premier digital learning academy for CA Foundation Paper 2 Business Laws and CSEET.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005A9C",
+  "orientation": "portrait",
+  "categories": ["education", "books", "reference"],
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "849x517",
+      "type": "image/png"
+    }
+  ]
+}

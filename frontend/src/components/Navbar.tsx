@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Sparkles, FileText, LogIn, LogOut, User, LayoutDashboard } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, ChevronDown, BookOpen, GraduationCap, ArrowRight, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { apiRequest } from "@/lib/api";
 import { AnnouncementBar } from "./AnnouncementBar";
@@ -70,7 +70,7 @@ export function Navbar() {
               });
               return;
             }
-          } catch (e) {}
+          } catch {}
         }
         const saved = localStorage.getItem("lawkaksha_active_student") || localStorage.getItem("lawkaksha_student_session");
         if (saved) {
@@ -95,7 +95,7 @@ export function Navbar() {
               });
               return;
             }
-          } catch (e) {}
+          } catch {}
         }
         setActiveStudent(null);
       }
@@ -114,9 +114,12 @@ export function Navbar() {
 
   // Close mobile menu and dropdowns on route change
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setCoursesDropdownOpen(false);
-    setProfileDropdownOpen(false);
+    const closeTimer = window.setTimeout(() => {
+      setMobileMenuOpen(false);
+      setCoursesDropdownOpen(false);
+      setProfileDropdownOpen(false);
+    }, 0);
+    return () => window.clearTimeout(closeTimer);
   }, [pathname]);
 
   useEffect(() => {
@@ -291,6 +294,16 @@ export function Navbar() {
             <div className="relative py-1 flex flex-col items-center">
               <Link
                 href="/#free-resources"
+                onClick={(e) => {
+                  if (pathname === "/") {
+                    e.preventDefault();
+                    const el = document.getElementById("free-resources");
+                    if (el) {
+                      el.scrollIntoView({ behavior: "smooth" });
+                      window.history.pushState(null, "", "/#free-resources");
+                    }
+                  }
+                }}
                 className="text-[#334155] hover:text-[#005A9C] font-semibold transition-colors duration-200 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C] flex items-center gap-1.5"
               >
                 <span>Free Resources</span>
@@ -304,6 +317,16 @@ export function Navbar() {
             <div className="relative py-1 flex flex-col items-center">
               <Link
                 href="/#pricing"
+                onClick={(e) => {
+                  if (pathname === "/") {
+                    e.preventDefault();
+                    const el = document.getElementById("pricing") || document.getElementById("subscriptions");
+                    if (el) {
+                      el.scrollIntoView({ behavior: "smooth" });
+                      window.history.pushState(null, "", "/#pricing");
+                    }
+                  }
+                }}
                 className="text-[#334155] hover:text-[#005A9C] transition-colors duration-200 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C]"
               >
                 Pricing
@@ -321,6 +344,21 @@ export function Navbar() {
                 About
               </Link>
               {pathname === "/about" && (
+                <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#005A9C] rounded-full" />
+              )}
+            </div>
+
+            {/* Case Studies */}
+            <div className="relative py-1 flex flex-col items-center">
+              <Link
+                href="/case-studies"
+                className={`transition-colors duration-200 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C] ${
+                  pathname.startsWith("/case-studies") ? "text-[#0A192F] font-bold" : "text-[#334155] hover:text-[#005A9C]"
+                }`}
+              >
+                Case Studies
+              </Link>
+              {pathname.startsWith("/case-studies") && (
                 <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#005A9C] rounded-full" />
               )}
             </div>
@@ -586,7 +624,17 @@ export function Navbar() {
 
                 <Link
                   href="/#free-resources"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    if (pathname === "/") {
+                      e.preventDefault();
+                      const el = document.getElementById("free-resources");
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                        window.history.pushState(null, "", "/#free-resources");
+                      }
+                    }
+                  }}
                   className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-[#005A9C] bg-[#EFF6FF] rounded-xl transition-colors min-h-[44px] active:scale-[0.98] border border-[#BFDBFE]"
                 >
                   <span className="flex items-center gap-2">
@@ -600,7 +648,17 @@ export function Navbar() {
 
                 <Link
                   href="/#pricing"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    if (pathname === "/") {
+                      e.preventDefault();
+                      const el = document.getElementById("pricing") || document.getElementById("subscriptions");
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                        window.history.pushState(null, "", "/#pricing");
+                      }
+                    }
+                  }}
                   className="flex items-center px-4 py-3 text-sm font-medium text-[#334155] hover:bg-[#F0F7FF] hover:text-[#005A9C] rounded-xl transition-colors min-h-[44px] active:scale-[0.98]"
                 >
                   Pricing
@@ -613,6 +671,16 @@ export function Navbar() {
                   }`}
                 >
                   About
+                </Link>
+
+                <Link
+                  href="/case-studies"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-colors min-h-[44px] active:scale-[0.98] ${
+                    pathname.startsWith("/case-studies") ? "bg-[#EFF6FF] text-[#005A9C] font-bold border-l-2 border-[#005A9C]" : "text-[#334155] hover:bg-[#F0F7FF]"
+                  }`}
+                >
+                  Case Studies
                 </Link>
 
                 <Link

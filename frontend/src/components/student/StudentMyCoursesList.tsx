@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Search, ChevronRight, BookOpen, Lock, Sparkles, Scale, Landmark, FileText, Briefcase } from "lucide-react";
+import { Search, ChevronRight, BookOpen, Lock, Scale, Landmark, FileText, Briefcase } from "lucide-react";
 
 export interface StudentCourseProgressItem {
   id: string;
@@ -157,12 +157,32 @@ export function StudentMyCoursesList({
       {/* Course Cards Scrollable Container - Limits vertical height & enables sleek inner scrolling */}
       <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1.5 scroll-smooth divide-y divide-[#F1F5F9]/60">
         {filteredCourses.length === 0 ? (
-          <div className="p-6 text-center bg-white rounded-2xl border border-[#E7ECF7] text-[#6C7893]">
-            <p className="text-xs font-medium">
-              {courses.length === 0
-                ? "No live courses are available yet."
-                : "No courses match your filter."}
-            </p>
+          <div className="p-6 sm:p-8 text-center bg-white rounded-2xl border border-[#E7ECF7] text-[#6C7893] space-y-3">
+            <div className="w-10 h-10 rounded-full bg-[#F0F7FF] text-[#005A9C] flex items-center justify-center mx-auto">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[#0A192F]">
+                {courses.length === 0
+                  ? "No enrolled courses yet"
+                  : "No courses match your filter."}
+              </p>
+              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
+                {courses.length === 0
+                  ? "Explore our Free Resources and sample codices below, or unlock full course access to view all curriculum materials."
+                  : "Try clearing your search query or switching filters."}
+              </p>
+            </div>
+            {courses.length === 0 && onExploreMore && (
+              <button
+                type="button"
+                onClick={onExploreMore}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#005A9C] hover:bg-[#004080] text-white transition-all cursor-pointer shadow-2xs"
+              >
+                <span>Explore Course Catalog</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         ) : (
           filteredCourses.map((course) => (

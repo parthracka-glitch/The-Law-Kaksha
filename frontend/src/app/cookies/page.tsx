@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Cookie & Storage Policy | The Law कक्षा",
   description:
     "Information regarding essential local storage and cookie usage for student sessions and DRM licensing on The Law कक्षा.",
+  alternates: {
+    canonical: "https://lawkaksha.in/cookies",
+  },
 };
 
 export default function CookiesPage() {

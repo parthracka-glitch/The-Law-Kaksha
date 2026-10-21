@@ -8,13 +8,8 @@ import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 
 export function HeroSection() {
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
-  const [previewBook, setPreviewBook] = useState<"ca-foundation" | "cseet">("ca-foundation");
+  const [previewBook] = useState<"ca-foundation" | "cseet">("ca-foundation");
   const typographyRef = useRef<HTMLDivElement>(null);
-
-  const handleOpenPreview = (bookId: "ca-foundation" | "cseet") => {
-    setPreviewBook(bookId);
-    setSampleModalOpen(true);
-  };
 
   useEffect(() => {
     // Respect user preference for reduced motion

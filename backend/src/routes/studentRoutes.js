@@ -113,6 +113,42 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       student.unlockedItemIds.forEach((id) => unlockedSet.add(id));
     }
 
+    // From active entitlements
+    if (isConnected()) {
+      try {
+        const ents = await Entitlement.find({
+          $or: [
+            ...(student?.id ? [{ user_id: student.id }] : []),
+            ...(email ? [{ user_email: email }] : []),
+            ...(studentId ? [{ student_id: studentId }] : []),
+          ],
+          status: "active",
+          expires_at: { $gt: new Date() },
+        }).lean();
+        ents.forEach((e) => {
+          if (e.course_id) unlockedSet.add(e.course_id);
+          if (e.courseId) unlockedSet.add(e.courseId);
+          if (e.item_id) unlockedSet.add(e.item_id);
+        });
+      } catch (_) {}
+    } else {
+      try {
+        const ents = Database.table("entitlements").find(
+          (e) =>
+            ((student?.id && e.user_id === student.id) ||
+              (email && e.user_email === email) ||
+              (studentId && e.student_id === studentId)) &&
+            e.status === "active" &&
+            (!e.expires_at || new Date(e.expires_at) > new Date())
+        );
+        ents.forEach((e) => {
+          if (e.course_id) unlockedSet.add(e.course_id);
+          if (e.courseId) unlockedSet.add(e.courseId);
+          if (e.item_id) unlockedSet.add(e.item_id);
+        });
+      } catch (_) {}
+    }
+
     // From active subscriptions
     subscriptions.forEach((sub) => {
       if (sub.productId) unlockedSet.add(String(sub.productId));
@@ -155,7 +191,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
       student: student || null,
-      hasActiveSubscription: subscriptions.length > 0 || (student && student.drm_access),
+      hasActiveSubscription: subscriptions.length > 0 || finalUnlockedIds.length > 0,
       unlockedItemIds: finalUnlockedIds,
       subscriptions,
       availableProducts: products.map(serializeProduct),
@@ -802,13 +838,27 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       const entitlements = await Entitlement.find({
         $or: [
           ...(userId ? [{ user_id: userId }] : []),
+          ...(email ? [{ user_email: email }] : []),
           ...(studentId ? [{ student_id: studentId }] : []),
         ],
         status: "active",
         expires_at: { $gt: new Date() },
       }).lean();
 
-      entitlements.forEach((e) => activeCourseIds.add(e.course_id));
+      entitlements.forEach((e) => {
+        if (e.course_id) activeCourseIds.add(e.course_id);
+        if (e.courseId) activeCourseIds.add(e.courseId);
+        const cId = String(e.course_id || e.courseId || "").toLowerCase();
+        if (cId.includes("ca") || cId.includes("foundation")) {
+          activeCourseIds.add("ca-foundation");
+          activeCourseIds.add("course-ca-foundation");
+        }
+        if (cId.includes("cseet")) {
+          activeCourseIds.add("cseet-business-communication");
+          activeCourseIds.add("course-cseet");
+          activeCourseIds.add("cseet");
+        }
+      });
 
       // Also check subscriptions
       const subs = await Subscription.find({
@@ -825,11 +875,38 @@ router.get("/my-courses", requireAuth, async (req, res) => {
         const title = (s.item || "").toLowerCase();
         if (title.includes("ca foundation") || title.includes("vol 1")) {
           activeCourseIds.add("ca-foundation");
+          activeCourseIds.add("course-ca-foundation");
         }
         if (title.includes("cseet") || title.includes("vol 2")) {
           activeCourseIds.add("cseet-business-communication");
+          activeCourseIds.add("course-cseet");
+          activeCourseIds.add("cseet");
         }
       });
+
+      // Check student user unlockedItemIds
+      const studentUser = await User.findOne({
+        $or: [
+          ...(userId ? [{ id: userId }, { _id: userId }] : []),
+          ...(email ? [{ email }] : []),
+          ...(studentId ? [{ student_id: studentId }] : []),
+        ],
+      }).lean();
+
+      if (studentUser && Array.isArray(studentUser.unlockedItemIds)) {
+        studentUser.unlockedItemIds.forEach((id) => {
+          const lower = String(id).toLowerCase();
+          if (lower.includes("ca") || lower.includes("foundation") || lower.includes("vol1")) {
+            activeCourseIds.add("ca-foundation");
+            activeCourseIds.add("course-ca-foundation");
+          }
+          if (lower.includes("cseet") || lower.includes("vol2")) {
+            activeCourseIds.add("cseet-business-communication");
+            activeCourseIds.add("course-cseet");
+            activeCourseIds.add("cseet");
+          }
+        });
+      }
 
       // Fetch all courses sorted by curriculum order
       const allCourses = await Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
@@ -857,6 +934,7 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                       pages: item.pages || item.fileName || "",
                       fileUrl: `/api/content/${item.id}/file`,
                       isFreeSample: Boolean(item.isFreeSample || item.isSample),
+                      isLocked: !isEnrolled && !Boolean(item.isFreeSample || item.isSample),
                       samplePagesRange:
                         item.samplePagesRange ||
                         (item.sampleFromPage && item.sampleToPage
@@ -898,11 +976,25 @@ router.get("/my-courses", requireAuth, async (req, res) => {
     // Local JSON DB fallback
     const entitlementsTable = Database.table("entitlements");
     const entitlements = entitlementsTable.find(
-      (e) => (userId && e.user_id === userId) || (studentId && e.student_id === studentId)
+      (e) =>
+        ((userId && e.user_id === userId) ||
+          (email && e.user_email === email) ||
+          (studentId && e.student_id === studentId)) &&
+        e.status === "active" &&
+        (!e.expires_at || new Date(e.expires_at) > new Date())
     );
     entitlements.forEach((e) => {
-      if (e.status === "active" && (!e.expires_at || new Date(e.expires_at) > new Date())) {
-        activeCourseIds.add(e.course_id);
+      if (e.course_id) activeCourseIds.add(e.course_id);
+      if (e.courseId) activeCourseIds.add(e.courseId);
+      const cId = String(e.course_id || e.courseId || "").toLowerCase();
+      if (cId.includes("ca") || cId.includes("foundation")) {
+        activeCourseIds.add("ca-foundation");
+        activeCourseIds.add("course-ca-foundation");
+      }
+      if (cId.includes("cseet")) {
+        activeCourseIds.add("cseet-business-communication");
+        activeCourseIds.add("course-cseet");
+        activeCourseIds.add("cseet");
       }
     });
 
@@ -915,11 +1007,32 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       const title = (s.item || "").toLowerCase();
       if (title.includes("ca foundation") || title.includes("vol 1")) {
         activeCourseIds.add("ca-foundation");
+        activeCourseIds.add("course-ca-foundation");
       }
       if (title.includes("cseet") || title.includes("vol 2")) {
         activeCourseIds.add("cseet-business-communication");
+        activeCourseIds.add("course-cseet");
+        activeCourseIds.add("cseet");
       }
     });
+
+    const localUser = Database.table("users").findOne(
+      (u) => (userId && u.id === userId) || (email && u.email === email) || (studentId && u.student_id === studentId)
+    );
+    if (localUser && Array.isArray(localUser.unlockedItemIds)) {
+      localUser.unlockedItemIds.forEach((id) => {
+        const lower = String(id).toLowerCase();
+        if (lower.includes("ca") || lower.includes("foundation") || lower.includes("vol1")) {
+          activeCourseIds.add("ca-foundation");
+          activeCourseIds.add("course-ca-foundation");
+        }
+        if (lower.includes("cseet") || lower.includes("vol2")) {
+          activeCourseIds.add("cseet-business-communication");
+          activeCourseIds.add("course-cseet");
+          activeCourseIds.add("cseet");
+        }
+      });
+    }
 
     const coursesTable = Database.table("courses");
     const actsTable = Database.table("acts");
@@ -960,6 +1073,7 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                     pages: item.pages || item.fileName || "",
                     fileUrl: `/api/content/${item.id}/file`,
                     isFreeSample: Boolean(item.isFreeSample || item.isSample),
+                    isLocked: !isEnrolled && !Boolean(item.isFreeSample || item.isSample),
                     samplePagesRange:
                       item.samplePagesRange ||
                       (item.sampleFromPage && item.sampleToPage

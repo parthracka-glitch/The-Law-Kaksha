@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CheckCircle2, XCircle, Award, Scale, HelpCircle, BookOpen, ArrowRight, Sparkles, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Scale, ArrowRight, Sparkles, AlertTriangle } from "lucide-react";
 import { getApiBaseUrl } from "@/lib/api";
 
 export function Section16ComparisonBlock() {

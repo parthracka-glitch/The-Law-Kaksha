@@ -11,28 +11,45 @@ import {
   ShieldCheck,
   BookOpen,
   ArrowRight,
-  Clock,
   Sparkles,
-  Download,
-  Calendar,
 } from "lucide-react";
+
+interface OrderPersonalDetails {
+  fullName?: string;
+  email?: string;
+}
+
+interface OrderRecord {
+  id?: string;
+  customer_name?: string;
+  customerName?: string;
+  customer_email?: string;
+  customerEmail?: string;
+  personalDetails?: OrderPersonalDetails;
+  total_amount?: number;
+  amount?: number;
+}
+
+interface OrderApiPayload extends OrderRecord {
+  order?: OrderRecord;
+}
 
 export default function OrderSuccessPage() {
   const params = useParams();
   const orderNo = (params?.orderNo as string) || "LK-ORD-RECENT";
-  const [order, setOrder] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState<OrderRecord | null>(null);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     async function fetchOrder() {
       try {
-        const res = await apiRequest(`/api/orders/${orderNo}`);
+        const res = await apiRequest<OrderApiPayload>(`/api/orders/${orderNo}`);
         if (res.success && res.data) {
-          const orderObj = (res.data as any).order || res.data;
+          const orderObj = res.data.order || res.data;
           if (isMounted) setOrder(orderObj);
         }
-      } catch (e) {
+      } catch {
         // Fallback to minimal state
       } finally {
         if (isMounted) setLoading(false);

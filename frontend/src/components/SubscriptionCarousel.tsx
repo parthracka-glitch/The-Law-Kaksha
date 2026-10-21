@@ -12,11 +12,9 @@ import {
   Clock,
   BookOpen,
   Star,
-  Award,
   Zap,
   Flame,
   CheckCircle2,
-  Lock,
 } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
 

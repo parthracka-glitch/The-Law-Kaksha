@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  CreditCard,
   Download,
   RefreshCw,
   Search,
-  CheckCircle2,
-  FileSpreadsheet,
-  ShieldCheck,
 } from "lucide-react";
 
 interface PaymentRecord {
@@ -34,7 +30,7 @@ export function AdminPaymentsTab({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     try {
       setLoading(true);
       const res = await adminFetch("/api/admin/payments");
@@ -42,16 +38,16 @@ export function AdminPaymentsTab({
       if (data.success && Array.isArray(data.data)) {
         setPayments(data.data);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminFetch]);
 
   useEffect(() => {
     loadPayments();
-  }, []);
+  }, [loadPayments]);
 
   const handleExport = async (entity: "orders" | "payments" | "students" | "expenses") => {
     try {
@@ -64,7 +60,7 @@ export function AdminPaymentsTab({
       a.click();
       window.URL.revokeObjectURL(url);
       showToast(`${entity.toUpperCase()} CSV exported.`);
-    } catch (e) {
+    } catch {
       alert("Failed to export: " + entity);
     }
   };

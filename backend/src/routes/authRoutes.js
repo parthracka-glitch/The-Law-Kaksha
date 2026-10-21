@@ -121,7 +121,7 @@ router.post("/register", async (req, res) => {
       target_exam: course,
       is_active: true,
       drm_access: true,
-      enrolled_books: [course],
+      enrolled_books: [],
       unlockedItemIds: [],
       tokenVersion: 1,
     };
@@ -782,7 +782,7 @@ router.post("/google", async (req, res) => {
         target_exam: course,
         is_active: true,
         drm_access: true,
-        enrolled_books: [course],
+        enrolled_books: isDesignatedAdmin ? ["*"] : [],
         unlockedItemIds: [],
         activeDeviceId: incomingDeviceId,
         activeDeviceName: incomingDeviceName,

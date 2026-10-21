@@ -2,13 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Settings,
   Mail,
-  Phone,
-  MessageCircle,
   Megaphone,
   Globe,
-  Check,
   RefreshCw,
   Save,
 } from "lucide-react";
@@ -75,12 +71,12 @@ export function AdminSettingsTab({
         if (data.success && data.data) {
           setSettings((prev) => ({ ...prev, ...data.data }));
         }
-      } catch (e) {
+      } catch {
         // Fallback
       }
     }
     loadSettings();
-  }, []);
+  }, [adminFetch]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +93,8 @@ export function AdminSettingsTab({
       } else {
         alert(data.message || "Failed to save settings.");
       }
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err: unknown) {
+      alert("Error: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSaving(false);
     }

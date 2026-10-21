@@ -3,21 +3,11 @@
 import React, { useState, useEffect } from "react";
 import {
   Clock,
-  Calendar,
   Flame,
   Plus,
   Trash2,
-  Edit3,
   CheckCircle2,
   Sparkles,
-  RefreshCw,
-  Eye,
-  HelpCircle,
-  BookOpen,
-  ArrowRight,
-  Bookmark,
-  Share2,
-  AlertCircle,
   Save,
 } from "lucide-react";
 
@@ -47,6 +37,35 @@ export interface MCQScenarioItem {
   explanationTitle: string;
   explanation: string;
   keyDistinction: string;
+}
+
+interface RawExamSetting {
+  id?: string;
+  name?: string;
+  exam?: string;
+  level?: string;
+  session?: string;
+  targetDate?: string;
+  date?: string;
+  syllabusCoverage?: number;
+  totalHoursNeeded?: number;
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
+interface ExamSettingsResponse {
+  examSettings?: unknown;
+}
+
+interface McqPoolResponse {
+  mcqPool?: unknown;
+}
+
+function toRawExamSetting(value: unknown): RawExamSetting {
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+  return value as RawExamSetting;
 }
 
 const DEFAULT_EXAMS: ExamTargetItem[] = [
@@ -185,7 +204,7 @@ export function AdminExamCountdownAndQOTDTab({
   showToast: (msg: string) => void;
 }) {
   const [activeSection, setActiveSection] = useState<"exams" | "mcq">("exams");
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Exam Countdowns State
@@ -205,19 +224,22 @@ export function AdminExamCountdownAndQOTDTab({
         // Load exam settings
         const resExams = await adminFetch("/api/admin/exam-settings");
         if (resExams.ok) {
-          const dataExams = await resExams.json();
+          const dataExams = (await resExams.json()) as ExamSettingsResponse;
           if (Array.isArray(dataExams.examSettings) && dataExams.examSettings.length > 0) {
             setExams(
-              dataExams.examSettings.map((e: any, idx: number) => ({
-                id: e.id || `exam-${idx + 1}`,
-                name: e.name || e.exam || "CA Foundation Business Laws",
-                level: e.level || e.session || "ICAI Paper 2 • 7 Chapters",
-                targetDate: e.targetDate || (e.date ? (e.date.includes("T") ? e.date : `${e.date}T09:00:00`) : "2026-12-15T09:00:00"),
-                syllabusCoverage: e.syllabusCoverage ?? 100,
-                totalHoursNeeded: e.totalHoursNeeded ?? 120,
-                buttonText: e.buttonText || "Open Student Learning Desk",
-                buttonUrl: e.buttonUrl || "/student",
-              }))
+              dataExams.examSettings.map((raw: unknown, idx: number) => {
+                const e = toRawExamSetting(raw);
+                return {
+                  id: e.id || `exam-${idx + 1}`,
+                  name: e.name || e.exam || "CA Foundation Business Laws",
+                  level: e.level || e.session || "ICAI Paper 2 • 7 Chapters",
+                  targetDate: e.targetDate || (e.date ? (e.date.includes("T") ? e.date : `${e.date}T09:00:00`) : "2026-12-15T09:00:00"),
+                  syllabusCoverage: e.syllabusCoverage ?? 100,
+                  totalHoursNeeded: e.totalHoursNeeded ?? 120,
+                  buttonText: e.buttonText || "Open Student Learning Desk",
+                  buttonUrl: e.buttonUrl || "/student",
+                };
+              })
             );
           }
         }
@@ -225,12 +247,12 @@ export function AdminExamCountdownAndQOTDTab({
         // Load MCQs pool
         const resMcqs = await adminFetch("/api/admin/mcq-pool");
         if (resMcqs.ok) {
-          const dataMcqs = await resMcqs.json();
+          const dataMcqs = (await resMcqs.json()) as McqPoolResponse;
           if (Array.isArray(dataMcqs.mcqPool) && dataMcqs.mcqPool.length > 0) {
-            setMcqList(dataMcqs.mcqPool);
+            setMcqList(dataMcqs.mcqPool as MCQScenarioItem[]);
           }
         }
-      } catch (err) {
+      } catch {
         // Fallback to defaults
       } finally {
         setLoading(false);
@@ -255,7 +277,7 @@ export function AdminExamCountdownAndQOTDTab({
       } else {
         throw new Error("Save failed");
       }
-    } catch (e) {
+    } catch {
       localStorage.setItem("lawkaksha_exam_settings", JSON.stringify(exams));
       showToast("Saved locally (offline mode)");
     } finally {
@@ -279,7 +301,7 @@ export function AdminExamCountdownAndQOTDTab({
       } else {
         throw new Error("Save failed");
       }
-    } catch (e) {
+    } catch {
       localStorage.setItem("lawkaksha_mcq_pool", JSON.stringify(mcqList));
       showToast("Saved locally (offline mode)");
     } finally {

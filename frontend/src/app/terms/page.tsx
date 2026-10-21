@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Terms of Service | The Law कक्षा",
   description:
     "Terms of Service, digital academic license, and platform usage terms for The Law कक्षा CA Foundation & CSEET platform.",
+  alternates: {
+    canonical: "https://lawkaksha.in/terms",
+  },
 };
 
 export default function TermsPage() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
 
@@ -11,39 +11,68 @@ export interface AnnouncementData {
   link?: string;
 }
 
+const ANNOUNCEMENT_CACHE_KEY = "lawkaksha_admin_announcement";
+
+function subscribeToAnnouncementCache(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
+function getCachedAnnouncement(): string {
+  return localStorage.getItem(ANNOUNCEMENT_CACHE_KEY) ?? "";
+}
+
+function getServerCachedAnnouncement(): string {
+  return "";
+}
+
+function parseCachedAnnouncement(cached: string): AnnouncementData | null {
+  if (!cached) return null;
+  try {
+    const parsed: unknown = JSON.parse(cached);
+    if (parsed && typeof parsed === "object") {
+      return parsed as AnnouncementData;
+    }
+  } catch {
+  }
+  return null;
+}
+
 export function AnnouncementBar() {
+  const cachedRaw = useSyncExternalStore(
+    subscribeToAnnouncementCache,
+    getCachedAnnouncement,
+    getServerCachedAnnouncement
+  );
+  const cachedAnnouncement = useMemo(
+    () => parseCachedAnnouncement(cachedRaw),
+    [cachedRaw]
+  );
   const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // 1. Check local storage
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("lawkaksha_admin_announcement");
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (parsed && typeof parsed === "object") setAnnouncement(parsed);
-        } catch (e) {}
-      }
-    }
-
-    // 2. Fetch from backend /api/announcement
+    // 1. Fetch from backend /api/announcement
     fetch("/api/announcement")
       .then((res) => res.json())
       .then((data) => {
         if (data?.success && data?.announcement) {
           setAnnouncement(data.announcement);
           try {
-            localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(data.announcement));
-          } catch (e) {}
+            localStorage.setItem(ANNOUNCEMENT_CACHE_KEY, JSON.stringify(data.announcement));
+          } catch {
+          }
         }
       })
       .catch(() => {});
 
-    // 3. Listen to live updates
-    const handleUpdate = (e: any) => {
-      if (e?.detail) {
-        setAnnouncement(e.detail);
+    // 2. Listen to live updates
+    const handleUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AnnouncementData>).detail;
+      if (detail) {
+        setAnnouncement(detail);
         setDismissed(false);
       }
     };
@@ -53,7 +82,14 @@ export function AnnouncementBar() {
     };
   }, []);
 
-  if (!announcement || !announcement.enabled || !announcement.text || dismissed) {
+  const activeAnnouncement = announcement ?? cachedAnnouncement;
+
+  if (
+    !activeAnnouncement ||
+    !activeAnnouncement.enabled ||
+    !activeAnnouncement.text ||
+    dismissed
+  ) {
     return null;
   }
 
@@ -64,17 +100,17 @@ export function AnnouncementBar() {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <div className="flex-1 flex items-center justify-center gap-2 sm:gap-3 text-center min-w-0">
-          {announcement.badge && (
+          {activeAnnouncement.badge && (
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4AF37] text-[#0A192F] shrink-0 font-sans shadow-2xs">
-              {announcement.badge}
+              {activeAnnouncement.badge}
             </span>
           )}
           <span className="font-medium text-xs truncate sm:text-clip text-white/95">
-            {announcement.text}
+            {activeAnnouncement.text}
           </span>
-          {announcement.link && (
+          {activeAnnouncement.link && (
             <Link
-              href={announcement.link}
+              href={activeAnnouncement.link}
               className="inline-flex items-center gap-1 font-bold text-[#8ECAE6] hover:text-white underline underline-offset-2 shrink-0 transition-colors ml-1"
             >
               <span>Explore</span>

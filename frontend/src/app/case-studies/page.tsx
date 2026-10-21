@@ -8,13 +8,8 @@ import { apiRequest } from "@/lib/api";
 import {
   BookOpen,
   Search,
-  Filter,
-  Sparkles,
-  ArrowRight,
   Scale,
-  Award,
   ChevronRight,
-  Bookmark,
 } from "lucide-react";
 
 interface CaseStudyItem {
@@ -66,7 +61,7 @@ export default function CaseStudiesDirectoryPage() {
   const [cases, setCases] = useState<CaseStudyItem[]>(FALLBACK_CASES);
   const [search, setSearch] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,7 +72,7 @@ export default function CaseStudiesDirectoryPage() {
         if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
           if (isMounted) setCases(res.data);
         }
-      } catch (err) {
+      } catch {
         // Fallback remains
       } finally {
         if (isMounted) setLoading(false);

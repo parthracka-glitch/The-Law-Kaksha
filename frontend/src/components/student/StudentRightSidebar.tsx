@@ -17,9 +17,6 @@ interface StudentRightSidebarProps {
 export function StudentRightSidebar({
   streak = 0,
   longestStreak = 0,
-  studentName = "Student",
-  studyHours = 0,
-  userRank = 0,
   onOpenStreakLog,
   recentActivities = [],
 }: StudentRightSidebarProps) {

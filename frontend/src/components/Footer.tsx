@@ -205,6 +205,21 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/case-studies" className="hover:text-[#D4AF37] transition-colors block py-0.5">
+                  Case Studies &amp; Precedents
+                </Link>
+              </li>
+              <li>
+                <Link href="/offers" className="hover:text-[#D4AF37] transition-colors block py-0.5">
+                  Offers &amp; Discounts
+                </Link>
+              </li>
+              <li>
+                <Link href="/reviews" className="hover:text-[#D4AF37] transition-colors block py-0.5">
+                  Student Reviews
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className="hover:text-[#D4AF37] transition-colors block py-0.5">
                   About Academy
                 </Link>

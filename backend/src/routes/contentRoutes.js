@@ -182,14 +182,19 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
 
     function fallbackLocalOrMinimal() {
       const candidates = [];
-      const cleanFileName = path.basename(item.fileName || item.pdfUrl || "");
+      const rawName = path.basename(item.fileName || item.pdfUrl || "");
+      let cleanFileName = rawName;
+      try { cleanFileName = decodeURIComponent(rawName); } catch (_) {}
       if (cleanFileName) {
         candidates.push(path.join(__dirname, "../../../frontend/public/notes", cleanFileName));
+        candidates.push(path.join(__dirname, "../../../frontend/public/samples", cleanFileName));
         candidates.push(path.join(__dirname, "../../uploads", cleanFileName));
         candidates.push(path.join(__dirname, "../../../frontend/public", cleanFileName));
+        candidates.push(path.join(__dirname, "../../../free resources", cleanFileName));
       }
       candidates.push(path.join(__dirname, "../../../frontend/public/notes/sale-of-goods-unit-1.pdf"));
       candidates.push(path.join(__dirname, "../../../frontend/public/notes/unit-1-general-nature-of-partnership.pdf"));
+      candidates.push(path.join(__dirname, "../../../frontend/public/samples/Question Bank Part 1- Sample Copy.pdf"));
 
       const existingPath = candidates.find((p) => fs.existsSync(p));
 
