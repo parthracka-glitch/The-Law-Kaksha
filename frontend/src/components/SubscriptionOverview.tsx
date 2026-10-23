@@ -14,8 +14,6 @@ import {
   X,
   Award,
   Layers,
-  Moon,
-  Sun,
 } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
@@ -208,7 +206,6 @@ export function SubscriptionOverview() {
   const { addToCart, setIsCartOpen } = useCart();
   const [plans, setPlans] = useState<SubscriptionPlanItem[]>(FALLBACK_PLANS);
   const [, setLoading] = useState(false);
-  const [cardTheme, setCardTheme] = useState<"dark" | "light">("dark");
   const [selectedPlanForDetails, setSelectedPlanForDetails] = useState<SubscriptionPlanItem | null>(null);
 
   useEffect(() => {
@@ -289,42 +286,13 @@ export function SubscriptionOverview() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header with Theme Switcher */}
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 space-y-3">
           <div className="inline-flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold tracking-widest uppercase bg-[#EFF6FF] text-[#005A9C] border border-[#DBEAFE]">
               <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
               Law Study Passes
             </span>
-
-            {/* Quick Visual Theme Toggle */}
-            <div className="inline-flex items-center bg-white p-1 rounded-full border border-[#DBEAFE] shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setCardTheme("dark")}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-                  cardTheme === "dark"
-                    ? "bg-[#0A192F] text-white shadow-xs"
-                    : "text-[#64748B] hover:text-[#0A192F]"
-                }`}
-                title="View in High-Contrast Executive Dark mode matching mobile design"
-              >
-                <Moon className="w-3 h-3 text-sky-400" />
-                <span>Executive Dark</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCardTheme("light")}
-                className={`flex items-center gap-1 px-3 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-                  cardTheme === "light"
-                    ? "bg-[#EFF6FF] text-[#005A9C] border border-[#DBEAFE] shadow-xs"
-                    : "text-[#64748B] hover:text-[#0A192F]"
-                }`}
-                title="View in Classic Light mode"
-              >
-                <Sun className="w-3 h-3 text-amber-500" />
-                <span>Classic Light</span>
-              </button>
-            </div>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-serif font-black text-[#0A192F] tracking-tight leading-tight">
@@ -343,16 +311,13 @@ export function SubscriptionOverview() {
             const discountPct = Math.round(((plan.mrp - plan.price) / plan.mrp) * 100);
             const displayBadge = comingSoon ? "COMING SOON" : plan.badge || "MOST POPULAR";
             const richFeatures = getPlanFeatures(plan);
-            const isDark = cardTheme === "dark" && isHighlighted;
 
             return (
               <div
                 key={plan.id}
                 className={`relative flex flex-col rounded-3xl transition-all duration-300 p-6 sm:p-8 ${
-                  isDark
-                    ? "bg-[#070D18] text-white border-2 border-sky-600/50 shadow-[0_20px_50px_rgba(2,132,199,0.22)] -translate-y-1.5"
-                    : isHighlighted
-                    ? "bg-white text-[#0A192F] border-2 border-[#005A9C] shadow-[0_12px_40px_rgba(0,90,156,0.12)] -translate-y-1.5"
+                  isHighlighted
+                    ? "bg-gradient-to-b from-[#EFF6FF] via-[#EBF4FE] to-[#E0F0FE] text-[#0A192F] border-2 border-[#005A9C] shadow-[0_16px_40px_rgba(0,90,156,0.15)] -translate-y-1.5"
                     : "bg-white text-[#0A192F] border border-[#DBEAFE] shadow-[0_4px_20px_rgba(10,25,47,0.04)] hover:shadow-[0_12px_36px_rgba(0,90,156,0.08)] hover:border-[#005A9C]"
                 }`}
               >
@@ -363,9 +328,7 @@ export function SubscriptionOverview() {
                       className={`inline-flex items-center gap-1.5 px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-md border ${
                         comingSoon
                           ? "bg-[#F8FAFC] text-[#64748B] border-[#CBD5E1]"
-                          : isDark
-                          ? "bg-sky-500 text-white border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
-                          : "bg-[#005A9C] text-white border-[#004F8A]"
+                          : "bg-[#005A9C] text-white border-[#004F8A] shadow-[0_2px_10px_rgba(0,90,156,0.3)]"
                       }`}
                     >
                       <Sparkles className="w-3 h-3 text-white" />
@@ -377,18 +340,10 @@ export function SubscriptionOverview() {
                 <div className="flex-1 flex flex-col">
                   {/* Plan Details */}
                   <div className="mb-6 pt-2">
-                    <h3
-                      className={`text-2xl sm:text-3xl font-serif font-black ${
-                        isDark ? "text-white" : "text-[#0A192F]"
-                      }`}
-                    >
+                    <h3 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F]">
                       {plan.title}
                     </h3>
-                    <p
-                      className={`mt-2 text-sm leading-relaxed ${
-                        isDark ? "text-slate-300" : "text-[#64748B]"
-                      }`}
-                    >
+                    <p className="mt-2 text-sm leading-relaxed text-[#475569]">
                       {plan.description}
                     </p>
                   </div>
@@ -396,33 +351,21 @@ export function SubscriptionOverview() {
                   {/* Pricing Box */}
                   <div
                     className={`mb-6 p-4 rounded-2xl flex items-baseline justify-between transition-colors ${
-                      isDark
-                        ? "bg-[#0F172A] border border-slate-800"
+                      isHighlighted
+                        ? "bg-white/90 backdrop-blur-xs border border-[#BFDBFE] shadow-2xs"
                         : "bg-[#EFF6FF] border border-[#DBEAFE]"
                     }`}
                   >
                     <div>
                       <div className="flex items-baseline gap-2">
-                        <span
-                          className={`text-4xl font-serif font-black ${
-                            isDark ? "text-white" : "text-[#0A192F]"
-                          }`}
-                        >
+                        <span className="text-4xl font-serif font-black text-[#0A192F]">
                           ₹{plan.price}
                         </span>
-                        <span
-                          className={`text-base line-through font-medium ${
-                            isDark ? "text-slate-500" : "text-[#64748B]"
-                          }`}
-                        >
+                        <span className="text-base line-through font-medium text-[#64748B]">
                           ₹{plan.mrp}
                         </span>
                       </div>
-                      <span
-                        className={`text-xs font-medium ${
-                          isDark ? "text-slate-400" : "text-[#64748B]"
-                        }`}
-                      >
+                      <span className="text-xs font-semibold text-[#005A9C]">
                         / {plan.duration_days} Days Access
                       </span>
                     </div>
@@ -430,8 +373,8 @@ export function SubscriptionOverview() {
                     {discountPct > 0 && (
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                          isDark
-                            ? "bg-sky-500/15 text-sky-300 border-sky-500/40"
+                          isHighlighted
+                            ? "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]"
                             : "bg-white text-[#005A9C] border-[#DBEAFE]"
                         }`}
                       >
@@ -443,31 +386,17 @@ export function SubscriptionOverview() {
                   {/* Subscription Details Part — Exact layout as Image 2 */}
                   <div
                     className={`rounded-2xl p-4 sm:p-5 mb-6 flex-1 transition-all ${
-                      isDark
-                        ? "bg-black/60 border border-slate-800/80 shadow-inner"
+                      isHighlighted
+                        ? "bg-white/95 backdrop-blur-xs border border-[#BFDBFE] shadow-2xs"
                         : "bg-[#F8FAFC] border border-[#E2E8F0]"
                     }`}
                   >
                     {/* Header: Everything you need, in one place */}
-                    <div
-                      className={`flex items-center justify-between pb-3.5 mb-4 border-b ${
-                        isDark ? "border-slate-800" : "border-slate-200"
-                      }`}
-                    >
-                      <h4
-                        className={`text-[15px] sm:text-base font-bold tracking-tight ${
-                          isDark ? "text-white" : "text-[#0A192F]"
-                        }`}
-                      >
+                    <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200">
+                      <h4 className="text-[15px] sm:text-base font-bold tracking-tight text-[#0A192F]">
                         Everything you need, in one place
                       </h4>
-                      <span
-                        className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                          isDark
-                            ? "bg-sky-950/80 text-sky-300 border-sky-800/80"
-                            : "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]"
-                        }`}
-                      >
+                      <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]">
                         {richFeatures.length} Key Inclusions
                       </span>
                     </div>
@@ -477,35 +406,15 @@ export function SubscriptionOverview() {
                       {richFeatures.map((feat, idx) => (
                         <li key={idx} className="flex items-start gap-3 group">
                           {/* Circular Blue Checkmark matching Image 2 */}
-                          <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-transform duration-200 group-hover:scale-110 ${
-                              isDark
-                                ? "bg-sky-500/15 border border-sky-400/50 text-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.25)]"
-                                : "bg-[#EFF6FF] border border-[#93C5FD] text-[#005A9C]"
-                            }`}
-                          >
-                            <Check
-                              className={`w-3.5 h-3.5 stroke-[2.75] ${
-                                isDark ? "text-sky-400" : "text-[#005A9C]"
-                              }`}
-                            />
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-transform duration-200 group-hover:scale-110 bg-[#EFF6FF] border border-[#93C5FD] text-[#005A9C]">
+                            <Check className="w-3.5 h-3.5 stroke-[2.75] text-[#005A9C]" />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p
-                              className={`text-[14px] sm:text-[15px] font-bold leading-snug tracking-tight transition-colors ${
-                                isDark
-                                  ? "text-white group-hover:text-sky-300"
-                                  : "text-[#0A192F] group-hover:text-[#005A9C]"
-                              }`}
-                            >
+                            <p className="text-[14px] sm:text-[15px] font-bold leading-snug tracking-tight text-[#0A192F] group-hover:text-[#005A9C] transition-colors">
                               {feat.title}
                             </p>
-                            <p
-                              className={`text-[12px] sm:text-[13px] leading-relaxed mt-0.5 font-normal ${
-                                isDark ? "text-neutral-400" : "text-[#64748B]"
-                              }`}
-                            >
+                            <p className="text-[12px] sm:text-[13px] leading-relaxed mt-0.5 font-normal text-[#64748B]">
                               {feat.subtitle}
                             </p>
                           </div>
@@ -515,11 +424,7 @@ export function SubscriptionOverview() {
                   </div>
 
                   {/* CTAs */}
-                  <div
-                    className={`space-y-3 pt-4 border-t ${
-                      isDark ? "border-slate-800" : "border-[#DBEAFE]"
-                    }`}
-                  >
+                  <div className="space-y-3 pt-4 border-t border-[#DBEAFE]">
                     {comingSoon ? (
                       <button
                         type="button"
@@ -543,13 +448,9 @@ export function SubscriptionOverview() {
                         {/* Add to Cart (Secondary CTA) */}
                         <button
                           onClick={() => handleAddToCart(plan)}
-                          className={`w-full py-3 px-6 rounded-2xl sm:rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px] ${
-                            isDark
-                              ? "bg-transparent border border-slate-700 hover:border-slate-500 text-slate-200 hover:bg-slate-800/60"
-                              : "bg-white border border-[#005A9C] text-[#005A9C] hover:bg-[#EFF6FF]"
-                          }`}
+                          className="w-full py-3 px-6 rounded-2xl sm:rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px] bg-white border border-[#005A9C] text-[#005A9C] hover:bg-[#EFF6FF]"
                         >
-                          <ShoppingCart className={`w-4 h-4 ${isDark ? "text-slate-300" : "text-[#005A9C]"}`} />
+                          <ShoppingCart className="w-4 h-4 text-[#005A9C]" />
                           <span>Add to Cart</span>
                         </button>
                       </>
@@ -559,11 +460,7 @@ export function SubscriptionOverview() {
                       <button
                         type="button"
                         onClick={() => setSelectedPlanForDetails(plan)}
-                        className={`text-xs font-bold underline-offset-4 hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
-                          isDark
-                            ? "text-sky-400 hover:text-sky-300"
-                            : "text-[#005A9C] hover:text-[#004F8A]"
-                        }`}
+                        className="text-xs font-bold underline-offset-4 hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer text-[#005A9C] hover:text-[#004F8A]"
                       >
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>View Full Syllabus &amp; Act Breakdown</span>
@@ -601,52 +498,52 @@ export function SubscriptionOverview() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-[#0A192F]/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200"
           onClick={() => setSelectedPlanForDetails(null)}
         >
           <div
-            className="bg-[#0B0F19] text-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-slate-800 shadow-2xl overflow-hidden"
+            className="bg-white text-[#0A192F] rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-[#DBEAFE] shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-[#070D18]">
+            <div className="p-6 border-b border-[#DBEAFE] flex items-center justify-between bg-[#F0F7FF]">
               <div>
-                <span className="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold text-[#005A9C] uppercase tracking-wider flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-[#005A9C]" />
                   {selectedPlanForDetails.title}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">
+                <h3 className="text-xl sm:text-2xl font-bold text-[#0A192F] mt-1">
                   Everything you need, in one place
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedPlanForDetails(null)}
-                className="w-9 h-9 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full bg-white hover:bg-[#EFF6FF] border border-[#DBEAFE] text-[#64748B] hover:text-[#0A192F] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-white">
               {/* Features List */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-sky-400" />
+                <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
                   Included In This Learning Pass
                 </h4>
-                <ul className="space-y-3.5 bg-black/40 p-4 sm:p-5 rounded-2xl border border-slate-800/80">
+                <ul className="space-y-3.5 bg-[#F8FAFC] p-4 sm:p-5 rounded-2xl border border-[#E2E8F0]">
                   {getPlanFeatures(selectedPlanForDetails).map((feat, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-sky-500/15 border border-sky-400/50 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5 stroke-[2.75]" />
+                      <div className="w-5 h-5 rounded-full bg-[#EFF6FF] border border-[#93C5FD] text-[#005A9C] flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="w-3.5 h-3.5 stroke-[2.75] text-[#005A9C]" />
                       </div>
                       <div>
-                        <p className="text-[14px] sm:text-[15px] font-bold text-white leading-snug">
+                        <p className="text-[14px] sm:text-[15px] font-bold text-[#0A192F] leading-snug">
                           {feat.title}
                         </p>
-                        <p className="text-[12px] sm:text-[13px] text-neutral-400 mt-0.5 font-normal">
+                        <p className="text-[12px] sm:text-[13px] text-[#64748B] mt-0.5 font-normal">
                           {feat.subtitle}
                         </p>
                       </div>
@@ -657,18 +554,18 @@ export function SubscriptionOverview() {
 
               {/* Covered Acts Breakdown */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-sky-400" />
+                <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                   7 Covered Acts &amp; Statutory Codices
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {CA_FOUNDATION_ACTS_LIST.map((act, i) => (
                     <div
                       key={i}
-                      className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs"
+                      className="p-3 rounded-xl bg-[#F0F7FF] border border-[#DBEAFE] flex items-center justify-between text-xs"
                     >
-                      <span className="font-semibold text-slate-200 line-clamp-1">{act.name}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-800 shrink-0 ml-2">
+                      <span className="font-semibold text-[#0A192F] line-clamp-1">{act.name}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#005A9C] border border-[#BFDBFE] shrink-0 ml-2">
                         {act.tag}
                       </span>
                     </div>
@@ -678,15 +575,15 @@ export function SubscriptionOverview() {
             </div>
 
             {/* Modal Footer CTA */}
-            <div className="p-5 border-t border-slate-800 bg-[#070D18] flex flex-col sm:flex-row items-center gap-3">
+            <div className="p-5 border-t border-[#DBEAFE] bg-[#F8FAFC] flex flex-col sm:flex-row items-center gap-3">
               <div className="flex items-baseline gap-2 w-full sm:w-auto">
-                <span className="text-3xl font-serif font-black text-white">
+                <span className="text-3xl font-serif font-black text-[#0A192F]">
                   ₹{selectedPlanForDetails.price}
                 </span>
-                <span className="text-sm line-through text-slate-500">
+                <span className="text-sm line-through text-[#64748B]">
                   ₹{selectedPlanForDetails.mrp}
                 </span>
-                <span className="text-xs text-slate-400">/ 30 Days Access</span>
+                <span className="text-xs text-[#005A9C] font-semibold">/ 30 Days Access</span>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <button
@@ -695,7 +592,7 @@ export function SubscriptionOverview() {
                     handleAddToCart(selectedPlanForDetails);
                     setSelectedPlanForDetails(null);
                   }}
-                  className="flex-1 sm:flex-initial py-3 px-5 rounded-full text-xs font-bold border border-slate-700 hover:border-slate-500 text-slate-200 hover:bg-slate-800 cursor-pointer transition-colors"
+                  className="flex-1 sm:flex-initial py-3 px-5 rounded-full text-xs font-bold border border-[#005A9C] text-[#005A9C] bg-white hover:bg-[#EFF6FF] cursor-pointer transition-colors"
                 >
                   Add to Cart
                 </button>
@@ -705,7 +602,7 @@ export function SubscriptionOverview() {
                     setSelectedPlanForDetails(null);
                     handleBuyNow(selectedPlanForDetails);
                   }}
-                  className="flex-1 sm:flex-initial py-3 px-6 rounded-full text-xs sm:text-sm font-bold bg-[#005A9C] hover:bg-[#004880] text-white flex items-center justify-center gap-1.5 shadow-md shadow-blue-900/40 cursor-pointer transition-all active:scale-95"
+                  className="flex-1 sm:flex-initial py-3 px-6 rounded-full text-xs sm:text-sm font-bold bg-[#005A9C] hover:bg-[#004880] text-white flex items-center justify-center gap-1.5 shadow-md shadow-[#005A9C]/25 cursor-pointer transition-all active:scale-95"
                 >
                   <span>Start Learning Now</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
