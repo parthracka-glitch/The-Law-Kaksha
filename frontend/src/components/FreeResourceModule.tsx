@@ -21,7 +21,7 @@ interface SampleResource {
   badge: string;
   title: string;
   subtitle: string;
-  actName: string;
+  actName?: string;
   description: string;
   highlights: string[];
   pages: string;
@@ -67,9 +67,8 @@ const SAMPLE_RESOURCES: SampleResource[] = [
     badge: "FREE SAMPLE COPY",
     title: "Smart Revision Question Bank — Part 2",
     subtitle: "Rest of the Acts (SOGA, Partnership, LLP, Companies, N.I. Act)",
-    actName: "Commercial & Corporate Enactments",
     description:
-      "24 hand-picked case studies, two from every unit across all remaining Business Laws enactments, with complete step-by-step model answers matching latest exam patterns.",
+      "24 hand-picked case studies, two from every unit across all remaining Business Laws acts, with complete step-by-step model answers matching latest exam patterns.",
     highlights: [
       "24 Hand-Picked Case Studies: Two comprehensive problems from every single statutory unit",
       "All 6 Syllabi Chapters: Indian Regulatory Framework, SOGA 1930, Partnership 1932, LLP 2008, Companies Act 2013, N.I. Act 1881",
@@ -179,9 +178,11 @@ export function FreeResourceModule() {
 
                 {/* Title & Subtitle */}
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#005A9C] block mb-1">
-                    {resource.actName}
-                  </span>
+                  {resource.actName && (
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#005A9C] block mb-1">
+                      {resource.actName}
+                    </span>
+                  )}
                   <h3 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F] group-hover:text-[#005A9C] transition-colors leading-snug">
                     {resource.title}
                   </h3>

@@ -1567,7 +1567,7 @@ const CANONICAL_WEBSITE_SLIDES = [
   {
     id: "slide-2",
     placement: "website",
-    title: "CSEET Legal Aptitude & Management",
+    title: "CSEET Business Law and Management",
     subtitle: "Interactive 3D digital codices, ICSI unit MCQs, and weekly live Google Meet doubt clearing sessions.",
     image: "/images/hero_cseet_law.jpg",
     cta_label: "Explore CSEET Pass",

@@ -30,6 +30,7 @@ interface SubscriptionDetail {
   duration_days: number;
   badge?: string;
   features: string[];
+  richFeatures?: { title: string; subtitle: string }[];
   courses_included?: string[];
   syllabus?: {
     actTitle: string;
@@ -37,6 +38,30 @@ interface SubscriptionDetail {
     chapters: string[];
   }[];
 }
+
+const CA_RICH_INCLUSIONS = [
+  { title: "Complete syllabus", subtitle: "All 7 CA Foundation Business Law Acts" },
+  { title: "Interactive 3D Codex", subtitle: "Explore your digital law books" },
+  { title: "Weekly Case Lab", subtitle: "3 new case studies every week" },
+  { title: "Suggested Answers", subtitle: "Understand how to solve case studies" },
+  { title: "Study Resources", subtitle: "Notes, LDRs and extra practice questions" },
+  { title: "PYQ Analysis", subtitle: "Understand past-paper patterns and important areas" },
+  { title: "Landmark Cases Booklet", subtitle: "Revise important judgments and their principles" },
+  { title: "Streaks & Leaderboard", subtitle: "Track your consistency and compete with fellow learners" },
+  { title: "One Dedicated Dashboard", subtitle: "Keep your learning, practice and progress together" },
+];
+
+const CSEET_RICH_INCLUSIONS = [
+  { title: "Complete ICSI syllabus", subtitle: "All 8 Units Business Law and Management" },
+  { title: "Interactive 3D Codex", subtitle: "Explore your digital ICSI law books" },
+  { title: "Timed MCQ Practice Lab", subtitle: "Unit-wise timed drills with score tracking" },
+  { title: "Suggested Model Solutions", subtitle: "Understand structured reasoning for ICSI questions" },
+  { title: "Study Resources & Mindmaps", subtitle: "High-yield revision notes, LDRs and concept maps" },
+  { title: "PYQ & Exam Trends", subtitle: "Understand ICSI past-paper patterns and key areas" },
+  { title: "Statutory Precedents Deck", subtitle: "Revise landmark judicial rulings and definitions" },
+  { title: "Streaks & Leaderboard", subtitle: "Track your daily consistency and compete with peers" },
+  { title: "One Dedicated Dashboard", subtitle: "Keep your learning, practice and progress together" },
+];
 
 const FALLBACK_SUBSCRIPTION_DATA: Record<string, SubscriptionDetail> = {
   "ca-foundation-monthly": {
@@ -56,6 +81,7 @@ const FALLBACK_SUBSCRIPTION_DATA: Record<string, SubscriptionDetail> = {
       "Weekly Live Google Meet Faculty Sessions",
       "Personalized Study Streak & Active Recall Gamification",
     ],
+    richFeatures: CA_RICH_INCLUSIONS,
     courses_included: ["ca-foundation-business-laws"],
     syllabus: [
       {
@@ -97,7 +123,7 @@ const FALLBACK_SUBSCRIPTION_DATA: Record<string, SubscriptionDetail> = {
   },
   "cseet-monthly": {
     id: "sub-cseet-monthly",
-    title: "CSEET Legal Aptitude & Business Management Pass",
+    title: "CSEET Business Law and Management Pass",
     slug: "cseet-monthly",
     description: "Complete preparation for ICSI CSEET Paper 2. High-yield unit notes, timed MCQ practice tests, case studies, and live strategy sessions.",
     price: 99,
@@ -112,6 +138,7 @@ const FALLBACK_SUBSCRIPTION_DATA: Record<string, SubscriptionDetail> = {
       "Weekly Google Meet Guidance & Revision Masterclasses",
       "30 Days Continuous Learning & Analytics Access",
     ],
+    richFeatures: CSEET_RICH_INCLUSIONS,
     courses_included: ["cseet-legal-aptitude-management"],
     syllabus: [
       {
@@ -321,16 +348,16 @@ export default function SubscriptionDetailPage() {
                   <>
                     <button
                       onClick={handleBuyNow}
-                      className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] shadow-[0_2px_8px_rgba(191,175,229,0.35)] transition-all active:scale-95 cursor-pointer min-h-[46px]"
+                      className="w-full py-3.5 px-6 rounded-full font-bold text-sm flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004880] text-white shadow-[0_2px_8px_rgba(0,90,156,0.35)] transition-all active:scale-95 cursor-pointer min-h-[46px]"
                     >
-                      <span>Buy Now</span>
+                      <span>Start Learning Now</span>
                       <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                     </button>
                     <button
                       onClick={handleAddToCart}
-                      className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#221D1D] bg-white border border-[#221D1D] hover:bg-[#F7F7F5] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
+                      className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#005A9C] bg-white border border-[#005A9C] hover:bg-[#EFF6FF] flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer min-h-[46px]"
                     >
-                      <ShoppingCart className="w-4 h-4 text-[#221D1D]" />
+                      <ShoppingCart className="w-4 h-4 text-[#005A9C]" />
                       <span>Add to Cart</span>
                     </button>
                   </>
@@ -343,17 +370,29 @@ export default function SubscriptionDetailPage() {
         {/* Features & Benefits */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div className="bg-white p-8 rounded-3xl border border-[#E7E4E7] shadow-[0_4px_20px_rgba(34,29,29,0.04)]">
-            <h2 className="text-xl font-serif font-black text-[#221D1D] mb-6 flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#4B8097]" />
-              Key Inclusions
-            </h2>
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-[#E7E4E7]">
+              <h2 className="text-xl font-serif font-black text-[#221D1D] flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#4B8097]" />
+                Everything you need, in one place
+              </h2>
+              <span className="text-xs font-bold text-[#005A9C] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#DBEAFE]">
+                {(subData.richFeatures || CA_RICH_INCLUSIONS).length} Inclusions
+              </span>
+            </div>
             <ul className="space-y-4">
-              {subData.features.map((feat, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm text-[#221D1D]">
-                  <div className="w-5 h-5 rounded-full bg-[#C4E1EC] text-[#221D1D] flex items-center justify-center shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+              {(subData.richFeatures || (comingSoon ? CSEET_RICH_INCLUSIONS : CA_RICH_INCLUSIONS)).map((feat, idx) => (
+                <li key={idx} className="flex items-start gap-3 group">
+                  <div className="w-5 h-5 rounded-full bg-[#EFF6FF] border border-[#93C5FD] text-[#005A9C] flex items-center justify-center shrink-0 mt-0.5 transition-transform group-hover:scale-110">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#005A9C] stroke-[2.5]" />
                   </div>
-                  <span className="font-medium">{feat}</span>
+                  <div>
+                    <p className="text-[15px] font-bold text-[#221D1D] leading-snug">
+                      {feat.title}
+                    </p>
+                    <p className="text-[13px] text-[#77716E] leading-relaxed mt-0.5">
+                      {feat.subtitle}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

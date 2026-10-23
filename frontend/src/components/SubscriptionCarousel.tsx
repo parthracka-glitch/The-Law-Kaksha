@@ -69,7 +69,7 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
     id: "cseet-law",
     categoryTag: "⏳ COMING SOON • 2026 ICSI SYLLABUS",
     tagColor: "bg-slate-100 text-slate-600 border-slate-200",
-    title: "CSEET Legal Aptitude & Management",
+    title: "CSEET Business Law and Management",
     subtitle:
       "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
     price: 99,
