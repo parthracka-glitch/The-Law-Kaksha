@@ -120,6 +120,7 @@ export function SubscriptionCarousel() {
   useEffect(() => {
     async function loadDynamicShowcase() {
       try {
+        const cacheBuster = `?_t=${Date.now()}`;
         const [slidesRes, coursesRes] = await Promise.allSettled([
           apiRequest<{ slides?: Array<{
             id: string;
@@ -131,132 +132,231 @@ export function SubscriptionCarousel() {
             cta_label?: string;
             cta_link?: string;
             is_active?: boolean;
-          }> }>("/api/carousel-slides"),
+            display_order?: number;
+            order?: number;
+          }> }>(`/api/carousel-slides${cacheBuster}`),
           apiRequest<{ courses?: Array<{
             id: string;
             title: string;
+            slug?: string;
             description?: string;
             price?: number;
             mrp?: number;
             availability?: string;
             thumbnail?: string;
-          }> }>("/api/courses"),
+            exam_body?: string;
+            is_active?: boolean;
+            features?: string[];
+          }> }>(`/api/courses${cacheBuster}`),
         ]);
 
-        let liveCaPrice = 99;
-        let liveCaMrp = 299;
-        let liveCsPrice = 99;
-        let liveCsMrp = 299;
+        const courses =
+          coursesRes.status === "fulfilled" && coursesRes.value.success && Array.isArray(coursesRes.value.data?.courses)
+            ? coursesRes.value.data.courses
+            : [];
 
-        if (coursesRes.status === "fulfilled" && coursesRes.value.success && coursesRes.value.data?.courses) {
-          const courses = coursesRes.value.data.courses;
-          const ca = courses.find((c) => c.id?.toLowerCase().includes("ca-foundation") || c.id?.toLowerCase() === "ca-foundation");
-          const cs = courses.find((c) => c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet"));
-          if (ca && typeof ca.price === "number") {
-            liveCaPrice = ca.price;
-            if (typeof ca.mrp === "number" && ca.mrp > 0) liveCaMrp = ca.mrp;
-          }
-          if (cs && typeof cs.price === "number") {
-            liveCsPrice = cs.price;
-            if (typeof cs.mrp === "number" && cs.mrp > 0) liveCsMrp = cs.mrp;
-          }
-        }
+        const remoteSlides =
+          slidesRes.status === "fulfilled" && slidesRes.value.success && Array.isArray(slidesRes.value.data?.slides)
+            ? slidesRes.value.data.slides.filter((s) => s.is_active !== false)
+            : [];
 
-        // If custom hero slides exist from admin panel, map them into the live carousel
-        if (
-          slidesRes.status === "fulfilled" &&
-          slidesRes.value.success &&
-          Array.isArray(slidesRes.value.data?.slides) &&
-          slidesRes.value.data.slides.length > 0
-        ) {
-          const remoteSlides = slidesRes.value.data.slides.filter((s) => s.is_active !== false);
-          if (remoteSlides.length > 0) {
-            const mappedSlides: FeaturedCourseData[] = remoteSlides.map((s, idx) => {
-              const textCombined = `${s.title} ${s.subtitle} ${s.cta_link || ""}`.toLowerCase();
-              const isCs = textCombined.includes("cseet") || textCombined.includes("cs ");
-              const currentPrice = isCs ? liveCsPrice : liveCaPrice;
-              const currentMrp = isCs ? liveCsMrp : liveCaMrp;
-              const discount = currentMrp > currentPrice
-                ? `${Math.round(((currentMrp - currentPrice) / currentMrp) * 100)}% OFF`
-                : "SPECIAL PRICE";
-
-              return {
-                id: s.id || `slide-${idx}`,
-                categoryTag: s.badge || (idx === 0 ? "🔥 #1 BESTSELLER • ICAI NEW SCHEME" : "✨ OFFICIAL CODEX"),
-                tagColor: idx === 0 ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-sky-50 text-sky-800 border-sky-200",
-                title: s.title,
-                subtitle: s.subtitle,
-                price: currentPrice,
-                mrp: currentMrp,
-                discount,
-                image: s.image || "/images/hero_ca_foundation.jpg",
-                bookId: isCs ? "cseet" : "ca-foundation",
-                sampleTitle: s.title,
-                rating: s.rating || "4.9 / 5.0",
-                studentCount: idx === 0 ? "1,240+ Enrolled" : "Official Curriculum",
-                features: isCs
-                  ? [
-                      "Full 8 Units Legal Aptitude & Business Mgt",
-                      "High-Yield Timed MCQ Drills with Analytics",
-                      "Statutory Definitions & Judicial Precedents",
-                      "Interactive 3D Digital Codex Reader",
-                      "Live Strategy Sessions & Doubt Support",
-                    ]
-                  : [
-                      "All 7 CA Foundation Acts Fully Codified",
-                      "45+ Landmark Case Studies with Model Answers",
-                      "Unit-wise Practice Tests & Chapter Mindmaps",
-                      "Single-Device Watermarked DRM Security",
-                      "Weekly Live Google Meet Doubt Clearing",
-                    ],
-                ctaLink: s.cta_link || (isCs ? "/courses" : "/product/course-ca-foundation-sub"),
-                ctaText: s.cta_label || (isCs ? "Explore CSEET Pass" : "Enroll in Course"),
-                isBestseller: idx === 0,
-                isComingSoon: isCs,
-              };
-            });
-            setCoursesList(mappedSlides);
-            return;
-          }
-        }
-
-        // Fallback: update default featured courses with live prices, titles, images and descriptions
-        const courses = coursesRes.status === "fulfilled" && coursesRes.value.success ? coursesRes.value.data?.courses || [] : [];
-        const liveCaObj = courses.find((c) => c.id?.toLowerCase().includes("ca-foundation") || c.id?.toLowerCase() === "ca-foundation");
-        const liveCsObj = courses.find((c) => c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet"));
-
-        setCoursesList((prev) =>
-          prev.map((c) => {
-            if (c.id === "ca-foundation") {
-              const discount = liveCaMrp > liveCaPrice ? `${Math.round(((liveCaMrp - liveCaPrice) / liveCaMrp) * 100)}% OFF` : "SPECIAL PRICE";
-              return {
-                ...c,
-                title: liveCaObj?.title || c.title,
-                subtitle: liveCaObj?.description || c.subtitle,
-                image: liveCaObj?.thumbnail || c.image,
-                price: liveCaPrice,
-                mrp: liveCaMrp,
-                discount,
-                sampleTitle: liveCaObj?.title || c.sampleTitle,
-              };
-            }
-            if (c.id === "cseet-law") {
-              const discount = liveCsMrp > liveCsPrice ? `${Math.round(((liveCsMrp - liveCsPrice) / liveCsMrp) * 100)}% OFF` : "SPECIAL PRICE";
-              return {
-                ...c,
-                title: liveCsObj?.title || c.title,
-                subtitle: liveCsObj?.description || c.subtitle,
-                image: liveCsObj?.thumbnail || c.image,
-                price: liveCsPrice,
-                mrp: liveCsMrp,
-                discount,
-                sampleTitle: liveCsObj?.title || c.sampleTitle,
-              };
-            }
-            return c;
-          })
+        // 1. Locate core CA Foundation and CSEET courses
+        const liveCaObj = courses.find(
+          (c) =>
+            c.id?.toLowerCase().includes("ca-foundation") ||
+            c.slug?.toLowerCase().includes("ca-foundation") ||
+            c.title?.toLowerCase().includes("ca foundation")
         );
-      } catch {}
+        const liveCsObj = courses.find(
+          (c) =>
+            c.id?.toLowerCase().includes("cseet") ||
+            c.slug?.toLowerCase().includes("cseet") ||
+            c.title?.toLowerCase().includes("cseet")
+        );
+
+        // 2. Identify any custom slides from Website Carousel Slide Editor
+        const caSlide = remoteSlides.find(
+          (s) =>
+            s.id === "slide-1" ||
+            s.title?.toLowerCase().includes("ca foundation") ||
+            s.cta_link?.includes("ca")
+        );
+        const csSlide = remoteSlides.find(
+          (s) =>
+            s.id === "slide-2" ||
+            s.title?.toLowerCase().includes("cseet") ||
+            s.cta_link?.includes("cseet")
+        );
+
+        // Live prices & discounts
+        const liveCaPrice = typeof liveCaObj?.price === "number" ? liveCaObj.price : 1;
+        const liveCaMrp = typeof liveCaObj?.mrp === "number" && liveCaObj.mrp > 0 ? liveCaObj.mrp : 299;
+        const caDiscount =
+          liveCaMrp > liveCaPrice
+            ? `${Math.round(((liveCaMrp - liveCaPrice) / liveCaMrp) * 100)}% OFF`
+            : "SPECIAL PRICE";
+
+        const liveCsPrice = typeof liveCsObj?.price === "number" ? liveCsObj.price : 99;
+        const liveCsMrp = typeof liveCsObj?.mrp === "number" && liveCsObj.mrp > 0 ? liveCsObj.mrp : 299;
+        const csDiscount =
+          liveCsMrp > liveCsPrice
+            ? `${Math.round(((liveCsMrp - liveCsPrice) / liveCsMrp) * 100)}% OFF`
+            : "SPECIAL PRICE";
+
+        // Slide 1: Official CA Foundation 3D Codex
+        // NOTE: Preserve official 3D book artwork /assets/crop_ca_foundation_book.png for hero showcase
+        const caHeroImage =
+          caSlide?.image && !caSlide.image.includes("WhatsApp")
+            ? caSlide.image
+            : "/assets/crop_ca_foundation_book.png";
+
+        const caFeaturedSlide: FeaturedCourseData = {
+          id: liveCaObj?.id || "ca-foundation",
+          categoryTag: caSlide?.badge || "🔥 #1 BESTSELLER • ICAI NEW SCHEME",
+          tagColor: "bg-amber-50 text-amber-800 border-amber-200",
+          title: liveCaObj?.title || caSlide?.title || "CA Foundation Paper 2",
+          subtitle:
+            liveCaObj?.description ||
+            caSlide?.subtitle ||
+            "Complete 7 Acts codified notes, high-yield visual flowcharts, landmark case laws, and ICAI Section 16(1) model answers.",
+          price: liveCaPrice,
+          mrp: liveCaMrp,
+          discount: caDiscount,
+          image: caHeroImage,
+          bookId: "ca-foundation",
+          sampleTitle: liveCaObj?.title || "CA Foundation Business Laws Master Codex",
+          rating: caSlide?.rating || "4.9 / 5.0",
+          studentCount: "1,240+ Enrolled",
+          features: [
+            "All 7 CA Foundation Acts Fully Codified",
+            "45+ Landmark Case Studies with Model Answers",
+            "Unit-wise Practice Tests & Chapter Mindmaps",
+            "Single-Device Watermarked DRM Security",
+            "Weekly Live Google Meet Doubt Clearing",
+          ],
+          ctaLink: `/product/${liveCaObj?.slug || "course-ca-foundation-sub"}`,
+          ctaText: caSlide?.cta_label || "Enroll in Course",
+          isBestseller: true,
+          isComingSoon: liveCaObj?.availability === "coming_soon",
+        };
+
+        // Slide 2: Official CSEET 3D Codex
+        const csHeroImage = csSlide?.image || "/assets/ca-cs-hero-books-sharp.png";
+        const csFeaturedSlide: FeaturedCourseData = {
+          id: liveCsObj?.id || "cseet-law",
+          categoryTag: csSlide?.badge || "⏳ COMING SOON • 2026 ICSI SYLLABUS",
+          tagColor: "bg-slate-100 text-slate-600 border-slate-200",
+          title: liveCsObj?.title || csSlide?.title || "CSEET Business Law and Management",
+          subtitle:
+            liveCsObj?.description ||
+            csSlide?.subtitle ||
+            "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
+          price: liveCsPrice,
+          mrp: liveCsMrp,
+          discount: csDiscount,
+          image: csHeroImage,
+          bookId: "cseet",
+          sampleTitle: liveCsObj?.title || "CSEET Business Laws and Management Codex",
+          rating: csSlide?.rating || "4.9 / 5.0",
+          studentCount: "Launching Soon",
+          features: [
+            "Full 8 Units Legal Aptitude & Business Mgt",
+            "High-Yield Timed MCQ Drills with Analytics",
+            "Statutory Definitions & Judicial Precedents",
+            "Interactive 3D Digital Codex Reader",
+            "Live Strategy Sessions & Doubt Support",
+          ],
+          ctaLink: `/product/${liveCsObj?.slug || "course-cseet"}`,
+          ctaText: csSlide?.cta_label || "Explore CSEET Pass",
+          isComingSoon: true,
+        };
+
+        // 3. Dynamically map EVERY other course added by admin (e.g. Parth or new custom courses)
+        const otherCourses = courses.filter(
+          (c) => c !== liveCaObj && c !== liveCsObj && c.is_active !== false
+        );
+
+        const customCourseSlides: FeaturedCourseData[] = otherCourses.map((oc) => {
+          const customPrice = typeof oc.price === "number" ? oc.price : 99;
+          const customMrp =
+            typeof oc.mrp === "number" && oc.mrp > 0 ? oc.mrp : Math.max(customPrice * 2, 299);
+          const customDiscount =
+            customMrp > customPrice
+              ? `${Math.round(((customMrp - customPrice) / customMrp) * 100)}% OFF`
+              : "SPECIAL PRICE";
+
+          return {
+            id: oc.id,
+            categoryTag: oc.exam_body ? `✨ ${oc.exam_body} CODEX` : "✨ OFFICIAL CODEX",
+            tagColor: "bg-indigo-50 text-indigo-800 border-indigo-200",
+            title: oc.title,
+            subtitle:
+              oc.description && oc.description.trim().length > 0
+                ? oc.description
+                : "Comprehensive statutory notes, landmark case studies, unit tests, and live doubt clearing.",
+            price: customPrice,
+            mrp: customMrp,
+            discount: customDiscount,
+            image: oc.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
+            bookId: oc.exam_body === "ICSI" ? "cseet" : "ca-foundation",
+            sampleTitle: oc.title,
+            rating: "4.9 / 5.0",
+            studentCount: "New 2026 Edition",
+            features: [
+              `${oc.title} Complete Study Curriculum`,
+              "High-Yield Concept Flowcharts & Notes",
+              "Unit-wise Practice Tests & Model Solutions",
+              "Single-Device Watermarked DRM Security",
+              "Daily Doubt Clearing & Priority Support",
+            ],
+            ctaLink: `/product/${oc.slug || oc.id}`,
+            ctaText: "Enroll in Course",
+            isNew: true,
+            isComingSoon: oc.availability === "coming_soon",
+          };
+        });
+
+        // 4. Any additional standalone promotional slides from Website Carousel Slide Editor
+        const extraSlides = remoteSlides
+          .filter((s) => s !== caSlide && s !== csSlide)
+          .map((s, idx) => ({
+            id: s.id || `extra-slide-${idx}`,
+            categoryTag: s.badge || "✨ SPECIAL PASS",
+            tagColor: "bg-purple-50 text-purple-800 border-purple-200",
+            title: s.title,
+            subtitle: s.subtitle,
+            price: liveCaPrice,
+            mrp: liveCaMrp,
+            discount: "SPECIAL PRICE",
+            image: s.image || "/images/hero_dual_combo.jpg",
+            bookId: ("ca-foundation" as const),
+            sampleTitle: s.title,
+            rating: s.rating || "4.9 / 5.0",
+            studentCount: "Special Edition",
+            features: [
+              "Comprehensive commerce law mastery",
+              "Complete statutory library & case problem deck",
+              "Unit-wise practice tests with model answers",
+              "Single-device watermarked DRM security",
+              "Weekly live Google Meet doubt clearing",
+            ],
+            ctaLink: s.cta_link || "/courses",
+            ctaText: s.cta_label || "Explore Pass",
+            isNew: true,
+          }));
+
+        // Final dynamic slides array: CA Foundation + CSEET + All admin-created courses + any extra slides
+        const dynamicShowcaseList: FeaturedCourseData[] = [
+          caFeaturedSlide,
+          csFeaturedSlide,
+          ...customCourseSlides,
+          ...extraSlides,
+        ];
+
+        setCoursesList(dynamicShowcaseList);
+      } catch (err) {
+        console.warn("[SubscriptionCarousel] Dynamic load error:", err);
+      }
     }
 
     loadDynamicShowcase();
@@ -303,9 +403,18 @@ export function SubscriptionCarousel() {
           <div className="flex flex-wrap items-center gap-2">
             {coursesList.map((course, idx) => {
               const isActive = idx === currentIndex;
+              const pillLabel =
+                course.id === "ca-foundation" || course.id?.includes("ca-foundation")
+                  ? "CA Foundation"
+                  : course.id === "cseet-law" || course.id?.includes("cseet")
+                  ? "CSEET"
+                  : course.title.length > 20
+                  ? `${course.title.slice(0, 19)}…`
+                  : course.title;
+
               return (
                 <button
-                  key={course.id}
+                  key={course.id || idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shadow-2xs ${
                     isActive
@@ -316,9 +425,7 @@ export function SubscriptionCarousel() {
                   {course.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
                   {course.isNew && <Sparkles className="w-3.5 h-3.5 text-sky-400" />}
                   {course.isComingSoon && <Clock className="w-3.5 h-3.5 text-slate-400" />}
-                  <span>
-                    {course.categoryTag.replace(/^[🔥⏳✨\s•]+/, "").slice(0, 22) || course.title.slice(0, 22)}
-                  </span>
+                  <span>{pillLabel}</span>
                 </button>
               );
             })}

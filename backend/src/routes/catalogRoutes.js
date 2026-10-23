@@ -268,6 +268,7 @@ router.get("/catalog/:id", async (req, res) => {
 // GET /api/courses — List all courses
 router.get("/courses", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     const courses = await getActiveCourses();
     res.status(200).json({ success: true, courses: courses.map(serializeCourse) });
   } catch (err) {
@@ -635,6 +636,7 @@ router.get("/extra-courses", async (req, res) => {
 // GET /api/carousel-slides — Website banner & subscription slides (A1, B4)
 router.get("/carousel-slides", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     const carouselTable = Database.table("carousel_slides");
     let slides = carouselTable.find((s) => (s.placement === "website" || s.placement === "homepage_top") && s.is_active !== false).sort((a, b) => (a.display_order || a.order || 0) - (b.display_order || b.order || 0));
 
@@ -646,12 +648,47 @@ router.get("/carousel-slides", async (req, res) => {
       } catch (_) {}
     }
 
+    if (!slides || slides.length === 0) {
+      slides = [
+        {
+          id: "slide-1",
+          placement: "website",
+          title: "Master CA Foundation Business Laws",
+          subtitle: "Complete codified ICAI syllabus notes, high-yield visual flowcharts & daily exam-calibrated case studies.",
+          image: "/assets/crop_ca_foundation_book.png",
+          cta_label: "Explore CA Foundation Pass",
+          cta_link: "/courses",
+          badge: "MOST POPULAR • PAPER 2",
+          rating: "4.9/5 Rating (1,200+ Candidates)",
+          subscription_id: "sub-ca-foundation-monthly",
+          display_order: 1,
+          order: 1,
+          is_active: true,
+        },
+        {
+          id: "slide-2",
+          placement: "website",
+          title: "CSEET Business Law and Management",
+          subtitle: "Interactive 3D digital codices, ICSI unit MCQs, and weekly live Google Meet doubt clearing sessions.",
+          image: "/assets/ca-cs-hero-books-sharp.png",
+          cta_label: "Explore CSEET Pass",
+          cta_link: "/courses",
+          badge: "ICSI SYLLABUS • 8 UNITS",
+          rating: "100% ICSI Exam Aligned",
+          subscription_id: "sub-cseet-monthly",
+          display_order: 2,
+          order: 2,
+          is_active: true,
+        },
+      ];
+    }
+
     const normalized = slides.map((s) => ({
       ...s,
       order: s.display_order !== undefined ? s.display_order : (s.order || 1),
       display_order: s.display_order !== undefined ? s.display_order : (s.order || 1),
       cta_link: s.cta_link || "/courses",
-      image: s.image || "/images/hero_ca_foundation.jpg",
+      image: s.image || (s.id === "slide-2" ? "/assets/ca-cs-hero-books-sharp.png" : "/assets/crop_ca_foundation_book.png"),
     }));
 
     res.status(200).json({ success: true, count: normalized.length, slides: normalized, data: normalized });
