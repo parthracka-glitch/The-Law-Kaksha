@@ -183,7 +183,7 @@ function CoursesCatalogContent() {
 
   const handleSubscribeNow = (product: Product) => {
     if (!isUserAuthenticated()) {
-      router.push("/login?redirect=/courses");
+      router.push("/login?redirect=/checkout");
       return;
     }
     addToCart({
@@ -195,8 +195,7 @@ function CoursesCatalogContent() {
       category: product.category,
       badge: product.badge,
     });
-    setIsCartOpen(true);
-    setCheckoutStep("details");
+    router.push("/checkout");
   };
 
   return (

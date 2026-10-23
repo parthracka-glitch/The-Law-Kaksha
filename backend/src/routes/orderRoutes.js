@@ -45,23 +45,55 @@ const CANONICAL_CATALOG_PRICES = {
   "all-access": 180,
 };
 
-function getCanonicalPrice(itemId) {
+async function getCanonicalPrice(itemId) {
   if (!itemId) return 99;
   const cleanId = String(itemId).trim().toLowerCase();
+
+  // 1. Check Course in MongoDB or Table
+  if (isConnected()) {
+    try {
+      const Course = require("../models/Course");
+      const c = await Course.findOne({
+        $or: [
+          { id: cleanId },
+          { slug: cleanId },
+          { id: cleanId.replace(/-sub$/, "") },
+        ],
+      }).lean();
+      if (c && typeof c.price === "number" && c.price > 0) return c.price;
+    } catch (_) {}
+  }
+
+  const coursesTable = Database.table("courses");
+  const c =
+    coursesTable.findById(cleanId) ||
+    coursesTable.findOne((x) => x.id === cleanId || x.slug === cleanId || x.id === cleanId.replace(/-sub$/, ""));
+  if (c && typeof c.price === "number" && c.price > 0) return c.price;
+
+  // 2. Check Subscription Plan in MongoDB or Table
+  if (isConnected()) {
+    try {
+      const Subscription = require("../models/Subscription");
+      const plan = await Subscription.findOne({
+        $or: [{ id: cleanId }, { slug: cleanId }],
+      }).lean();
+      if (plan && typeof plan.price === "number" && plan.price > 0) return plan.price;
+    } catch (_) {}
+  }
+
+  const plansTable = Database.table("subscription_plans");
+  const plan =
+    plansTable.findById(cleanId) ||
+    plansTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
+  if (plan && typeof plan.price === "number" && plan.price > 0) return plan.price;
+
+  const productsTable = Database.table("products");
+  const p = productsTable.findById(cleanId) || productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
+  if (p && typeof p.price === "number" && p.price > 0) return p.price;
+
   if (CANONICAL_CATALOG_PRICES[cleanId]) {
     return CANONICAL_CATALOG_PRICES[cleanId];
   }
-  const productsTable = Database.table("products");
-  const p = productsTable.findById(cleanId) || productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (p && typeof p.price === "number") return p.price;
-
-  const coursesTable = Database.table("courses");
-  const c = coursesTable.findById(cleanId) || coursesTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (c && typeof c.price === "number") return c.price;
-
-  const plansTable = Database.table("subscription_plans");
-  const plan = plansTable.findById(cleanId) || plansTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (plan && typeof plan.price === "number") return plan.price;
 
   return 99;
 }
@@ -83,18 +115,20 @@ async function handleCreateOrder(req, res) {
     let discountAmount = 0;
 
     if (items && items.length > 0) {
-      validatedItems = items.map((it) => {
-        const price = getCanonicalPrice(it.id);
-        const quantity = Math.max(1, Number(it.quantity) || 1);
-        subtotal += price * quantity;
-        return {
-          id: it.id,
-          title: it.title || "Statutory Law Codex",
-          price,
-          quantity,
-          format: "pdf",
-        };
-      });
+      validatedItems = await Promise.all(
+        items.map(async (it) => {
+          const price = await getCanonicalPrice(it.id);
+          const quantity = Math.max(1, Number(it.quantity) || 1);
+          subtotal += price * quantity;
+          return {
+            id: it.id,
+            title: it.title || "Statutory Law Codex",
+            price,
+            quantity,
+            format: "pdf",
+          };
+        })
+      );
 
       // Apply verified discounts
       let discountPercent = 0;

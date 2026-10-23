@@ -149,11 +149,27 @@ async function seedMongo() {
     }
     console.log("[MongoDB Atlas Seeder] Synchronizing collections...");
 
-    // 1. Courses
+    // 1. Courses (Never overwrite admin-configured price, mrp, accessDays, or availability on re-seed)
     for (const c of INITIAL_COURSES) {
-      await Course.findOneAndUpdate({ id: c.id }, { $set: c }, { upsert: true, new: true });
+      const existing = await Course.findOne({ $or: [{ id: c.id }, { slug: c.slug }] });
+      if (!existing) {
+        await Course.create(c);
+      } else {
+        await Course.updateOne(
+          { _id: existing._id },
+          {
+            $set: {
+              title: existing.title || c.title,
+              slug: existing.slug || c.slug,
+              kind: c.kind,
+              exam_body: c.exam_body,
+              units_count: c.units_count,
+            },
+          }
+        );
+      }
     }
-    console.log("[MongoDB Atlas Seeder] Courses synchronized.");
+    console.log("[MongoDB Atlas Seeder] Courses synchronized (admin pricing preserved).");
 
     // 2. Acts & Units for CA Foundation Paper 2
     for (const act of CA_FOUNDATION_ACTS) {

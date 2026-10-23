@@ -1490,16 +1490,75 @@ router.put("/admin/courses/:id", async (req, res) => {
     if (updates.accessDays !== undefined) updates.accessDays = Number(updates.accessDays);
     if (updates.mrp !== undefined) updates.mrp = Number(updates.mrp);
 
+    const mongoose = require("mongoose");
+    const filter = mongoose.isValidObjectId(id)
+      ? { $or: [{ _id: id }, { id }, { slug: id }] }
+      : { $or: [{ id }, { slug: id }] };
+
+    let updatedMongo = null;
     if (isConnected()) {
-      const updated = await Course.findOneAndUpdate({ id }, updates, { new: true });
-      Database.table("courses").update(id, updates);
-      if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
-      return res.status(200).json({ success: true, source: "mongodb_atlas", course: updated });
+      try {
+        updatedMongo = await Course.findOneAndUpdate(filter, { $set: updates }, { new: true });
+      } catch (mongoErr) {
+        console.warn("[AdminRoutes] Course update in Atlas error:", mongoErr.message);
+      }
     }
 
-    const updated = Database.table("courses").update(id, updates);
-    if (!updated) return res.status(404).json({ success: false, message: "Course not found." });
-    res.status(200).json({ success: true, source: "local_cache", course: updated });
+    // Always keep local disk database in sync
+    const coursesTable = Database.table("courses");
+    const localItem = coursesTable.findOne((c) => c.id === id || c.slug === id || c._id === id);
+    let updatedLocal = null;
+    if (localItem) {
+      updatedLocal = coursesTable.update(localItem.id, updates);
+    } else if (updatedMongo) {
+      const doc = updatedMongo.toObject ? updatedMongo.toObject() : updatedMongo;
+      updatedLocal = coursesTable.insert({ ...doc, ...updates });
+    }
+
+    // Propagate price & duration to subscription_plans so the whole website reflects the admin's change
+    if (updates.price !== undefined || updates.accessDays !== undefined || updates.mrp !== undefined) {
+      const planUpdates = {};
+      if (updates.price !== undefined) planUpdates.price = updates.price;
+      if (updates.mrp !== undefined) planUpdates.mrp = updates.mrp || updates.price * 2;
+      if (updates.accessDays !== undefined) planUpdates.duration_days = updates.accessDays;
+
+      const plansTable = Database.table("subscription_plans");
+      const isCa = id.includes("ca") || (localItem && localItem.id && localItem.id.includes("ca"));
+      const isCs = id.includes("cs") || (localItem && localItem.id && localItem.id.includes("cs"));
+
+      const matchedPlans = plansTable.find((p) => {
+        if (p.course_ids && (p.course_ids.includes(id) || (localItem && p.course_ids.includes(localItem.id)))) return true;
+        if (isCa && (p.id.includes("ca") || p.slug.includes("ca"))) return true;
+        if (isCs && (p.id.includes("cs") || p.slug.includes("cs"))) return true;
+        return false;
+      });
+
+      matchedPlans.forEach((p) => {
+        plansTable.update(p.id, planUpdates);
+      });
+
+      if (isConnected()) {
+        try {
+          const Subscription = require("../models/Subscription");
+          const subFilter = isCa
+            ? { $or: [{ id: /ca-foundation/i }, { slug: /ca-foundation/i }] }
+            : isCs
+            ? { $or: [{ id: /cseet/i }, { slug: /cseet/i }] }
+            : { course_ids: id };
+          await Subscription.updateMany(subFilter, { $set: planUpdates });
+        } catch (_) {}
+      }
+    }
+
+    if (!updatedMongo && !updatedLocal) {
+      return res.status(404).json({ success: false, message: "Course not found." });
+    }
+
+    res.status(200).json({
+      success: true,
+      source: updatedMongo ? "mongodb_atlas" : "local_cache",
+      course: updatedMongo || updatedLocal,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating course: " + err.message });
   }

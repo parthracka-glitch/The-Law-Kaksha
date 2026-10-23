@@ -209,6 +209,132 @@ const FALLBACK_CATALOG: Record<string, ProductItem> = {
       { chapter: "Unit 8", title: "Business Environment & Corporate Ethics" },
     ],
   },
+  "course-ca-foundation": {
+    id: "course-ca-foundation",
+    slug: "ca-foundation-paper-2",
+    type: "course",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Business Laws",
+    subtitle: "Complete 7 Chapters Study Notes, Case Studies & Question Bank",
+    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes, practice questions, weekly case problems, and model solutions.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CA Foundation Paper 2",
+    examBody: "ICAI",
+    pages_or_duration: "7 Chapters (ICAI Scheme)",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
+    highlights: [
+      "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
+      "Weekly descriptive case study practice with model solutions",
+      "In-Browser DRM-protected study codices (Single-device reading vault)",
+      "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
+    ],
+    syllabus: [
+      { chapter: "Chapter 1", title: "Indian Regulatory Framework & Sources of Law" },
+      { chapter: "Chapter 2", title: "The Indian Contract Act, 1872 (Units 1 to 9)" },
+      { chapter: "Chapter 3", title: "The Sale of Goods Act, 1930 (Conditions, Warranties & Unpaid Seller)" },
+      { chapter: "Chapter 4", title: "The Indian Partnership Act, 1932 (Units 1, 2 & 3)" },
+      { chapter: "Chapter 5", title: "The Limited Liability Partnership Act, 2008" },
+      { chapter: "Chapter 6", title: "The Companies Act, 2013 (Essential Features & Incorporation)" },
+      { chapter: "Chapter 7", title: "The Negotiable Instruments Act, 1881 (Promissory Notes, Cheques & Sec 138)" },
+    ],
+  },
+  "ca-foundation-paper-2": {
+    id: "course-ca-foundation",
+    slug: "ca-foundation-paper-2",
+    type: "course",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Business Laws",
+    subtitle: "Complete 7 Chapters Study Notes, Case Studies & Question Bank",
+    description: "Comprehensive preparation platform for CA Foundation Paper 2 (ICAI New Scheme). Includes chapter-wise notes, practice questions, weekly case problems, and model solutions.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CA Foundation Paper 2",
+    examBody: "ICAI",
+    pages_or_duration: "7 Chapters (ICAI Scheme)",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
+    highlights: [
+      "Chapter-wise notes for all 7 Acts (Contract, Sale of Goods, Partnership, LLP, Companies, NI Act)",
+      "Weekly descriptive case study practice with model solutions",
+      "In-Browser DRM-protected study codices (Single-device reading vault)",
+      "ICAI answer drafting rubrics & Last Day Revision (LDR) maps",
+    ],
+    syllabus: [
+      { chapter: "Chapter 1", title: "Indian Regulatory Framework & Sources of Law" },
+      { chapter: "Chapter 2", title: "The Indian Contract Act, 1872 (Units 1 to 9)" },
+      { chapter: "Chapter 3", title: "The Sale of Goods Act, 1930 (Conditions, Warranties & Unpaid Seller)" },
+      { chapter: "Chapter 4", title: "The Indian Partnership Act, 1932 (Units 1, 2 & 3)" },
+      { chapter: "Chapter 5", title: "The Limited Liability Partnership Act, 2008" },
+      { chapter: "Chapter 6", title: "The Companies Act, 2013 (Essential Features & Incorporation)" },
+      { chapter: "Chapter 7", title: "The Negotiable Instruments Act, 1881 (Promissory Notes, Cheques & Sec 138)" },
+    ],
+  },
+  "course-cseet": {
+    id: "course-cseet",
+    slug: "cseet-business-laws-management",
+    type: "course",
+    courseId: "course-cseet",
+    title: "CSEET Business Laws and Management",
+    subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
+    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CSEET Paper 2",
+    examBody: "ICSI",
+    pages_or_duration: "8 Units (ICSI Syllabus)",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
+    highlights: [
+      "Comprehensive notes for all 8 Business Law and Management units",
+      "Chapter-wise practice MCQs with explanations for each option",
+      "Weekly timed mock tests with instant score reports",
+      "Last Day Revision (LDR) summaries and concept flowcharts",
+    ],
+    syllabus: [
+      { chapter: "Unit 1", title: "Indian Contract Act, 1872 (Essentials & Enforceability)" },
+      { chapter: "Unit 2", title: "Sale of Goods Act, 1930 (Conditions & Warranties)" },
+      { chapter: "Unit 3", title: "Indian Partnership Act, 1932 (Mutual Agency & Dissolution)" },
+      { chapter: "Unit 4", title: "Limited Liability Partnership Act, 2008 (Governance)" },
+      { chapter: "Unit 5", title: "Companies Act, 2013 (Basics, MoA & AoA)" },
+      { chapter: "Unit 6", title: "Negotiable Instruments Act, 1881 (Banking Instruments)" },
+      { chapter: "Unit 7", title: "General Principles of Management (Fayol & Taylor Theories)" },
+      { chapter: "Unit 8", title: "Business Environment & Corporate Ethics" },
+    ],
+  },
+  "cseet-business-laws-management": {
+    id: "course-cseet",
+    slug: "cseet-business-laws-management",
+    type: "course",
+    courseId: "course-cseet",
+    title: "CSEET Business Laws and Management",
+    subtitle: "8 Units Study Notes, Chapter-wise MCQs & Mock Tests",
+    description: "Complete preparation platform for CSEET Paper 2 (ICSI Syllabus). Includes unit-wise notes, conceptual MCQs with detailed explanations, and timed mock drills.",
+    price: 99,
+    original_price: 299,
+    badge: "₹99 / Month",
+    category: "CSEET Paper 2",
+    examBody: "ICSI",
+    pages_or_duration: "8 Units (ICSI Syllabus)",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
+    highlights: [
+      "Comprehensive notes for all 8 Business Law and Management units",
+      "Chapter-wise practice MCQs with explanations for each option",
+      "Weekly timed mock tests with instant score reports",
+      "Last Day Revision (LDR) summaries and concept flowcharts",
+    ],
+    syllabus: [
+      { chapter: "Unit 1", title: "Indian Contract Act, 1872 (Essentials & Enforceability)" },
+      { chapter: "Unit 2", title: "Sale of Goods Act, 1930 (Conditions & Warranties)" },
+      { chapter: "Unit 3", title: "Indian Partnership Act, 1932 (Mutual Agency & Dissolution)" },
+      { chapter: "Unit 4", title: "Limited Liability Partnership Act, 2008 (Governance)" },
+      { chapter: "Unit 5", title: "Companies Act, 2013 (Basics, MoA & AoA)" },
+      { chapter: "Unit 6", title: "Negotiable Instruments Act, 1881 (Banking Instruments)" },
+      { chapter: "Unit 7", title: "General Principles of Management (Fayol & Taylor Theories)" },
+      { chapter: "Unit 8", title: "Business Environment & Corporate Ethics" },
+    ],
+  },
   "cseet-business-law-management-monthly-access": {
     id: "course-cseet-sub",
     slug: "cseet-business-law-management-monthly-access",
@@ -259,8 +385,13 @@ export default function ProductDetailPage() {
       const res = await apiRequest<ProductCatalogResponse>(`/api/catalog/${productId}`);
       if (res.success && res.data) {
         setProduct(res.data.product || res.data.item || null);
-      } else if (FALLBACK_CATALOG[productId]) {
-        setProduct(FALLBACK_CATALOG[productId]);
+      } else {
+        const key = String(productId || "").toLowerCase();
+        const fallback =
+          FALLBACK_CATALOG[productId] ||
+          FALLBACK_CATALOG[key] ||
+          (key.includes("ca") ? FALLBACK_CATALOG["course-ca-foundation"] : FALLBACK_CATALOG["course-cseet"]);
+        if (fallback) setProduct(fallback);
       }
       setLoading(false);
     }
@@ -331,11 +462,20 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     if (!isUserAuthenticated()) {
-      router.push(`/login?redirect=${encodeURIComponent(`/product/${product?.id || productId}`)}`);
+      router.push("/login?redirect=/checkout");
       return;
     }
-    handleAddToCart();
-    setCheckoutStep("details");
+    if (!product) return;
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: currentPrice,
+      originalPrice: originalPrice,
+      format: "pdf",
+      category: product.category,
+      badge: product.badge,
+    });
+    router.push("/checkout");
   };
 
   return (

@@ -73,7 +73,17 @@ async function seed() {
     if (!existing) {
       coursesTable.insert(course);
     } else {
-      coursesTable.update(existing.id, course);
+      coursesTable.update(existing.id, {
+        title: existing.title || course.title,
+        slug: existing.slug || course.slug,
+        kind: course.kind,
+        exam_body: course.exam_body,
+        units_count: course.units_count,
+        price: existing.price !== undefined ? existing.price : course.price,
+        mrp: existing.mrp !== undefined ? existing.mrp : course.mrp,
+        accessDays: existing.accessDays !== undefined ? existing.accessDays : course.accessDays,
+        availability: existing.availability !== undefined ? existing.availability : course.availability,
+      });
     }
   }
 

@@ -321,7 +321,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               : c
           )
         );
-        showToast("Course pricing & access days saved successfully.");
+        showToast(`Saved ₹${edit.price} (${edit.accessDays} days) for course. Price is live across the website.`);
+        loadCourses();
       } else {
         alert(data.message || "Failed to update pricing.");
       }
@@ -834,6 +835,16 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       )}
                       <span>Save</span>
                     </button>
+                    <a
+                      href={`/product/${course.slug || course.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] transition-colors cursor-pointer"
+                      title="Preview live course page"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Live</span>
+                    </a>
                     <button
                       type="button"
                       onClick={() => setSelectedCourseId(course.id)}

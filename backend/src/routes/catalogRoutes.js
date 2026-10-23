@@ -69,6 +69,34 @@ function isRemovedProduct(item) {
   return false;
 }
 
+function resolveCourseAlias(rawId) {
+  const clean = String(rawId || "").toLowerCase().trim();
+  if (
+    clean === "course-ca-foundation" ||
+    clean === "course-ca-foundation-sub" ||
+    clean === "ca-foundation" ||
+    clean === "ca-foundation-paper-2" ||
+    clean === "ca-foundation-business-laws" ||
+    clean === "ca-foundation-business-laws-monthly-access" ||
+    clean === "ca-foundation-monthly" ||
+    clean === "sub-ca-foundation-monthly"
+  ) {
+    return "course-ca-foundation";
+  }
+  if (
+    clean === "course-cseet" ||
+    clean === "course-cseet-sub" ||
+    clean === "cseet" ||
+    clean === "cseet-business-laws-management" ||
+    clean === "cseet-business-law-management-monthly-access" ||
+    clean === "cseet-monthly" ||
+    clean === "sub-cseet-monthly"
+  ) {
+    return "course-cseet";
+  }
+  return rawId;
+}
+
 // GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
 router.get("/public/site-data", async (req, res) => {
   try {
@@ -174,15 +202,21 @@ router.get("/catalog/:id", async (req, res) => {
     return res.status(404).json({ success: false, message: "Course discontinued and removed from catalog." });
   }
   try {
+    const resolvedId = resolveCourseAlias(id);
     // Check in default courses
-    let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id);
+    let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id || p.id === resolvedId || p.slug === resolvedId);
 
     let course = null;
     if (!product) {
       if (isConnected()) {
-        course = await Course.findOne({ $or: [{ id }, { slug: id }] }).lean();
-      } else {
-        course = Database.table("courses").findOne((c) => c.id === id || c.slug === id);
+        course = await Course.findOne({
+          $or: [{ id }, { slug: id }, { id: resolvedId }, { slug: resolvedId }],
+        }).lean();
+      }
+      if (!course) {
+        course = Database.table("courses").findOne(
+          (c) => c.id === id || c.slug === id || c.id === resolvedId || c.slug === resolvedId
+        );
       }
     }
 
@@ -245,11 +279,17 @@ router.get("/courses", async (req, res) => {
 router.get("/courses/:courseId", async (req, res) => {
   try {
     const { courseId } = req.params;
+    const resolvedId = resolveCourseAlias(courseId);
     let course = null;
     if (isConnected()) {
-      course = await Course.findOne({ $or: [{ id: courseId }, { slug: courseId }] }).lean();
-    } else {
-      course = Database.table("courses").findOne((c) => c.id === courseId || c.slug === courseId);
+      course = await Course.findOne({
+        $or: [{ id: courseId }, { slug: courseId }, { id: resolvedId }, { slug: resolvedId }],
+      }).lean();
+    }
+    if (!course) {
+      course = Database.table("courses").findOne(
+        (c) => c.id === courseId || c.slug === courseId || c.id === resolvedId || c.slug === resolvedId
+      );
     }
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
@@ -401,14 +441,37 @@ router.get("/subscriptions", async (req, res) => {
 router.get("/subscriptions/:slug", async (req, res) => {
   try {
     const slug = req.params.slug;
+    const resolvedCourseId = resolveCourseAlias(slug);
+    const resolvedSubSlug =
+      resolvedCourseId === "course-ca-foundation"
+        ? "ca-foundation-monthly"
+        : resolvedCourseId === "course-cseet"
+        ? "cseet-monthly"
+        : slug;
+
     let plan = null;
     const plansTable = Database.table("subscription_plans");
-    plan = plansTable.findOne((p) => p.slug === slug || p.id === slug);
+    plan = plansTable.findOne(
+      (p) =>
+        p.slug === slug ||
+        p.id === slug ||
+        p.slug === resolvedSubSlug ||
+        p.id === `sub-${resolvedSubSlug}` ||
+        (p.course_ids && p.course_ids.includes(resolvedCourseId))
+    );
 
     if (!plan && isConnected()) {
       try {
         const Subscription = require("../models/Subscription");
-        plan = await Subscription.findOne({ $or: [{ slug }, { id: slug }] }).lean();
+        plan = await Subscription.findOne({
+          $or: [
+            { slug },
+            { id: slug },
+            { slug: resolvedSubSlug },
+            { id: `sub-${resolvedSubSlug}` },
+            { course_ids: resolvedCourseId },
+          ],
+        }).lean();
       } catch (_) {}
     }
 
@@ -416,13 +479,23 @@ router.get("/subscriptions/:slug", async (req, res) => {
       return res.status(404).json({ success: false, message: "Subscription plan not found" });
     }
 
-    // Attach courses
+    // Attach courses and sync dynamic course price
     const coursesTable = Database.table("courses");
-    const attachedCourses = (plan.course_ids || []).map((cId) => coursesTable.findOne((c) => c.id === cId)).filter(Boolean);
+    const attachedCourses = (plan.course_ids || [])
+      .map((cId) => coursesTable.findOne((c) => c.id === cId || c.slug === cId))
+      .filter(Boolean);
+
+    let dynamicPrice = plan.price;
+    if (attachedCourses.length > 0 && typeof attachedCourses[0].price === "number") {
+      dynamicPrice = attachedCourses[0].price;
+    } else if (resolvedCourseId) {
+      const c = coursesTable.findOne((c) => c.id === resolvedCourseId || c.slug === resolvedCourseId);
+      if (c && typeof c.price === "number") dynamicPrice = c.price;
+    }
 
     res.status(200).json({
       success: true,
-      subscription: { ...plan, courses: attachedCourses },
+      subscription: { ...plan, price: dynamicPrice, courses: attachedCourses },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching subscription detail: " + err.message });
