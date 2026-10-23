@@ -185,6 +185,27 @@ export function getStudentUser(): AuthUser | null {
   }
 }
 
+export function getActiveUserEmail(): string | null {
+  if (typeof window === "undefined") return null;
+  const user = getActiveUser() || getStudentUser();
+  if (user && user.email && typeof user.email === "string" && user.email.trim()) {
+    return user.email.toLowerCase().trim();
+  }
+  const sessionStr =
+    localStorage.getItem("lawkaksha_student_session") ||
+    localStorage.getItem("lawkaksha_active_student") ||
+    localStorage.getItem("lawkaksha_admin_session");
+  if (sessionStr) {
+    try {
+      const parsed = JSON.parse(sessionStr);
+      if (parsed?.email && typeof parsed.email === "string" && parsed.email.trim()) {
+        return parsed.email.toLowerCase().trim();
+      }
+    } catch {}
+  }
+  return null;
+}
+
 export function getAuthSession(): {
   token: string | null;
   user: AuthUser | null;

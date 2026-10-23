@@ -262,6 +262,72 @@ router.post("/sync-progress", requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/student/cart
+ * Returns saved cart items for authenticated student
+ */
+router.get("/cart", requireAuth, async (req, res) => {
+  try {
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : null;
+    const studentId = req.user.id || req.user.student_id;
+    let userDoc = null;
+    if (isConnected() && (email || studentId)) {
+      userDoc = await User.findOne({
+        $or: [
+          ...(email ? [{ email }] : []),
+          ...(studentId ? [{ id: studentId }, { student_id: studentId }] : []),
+        ],
+      }).lean();
+    } else if (email || studentId) {
+      userDoc = Database.table("users").findOne(
+        (u) => (email && u.email === email) || (studentId && (u.id === studentId || u.student_id === studentId))
+      );
+    }
+    const items = Array.isArray(userDoc?.cart_items) ? userDoc.cart_items : [];
+    return res.status(200).json({ success: true, items });
+  } catch (err) {
+    console.error("[Student API] Get cart error:", err);
+    return res.status(500).json({ success: false, items: [], message: "Error fetching cart." });
+  }
+});
+
+/**
+ * POST /api/student/cart
+ * Persists cart items for authenticated student
+ */
+router.post("/cart", requireAuth, async (req, res) => {
+  try {
+    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : null;
+    const studentId = req.user.id || req.user.student_id;
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+
+    if (isConnected() && (email || studentId)) {
+      await User.updateOne(
+        {
+          $or: [
+            ...(email ? [{ email }] : []),
+            ...(studentId ? [{ id: studentId }, { student_id: studentId }] : []),
+          ],
+        },
+        { $set: { cart_items: items } }
+      );
+    }
+
+    const usersTable = Database.table("users");
+    const localUser = usersTable.findOne(
+      (u) => (email && u.email === email) || (studentId && (u.id === studentId || u.student_id === studentId))
+    );
+    if (localUser) {
+      usersTable.update(localUser.id, { cart_items: items });
+    }
+
+    return res.status(200).json({ success: true, count: items.length });
+  } catch (err) {
+    console.error("[Student API] Save cart error:", err);
+    return res.status(500).json({ success: false, message: "Error saving cart." });
+  }
+});
+
 // ==========================================
 // SURFACE C SPECIFIC MODULES (§9 & §10)
 // ==========================================

@@ -44,6 +44,7 @@ const UserSchema = new mongoose.Schema(
     state: { type: String, default: "" },
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpires: { type: Date },
+    cart_items: { type: Array, default: [] },
   },
   { timestamps: true }
 );

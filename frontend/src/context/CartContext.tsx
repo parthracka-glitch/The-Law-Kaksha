@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { getActiveUserEmail, apiRequest } from "@/lib/api";
 
 export type BookFormat = "pdf";
 
@@ -74,8 +75,34 @@ export const FORMAT_PRICING = {
   pdf: { multiplier: 1, label: "Encrypted Digital Codex", tag: "Online In-Web Reader" },
 };
 
+function getCartStorageKey(email: string | null): string {
+  if (email && typeof email === "string" && email.trim()) {
+    return `lawkaksha_cart_user_${email.trim().toLowerCase()}`;
+  }
+  return "lawkaksha_cart_guest";
+}
+
+function readStoredCart(email: string | null): { found: boolean; items: CartItem[] } {
+  if (typeof window === "undefined") return { found: false, items: [] };
+  const key = getCartStorageKey(email);
+  const raw = localStorage.getItem(key);
+  if (!raw) return { found: false, items: [] };
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return { found: true, items: parsed };
+    }
+  } catch {}
+  return { found: false, items: [] };
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [, setActiveEmail] = useState<string | null>(null);
+  const [, setIsLoaded] = useState(false);
+  const activeEmailRef = useRef<string | null>(null);
+  const isLoadedRef = useRef(false);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -83,6 +110,109 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [couponSuccess, setCouponSuccess] = useState("");
   const [checkoutStep, setInternalCheckoutStep] = useState<"cart" | "details" | "payment" | "success">("cart");
   const [lastOrderDetails, setLastOrderDetailsState] = useState<LastOrderDetails | null>(null);
+
+  // Synchronize cart state whenever the active user logs in or out
+  const syncCartWithAuth = useCallback(async (currentEmail: string | null) => {
+    const prevEmail = activeEmailRef.current;
+    activeEmailRef.current = currentEmail;
+    setActiveEmail(currentEmail);
+
+    if (currentEmail) {
+      // User is logged in:
+      // 1. Check if this exact user already has saved cart items
+      const localResult = readStoredCart(currentEmail);
+      if (localResult.found) {
+        // User has a previously saved cart under this email: restore it!
+        setItems(localResult.items);
+      } else {
+        // First login / no saved cart for this account: cart is EMPTY by default!
+        setItems([]);
+        localStorage.setItem(getCartStorageKey(currentEmail), JSON.stringify([]));
+      }
+
+      // 2. Also check backend database cart in case items were saved from another session
+      try {
+        const res = await apiRequest<{ items?: CartItem[] }>("/api/student/cart");
+        if (res.success && Array.isArray(res.data?.items) && res.data.items.length > 0) {
+          if (!localResult.found || localResult.items.length === 0) {
+            setItems(res.data.items);
+            localStorage.setItem(getCartStorageKey(currentEmail), JSON.stringify(res.data.items));
+          }
+        }
+      } catch {}
+    } else {
+      // User is logged out / guest:
+      if (prevEmail) {
+        // User just logged out: clear active cart so next user starts empty
+        setItems([]);
+        localStorage.removeItem("lawkaksha_cart_guest");
+      } else {
+        const guestResult = readStoredCart(null);
+        setItems(guestResult.items);
+      }
+    }
+
+    // Clear legacy single-key storage so old unauthenticated items never leak across logins
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("lawkaksha_cart_items");
+    }
+
+    setIsLoaded(true);
+    isLoadedRef.current = true;
+  }, []);
+
+  // Initial load on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const initialEmail = getActiveUserEmail();
+    syncCartWithAuth(initialEmail);
+  }, [syncCartWithAuth]);
+
+  // Listen for login/logout events across the app and storage updates
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkAuthStatus = () => {
+      const currentEmail = getActiveUserEmail();
+      if (currentEmail !== activeEmailRef.current) {
+        syncCartWithAuth(currentEmail);
+      }
+    };
+
+    window.addEventListener("storage", checkAuthStatus);
+    window.addEventListener("lawkaksha_student_updated", checkAuthStatus);
+    window.addEventListener("lawkaksha_auth_changed", checkAuthStatus);
+
+    const interval = window.setInterval(checkAuthStatus, 800);
+
+    return () => {
+      window.removeEventListener("storage", checkAuthStatus);
+      window.removeEventListener("lawkaksha_student_updated", checkAuthStatus);
+      window.removeEventListener("lawkaksha_auth_changed", checkAuthStatus);
+      window.clearInterval(interval);
+    };
+  }, [syncCartWithAuth]);
+
+  // Save cart to specific storage key on changes (only after initial load has finished)
+  useEffect(() => {
+    if (!isLoadedRef.current || typeof window === "undefined") return;
+
+    const email = activeEmailRef.current;
+    const storageKey = getCartStorageKey(email);
+    localStorage.setItem(storageKey, JSON.stringify(items));
+    localStorage.removeItem("lawkaksha_cart_items");
+
+    // Sync to backend student cart if authenticated
+    if (email) {
+      const timer = window.setTimeout(() => {
+        apiRequest("/api/student/cart", {
+          method: "POST",
+          body: JSON.stringify({ items }),
+        }).catch(() => null);
+      }, 500);
+      return () => window.clearTimeout(timer);
+    }
+  }, [items]);
 
   // The checkout flow stores a partial order payload (server order first, receipt
   // fields added later), so the setter accepts a partial summary.
@@ -97,34 +227,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setInternalCheckoutStep(step);
     }
   };
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const saved = localStorage.getItem("lawkaksha_cart_items");
-    if (!saved) return;
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(saved);
-    } catch {
-      return;
-    }
-    if (!Array.isArray(parsed)) return;
-
-    const restoreTimer = window.setTimeout(() => {
-      setItems(parsed);
-    }, 0);
-    return () => window.clearTimeout(restoreTimer);
-  }, []);
-
-  // Save cart to localStorage on changes
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("lawkaksha_cart_items", JSON.stringify(items));
-    }
-  }, [items]);
 
   const addToCart = (newItem: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
@@ -184,6 +286,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    if (typeof window !== "undefined") {
+      const email = activeEmailRef.current;
+      const storageKey = getCartStorageKey(email);
+      localStorage.setItem(storageKey, JSON.stringify([]));
+      localStorage.removeItem("lawkaksha_cart_items");
+      if (email) {
+        apiRequest("/api/student/cart", {
+          method: "POST",
+          body: JSON.stringify({ items: [] }),
+        }).catch(() => null);
+      }
+    }
   };
 
   const cartSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
