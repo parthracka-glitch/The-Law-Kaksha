@@ -505,6 +505,11 @@ export default function ProductDetailPage() {
                   height={510}
                   className="w-full h-auto object-contain"
                   priority
+                  unoptimized={
+                    (product.cover_image || "").startsWith("http") ||
+                    (product.cover_image || "").startsWith("data:") ||
+                    (product.cover_image || "").startsWith("/uploads")
+                  }
                 />
               </div>
             </div>

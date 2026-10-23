@@ -5,11 +5,30 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
+import { apiRequest } from "@/lib/api";
 
 export function HeroSection() {
   const [sampleModalOpen, setSampleModalOpen] = useState(false);
   const [previewBook] = useState<"ca-foundation" | "cseet">("ca-foundation");
+  const [livePrice, setLivePrice] = useState<number>(99);
   const typographyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function loadLivePrice() {
+      try {
+        const res = await apiRequest<{ courses?: Array<{ id: string; price?: number }> }>("/api/courses");
+        if (res.success && res.data?.courses) {
+          const caCourse = res.data.courses.find(
+            (c) => c.id?.toLowerCase().includes("ca-foundation") || c.id?.toLowerCase() === "ca-foundation"
+          );
+          if (caCourse && typeof caCourse.price === "number") {
+            setLivePrice(caCourse.price);
+          }
+        }
+      } catch {}
+    }
+    loadLivePrice();
+  }, []);
 
   useEffect(() => {
     // Respect user preference for reduced motion
@@ -87,7 +106,7 @@ export function HeroSection() {
                   href="#subscriptions"
                   className="group inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white text-base font-bold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
                 >
-                  <span>Start Learning @ ₹99</span>
+                  <span>Start Learning @ ₹{livePrice}</span>
                   <ArrowRight className="w-4 h-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
 
@@ -125,7 +144,7 @@ export function HeroSection() {
               : "CA Foundation Business Laws Master Codex"
           }
           bookId={previewBook}
-          bookPrice={99}
+          bookPrice={livePrice}
         />
       </section>
     </>

@@ -208,6 +208,8 @@ export async function apiRequest<T = JsonObject>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
     ...(options.headers as Record<string, string>),
   };
 
@@ -222,6 +224,7 @@ export async function apiRequest<T = JsonObject>(
       : `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
     const res = await fetch(url, {
+      cache: options.cache || "no-store",
       ...options,
       headers,
     });

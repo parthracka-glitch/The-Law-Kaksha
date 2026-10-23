@@ -17,6 +17,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { EnhancedSampleChapterModal } from "./EnhancedSampleChapterModal";
+import { apiRequest } from "@/lib/api";
 
 export interface FeaturedCourseData {
   id: string;
@@ -34,6 +35,7 @@ export interface FeaturedCourseData {
   studentCount: string;
   features: string[];
   ctaLink: string;
+  ctaText?: string;
   isBestseller?: boolean;
   isNew?: boolean;
   isComingSoon?: boolean;
@@ -93,6 +95,7 @@ const FEATURED_COURSES: FeaturedCourseData[] = [
 ];
 
 export function SubscriptionCarousel() {
+  const [coursesList, setCoursesList] = useState<FeaturedCourseData[]>(FEATURED_COURSES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,16 +105,139 @@ export function SubscriptionCarousel() {
   const [modalBookId, setModalBookId] = useState<"ca-foundation" | "cseet">("ca-foundation");
   const [modalTitle, setModalTitle] = useState("");
 
-  const total = FEATURED_COURSES.length;
-  const current = FEATURED_COURSES[currentIndex];
+  const total = coursesList.length;
+  const current = coursesList[currentIndex] || coursesList[0] || FEATURED_COURSES[0];
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total]);
+    setCurrentIndex((prev) => (prev + 1) % (coursesList.length || 1));
+  }, [coursesList.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
+    setCurrentIndex((prev) => (prev - 1 + (coursesList.length || 1)) % (coursesList.length || 1));
+  }, [coursesList.length]);
+
+  // Load live slides & course pricing from backend
+  useEffect(() => {
+    async function loadDynamicShowcase() {
+      try {
+        const [slidesRes, coursesRes] = await Promise.allSettled([
+          apiRequest<{ slides?: Array<{
+            id: string;
+            title: string;
+            subtitle: string;
+            image: string;
+            badge?: string;
+            rating?: string;
+            cta_label?: string;
+            cta_link?: string;
+            is_active?: boolean;
+          }> }>("/api/carousel-slides"),
+          apiRequest<{ courses?: Array<{
+            id: string;
+            title: string;
+            price?: number;
+            mrp?: number;
+            availability?: string;
+            thumbnail?: string;
+          }> }>("/api/courses"),
+        ]);
+
+        let liveCaPrice = 99;
+        let liveCaMrp = 299;
+        let liveCsPrice = 99;
+        let liveCsMrp = 299;
+
+        if (coursesRes.status === "fulfilled" && coursesRes.value.success && coursesRes.value.data?.courses) {
+          const courses = coursesRes.value.data.courses;
+          const ca = courses.find((c) => c.id?.toLowerCase().includes("ca-foundation") || c.id?.toLowerCase() === "ca-foundation");
+          const cs = courses.find((c) => c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet"));
+          if (ca && typeof ca.price === "number") {
+            liveCaPrice = ca.price;
+            if (typeof ca.mrp === "number" && ca.mrp > 0) liveCaMrp = ca.mrp;
+          }
+          if (cs && typeof cs.price === "number") {
+            liveCsPrice = cs.price;
+            if (typeof cs.mrp === "number" && cs.mrp > 0) liveCsMrp = cs.mrp;
+          }
+        }
+
+        // If custom hero slides exist from admin panel, map them into the live carousel
+        if (
+          slidesRes.status === "fulfilled" &&
+          slidesRes.value.success &&
+          Array.isArray(slidesRes.value.data?.slides) &&
+          slidesRes.value.data.slides.length > 0
+        ) {
+          const remoteSlides = slidesRes.value.data.slides.filter((s) => s.is_active !== false);
+          if (remoteSlides.length > 0) {
+            const mappedSlides: FeaturedCourseData[] = remoteSlides.map((s, idx) => {
+              const textCombined = `${s.title} ${s.subtitle} ${s.cta_link || ""}`.toLowerCase();
+              const isCs = textCombined.includes("cseet") || textCombined.includes("cs ");
+              const currentPrice = isCs ? liveCsPrice : liveCaPrice;
+              const currentMrp = isCs ? liveCsMrp : liveCaMrp;
+              const discount = currentMrp > currentPrice
+                ? `${Math.round(((currentMrp - currentPrice) / currentMrp) * 100)}% OFF`
+                : "SPECIAL PRICE";
+
+              return {
+                id: s.id || `slide-${idx}`,
+                categoryTag: s.badge || (idx === 0 ? "🔥 #1 BESTSELLER • ICAI NEW SCHEME" : "✨ OFFICIAL CODEX"),
+                tagColor: idx === 0 ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-sky-50 text-sky-800 border-sky-200",
+                title: s.title,
+                subtitle: s.subtitle,
+                price: currentPrice,
+                mrp: currentMrp,
+                discount,
+                image: s.image || "/images/hero_ca_foundation.jpg",
+                bookId: isCs ? "cseet" : "ca-foundation",
+                sampleTitle: s.title,
+                rating: s.rating || "4.9 / 5.0",
+                studentCount: idx === 0 ? "1,240+ Enrolled" : "Official Curriculum",
+                features: isCs
+                  ? [
+                      "Full 8 Units Legal Aptitude & Business Mgt",
+                      "High-Yield Timed MCQ Drills with Analytics",
+                      "Statutory Definitions & Judicial Precedents",
+                      "Interactive 3D Digital Codex Reader",
+                      "Live Strategy Sessions & Doubt Support",
+                    ]
+                  : [
+                      "All 7 CA Foundation Acts Fully Codified",
+                      "45+ Landmark Case Studies with Model Answers",
+                      "Unit-wise Practice Tests & Chapter Mindmaps",
+                      "Single-Device Watermarked DRM Security",
+                      "Weekly Live Google Meet Doubt Clearing",
+                    ],
+                ctaLink: s.cta_link || (isCs ? "/courses" : "/product/course-ca-foundation-sub"),
+                ctaText: s.cta_label || (isCs ? "Explore CSEET Pass" : "Enroll in Course"),
+                isBestseller: idx === 0,
+                isComingSoon: isCs,
+              };
+            });
+            setCoursesList(mappedSlides);
+            return;
+          }
+        }
+
+        // Fallback: update default featured courses with live prices
+        setCoursesList((prev) =>
+          prev.map((c) => {
+            if (c.id === "ca-foundation") {
+              const discount = liveCaMrp > liveCaPrice ? `${Math.round(((liveCaMrp - liveCaPrice) / liveCaMrp) * 100)}% OFF` : c.discount;
+              return { ...c, price: liveCaPrice, mrp: liveCaMrp, discount };
+            }
+            if (c.id === "cseet-law") {
+              const discount = liveCsMrp > liveCsPrice ? `${Math.round(((liveCsMrp - liveCsPrice) / liveCsMrp) * 100)}% OFF` : c.discount;
+              return { ...c, price: liveCsPrice, mrp: liveCsMrp, discount };
+            }
+            return c;
+          })
+        );
+      } catch {}
+    }
+
+    loadDynamicShowcase();
+  }, []);
 
   // Auto-play timer (6 seconds, pauses on hover)
   useEffect(() => {
@@ -152,7 +278,7 @@ export function SubscriptionCarousel() {
 
           {/* Course Switcher Pills */}
           <div className="flex flex-wrap items-center gap-2">
-            {FEATURED_COURSES.map((course, idx) => {
+            {coursesList.map((course, idx) => {
               const isActive = idx === currentIndex;
               return (
                 <button
@@ -167,7 +293,9 @@ export function SubscriptionCarousel() {
                   {course.isBestseller && <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
                   {course.isNew && <Sparkles className="w-3.5 h-3.5 text-sky-400" />}
                   {course.isComingSoon && <Clock className="w-3.5 h-3.5 text-slate-400" />}
-                  <span>{course.id === "ca-foundation" ? "Best Seller (CA)" : "CSEET (Coming Soon)"}</span>
+                  <span>
+                    {course.categoryTag.replace(/^[🔥⏳✨\s•]+/, "").slice(0, 22) || course.title.slice(0, 22)}
+                  </span>
                 </button>
               );
             })}
@@ -267,7 +395,7 @@ export function SubscriptionCarousel() {
                     href={current.ctaLink}
                     className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px]"
                   >
-                    <span>Enroll in Course</span>
+                    <span>{current.ctaText || "Enroll in Course"}</span>
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </Link>
                 )}
@@ -320,6 +448,7 @@ export function SubscriptionCarousel() {
                     className="object-contain drop-shadow-[0_15px_20px_rgba(10,25,47,0.18)]"
                     sizes="340px"
                     priority
+                    unoptimized={current.image?.startsWith("http") || current.image?.startsWith("data:") || current.image?.startsWith("/uploads")}
                   />
                 </div>
 
@@ -356,7 +485,7 @@ export function SubscriptionCarousel() {
 
           {/* Auto-Rotation Progress Bar */}
           <div className="h-1 w-full bg-[#EFF6FF] flex">
-            {FEATURED_COURSES.map((_, idx) => (
+            {coursesList.map((_, idx) => (
               <div
                 key={idx}
                 className="flex-1 h-full cursor-pointer relative"
@@ -379,7 +508,7 @@ export function SubscriptionCarousel() {
         onClose={() => setSampleModalOpen(false)}
         bookTitle={modalTitle}
         bookId={modalBookId}
-        bookPrice={99}
+        bookPrice={current.price || 99}
       />
     </>
   );
