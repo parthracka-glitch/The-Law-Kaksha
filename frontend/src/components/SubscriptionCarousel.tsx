@@ -135,6 +135,7 @@ export function SubscriptionCarousel() {
           apiRequest<{ courses?: Array<{
             id: string;
             title: string;
+            description?: string;
             price?: number;
             mrp?: number;
             availability?: string;
@@ -219,16 +220,38 @@ export function SubscriptionCarousel() {
           }
         }
 
-        // Fallback: update default featured courses with live prices
+        // Fallback: update default featured courses with live prices, titles, images and descriptions
+        const courses = coursesRes.status === "fulfilled" && coursesRes.value.success ? coursesRes.value.data?.courses || [] : [];
+        const liveCaObj = courses.find((c) => c.id?.toLowerCase().includes("ca-foundation") || c.id?.toLowerCase() === "ca-foundation");
+        const liveCsObj = courses.find((c) => c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet"));
+
         setCoursesList((prev) =>
           prev.map((c) => {
             if (c.id === "ca-foundation") {
-              const discount = liveCaMrp > liveCaPrice ? `${Math.round(((liveCaMrp - liveCaPrice) / liveCaMrp) * 100)}% OFF` : c.discount;
-              return { ...c, price: liveCaPrice, mrp: liveCaMrp, discount };
+              const discount = liveCaMrp > liveCaPrice ? `${Math.round(((liveCaMrp - liveCaPrice) / liveCaMrp) * 100)}% OFF` : "SPECIAL PRICE";
+              return {
+                ...c,
+                title: liveCaObj?.title || c.title,
+                subtitle: liveCaObj?.description || c.subtitle,
+                image: liveCaObj?.thumbnail || c.image,
+                price: liveCaPrice,
+                mrp: liveCaMrp,
+                discount,
+                sampleTitle: liveCaObj?.title || c.sampleTitle,
+              };
             }
             if (c.id === "cseet-law") {
-              const discount = liveCsMrp > liveCsPrice ? `${Math.round(((liveCsMrp - liveCsPrice) / liveCsMrp) * 100)}% OFF` : c.discount;
-              return { ...c, price: liveCsPrice, mrp: liveCsMrp, discount };
+              const discount = liveCsMrp > liveCsPrice ? `${Math.round(((liveCsMrp - liveCsPrice) / liveCsMrp) * 100)}% OFF` : "SPECIAL PRICE";
+              return {
+                ...c,
+                title: liveCsObj?.title || c.title,
+                subtitle: liveCsObj?.description || c.subtitle,
+                image: liveCsObj?.thumbnail || c.image,
+                price: liveCsPrice,
+                mrp: liveCsMrp,
+                discount,
+                sampleTitle: liveCsObj?.title || c.sampleTitle,
+              };
             }
             return c;
           })

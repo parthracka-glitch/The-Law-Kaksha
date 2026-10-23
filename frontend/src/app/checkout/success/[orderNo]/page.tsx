@@ -19,15 +19,29 @@ interface OrderPersonalDetails {
   email?: string;
 }
 
+interface OrderItem {
+  id?: string;
+  title?: string;
+  name?: string;
+  price?: number;
+}
+
 interface OrderRecord {
   id?: string;
+  orderId?: string;
   customer_name?: string;
   customerName?: string;
+  studentName?: string;
   customer_email?: string;
   customerEmail?: string;
+  studentEmail?: string;
   personalDetails?: OrderPersonalDetails;
   total_amount?: number;
   amount?: number;
+  total?: number;
+  item?: string;
+  activePlanTitle?: string;
+  items?: OrderItem[];
 }
 
 interface OrderApiPayload extends OrderRecord {
@@ -42,12 +56,29 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     let isMounted = true;
+
+    // 1. Immediately hydrate from localStorage for zero latency
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("lawkaksha_last_order");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && isMounted) {
+            setOrder(parsed);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed reading cached order:", err);
+      }
+    }
+
+    // 2. Fetch official order from backend if available
     async function fetchOrder() {
       try {
         const res = await apiRequest<OrderApiPayload>(`/api/orders/${orderNo}`);
         if (res.success && res.data) {
           const orderObj = res.data.order || res.data;
-          if (isMounted) setOrder(orderObj);
+          if (isMounted) setOrder((prev) => ({ ...prev, ...orderObj }));
         }
       } catch {
         // Fallback to minimal state
@@ -64,14 +95,33 @@ export default function OrderSuccessPage() {
   const studentName =
     order?.customer_name ||
     order?.customerName ||
-    order?.personalDetails?.fullName;
+    order?.studentName ||
+    order?.personalDetails?.fullName ||
+    "Enrolled Student";
 
   const studentEmail =
     order?.customer_email ||
     order?.customerEmail ||
+    order?.studentEmail ||
     order?.personalDetails?.email;
 
-  const totalPaid = order?.total_amount || order?.amount;
+  const totalPaid =
+    typeof order?.total_amount === "number"
+      ? order.total_amount
+      : typeof order?.amount === "number"
+      ? order.amount
+      : typeof order?.total === "number"
+      ? order.total
+      : 1;
+
+  let courseTitle = "CA Foundation Business Laws Master Codex";
+  if (Array.isArray(order?.items) && order.items.length > 0) {
+    courseTitle = order.items.map((i) => i.title || i.name || "Course").join(", ");
+  } else if (order?.activePlanTitle) {
+    courseTitle = String(order.activePlanTitle);
+  } else if (order?.item) {
+    courseTitle = String(order.item);
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#221D1D] flex flex-col font-sans">
@@ -107,6 +157,11 @@ export default function OrderSuccessPage() {
               <span className="font-mono font-bold text-[#221D1D]">{orderNo}</span>
             </div>
 
+            <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
+              <span className="text-[#77716E]">Enrolled Course / Codex:</span>
+              <span className="font-bold text-[#221D1D] text-right">{courseTitle}</span>
+            </div>
+
             {studentName && (
               <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
                 <span className="text-[#77716E]">Student Name:</span>
@@ -121,12 +176,10 @@ export default function OrderSuccessPage() {
               </div>
             )}
 
-            {totalPaid && (
-              <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
-                <span className="text-[#77716E]">Total Paid:</span>
-                <span className="font-black text-[#221D1D]">₹{totalPaid}</span>
-              </div>
-            )}
+            <div className="flex justify-between items-center pb-2.5 border-b border-[#E7E4E7]">
+              <span className="text-[#77716E]">Total Paid:</span>
+              <span className="font-black text-[#221D1D]">₹{totalPaid}</span>
+            </div>
 
             <div className="flex justify-between items-center">
               <span className="text-[#77716E]">Hardware DRM Security:</span>

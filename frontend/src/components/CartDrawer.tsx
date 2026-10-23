@@ -425,8 +425,15 @@ export function CartDrawer() {
             }
 
             setLastOrderDetails(generatedOrder);
-            setCheckoutStep("success");
+            if (typeof window !== "undefined") {
+              try {
+                localStorage.setItem("lawkaksha_last_order", JSON.stringify(generatedOrder));
+              } catch {}
+            }
             clearCart();
+            setIsCartOpen(false);
+            setCheckoutStep("cart");
+            router.push(`/checkout/success/${encodeURIComponent(generatedOrder.orderId)}`);
           } catch (verifyErr: unknown) {
             console.error("Verification error:", verifyErr);
             setPaymentError(

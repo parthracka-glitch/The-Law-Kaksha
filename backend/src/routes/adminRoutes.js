@@ -1515,12 +1515,15 @@ router.put("/admin/courses/:id", async (req, res) => {
       updatedLocal = coursesTable.insert({ ...doc, ...updates });
     }
 
-    // Propagate price & duration to subscription_plans so the whole website reflects the admin's change
-    if (updates.price !== undefined || updates.accessDays !== undefined || updates.mrp !== undefined) {
+    // Propagate price, duration, thumbnail & title to subscription_plans so the whole website reflects the admin's change
+    if (updates.price !== undefined || updates.accessDays !== undefined || updates.mrp !== undefined || updates.thumbnail !== undefined || updates.title !== undefined) {
       const planUpdates = {};
       if (updates.price !== undefined) planUpdates.price = updates.price;
       if (updates.mrp !== undefined) planUpdates.mrp = updates.mrp || updates.price * 2;
       if (updates.accessDays !== undefined) planUpdates.duration_days = updates.accessDays;
+      if (updates.thumbnail !== undefined) planUpdates.thumbnail = updates.thumbnail;
+      if (updates.title !== undefined) planUpdates.title = updates.title;
+      if (updates.description !== undefined) planUpdates.description = updates.description;
 
       const plansTable = Database.table("subscription_plans");
       const isCa = id.includes("ca") || (localItem && localItem.id && localItem.id.includes("ca"));
@@ -1542,7 +1545,7 @@ router.put("/admin/courses/:id", async (req, res) => {
           const Subscription = require("../models/Subscription");
           const subId = isCa ? "sub-ca-foundation-monthly" : isCs ? "sub-cseet-monthly" : `sub-${id}`;
           const subSlug = isCa ? "ca-foundation-monthly" : isCs ? "cseet-monthly" : id;
-          const subTitle = isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : (updates.title || id);
+          const subTitle = updates.title || (isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : id);
 
           await Subscription.findOneAndUpdate(
             { $or: [{ id: subId }, { slug: subSlug }] },

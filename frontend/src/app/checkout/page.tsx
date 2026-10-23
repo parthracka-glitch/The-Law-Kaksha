@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCart, type CartItem } from "@/context/CartContext";
@@ -129,6 +130,7 @@ const loadRazorpayCheckoutScript = (): Promise<boolean> => {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const {
     items,
     cartTotal,
@@ -189,11 +191,13 @@ export default function CheckoutPage() {
         item.id === "ca-book-vol-1" ||
         item.id === "book-vol-1" ||
         item.id === "prod-vol1" ||
+        item.id === "course-ca-foundation" ||
         item.id === "course-ca-foundation-sub" ||
         item.id === "ca-foundation-business-laws" ||
         item.id.includes("ca-foundation")
       ) {
         fallbackUnlocked.push(
+          "course-ca-foundation",
           "course-ca-foundation-sub",
           "ca-foundation-business-laws",
           "ca-foundation",
@@ -204,11 +208,13 @@ export default function CheckoutPage() {
         item.id === "ca-book-vol-2" ||
         item.id === "book-vol-2" ||
         item.id === "prod-vol2" ||
+        item.id === "course-cseet" ||
         item.id === "course-cseet-sub" ||
         item.id === "cseet-business-law" ||
         item.id.includes("cseet")
       ) {
         fallbackUnlocked.push(
+          "course-cseet",
           "course-cseet-sub",
           "cseet-business-law",
           "cseet-management",
@@ -218,6 +224,8 @@ export default function CheckoutPage() {
         );
       } else if (item.id === "prod-combo" || item.id === "all-access") {
         fallbackUnlocked.push(
+          "course-ca-foundation",
+          "course-cseet",
           "course-ca-foundation-sub",
           "course-cseet-sub",
           "ca-foundation-business-laws",
@@ -295,15 +303,30 @@ export default function CheckoutPage() {
       localStorage.removeItem("lawkaksha_admin_orders");
     }
 
-    setLastOrderDetails(serverOrder);
-    setCompletedOrder({
+    const finalOrder = {
       ...serverOrder,
+      id: serverOrder?.id || orderId,
+      orderId: serverOrder?.id || orderId,
       items,
       unlockedItemIds: combinedUnlocked,
       studentId: rollNumber,
       studentName: student?.name || studentData.name,
-    });
+      studentEmail: student?.email || studentData.email,
+      total_amount: finalAmount,
+      amount: finalAmount,
+      date: new Date().toISOString(),
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("lawkaksha_last_order", JSON.stringify(finalOrder));
+      } catch {}
+    }
+
+    setLastOrderDetails(finalOrder);
+    setCompletedOrder(finalOrder);
     clearCart();
+    router.push(`/checkout/success/${encodeURIComponent(serverOrder?.id || orderId || "")}`);
   };
 
   const handleProcessPayment = async (e: React.FormEvent) => {

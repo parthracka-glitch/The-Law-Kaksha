@@ -435,8 +435,8 @@ export default function ProductDetailPage() {
     );
   }
 
-  const currentPrice = product.price || 99;
-  const originalPrice = product.original_price || 299;
+  const currentPrice = typeof product.price === "number" ? product.price : 99;
+  const originalPrice = typeof product.original_price === "number" && product.original_price > 0 ? product.original_price : 299;
   const comingSoon =
     String(product.id || "").includes("cseet") ||
     product.courseId === "course-cseet" ||

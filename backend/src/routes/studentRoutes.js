@@ -18,6 +18,7 @@ const Act = require("../models/Act");
 const Unit = require("../models/Unit");
 const ContentItem = require("../models/ContentItem");
 const Entitlement = require("../models/Entitlement");
+const Order = require("../models/Order");
 const SupportTicket = require("../models/SupportTicket");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
@@ -113,22 +114,57 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       student.unlockedItemIds.forEach((id) => unlockedSet.add(id));
     }
 
-    // From active entitlements
+    // From active entitlements and paid orders
     if (isConnected()) {
       try {
-        const ents = await Entitlement.find({
-          $or: [
-            ...(student?.id ? [{ user_id: student.id }] : []),
-            ...(email ? [{ user_email: email }] : []),
-            ...(studentId ? [{ student_id: studentId }] : []),
-          ],
-          status: "active",
-          expires_at: { $gt: new Date() },
-        }).lean();
+        const [ents, paidOrders] = await Promise.all([
+          Entitlement.find({
+            $or: [
+              ...(student?.id ? [{ user_id: student.id }] : []),
+              ...(email ? [{ user_email: email }] : []),
+              ...(studentId ? [{ student_id: studentId }] : []),
+            ],
+            status: "active",
+            expires_at: { $gt: new Date() },
+          }).lean(),
+          Order.find({
+            $or: [
+              ...(student?.id ? [{ user_id: student.id }, { studentId: student.id }] : []),
+              ...(email ? [{ "personal_details.email": email }, { userEmail: email }] : []),
+              ...(studentId ? [{ studentId }, { user_id: studentId }] : []),
+            ],
+            status: { $in: ["paid", "COMPLETED"] },
+          }).lean(),
+        ]);
+
         ents.forEach((e) => {
           if (e.course_id) unlockedSet.add(e.course_id);
           if (e.courseId) unlockedSet.add(e.courseId);
           if (e.item_id) unlockedSet.add(e.item_id);
+        });
+
+        paidOrders.forEach((o) => {
+          (o.items || []).forEach((item) => {
+            if (item.item_id) unlockedSet.add(item.item_id);
+            if (item.id) unlockedSet.add(item.id);
+            const lower = (item.title || item.item_id || item.id || "").toLowerCase();
+            if (lower.includes("ca") || lower.includes("foundation")) {
+              unlockedSet.add("course-ca-foundation");
+              unlockedSet.add("course-ca-foundation-sub");
+              unlockedSet.add("ca-foundation");
+              unlockedSet.add("ca-foundation-business-laws");
+              unlockedSet.add("prod-vol1");
+              unlockedSet.add("book-vol-1");
+            }
+            if (lower.includes("cs") || lower.includes("cseet")) {
+              unlockedSet.add("course-cseet");
+              unlockedSet.add("course-cseet-sub");
+              unlockedSet.add("cseet");
+              unlockedSet.add("cseet-business-law");
+              unlockedSet.add("prod-vol2");
+              unlockedSet.add("book-vol-2");
+            }
+          });
         });
       } catch (_) {}
     } else {
@@ -146,6 +182,36 @@ router.get("/dashboard", requireAuth, async (req, res) => {
           if (e.courseId) unlockedSet.add(e.courseId);
           if (e.item_id) unlockedSet.add(e.item_id);
         });
+
+        const paidOrders = Database.table("orders").find(
+          (o) =>
+            ((email && (o.customer_email === email || o.personal_details?.email === email || o.userEmail === email)) ||
+              (studentId && (o.studentId === studentId || o.user_id === studentId))) &&
+            (o.status === "paid" || o.status === "COMPLETED")
+        );
+        paidOrders.forEach((o) => {
+          (o.items || []).forEach((item) => {
+            if (item.id) unlockedSet.add(item.id);
+            if (item.item_id) unlockedSet.add(item.item_id);
+            const lower = (item.title || item.id || item.item_id || "").toLowerCase();
+            if (lower.includes("ca") || lower.includes("foundation")) {
+              unlockedSet.add("course-ca-foundation");
+              unlockedSet.add("course-ca-foundation-sub");
+              unlockedSet.add("ca-foundation");
+              unlockedSet.add("ca-foundation-business-laws");
+              unlockedSet.add("prod-vol1");
+              unlockedSet.add("book-vol-1");
+            }
+            if (lower.includes("cs") || lower.includes("cseet")) {
+              unlockedSet.add("course-cseet");
+              unlockedSet.add("course-cseet-sub");
+              unlockedSet.add("cseet");
+              unlockedSet.add("cseet-business-law");
+              unlockedSet.add("prod-vol2");
+              unlockedSet.add("book-vol-2");
+            }
+          });
+        });
       } catch (_) {}
     }
 
@@ -161,27 +227,35 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       const itemTitle = (sub.item || "").toLowerCase();
       if (itemTitle.includes("volume 1") || itemTitle.includes("vol 1")) {
         unlockedSet.add("prod-vol1");
+        unlockedSet.add("book-vol-1");
       }
       if (itemTitle.includes("volume 2") || itemTitle.includes("vol 2")) {
         unlockedSet.add("prod-vol2");
+        unlockedSet.add("book-vol-2");
       }
       if (itemTitle.includes("master") || itemTitle.includes("combo") || itemTitle.includes("2-volume")) {
         unlockedSet.add("prod-vol1");
         unlockedSet.add("prod-vol2");
+        unlockedSet.add("book-vol-1");
+        unlockedSet.add("book-vol-2");
         unlockedSet.add("prod-combo");
       }
       if (itemTitle.includes("ca foundation") || itemTitle.includes("question bank")) {
+        unlockedSet.add("course-ca-foundation");
         unlockedSet.add("course-ca-foundation-sub");
         unlockedSet.add("ca-foundation-business-laws");
         unlockedSet.add("ca-foundation");
         unlockedSet.add("prod-vol1");
+        unlockedSet.add("book-vol-1");
       }
       if (itemTitle.includes("cseet")) {
+        unlockedSet.add("course-cseet");
         unlockedSet.add("course-cseet-sub");
         unlockedSet.add("cseet-business-law");
         unlockedSet.add("cseet-management");
         unlockedSet.add("cseet");
         unlockedSet.add("prod-vol2");
+        unlockedSet.add("book-vol-2");
       }
     });
 

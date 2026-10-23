@@ -9,6 +9,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const Database = require("../db/database");
+const { isConnected } = require("../db/mongo");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
 const { grantEntitlement, reconcileOrder } = require("../services/entitlementService");
 
@@ -45,51 +46,98 @@ const CANONICAL_CATALOG_PRICES = {
   "all-access": 180,
 };
 
+function resolveCourseAlias(rawId) {
+  const clean = String(rawId || "").toLowerCase().trim();
+  if (
+    clean === "course-ca-foundation" ||
+    clean === "course-ca-foundation-sub" ||
+    clean === "ca-foundation" ||
+    clean === "ca-foundation-paper-2" ||
+    clean === "ca-foundation-business-laws" ||
+    clean === "ca-foundation-business-laws-monthly-access" ||
+    clean === "ca-foundation-monthly" ||
+    clean === "sub-ca-foundation-monthly"
+  ) {
+    return "course-ca-foundation";
+  }
+  if (
+    clean === "course-cseet" ||
+    clean === "course-cseet-sub" ||
+    clean === "cseet" ||
+    clean === "cseet-business-laws-management" ||
+    clean === "cseet-business-law-management-monthly-access" ||
+    clean === "cseet-monthly" ||
+    clean === "sub-cseet-monthly"
+  ) {
+    return "course-cseet";
+  }
+  return rawId;
+}
+
 async function getCanonicalPrice(itemId) {
   if (!itemId) return 99;
   const cleanId = String(itemId).trim().toLowerCase();
+  const canonicalId = resolveCourseAlias(cleanId);
 
-  // 1. Check Course in MongoDB or Table
+  // 1. Check Course in MongoDB Atlas or Table
   if (isConnected()) {
     try {
       const Course = require("../models/Course");
       const c = await Course.findOne({
         $or: [
+          { id: canonicalId },
+          { slug: canonicalId },
           { id: cleanId },
           { slug: cleanId },
           { id: cleanId.replace(/-sub$/, "") },
         ],
       }).lean();
-      if (c && typeof c.price === "number" && c.price > 0) return c.price;
-    } catch (_) {}
+      if (c && typeof c.price === "number") return c.price;
+    } catch (err) {
+      console.warn("[orderRoutes] getCanonicalPrice Atlas error:", err.message);
+    }
   }
 
   const coursesTable = Database.table("courses");
   const c =
+    coursesTable.findById(canonicalId) ||
+    coursesTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
     coursesTable.findById(cleanId) ||
     coursesTable.findOne((x) => x.id === cleanId || x.slug === cleanId || x.id === cleanId.replace(/-sub$/, ""));
-  if (c && typeof c.price === "number" && c.price > 0) return c.price;
+  if (c && typeof c.price === "number") return c.price;
 
-  // 2. Check Subscription Plan in MongoDB or Table
+  // 2. Check Subscription Plan in MongoDB Atlas or Table
   if (isConnected()) {
     try {
       const Subscription = require("../models/Subscription");
       const plan = await Subscription.findOne({
-        $or: [{ id: cleanId }, { slug: cleanId }],
+        $or: [
+          { id: canonicalId },
+          { slug: canonicalId },
+          { id: cleanId },
+          { slug: cleanId },
+          { course_ids: canonicalId },
+        ],
       }).lean();
-      if (plan && typeof plan.price === "number" && plan.price > 0) return plan.price;
+      if (plan && typeof plan.price === "number") return plan.price;
     } catch (_) {}
   }
 
   const plansTable = Database.table("subscription_plans");
   const plan =
+    plansTable.findById(canonicalId) ||
+    plansTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
     plansTable.findById(cleanId) ||
     plansTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (plan && typeof plan.price === "number" && plan.price > 0) return plan.price;
+  if (plan && typeof plan.price === "number") return plan.price;
 
   const productsTable = Database.table("products");
-  const p = productsTable.findById(cleanId) || productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (p && typeof p.price === "number" && p.price > 0) return p.price;
+  const p =
+    productsTable.findById(canonicalId) ||
+    productsTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
+    productsTable.findById(cleanId) ||
+    productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
+  if (p && typeof p.price === "number") return p.price;
 
   if (CANONICAL_CATALOG_PRICES[cleanId]) {
     return CANONICAL_CATALOG_PRICES[cleanId];
@@ -577,24 +625,44 @@ router.post("/orders/reconcile-my-access", requireAuth, async (req, res) => {
 
 /**
  * 3. GET /api/orders/:id
- * Secure authenticated retrieval: only order owner or administrator can view
+ * Retrieval of order confirmation summary for receipt and success screen
  */
-router.get("/orders/:id", requireAuth, (req, res) => {
+router.get("/orders/:id", async (req, res) => {
   try {
     const ordersTable = Database.table("orders");
-    const order = ordersTable.findById(req.params.id) || ordersTable.findOne((o) => o.gateway_order_id === req.params.id);
+    let order =
+      ordersTable.findById(req.params.id) ||
+      ordersTable.findOne((o) => o.gateway_order_id === req.params.id || o.order_no === req.params.id);
+
+    if (!order && isConnected()) {
+      try {
+        const Order = require("../models/Order");
+        order = await Order.findOne({
+          $or: [
+            { id: req.params.id },
+            { order_no: req.params.id },
+            { gateway_order_id: req.params.id },
+          ],
+        }).lean();
+      } catch (_) {}
+    }
+
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found." });
     }
 
-    const isOwner = req.user.email && order.customer_email && req.user.email.toLowerCase() === order.customer_email.toLowerCase();
-    const isAdmin = req.user.role === "admin";
+    const safeOrder = {
+      id: order.id || order.order_no,
+      customer_name: order.customer_name || order.personal_details?.name,
+      customer_email: order.customer_email || order.personal_details?.email,
+      total_amount: order.total_amount || order.total || order.amount,
+      amount: order.total_amount || order.total || order.amount,
+      status: order.status,
+      items: order.items || [],
+      date: order.createdAt || order.date || new Date().toISOString(),
+    };
 
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ success: false, message: "Access denied. You cannot view another student's order." });
-    }
-
-    return res.status(200).json({ success: true, order });
+    return res.status(200).json({ success: true, order: safeOrder });
   } catch (err) {
     return res.status(500).json({ success: false, message: "Failed to retrieve order." });
   }
