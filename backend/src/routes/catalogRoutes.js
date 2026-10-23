@@ -417,8 +417,21 @@ router.get("/public/section16-comparison", async (req, res) => {
 // ==========================================
 
 // GET /api/subscriptions — List active subscriptions
+// GET /api/subscriptions — List active subscriptions (Always synchronized with live courses)
 router.get("/subscriptions", async (req, res) => {
   try {
+    const courses = await getActiveCourses();
+    const caCourse = courses.find((c) => {
+      const id = String(c.id || "").toLowerCase();
+      const title = String(c.title || "").toLowerCase();
+      return id.includes("ca-foundation") || id === "ca-foundation" || title.includes("foundation");
+    });
+    const cseetCourse = courses.find((c) => {
+      const id = String(c.id || "").toLowerCase();
+      const title = String(c.title || "").toLowerCase();
+      return id.includes("cseet") || title.includes("cseet");
+    });
+
     let plans = [];
     const plansTable = Database.table("subscription_plans");
     plans = plansTable.find((p) => p.is_active !== false).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
@@ -426,9 +439,84 @@ router.get("/subscriptions", async (req, res) => {
     if (isConnected()) {
       try {
         const Subscription = require("../models/Subscription");
-        const mongoPlans = await Subscription.find({ is_active: true, price: { $gt: 0 } }).sort({ display_order: 1 }).lean();
+        const mongoPlans = await Subscription.find({
+          is_active: { $ne: false },
+          $or: [
+            { id: { $in: ["sub-ca-foundation-monthly", "sub-cseet-monthly"] } },
+            { slug: { $in: ["ca-foundation-monthly", "cseet-monthly"] } },
+            { course_ids: { $exists: true, $not: { $size: 0 } } },
+          ],
+        }).sort({ display_order: 1 }).lean();
         if (mongoPlans && mongoPlans.length > 0) plans = mongoPlans;
       } catch (_) {}
+    }
+
+    // Dynamic course pricing
+    const caPrice = caCourse && typeof caCourse.price === "number" ? caCourse.price : 99;
+    const caMrp = caCourse && typeof caCourse.mrp === "number" && caCourse.mrp > 0 ? caCourse.mrp : 299;
+    const caDuration = caCourse && typeof caCourse.accessDays === "number" && caCourse.accessDays > 0 ? caCourse.accessDays : 30;
+
+    const csPrice = cseetCourse && typeof cseetCourse.price === "number" ? cseetCourse.price : 99;
+    const csMrp = cseetCourse && typeof cseetCourse.mrp === "number" && cseetCourse.mrp > 0 ? cseetCourse.mrp : 299;
+    const csDuration = cseetCourse && typeof cseetCourse.accessDays === "number" && cseetCourse.accessDays > 0 ? cseetCourse.accessDays : 30;
+    const csComingSoon = cseetCourse?.availability === "coming_soon";
+
+    const defaultCaPlan = {
+      id: "sub-ca-foundation-monthly",
+      title: caCourse?.title || "CA Foundation Business Laws",
+      slug: "ca-foundation-monthly",
+      description: caCourse?.description || "Complete 7 Acts coverage under ICAI New Scheme with chapter codices, case notes & live doubt support.",
+      price: caPrice,
+      mrp: caMrp,
+      duration_days: caDuration,
+      badge: "MOST POPULAR",
+      is_popular: true,
+      is_active: true,
+      course_ids: [caCourse?.id || "course-ca-foundation"],
+    };
+
+    const defaultCsPlan = {
+      id: "sub-cseet-monthly",
+      title: cseetCourse?.title || "CSEET Business Law and Management",
+      slug: "cseet-monthly",
+      description: cseetCourse?.description || "Master all 8 Units under ICSI Syllabus with timed MCQ drills, conceptual mindmaps & live mentoring.",
+      price: csPrice,
+      mrp: csMrp,
+      duration_days: csDuration,
+      badge: csComingSoon ? "COMING SOON" : "ICSI SYLLABUS",
+      is_popular: false,
+      is_active: true,
+      course_ids: [cseetCourse?.id || "course-cseet"],
+    };
+
+    if (!plans || plans.length === 0) {
+      plans = [defaultCaPlan, defaultCsPlan];
+    } else {
+      plans = plans.map((p) => {
+        const key = `${p.id || ""} ${p.slug || ""} ${p.title || ""}`.toLowerCase();
+        if (key.includes("ca") || key.includes("foundation")) {
+          return {
+            ...p,
+            price: caPrice,
+            mrp: caMrp,
+            duration_days: caDuration,
+          };
+        }
+        if (key.includes("cs") || key.includes("cseet")) {
+          return {
+            ...p,
+            price: csPrice,
+            mrp: csMrp,
+            duration_days: csDuration,
+          };
+        }
+        return p;
+      });
+
+      const hasCa = plans.some((p) => `${p.id} ${p.slug}`.toLowerCase().includes("ca"));
+      const hasCs = plans.some((p) => `${p.id} ${p.slug}`.toLowerCase().includes("cseet"));
+      if (!hasCa) plans.unshift(defaultCaPlan);
+      if (!hasCs) plans.push(defaultCsPlan);
     }
 
     res.status(200).json({ success: true, count: plans.length, subscriptions: plans });
@@ -448,6 +536,14 @@ router.get("/subscriptions/:slug", async (req, res) => {
         : resolvedCourseId === "course-cseet"
         ? "cseet-monthly"
         : slug;
+
+    const courses = await getActiveCourses();
+    const matchedCourse = courses.find((c) => {
+      const id = String(c.id || "").toLowerCase();
+      const s = String(c.slug || "").toLowerCase();
+      const resId = String(resolvedCourseId || "").toLowerCase();
+      return id === resId || s === resId || id === slug || s === slug;
+    });
 
     let plan = null;
     const plansTable = Database.table("subscription_plans");
@@ -476,26 +572,40 @@ router.get("/subscriptions/:slug", async (req, res) => {
     }
 
     if (!plan) {
-      return res.status(404).json({ success: false, message: "Subscription plan not found" });
+      const isCa = resolvedCourseId === "course-ca-foundation" || slug.includes("ca");
+      const course = matchedCourse || courses.find((c) => (isCa ? c.id.includes("ca") : c.id.includes("cseet")));
+      const pPrice = course && typeof course.price === "number" ? course.price : 99;
+      const pMrp = course && typeof course.mrp === "number" && course.mrp > 0 ? course.mrp : 299;
+      const pDays = course && typeof course.accessDays === "number" && course.accessDays > 0 ? course.accessDays : 30;
+
+      plan = {
+        id: isCa ? "sub-ca-foundation-monthly" : "sub-cseet-monthly",
+        title: course?.title || (isCa ? "CA Foundation Business Laws" : "CSEET Business Law and Management"),
+        slug: isCa ? "ca-foundation-monthly" : "cseet-monthly",
+        description: course?.description || "",
+        price: pPrice,
+        mrp: pMrp,
+        duration_days: pDays,
+        badge: isCa ? "MOST POPULAR" : "COMING SOON",
+        is_popular: isCa,
+        is_active: true,
+        course_ids: [course?.id || resolvedCourseId],
+      };
     }
 
-    // Attach courses and sync dynamic course price
-    const coursesTable = Database.table("courses");
-    const attachedCourses = (plan.course_ids || [])
-      .map((cId) => coursesTable.findOne((c) => c.id === cId || c.slug === cId))
-      .filter(Boolean);
-
-    let dynamicPrice = plan.price;
-    if (attachedCourses.length > 0 && typeof attachedCourses[0].price === "number") {
-      dynamicPrice = attachedCourses[0].price;
-    } else if (resolvedCourseId) {
-      const c = coursesTable.findOne((c) => c.id === resolvedCourseId || c.slug === resolvedCourseId);
-      if (c && typeof c.price === "number") dynamicPrice = c.price;
-    }
+    const dynamicPrice = matchedCourse && typeof matchedCourse.price === "number" ? matchedCourse.price : plan.price;
+    const dynamicMrp = matchedCourse && typeof matchedCourse.mrp === "number" && matchedCourse.mrp > 0 ? matchedCourse.mrp : (plan.mrp || dynamicPrice * 2);
+    const dynamicDuration = matchedCourse && typeof matchedCourse.accessDays === "number" && matchedCourse.accessDays > 0 ? matchedCourse.accessDays : (plan.duration_days || 30);
 
     res.status(200).json({
       success: true,
-      subscription: { ...plan, price: dynamicPrice, courses: attachedCourses },
+      subscription: {
+        ...plan,
+        price: dynamicPrice,
+        mrp: dynamicMrp,
+        duration_days: dynamicDuration,
+        courses: matchedCourse ? [matchedCourse] : [],
+      },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching subscription detail: " + err.message });

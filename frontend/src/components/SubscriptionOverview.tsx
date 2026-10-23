@@ -213,12 +213,71 @@ export function SubscriptionOverview() {
     async function fetchPlans() {
       try {
         setLoading(true);
-        const res = await apiRequest<SubscriptionPlanItem[]>("/api/subscriptions");
-        const payload = res.data as unknown as { subscriptions?: SubscriptionPlanItem[] } | SubscriptionPlanItem[] | undefined;
-        const remotePlans = Array.isArray(payload) ? payload : payload?.subscriptions;
-        const livePlans = Array.isArray(remotePlans) ? visiblePlans(remotePlans).slice(0, 2) : [];
-        if (res.success && livePlans.length === 2 && isMounted) {
-          setPlans(livePlans);
+
+        interface RemoteCourseItem {
+          id: string;
+          slug?: string;
+          title: string;
+          price?: number;
+          mrp?: number;
+          accessDays?: number;
+        }
+
+        const [subRes, courseRes] = await Promise.allSettled([
+          apiRequest<SubscriptionPlanItem[]>("/api/subscriptions"),
+          apiRequest<{ courses?: RemoteCourseItem[] }>("/api/courses"),
+        ]);
+
+        let loadedPlans: SubscriptionPlanItem[] = FALLBACK_PLANS;
+
+        if (subRes.status === "fulfilled" && subRes.value.success) {
+          const payload = subRes.value.data as unknown as { subscriptions?: SubscriptionPlanItem[] } | SubscriptionPlanItem[] | undefined;
+          const remotePlans = Array.isArray(payload) ? payload : payload?.subscriptions;
+          if (Array.isArray(remotePlans) && remotePlans.length > 0) {
+            const vp = visiblePlans(remotePlans);
+            if (vp.length >= 2) {
+              loadedPlans = vp.slice(0, 2);
+            }
+          }
+        }
+
+        if (courseRes.status === "fulfilled" && courseRes.value.success) {
+          const courses = courseRes.value.data?.courses || [];
+          const caCourse = courses.find(
+            (c) =>
+              c.id?.toLowerCase().includes("ca-foundation") ||
+              c.id?.toLowerCase() === "ca-foundation" ||
+              c.title?.toLowerCase().includes("foundation")
+          );
+          const csCourse = courses.find(
+            (c) =>
+              c.id?.toLowerCase().includes("cseet") ||
+              c.title?.toLowerCase().includes("cseet")
+          );
+
+          loadedPlans = loadedPlans.map((plan) => {
+            const isCs = isCseetPlan(plan);
+            const course = isCs ? csCourse : caCourse;
+            if (course) {
+              const livePrice = typeof course.price === "number" ? course.price : plan.price;
+              const liveMrp = typeof course.mrp === "number" && course.mrp > 0 ? course.mrp : plan.mrp;
+              const liveDuration =
+                typeof course.accessDays === "number" && course.accessDays > 0
+                  ? course.accessDays
+                  : plan.duration_days;
+              return {
+                ...plan,
+                price: livePrice,
+                mrp: liveMrp,
+                duration_days: liveDuration,
+              };
+            }
+            return plan;
+          });
+        }
+
+        if (isMounted) {
+          setPlans(loadedPlans);
         }
       } catch {
         // Fallback remains

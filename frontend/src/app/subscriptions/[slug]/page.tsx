@@ -186,22 +186,45 @@ export default function SubscriptionDetailPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const res = await apiRequest<SubscriptionDetail>(`/api/subscriptions/${slug}`);
-        const payload = res.data as unknown as { subscription?: SubscriptionDetail } | SubscriptionDetail | undefined;
-        const plan: SubscriptionDetail | undefined =
-          payload && typeof payload === "object" && "subscription" in payload
-            ? (payload as { subscription?: SubscriptionDetail }).subscription
-            : (payload as SubscriptionDetail | undefined);
-        if (res.success && plan) {
-          const fallback = FALLBACK_SUBSCRIPTION_DATA[slug];
-          if (isMounted) {
-            setSubData({
-              ...fallback,
-              ...plan,
-              title: fallback?.title || plan.title,
-              syllabus: plan.syllabus?.length ? plan.syllabus : fallback?.syllabus,
-            });
+        const [subRes, coursesRes] = await Promise.allSettled([
+          apiRequest<SubscriptionDetail>(`/api/subscriptions/${slug}`),
+          apiRequest<{ courses?: Array<{ id: string; slug?: string; title: string; price: number; mrp?: number; accessDays?: number }> }>("/api/courses"),
+        ]);
+
+        let plan: SubscriptionDetail | undefined;
+        if (subRes.status === "fulfilled" && subRes.value.success) {
+          const payload = subRes.value.data as unknown as { subscription?: SubscriptionDetail } | SubscriptionDetail | undefined;
+          plan =
+            payload && typeof payload === "object" && "subscription" in payload
+              ? (payload as { subscription?: SubscriptionDetail }).subscription
+              : (payload as SubscriptionDetail | undefined);
+        }
+
+        const fallback = FALLBACK_SUBSCRIPTION_DATA[slug] || FALLBACK_SUBSCRIPTION_DATA["ca-foundation-monthly"];
+        let merged: SubscriptionDetail = {
+          ...fallback,
+          ...(plan || {}),
+          title: fallback?.title || plan?.title || "",
+          syllabus: plan?.syllabus?.length ? plan.syllabus : fallback?.syllabus,
+        };
+
+        if (coursesRes.status === "fulfilled" && coursesRes.value.success) {
+          const courses = coursesRes.value.data?.courses || [];
+          const isCs = `${slug} ${merged.id || ""} ${merged.title || ""}`.toLowerCase().includes("cseet");
+          const course = courses.find((c) =>
+            isCs
+              ? c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet")
+              : c.id?.toLowerCase().includes("ca-foundation") || c.title?.toLowerCase().includes("foundation")
+          );
+          if (course) {
+            if (typeof course.price === "number") merged.price = course.price;
+            if (typeof course.mrp === "number" && course.mrp > 0) merged.mrp = course.mrp;
+            if (typeof course.accessDays === "number" && course.accessDays > 0) merged.duration_days = course.accessDays;
           }
+        }
+
+        if (isMounted) {
+          setSubData(merged);
         }
       } catch {
         // Fallback remains

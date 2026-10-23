@@ -1540,12 +1540,24 @@ router.put("/admin/courses/:id", async (req, res) => {
       if (isConnected()) {
         try {
           const Subscription = require("../models/Subscription");
-          const subFilter = isCa
-            ? { $or: [{ id: /ca-foundation/i }, { slug: /ca-foundation/i }] }
-            : isCs
-            ? { $or: [{ id: /cseet/i }, { slug: /cseet/i }] }
-            : { course_ids: id };
-          await Subscription.updateMany(subFilter, { $set: planUpdates });
+          const subId = isCa ? "sub-ca-foundation-monthly" : isCs ? "sub-cseet-monthly" : `sub-${id}`;
+          const subSlug = isCa ? "ca-foundation-monthly" : isCs ? "cseet-monthly" : id;
+          const subTitle = isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : (updates.title || id);
+
+          await Subscription.findOneAndUpdate(
+            { $or: [{ id: subId }, { slug: subSlug }] },
+            {
+              $set: {
+                id: subId,
+                slug: subSlug,
+                title: subTitle,
+                ...planUpdates,
+                is_active: true,
+                course_ids: [id],
+              },
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
         } catch (_) {}
       }
     }
