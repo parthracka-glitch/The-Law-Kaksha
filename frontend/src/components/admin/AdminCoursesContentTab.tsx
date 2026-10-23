@@ -14,6 +14,9 @@ import {
   RefreshCw,
   Save,
   X,
+  ExternalLink,
+  FolderOpen,
+  ArrowUpRight,
 } from "lucide-react";
 
 export interface CourseRecord {
@@ -865,181 +868,310 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         </div>
       </div>
 
-      {/* 2. CASCADING HIERARCHY SELECTOR (COURSE -> ACT -> UNIT) */}
-      <div className="bg-white rounded-3xl p-5 border border-[#E7E4E7] shadow-sm space-y-4">
-        <div className="flex items-center gap-2 border-b border-[#E7E4E7] pb-3">
-          <Layers className="w-4 h-4 text-[#4B8097]" />
-          <h3 className="font-serif font-bold text-sm text-[#221D1D]">
-            Cascading Structure: {selectedCourse?.title || "Select Course"}
-          </h3>
+      {/* 2. SIMPLIFIED HIERARCHY NAVIGATOR (COURSE -> ACT -> UNIT) */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#DBEAFE] shadow-sm space-y-5">
+        {/* Header with Title and Quick Redirects */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#005A9C]">
+              <Layers className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-base text-[#0A192F]">
+                Curriculum Navigator &amp; Study Materials
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                Easily select your Course, Act, and Unit to manage study codices and notes.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Immediate Redirects for Owner */}
+          <div className="flex items-center gap-2">
+            {selectedCourse && (
+              <a
+                href={`/product/${selectedCourse.slug || selectedCourse.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] transition-colors cursor-pointer"
+                title="View live course on website"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>View on Website</span>
+              </a>
+            )}
+            <a
+              href="/student"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+              title="Open student dashboard preview"
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Student View</span>
+            </a>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          {/* Step 1: Select Course */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="block font-bold text-slate-700">1. Select Course</label>
-              <button
-                type="button"
-                onClick={() => setCourseModalOpen(true)}
-                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Add Course</span>
-              </button>
-            </div>
-            <select
-              value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(e.target.value)}
-              disabled={courseLoading || courses.length === 0}
-              className="w-full p-2.5 rounded-2xl border border-slate-200 font-semibold text-slate-800 bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#AED7E9] disabled:opacity-50"
+        {/* STEP 1: COURSE SELECTOR TABS */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-[#0A192F] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#005A9C] text-white flex items-center justify-center text-[10px] font-bold">1</span>
+              Select Course
+            </label>
+            <button
+              type="button"
+              onClick={() => setCourseModalOpen(true)}
+              className="px-2.5 py-1 rounded-xl bg-white border border-[#BFDBFE] text-xs font-bold text-[#005A9C] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors"
             >
-              {courses.length === 0 ? (
-                <option value="">No Courses Found</option>
-              ) : (
-                courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title} ({c.availability === "live" ? "Live" : "Coming Soon"})
-                  </option>
-                ))
-              )}
-            </select>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Course</span>
+            </button>
           </div>
 
-          {/* Step 2: Select Act */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-700">2. Select Act</label>
-              <div className="flex items-center gap-2">
-                {selectedAct && (
-                  <button
-                    type="button"
-                    onClick={() => handleToggleActAvailability(selectedAct)}
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer ${
-                      selectedAct.availability === "live"
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+          <div className="flex flex-wrap gap-2.5">
+            {courses.map((c) => {
+              const isSelected = selectedCourseId === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setSelectedCourseId(c.id)}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-[#005A9C] text-white shadow-md shadow-[#005A9C]/25 border-2 border-[#005A9C] scale-[1.01]"
+                      : "bg-[#F8FAFC] hover:bg-[#EFF6FF] text-[#0A192F] border border-slate-200 hover:border-[#BFDBFE]"
+                  }`}
+                >
+                  <BookOpen className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-[#005A9C]"}`} />
+                  <span>{c.title}</span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                      c.availability === "live"
+                        ? isSelected
+                          ? "bg-white/20 text-white border-white/30"
+                          : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : isSelected
+                        ? "bg-white/20 text-white border-white/30"
                         : "bg-amber-50 text-amber-800 border-amber-200"
                     }`}
-                    title="Toggle Act Live vs Coming Soon"
                   >
-                    {selectedAct.availability === "live" ? "Live" : "Coming Soon"}
-                  </button>
-                )}
+                    {c.availability === "live" ? "Live" : "Coming Soon"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* STEP 2: ACT SELECTOR TABS */}
+        <div className="space-y-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-[#0A192F] uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#005A9C] text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                Select Act
+              </label>
+              <span className="text-[11px] text-slate-500 font-medium">({acts.length} Acts in course)</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {selectedAct && (
                 <button
                   type="button"
-                  onClick={() => setActModalOpen(true)}
-                  disabled={!selectedCourseId}
-                  className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={() => handleToggleActAvailability(selectedAct)}
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-full border cursor-pointer transition-colors ${
+                    selectedAct.availability === "live"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                      : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                  }`}
+                  title="Click to toggle Act Live vs Coming Soon"
                 >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Act</span>
+                  Act Status: {selectedAct.availability === "live" ? "Live" : "Coming Soon"}
                 </button>
-              </div>
-            </div>
-            <select
-              value={selectedActId}
-              onChange={(e) => setSelectedActId(e.target.value)}
-              disabled={actsLoading || acts.length === 0}
-              className="w-full p-2.5 rounded-2xl border border-slate-200 font-semibold text-slate-800 bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#AED7E9] disabled:opacity-50"
-            >
-              {acts.length === 0 ? (
-                <option value="">No Acts Found</option>
-              ) : (
-                acts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.title} {a.availability === "coming_soon" ? " [Coming Soon]" : ""}
-                  </option>
-                ))
               )}
-            </select>
+              <button
+                type="button"
+                onClick={() => setActModalOpen(true)}
+                disabled={!selectedCourseId}
+                className="px-2.5 py-1 rounded-xl bg-white border border-[#BFDBFE] text-xs font-bold text-[#005A9C] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Act</span>
+              </button>
+            </div>
           </div>
 
-          {/* Step 3: Select Unit */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-700">3. Select Unit</label>
+          {actsLoading ? (
+            <div className="p-3 text-xs text-slate-500 flex items-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#005A9C]" />
+              Loading Acts...
+            </div>
+          ) : acts.length === 0 ? (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-xs text-slate-500 text-center">
+              No Acts added to this course yet. Click &quot;+ Add Act&quot; above to create one.
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {acts.map((act) => {
+                const isSelected = selectedActId === act.id;
+                return (
+                  <button
+                    key={act.id}
+                    type="button"
+                    onClick={() => setSelectedActId(act.id)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#EFF6FF] text-[#005A9C] border-2 border-[#005A9C] font-bold shadow-xs"
+                        : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <FolderOpen className={`w-3.5 h-3.5 ${isSelected ? "text-[#005A9C]" : "text-slate-400"}`} />
+                    <span>{act.title}</span>
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                        act.availability === "live"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {act.availability === "live" ? "Live" : "Draft"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* STEP 3: UNIT SELECTOR TABS */}
+        <div className="space-y-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-[#0A192F] uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#005A9C] text-white flex items-center justify-center text-[10px] font-bold">3</span>
+                Select Unit
+              </label>
+              <span className="text-[11px] text-slate-500 font-medium">({units.length} Units in {selectedAct?.title || "Act"})</span>
+            </div>
+
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setBulkUnitsModalOpen(true)}
                 disabled={!selectedActId}
-                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                title="Add multiple units at once"
+                className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40"
+                title="Paste multiple unit names at once"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5" />
                 <span>Bulk Units</span>
               </button>
               <button
                 type="button"
                 onClick={() => setUnitModalOpen(true)}
                 disabled={!selectedActId}
-                className="px-2 py-1 rounded-lg bg-white border border-[#AED7E9] text-[10px] font-bold text-[#221D1D] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-2.5 py-1 rounded-xl bg-white border border-[#BFDBFE] text-xs font-bold text-[#005A9C] hover:bg-[#EFF6FF] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-40"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5" />
                 <span>Add Unit</span>
               </button>
             </div>
-            <select
-              value={selectedUnitId}
-              onChange={(e) => setSelectedUnitId(e.target.value)}
-              disabled={unitsLoading || units.length === 0}
-              className="w-full p-2.5 rounded-2xl border border-slate-200 font-semibold text-slate-800 bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#AED7E9] disabled:opacity-50"
-            >
-              {units.length === 0 ? (
-                <option value="">No Units in this Act</option>
-              ) : (
-                units.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.title}
-                  </option>
-                ))
-              )}
-            </select>
           </div>
+
+          {unitsLoading ? (
+            <div className="p-3 text-xs text-slate-500 flex items-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#005A9C]" />
+              Loading Units...
+            </div>
+          ) : units.length === 0 ? (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-xs text-slate-500 text-center">
+              No Units in this Act yet. Click &quot;+ Add Unit&quot; or &quot;+ Bulk Units&quot; to quickly add syllabus chapters.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {units.map((unit) => {
+                const isSelected = selectedUnitId === unit.id;
+                return (
+                  <button
+                    key={unit.id}
+                    type="button"
+                    onClick={() => setSelectedUnitId(unit.id)}
+                    className={`p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer flex items-center justify-between gap-2 border ${
+                      isSelected
+                        ? "bg-[#EFF6FF] text-[#005A9C] border-[#005A9C] font-bold shadow-xs"
+                        : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+                    }`}
+                  >
+                    <span className="line-clamp-1">{unit.title}</span>
+                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-[#005A9C]" : "text-slate-300"}`} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {/* 3. CONTENT ITEMS WITHIN SELECTED UNIT */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border border-[#E7E4E7] shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-[#DBEAFE] shadow-sm">
           <div>
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#4B8097]" />
-              <h3 className="font-serif font-bold text-sm text-[#221D1D]">
-                Content Items in Unit: <span className="text-[#4B8097]">{selectedUnit?.title || "None Selected"}</span>
+              <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#005A9C]">
+                <FileText className="w-4 h-4" />
+              </div>
+              <h3 className="font-serif font-bold text-sm sm:text-base text-[#0A192F]">
+                Content Items in Unit: <span className="text-[#005A9C]">{selectedUnit?.title || "None Selected"}</span>
               </h3>
             </div>
-            <p className="text-[11px] text-[#77716E] mt-0.5">
+            <p className="text-xs text-[#64748B] mt-1 ml-9">
               {contentItems.length} content resources configured (Chapter Notes, Flowcharts, Practice Problems, PYQs).
             </p>
           </div>
 
-          <button
-            type="button"
-            disabled={!selectedUnitId}
-            onClick={() =>
-              setContentModal({
-                open: true,
-                mode: "add",
-                data: {
-                  unitId: selectedUnitId,
-                  type: "notes",
-                  isPublished: true,
-                  isSample: false,
-                  samplePagesRange: "1-5",
-                },
-              })
-            }
-            className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Content Item</span>
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {contentItems.length > 0 && (
+              <a
+                href={`/reader?file=${encodeURIComponent(contentItems[0].cloudinaryPublicId || '/notes/sale-of-goods-unit-1.pdf')}&title=${encodeURIComponent(contentItems[0].title)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-full bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Preview unit in DRM Reader"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Open in Reader</span>
+              </a>
+            )}
+
+            <button
+              type="button"
+              disabled={!selectedUnitId}
+              onClick={() =>
+                setContentModal({
+                  open: true,
+                  mode: "add",
+                  data: {
+                    unitId: selectedUnitId,
+                    type: "notes",
+                    isPublished: true,
+                    isSample: false,
+                    samplePagesRange: "1-5",
+                  },
+                })
+              }
+              className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Content Item</span>
+            </button>
+          </div>
         </div>
 
         {/* Content Items List */}
         {contentLoading ? (
           <div className="p-8 text-center text-xs text-[#77716E] bg-white rounded-3xl border border-[#E7E4E7]">
-            <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#4B8097] mb-2" />
+            <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#005A9C] mb-2" />
             Loading unit content...
           </div>
         ) : contentItems.length === 0 ? (
@@ -1064,7 +1196,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       },
                     })
                   }
-                  className="mt-2 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                  className="mt-2 px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   Add First Content Item
@@ -1086,11 +1218,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
+                  className="bg-white rounded-3xl border border-[#DBEAFE] shadow-sm p-4 flex flex-col justify-between hover:shadow-md hover:border-[#BFDBFE] transition-all"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE]">
                         {item.type}
                       </span>
 
@@ -1110,26 +1242,26 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     </div>
 
                     <div>
-                      <h4 className="font-serif font-bold text-xs text-[#221D1D] leading-snug">
+                      <h4 className="font-serif font-bold text-xs text-[#0A192F] leading-snug">
                         {item.title}
                       </h4>
                       {item.fileName && (
-                        <p className="text-[10px] text-[#77716E] font-mono mt-0.5 truncate">
-                          📄 {item.fileName}
+                        <p className="text-[10px] text-slate-500 font-mono mt-1 truncate flex items-center gap-1">
+                          📄 <span>{item.fileName}</span>
                         </p>
                       )}
                     </div>
 
                     {item.description && (
-                      <p className="text-[11px] text-[#4D433F] line-clamp-2">
+                      <p className="text-[11px] text-slate-600 line-clamp-2">
                         {item.description}
                       </p>
                     )}
 
                     {/* Sample badge */}
-                    <div className="pt-2 border-t border-[#E7E4E7] flex items-center justify-between text-[10px]">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
                       {item.isSample ? (
-                        <span className="px-2 py-0.5 rounded-full bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9]">
+                        <span className="px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#005A9C] font-bold border border-[#BFDBFE]">
                           Free Sample: Pages {range}
                         </span>
                       ) : (
@@ -1140,16 +1272,27 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                   </div>
 
                   {/* Action Controls */}
-                  <div className="pt-3 mt-3 border-t border-[#E7E4E7] flex items-center justify-between">
+                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => handleToggleContentPublish(item)}
-                      className="text-[11px] font-semibold text-[#4B8097] hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-[#005A9C] hover:underline cursor-pointer"
                     >
                       {isPub ? "Unpublish" : "Publish Now"}
                     </button>
 
                     <div className="flex items-center gap-1.5">
+                      {/* Direct DRM Reader preview */}
+                      <a
+                        href={`/reader?file=${encodeURIComponent(item.cloudinaryPublicId || '/notes/sale-of-goods-unit-1.pdf')}&title=${encodeURIComponent(item.title)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-xl bg-[#EFF6FF] text-[#005A9C] hover:bg-[#DBEAFE] border border-[#BFDBFE] transition-colors cursor-pointer"
+                        title="Open in DRM Student Reader (New Tab)"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+
                       {onPreviewPdf && (
                         <button
                           type="button"
@@ -1160,8 +1303,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                               isSample: item.isSample,
                             })
                           }
-                          className="p-1.5 rounded-xl bg-[#C4E1EC]/60 text-[#221D1D] hover:bg-[#C4E1EC] border border-[#AED7E9] transition-colors cursor-pointer"
-                          title="Preview PDF"
+                          className="p-1.5 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                          title="Preview PDF in Modal"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -1176,7 +1319,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                             data: item,
                           })
                         }
-                        className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] text-slate-700 hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+                        className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         title="Edit Item"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -1185,7 +1328,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       <button
                         type="button"
                         onClick={() => handleDeleteContentItem(item)}
-                        className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] text-[#C35F3B] hover:bg-[#F4C5C0]/30 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         title="Delete Item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

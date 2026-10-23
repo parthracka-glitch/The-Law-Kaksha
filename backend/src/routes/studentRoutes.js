@@ -1039,16 +1039,40 @@ router.get("/my-courses", requireAuth, async (req, res) => {
     const unitsTable = Database.table("units");
     const itemsTable = Database.table("content_items");
 
-    const allCourses = coursesTable
-      .find((c) => c.isLive !== false)
-      .sort((a, b) => {
-        const ordA = a.order ?? (a.kind === "core" ? 1 : 99);
-        const ordB = b.order ?? (b.kind === "core" ? 1 : 99);
-        return ordA - ordB;
-      });
-    const allActs = actsTable.find();
-    const allUnits = unitsTable.find();
-    const allItems = itemsTable.find((i) => i.status !== "Draft");
+    let allCourses = [];
+    let allActs = [];
+    let allUnits = [];
+    let allItems = [];
+
+    if (isConnected()) {
+      try {
+        allCourses = await Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
+        allActs = await Act.find().sort({ order: 1 }).lean();
+        allUnits = await Unit.find().sort({ order: 1 }).lean();
+        allItems = await ContentItem.find({ isPublished: { $ne: false } }).sort({ order: 1 }).lean();
+      } catch (err) {
+        console.warn("[StudentRoutes] Atlas fetch error:", err.message);
+      }
+    }
+
+    if (!allCourses || allCourses.length === 0) {
+      allCourses = coursesTable
+        .find((c) => c.isLive !== false && c.is_active !== false)
+        .sort((a, b) => {
+          const ordA = a.order ?? (a.kind === "core" ? 1 : 99);
+          const ordB = b.order ?? (b.kind === "core" ? 1 : 99);
+          return ordA - ordB;
+        });
+    }
+    if (!allActs || allActs.length === 0) {
+      allActs = actsTable.find();
+    }
+    if (!allUnits || allUnits.length === 0) {
+      allUnits = unitsTable.find();
+    }
+    if (!allItems || allItems.length === 0) {
+      allItems = itemsTable.find((i) => i.isPublished !== false && i.status !== "Draft");
+    }
 
     const enrolledCourses = allCourses
       .map((course) => {
