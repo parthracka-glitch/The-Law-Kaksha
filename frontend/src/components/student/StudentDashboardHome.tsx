@@ -22,6 +22,7 @@ import { getApiBaseUrl } from "@/lib/api";
 import { StudentHeroCard } from "./StudentHeroCard";
 import { StudentMetricStats } from "./StudentMetricStats";
 import { StudentMyCoursesList, StudentCourseProgressItem } from "./StudentMyCoursesList";
+import { type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
 
 export interface ShowcaseResourceItem {
   id: string;
@@ -361,6 +362,7 @@ interface StudentDashboardHomeProps {
   studentCourses?: StudentCoursePayload[];
   completedUnits?: string[];
   catalogProducts?: CatalogProduct[];
+  promoBanners?: PromoBannersSetting;
 }
 
 export interface FreeResourceItem {
@@ -565,6 +567,7 @@ export function StudentDashboardHome({
   studentCourses = [],
   completedUnits = [],
   catalogProducts = [],
+  promoBanners = DEFAULT_PROMO_BANNERS,
 }: StudentDashboardHomeProps) {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
   const promoCarouselRef = useRef<HTMLDivElement>(null);
@@ -961,6 +964,191 @@ export function StudentDashboardHome({
           showSearchAndFilters={true}
         />
       </section>
+
+      {/* ========================================================================= */}
+      {/* 3B. LIVE ADMIN-CONFIGURED MASTER CODEX PASSES (DYNAMIC STREAM CARDS)      */}
+      {/* ========================================================================= */}
+      {promoBanners?.enabled !== false && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
+              <span>{promoBanners?.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+              Instant DRM Auto-Unlock
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Left Card: Stream-tailored (CA or CSEET) */}
+            {(() => {
+              const leftCard = (activeCourse === "ca" ? promoBanners?.caCard : promoBanners?.csCard) || DEFAULT_PROMO_BANNERS.caCard;
+              const isUnlocked = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
+              return (
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F6EFFD] via-[#F3E8FC] to-[#ECE0F8] border border-[#E9DDF5] p-5 sm:p-6 shadow-2xs flex flex-col justify-between min-h-[190px]">
+                  <div className="absolute top-0 right-6 bg-[#4A0E4E] text-[#FDE68A] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
+                    {leftCard.discountBadge || "67% OFF"}
+                  </div>
+
+                  <div className="space-y-1.5 pr-10">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7E22CE] bg-[#EDE9FE] px-2 py-0.5 rounded-md inline-block">
+                      {leftCard.streamBadge || (activeCourse === "ca" ? "Paper 2 • 7 Chapters" : "ICSI • 8 Units")}
+                    </span>
+
+                    <h4 className="text-base sm:text-lg font-black text-[#581C87] leading-snug">
+                      {leftCard.title} <br />
+                      <span className="text-[#9333EA]">{leftCard.subtitle}</span>
+                    </h4>
+
+                    <div className="flex items-baseline gap-2 pt-0.5">
+                      <span className="text-sm sm:text-base font-black text-[#221D1D]">
+                        Price : ₹{leftCard.price}
+                      </span>
+                      {leftCard.originalPrice > 0 && (
+                        <span className="text-xs text-[#77716E] line-through font-mono">
+                          ₹{leftCard.originalPrice}
+                        </span>
+                      )}
+                      {leftCard.saveText && (
+                        <span className="text-[10px] font-bold text-[#059669] bg-[#D1FAE5] px-2 py-0.5 rounded-full">
+                          {leftCard.saveText}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-[#4B5563] font-medium leading-tight">
+                      {leftCard.description}
+                    </p>
+
+                    {Array.isArray(leftCard.features) && leftCard.features.length > 0 && (
+                      <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold text-[#581C87]">
+                        {leftCard.features.map((f: string, i: number) => (
+                          <span key={i} className="bg-white/80 px-2 py-0.5 rounded-md border border-[#E9DDF5]">
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3">
+                    {isUnlocked ? (
+                      <button
+                        type="button"
+                        onClick={() => onExploreCourse && onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
+                        className="px-5 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <span>Enrolled in Dashboard • Open Course</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onBuyCourse ? onBuyCourse(activeCourse) : onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
+                        className="px-5 py-2.5 rounded-full bg-[#581C87] hover:bg-[#4A0E4E] text-white text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>{leftCard.buttonText || `Get Pass • ₹${leftCard.price}`}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Right Card: All-Access Dual Combo Pass */}
+            {(() => {
+              const rightCard = promoBanners?.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
+              const isUnlocked = isCaUnlocked && isCsUnlocked;
+              return (
+                <div
+                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#3B0764] via-[#581C87] to-[#7E22CE] text-white p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[190px] border border-[#9333EA]/30"
+                  style={{ color: "#FFFFFF" }}
+                >
+                  <div className="absolute top-0 right-6 bg-[#F59E0B] text-[#78350F] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
+                    {rightCard.discountBadge || "64% OFF"}
+                  </div>
+
+                  <div className="space-y-1.5 pr-10">
+                    <span
+                      className="text-[10px] font-extrabold uppercase tracking-wider text-[#FDE68A] bg-white/15 px-2.5 py-0.5 rounded-md border border-white/20 inline-block"
+                      style={{ color: "#FDE68A" }}
+                    >
+                      {rightCard.streamBadge || "Best Value • All-Access Dual Pass"}
+                    </span>
+
+                    <h4
+                      className="text-base sm:text-lg font-black leading-snug text-white"
+                      style={{ color: "#FFFFFF" }}
+                    >
+                      {rightCard.title} <br />
+                      <span className="text-[#FDE68A]" style={{ color: "#FDE68A" }}>
+                        {rightCard.subtitle}
+                      </span>
+                    </h4>
+
+                    <div className="flex items-baseline gap-2 pt-0.5">
+                      <span className="text-sm sm:text-base font-black text-white" style={{ color: "#FFFFFF" }}>
+                        Price : ₹{rightCard.price}
+                      </span>
+                      {rightCard.originalPrice > 0 && (
+                        <span className="text-xs text-white/60 line-through font-mono" style={{ color: "rgba(255,255,255,0.6)" }}>
+                          ₹{rightCard.originalPrice}
+                        </span>
+                      )}
+                      {rightCard.saveText && (
+                        <span className="text-[10px] font-bold text-[#FDE68A] bg-white/15 px-2 py-0.5 rounded-full border border-white/20" style={{ color: "#FDE68A" }}>
+                          {rightCard.saveText}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-white/90 font-medium leading-tight" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
+                      {rightCard.description}
+                    </p>
+
+                    {Array.isArray(rightCard.features) && rightCard.features.length > 0 && (
+                      <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold">
+                        {rightCard.features.map((f: string, i: number) => (
+                          <span
+                            key={i}
+                            className="bg-white/15 px-2 py-0.5 rounded-md border border-white/20 text-white"
+                            style={{ color: "#FFFFFF" }}
+                          >
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3">
+                    {isUnlocked ? (
+                      <button
+                        type="button"
+                        className="px-5 py-2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold inline-flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>All-Access Dual Pass Active</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onBuyCourse ? onBuyCourse("all-access") : onExploreCourse("all-access")}
+                        className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>{rightCard.buttonText || `Unlock All-Access • ₹${rightCard.price}`}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-amber-950" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 4. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}

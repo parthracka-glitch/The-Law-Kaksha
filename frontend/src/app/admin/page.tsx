@@ -1105,7 +1105,7 @@ export default function AdminPortalPage() {
           )}
 
           {/* COMPACT BROADCAST STATUS STRIP (VISIBLE ON OTHER WEBSITE SUB-TABS) */}
-          {activeHub === "website" && activeTab !== "broadcast" && (
+          {activeHub === "website" && activeTab !== "broadcast" && activeTab !== "promo_banners" && (
             <div className="bg-white rounded-2xl border border-[#CBD5E1] p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div
@@ -1401,49 +1401,66 @@ export default function AdminPortalPage() {
           {activeTab === "promo_banners" && (
             <div className="space-y-6 animate-in fade-in">
               {/* TOP HEADER & CONTROLS */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#CBD5E1]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9]">
-                      Student Dashboard Banners
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE]">
+                      Student Dashboard Passes
                     </span>
-                    <span className="text-xs text-[#77716E]">Live Synced with /student</span>
+                    <span className="text-xs text-[#475569]">Live Synced with /student</span>
                   </div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D] mt-1 flex items-center gap-2">
-                    <Megaphone className="w-5 h-5 text-[#9333EA]" />
-                    <span>Codex Promo Passes Editor</span>
+                  <h2 className="text-xl font-bold text-[#0A192F] mt-1 flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-[#005A9C]" />
+                    <span>Student Passes &amp; Pricing Editor</span>
                   </h2>
-                  <p className="text-xs text-[#77716E] mt-0.5">
-                    Customize the 2 main promo cards shown to students when they open their dashboard. Edit prices, badges, titles, descriptions, and buttons.
+                  <p className="text-xs text-[#475569] mt-0.5">
+                    Easily manage pass prices, discounts, and descriptions. Any change made here updates both the card display and the checkout price for students in real time.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2.5 flex-wrap">
+                  <a
+                    href="/student"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#005A9C] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                    title="Open live student dashboard in a new tab"
+                  >
+                    <span>View on /student</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+
                   <button
+                    type="button"
                     onClick={() => {
                       if (confirm("Reset promo passes to default Law Kaksha settings?")) {
                         setPromoBanners(DEFAULT_PROMO_BANNERS);
                         showToast("Reset to default Law Kaksha passes.");
                       }
                     }}
-                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#77716E] hover:text-[#221D1D] text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#475569] hover:text-[#0A192F] text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                   >
                     Reset Defaults
                   </button>
 
                   <button
+                    type="button"
                     onClick={handleSavePromoBanners}
                     disabled={isSavingPromo}
-                    className="px-5 py-2 rounded-full bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isSavingPromo ? "Saving Passes..." : "Save All Changes"}</span>
+                    {isSavingPromo ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isSavingPromo ? "Saving Passes..." : "Save Passes Live"}</span>
                   </button>
                 </div>
               </div>
 
               {/* MASTER SECTION TOGGLE & SECTION TITLE */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-2xs space-y-4">
+              <div className="bg-white rounded-3xl border border-[#CBD5E1] p-5 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <button
@@ -1456,431 +1473,525 @@ export default function AdminPortalPage() {
                       <div className="bg-white w-4 h-4 rounded-full shadow-md" />
                     </button>
                     <div>
-                      <h4 className="text-xs font-bold text-[#221D1D]">
-                        Show Codex Passes Section on Student Dashboard
-                      </h4>
-                      <p className="text-[11px] text-[#77716E]">
-                        {promoBanners.enabled ? "Section is currently LIVE and visible to students" : "Section is HIDDEN from student dashboard"}
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-[#0A192F]">
+                          Show Passes Section on Student Dashboard
+                        </h4>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            promoBanners.enabled
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : "bg-slate-100 text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {promoBanners.enabled ? "● Currently Live on /student" : "○ Currently Hidden"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#475569]">
+                        When enabled, students will see their stream pass on the left and the all-access combo pass on the right.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <label className="text-xs font-bold text-[#221D1D] shrink-0">Section Header:</label>
+                    <label className="text-xs font-bold text-[#0A192F] shrink-0">Section Heading:</label>
                     <input
                       type="text"
                       value={promoBanners.sectionTitle}
                       onChange={(e) => setPromoBanners({ ...promoBanners, sectionTitle: e.target.value })}
                       placeholder="e.g. LAW KAKSHA CODEX PASSES"
-                      className="px-3 py-1.5 rounded-xl border border-[#E7E4E7] text-xs font-bold uppercase tracking-wider text-[#9333EA] bg-[#F7F7F5] focus:bg-white outline-none focus:border-[#9333EA] w-56 sm:w-64"
+                      className="px-3 py-1.5 rounded-xl border border-[#CBD5E1] text-xs font-bold uppercase tracking-wider text-[#005A9C] bg-[#F8FAFC] focus:bg-white outline-none focus:border-[#005A9C] w-56 sm:w-64"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* CARD SELECTOR SUB-TABS */}
-              <div className="flex items-center gap-2 border-b border-[#E7E4E7] pb-1 overflow-x-auto">
-                <button
-                  onClick={() => setActivePromoCardTab("ca")}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    activePromoCardTab === "ca"
-                      ? "bg-[#F6EFFD] text-[#581C87] border border-[#D8B4FE] shadow-2xs"
-                      : "text-[#77716E] hover:text-[#221D1D] hover:bg-white"
-                  }`}
-                >
-                  <span>📖 Card 1: CA Foundation Stream (Left)</span>
-                  <span className="text-[10px] bg-[#EDE9FE] px-2 py-0.5 rounded-full text-[#7E22CE]">₹{promoBanners.caCard.price}</span>
-                </button>
+              {/* 3 VISUAL PASS CARDS (SIDE-BY-SIDE IN RESPONSIVE GRID) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                {/* CARD 1: CA FOUNDATION PASS */}
+                {(() => {
+                  const card = promoBanners.caCard;
+                  const updateField = <K extends keyof PromoPassCard>(field: K, val: PromoPassCard[K]) => {
+                    const nextPrice = field === "price" ? (val as number) : card.price;
+                    const nextOrig = field === "originalPrice" ? (val as number) : card.originalPrice;
+                    const saveDiff = Math.max(0, nextOrig - nextPrice);
+                    setPromoBanners({
+                      ...promoBanners,
+                      caCard: {
+                        ...card,
+                        [field]: val,
+                        saveText: field === "saveText" ? (val as string) : (saveDiff > 0 ? `Save ₹${saveDiff}` : card.saveText),
+                      },
+                    });
+                  };
 
-                <button
-                  onClick={() => setActivePromoCardTab("cs")}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    activePromoCardTab === "cs"
-                      ? "bg-[#F6EFFD] text-[#581C87] border border-[#D8B4FE] shadow-2xs"
-                      : "text-[#77716E] hover:text-[#221D1D] hover:bg-white"
-                  }`}
-                >
-                  <span>🎯 Card 2: CSEET Stream (Alternate Left)</span>
-                  <span className="text-[10px] bg-[#EDE9FE] px-2 py-0.5 rounded-full text-[#7E22CE]">₹{promoBanners.csCard.price}</span>
-                </button>
+                  return (
+                    <div className="bg-white rounded-3xl border border-[#DBEAFE] shadow-xs p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition-all">
+                      <div className="space-y-4">
+                        {/* Header badge */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE]">
+                            📖 1. CA Foundation Pass
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500">
+                            Left Banner (CA)
+                          </span>
+                        </div>
 
-                <button
-                  onClick={() => setActivePromoCardTab("combo")}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    activePromoCardTab === "combo"
-                      ? "bg-[#581C87] text-white border border-[#581C87] shadow-2xs"
-                      : "text-[#77716E] hover:text-[#221D1D] hover:bg-white"
-                  }`}
-                >
-                  <span>👑 Card 3: All-Access Dual Pass (Right)</span>
-                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full text-[#FDE68A]">₹{promoBanners.comboCard.price}</span>
-                </button>
+                        {/* Price Row: Big Bold Easy Inputs */}
+                        <div className="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-2xl border border-slate-200">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#0A192F] uppercase block mb-1">
+                              Selling Price (₹) *
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-black text-[#005A9C]">₹</span>
+                              <input
+                                type="number"
+                                value={card.price}
+                                onChange={(e) => updateField("price", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-300 text-sm font-black text-[#0A192F] bg-white outline-none focus:border-[#005A9C]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                              Original Cut Price (₹)
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-bold text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                value={card.originalPrice}
+                                onChange={(e) => updateField("originalPrice", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-600 bg-white outline-none focus:border-[#005A9C]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="col-span-2 flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/60">
+                            <span className="text-emerald-700 font-bold">
+                              ✓ {card.saveText || `Save ₹${Math.max(0, card.originalPrice - card.price)}`}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <label className="text-[10px] font-bold text-slate-500">Ribbon:</label>
+                              <input
+                                type="text"
+                                value={card.discountBadge}
+                                onChange={(e) => updateField("discountBadge", e.target.value)}
+                                className="px-2 py-0.5 rounded-lg border border-slate-300 text-[10px] font-black uppercase text-amber-700 bg-amber-50 outline-none w-20 text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#0A192F] uppercase block mb-1">Pass Title</label>
+                            <input
+                              type="text"
+                              value={card.title}
+                              onChange={(e) => updateField("title", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#0A192F] bg-slate-50 focus:bg-white outline-none focus:border-[#005A9C]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Subtitle / Highlight</label>
+                            <input
+                              type="text"
+                              value={card.subtitle}
+                              onChange={(e) => updateField("subtitle", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#005A9C]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Description</label>
+                            <textarea
+                              rows={2}
+                              value={card.description}
+                              onChange={(e) => updateField("description", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#005A9C]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Button Label</label>
+                            <input
+                              type="text"
+                              value={card.buttonText}
+                              onChange={(e) => updateField("buttonText", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#005A9C]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Live Mini Preview */}
+                      <div className="pt-3 border-t border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                          Student View Preview:
+                        </span>
+                        <div className="rounded-2xl bg-gradient-to-r from-[#EFF6FF] via-[#DBEAFE] to-[#BFDBFE] p-3.5 border border-[#BFDBFE] text-[#0A192F] space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-white/80 text-[#005A9C]">
+                              {card.streamBadge || "Paper 2 • 7 Chapters"}
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">
+                              {card.discountBadge}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-[#0A192F] truncate">{card.title}</p>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-sm font-black text-[#005A9C]">₹{card.price}</span>
+                            <span className="text-[10px] line-through text-slate-500">₹{card.originalPrice}</span>
+                            <span className="text-[9px] font-bold text-emerald-700 bg-white/70 px-1.5 rounded">
+                              {card.saveText}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* CARD 2: CSEET PASS */}
+                {(() => {
+                  const card = promoBanners.csCard;
+                  const updateField = <K extends keyof PromoPassCard>(field: K, val: PromoPassCard[K]) => {
+                    const nextPrice = field === "price" ? (val as number) : card.price;
+                    const nextOrig = field === "originalPrice" ? (val as number) : card.originalPrice;
+                    const saveDiff = Math.max(0, nextOrig - nextPrice);
+                    setPromoBanners({
+                      ...promoBanners,
+                      csCard: {
+                        ...card,
+                        [field]: val,
+                        saveText: field === "saveText" ? (val as string) : (saveDiff > 0 ? `Save ₹${saveDiff}` : card.saveText),
+                      },
+                    });
+                  };
+
+                  return (
+                    <div className="bg-white rounded-3xl border border-[#A7F3D0] shadow-xs p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition-all">
+                      <div className="space-y-4">
+                        {/* Header badge */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-300">
+                            🎯 2. CSEET Pass
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500">
+                            Left Banner (CSEET)
+                          </span>
+                        </div>
+
+                        {/* Price Row: Big Bold Easy Inputs */}
+                        <div className="grid grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-2xl border border-emerald-200">
+                          <div>
+                            <label className="text-[10px] font-bold text-emerald-950 uppercase block mb-1">
+                              Selling Price (₹) *
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-black text-emerald-800">₹</span>
+                              <input
+                                type="number"
+                                value={card.price}
+                                onChange={(e) => updateField("price", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-emerald-300 text-sm font-black text-emerald-950 bg-white outline-none focus:border-emerald-600"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                              Original Cut Price (₹)
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-bold text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                value={card.originalPrice}
+                                onChange={(e) => updateField("originalPrice", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-emerald-300 text-sm font-bold text-slate-600 bg-white outline-none focus:border-emerald-600"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="col-span-2 flex items-center justify-between text-[11px] pt-1 border-t border-emerald-200/60">
+                            <span className="text-emerald-800 font-bold">
+                              ✓ {card.saveText || `Save ₹${Math.max(0, card.originalPrice - card.price)}`}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <label className="text-[10px] font-bold text-slate-500">Ribbon:</label>
+                              <input
+                                type="text"
+                                value={card.discountBadge}
+                                onChange={(e) => updateField("discountBadge", e.target.value)}
+                                className="px-2 py-0.5 rounded-lg border border-slate-300 text-[10px] font-black uppercase text-amber-700 bg-amber-50 outline-none w-20 text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#0A192F] uppercase block mb-1">Pass Title</label>
+                            <input
+                              type="text"
+                              value={card.title}
+                              onChange={(e) => updateField("title", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#0A192F] bg-slate-50 focus:bg-white outline-none focus:border-emerald-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Subtitle / Highlight</label>
+                            <input
+                              type="text"
+                              value={card.subtitle}
+                              onChange={(e) => updateField("subtitle", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-emerald-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Description</label>
+                            <textarea
+                              rows={2}
+                              value={card.description}
+                              onChange={(e) => updateField("description", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-emerald-600"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Button Label</label>
+                            <input
+                              type="text"
+                              value={card.buttonText}
+                              onChange={(e) => updateField("buttonText", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-emerald-600"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Live Mini Preview */}
+                      <div className="pt-3 border-t border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                          Student View Preview:
+                        </span>
+                        <div className="rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100 p-3.5 border border-emerald-200 text-emerald-950 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-white/80 text-emerald-800">
+                              {card.streamBadge || "ICSI • 8 Exam Units"}
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">
+                              {card.discountBadge}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-emerald-950 truncate">{card.title}</p>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-sm font-black text-emerald-800">₹{card.price}</span>
+                            <span className="text-[10px] line-through text-slate-500">₹{card.originalPrice}</span>
+                            <span className="text-[9px] font-bold text-emerald-700 bg-white/70 px-1.5 rounded">
+                              {card.saveText}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* CARD 3: ALL-ACCESS DUAL COMBO PASS */}
+                {(() => {
+                  const card = promoBanners.comboCard;
+                  const updateField = <K extends keyof PromoPassCard>(field: K, val: PromoPassCard[K]) => {
+                    const nextPrice = field === "price" ? (val as number) : card.price;
+                    const nextOrig = field === "originalPrice" ? (val as number) : card.originalPrice;
+                    const saveDiff = Math.max(0, nextOrig - nextPrice);
+                    setPromoBanners({
+                      ...promoBanners,
+                      comboCard: {
+                        ...card,
+                        [field]: val,
+                        saveText: field === "saveText" ? (val as string) : (saveDiff > 0 ? `Save ₹${saveDiff}` : card.saveText),
+                      },
+                    });
+                  };
+
+                  return (
+                    <div className="bg-white rounded-3xl border border-[#D8B4FE] shadow-xs p-5 flex flex-col justify-between space-y-4 hover:shadow-md transition-all">
+                      <div className="space-y-4">
+                        {/* Header badge */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F6EFFD] text-[#7E22CE] border border-[#D8B4FE]">
+                            👑 3. All-Access Dual Pass
+                          </span>
+                          <span className="text-[10px] font-bold text-[#7E22CE]">
+                            Right Banner (All Students)
+                          </span>
+                        </div>
+
+                        {/* Price Row: Big Bold Easy Inputs */}
+                        <div className="grid grid-cols-2 gap-3 bg-[#FAF5FF] p-3 rounded-2xl border border-[#E9D5FF]">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#581C87] uppercase block mb-1">
+                              Selling Price (₹) *
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-black text-[#7E22CE]">₹</span>
+                              <input
+                                type="number"
+                                value={card.price}
+                                onChange={(e) => updateField("price", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-[#D8B4FE] text-sm font-black text-[#581C87] bg-white outline-none focus:border-[#7E22CE]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                              Original Cut Price (₹)
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2 text-xs font-bold text-slate-400">₹</span>
+                              <input
+                                type="number"
+                                value={card.originalPrice}
+                                onChange={(e) => updateField("originalPrice", parseInt(e.target.value) || 0)}
+                                className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-[#D8B4FE] text-sm font-bold text-slate-600 bg-white outline-none focus:border-[#7E22CE]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="col-span-2 flex items-center justify-between text-[11px] pt-1 border-t border-[#E9D5FF]">
+                            <span className="text-[#7E22CE] font-bold">
+                              ✓ {card.saveText || `Save ₹${Math.max(0, card.originalPrice - card.price)}`}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <label className="text-[10px] font-bold text-slate-500">Ribbon:</label>
+                              <input
+                                type="text"
+                                value={card.discountBadge}
+                                onChange={(e) => updateField("discountBadge", e.target.value)}
+                                className="px-2 py-0.5 rounded-lg border border-slate-300 text-[10px] font-black uppercase text-amber-700 bg-amber-50 outline-none w-20 text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#0A192F] uppercase block mb-1">Pass Title</label>
+                            <input
+                              type="text"
+                              value={card.title}
+                              onChange={(e) => updateField("title", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#0A192F] bg-slate-50 focus:bg-white outline-none focus:border-[#7E22CE]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Subtitle / Highlight</label>
+                            <input
+                              type="text"
+                              value={card.subtitle}
+                              onChange={(e) => updateField("subtitle", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#7E22CE]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Description</label>
+                            <textarea
+                              rows={2}
+                              value={card.description}
+                              onChange={(e) => updateField("description", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#7E22CE]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Button Label</label>
+                            <input
+                              type="text"
+                              value={card.buttonText}
+                              onChange={(e) => updateField("buttonText", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white outline-none focus:border-[#7E22CE]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Live Mini Preview */}
+                      <div className="pt-3 border-t border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                          Student View Preview:
+                        </span>
+                        <div className="rounded-2xl bg-gradient-to-br from-[#3B0764] via-[#581C87] to-[#7E22CE] p-3.5 border border-[#9333EA]/40 text-white space-y-1.5 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-white/20 text-[#FDE68A]">
+                              {card.streamBadge || "Best Value • All-Access"}
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">
+                              {card.discountBadge}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-white truncate">{card.title}</p>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-sm font-black text-amber-300">₹{card.price}</span>
+                            <span className="text-[10px] line-through text-white/60">₹{card.originalPrice}</span>
+                            <span className="text-[9px] font-bold text-amber-300 bg-white/15 px-1.5 rounded">
+                              {card.saveText}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* CARD EDITING FORM */}
-              {(() => {
-                const currentCardKey = activePromoCardTab === "ca" ? "caCard" : activePromoCardTab === "cs" ? "csCard" : "comboCard";
-                const card = promoBanners[currentCardKey];
-
-                const updateCardField = <K extends keyof PromoPassCard>(field: K, val: PromoPassCard[K]) => {
-                  setPromoBanners({
-                    ...promoBanners,
-                    [currentCardKey]: {
-                      ...card,
-                      [field]: val,
-                    },
-                  });
-                };
-
-                return (
-                  <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-5">
-                    <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-3">
-                      <div>
-                        <h3 className="text-sm font-bold text-[#221D1D] flex items-center gap-2">
-                          <Edit3 className="w-4 h-4 text-[#9333EA]" />
-                          <span>
-                            Editing: {activePromoCardTab === "ca" ? "CA Foundation Pass" : activePromoCardTab === "cs" ? "CSEET Pass" : "All-Access Dual Combo Pass"}
-                          </span>
-                        </h3>
-                        <p className="text-[11px] text-[#77716E]">
-                          Update headings, pricing, discount badges, and tags for this card.
-                        </p>
-                      </div>
-
-                      <span className="text-xs font-bold text-[#9333EA] bg-[#F6EFFD] px-3 py-1 rounded-full border border-[#D8B4FE]">
-                        Theme: {card.theme === "lavender" ? "Soft Lavender Card" : "Royal Purple Card"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                      {/* Course Title */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Main Title *</label>
-                        <input
-                          type="text"
-                          value={card.title}
-                          onChange={(e) => updateCardField("title", e.target.value)}
-                          placeholder="e.g. CA Foundation Business Laws"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Subtitle / Codex Highlight */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Subtitle / Highlight *</label>
-                        <input
-                          type="text"
-                          value={card.subtitle}
-                          onChange={(e) => updateCardField("subtitle", e.target.value)}
-                          placeholder="e.g. Complete Codex Notes"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Stream Badge */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Stream / Category Badge *</label>
-                        <input
-                          type="text"
-                          value={card.streamBadge}
-                          onChange={(e) => updateCardField("streamBadge", e.target.value)}
-                          placeholder="e.g. Paper 2 • 7 Chapters"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Discount Badge */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Top Discount Ribbon *</label>
-                        <input
-                          type="text"
-                          value={card.discountBadge}
-                          onChange={(e) => updateCardField("discountBadge", e.target.value)}
-                          placeholder="e.g. 67% OFF"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-bold uppercase outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Selling Price */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Selling Price (₹) *</label>
-                        <input
-                          type="number"
-                          value={card.price}
-                          onChange={(e) => updateCardField("price", parseInt(e.target.value) || 0)}
-                          placeholder="99"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-bold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Original Strikethrough Price */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Original Price (₹) *</label>
-                        <input
-                          type="number"
-                          value={card.originalPrice}
-                          onChange={(e) => updateCardField("originalPrice", parseInt(e.target.value) || 0)}
-                          placeholder="299"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Save Pill Text */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Savings Pill Text *</label>
-                        <input
-                          type="text"
-                          value={card.saveText}
-                          onChange={(e) => updateCardField("saveText", e.target.value)}
-                          placeholder="e.g. Save ₹200"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Button Label */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Button Label *</label>
-                        <input
-                          type="text"
-                          value={card.buttonText}
-                          onChange={(e) => updateCardField("buttonText", e.target.value)}
-                          placeholder="e.g. Explore CA Notes"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-
-                      {/* Action Type */}
-                      <div className="space-y-1">
-                        <label className="font-bold text-[#221D1D]">Click Action *</label>
-                        <select
-                          value={card.actionType}
-                          onChange={(e) => updateCardField("actionType", e.target.value as PromoPassCard["actionType"])}
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D] cursor-pointer"
-                        >
-                          <option value="ca">Open CA Foundation Notes (ca)</option>
-                          <option value="cs">Open CSEET Notes (cs)</option>
-                          <option value="all-access">Add All-Access to Cart (all-access)</option>
-                          <option value="custom">Custom External Link</option>
-                        </select>
-                      </div>
-
-                      {/* Feature Tags (Comma Separated) */}
-                      <div className="space-y-1 md:col-span-2 lg:col-span-3">
-                        <label className="font-bold text-[#221D1D]">
-                          Feature Tags (Comma-Separated) *
-                        </label>
-                        <input
-                          type="text"
-                          value={(card.features || []).join(", ")}
-                          onChange={(e) => {
-                            const tags = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                            updateCardField("features", tags);
-                          }}
-                          placeholder="e.g. 📖 7 Chapters, ⚖️ Solved Cases, ⚡ LDR Notes"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs font-semibold outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                        <p className="text-[10px] text-[#77716E]">
-                          Separate each tag with a comma. You can use emojis (e.g. 📖, ⚖️, ⚡, 🎯).
-                        </p>
-                      </div>
-
-                      {/* Description */}
-                      <div className="space-y-1 md:col-span-2 lg:col-span-3">
-                        <label className="font-bold text-[#221D1D]">Course Description *</label>
-                        <textarea
-                          rows={2}
-                          value={card.description}
-                          onChange={(e) => updateCardField("description", e.target.value)}
-                          placeholder="e.g. All 7 Chapters in simple English, 3 weekly solved cases & 1.5-day LDR flowcharts"
-                          className="w-full p-2.5 rounded-xl border border-[#E7E4E7] text-xs outline-none focus:border-[#9333EA] bg-[#F7F7F5] focus:bg-white text-[#221D1D]"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        onClick={handleSavePromoBanners}
-                        disabled={isSavingPromo}
-                        className="px-6 py-2.5 rounded-full bg-[#9333EA] hover:bg-[#7E22CE] text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{isSavingPromo ? "Saving Passes..." : "Save Passes Live"}</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* LIVE 1:1 PREVIEW OF STUDENT DASHBOARD CODEX PASSES */}
-              <div className="bg-[#F7F7F5] rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E7E4E7] pb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-[#221D1D] flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-[#9333EA]" />
-                      <span>Live 1:1 Student Dashboard Preview</span>
-                    </h3>
-                    <p className="text-[11px] text-[#77716E]">
-                      This is exactly how students will see the passes on their main panel.
-                    </p>
-                  </div>
-
-                  {/* Preview Switcher */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-[#77716E]">Simulate Student Stream:</span>
-                    <div className="inline-flex p-0.5 rounded-xl bg-white border border-[#E7E4E7] text-xs font-bold shadow-2xs">
-                      <button
-                        onClick={() => setPromoPreviewStream("ca")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                          promoPreviewStream === "ca" ? "bg-[#9333EA] text-white shadow-xs" : "text-[#77716E]"
-                        }`}
-                      >
-                        CA Foundation
-                      </button>
-                      <button
-                        onClick={() => setPromoPreviewStream("cs")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                          promoPreviewStream === "cs" ? "bg-[#9333EA] text-white shadow-xs" : "text-[#77716E]"
-                        }`}
-                      >
-                        CSEET
-                      </button>
-                    </div>
-                  </div>
+              {/* BOTTOM SAVE & DIRECT REDIRECT BAR */}
+              <div className="bg-white rounded-3xl border border-[#CBD5E1] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-[#475569]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    When you click <strong>Save Passes Live</strong>, pricing is synced immediately to MongoDB Atlas and the live student portal.
+                  </span>
                 </div>
 
-                {/* 1:1 Student Cards Render */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
-                      <span>{promoBanners.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <a
+                    href="/student"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#005A9C] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <span>Open /student</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left Card Preview */}
-                    {(() => {
-                      const leftCard = promoPreviewStream === "ca" ? promoBanners.caCard : promoBanners.csCard;
-                      return (
-                        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F6EFFD] via-[#F3E8FC] to-[#ECE0F8] border border-[#E9DDF5] p-5 sm:p-6 shadow-2xs flex flex-col justify-between min-h-[190px]">
-                          <div className="absolute top-0 right-6 bg-[#4A0E4E] text-[#FDE68A] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
-                            {leftCard.discountBadge}
-                          </div>
-
-                          <div className="space-y-1.5 pr-10">
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7E22CE] bg-[#EDE9FE] px-2 py-0.5 rounded-md inline-block">
-                              {leftCard.streamBadge}
-                            </span>
-
-                            <h4 className="text-base sm:text-lg font-black text-[#581C87] leading-snug">
-                              {leftCard.title} <br />
-                              <span className="text-[#9333EA]">{leftCard.subtitle}</span>
-                            </h4>
-
-                            <div className="flex items-baseline gap-2 pt-0.5">
-                              <span className="text-sm sm:text-base font-black text-[#221D1D]">
-                                Price : ₹{leftCard.price}
-                              </span>
-                              <span className="text-xs text-[#77716E] line-through font-mono">
-                                ₹{leftCard.originalPrice}
-                              </span>
-                              <span className="text-[10px] font-bold text-[#059669] bg-[#D1FAE5] px-2 py-0.5 rounded-full">
-                                {leftCard.saveText}
-                              </span>
-                            </div>
-
-                            <p className="text-[11px] text-[#4B5563] font-medium leading-tight">
-                              {leftCard.description}
-                            </p>
-
-                            <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold text-[#581C87]">
-                              {(leftCard.features || []).map((f: string, i: number) => (
-                                <span key={i} className="bg-white/80 px-2 py-0.5 rounded-md border border-[#E9DDF5]">
-                                  {f}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="pt-3">
-                            <span className="px-5 py-2 rounded-full bg-white text-[#581C87] text-xs font-black border border-[#D8B4FE] shadow-2xs inline-flex items-center gap-1.5">
-                              <span>{leftCard.buttonText}</span>
-                              <ArrowRight className="w-3.5 h-3.5 text-[#581C87]" />
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Right Card Preview */}
-                    {(() => {
-                      const rightCard = promoBanners.comboCard;
-                      return (
-                        <div
-                          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#3B0764] via-[#581C87] to-[#7E22CE] text-white p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[190px] border border-[#9333EA]/30"
-                          style={{ color: "#FFFFFF" }}
-                        >
-                          <div className="absolute top-0 right-6 bg-[#F59E0B] text-[#78350F] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
-                            {rightCard.discountBadge}
-                          </div>
-
-                          <div className="space-y-1.5 pr-10">
-                            <span
-                              className="text-[10px] font-extrabold uppercase tracking-wider text-[#FDE68A] bg-white/15 px-2.5 py-0.5 rounded-md border border-white/20 inline-block"
-                              style={{ color: "#FDE68A" }}
-                            >
-                              {rightCard.streamBadge}
-                            </span>
-
-                            <h4
-                              className="text-base sm:text-lg font-black leading-snug text-white"
-                              style={{ color: "#FFFFFF" }}
-                            >
-                              {rightCard.title} <br />
-                              <span className="text-[#FDE68A]" style={{ color: "#FDE68A" }}>
-                                {rightCard.subtitle}
-                              </span>
-                            </h4>
-
-                            <div className="flex items-baseline gap-2 pt-0.5">
-                              <span className="text-sm sm:text-base font-black text-white" style={{ color: "#FFFFFF" }}>
-                                Price : ₹{rightCard.price}
-                              </span>
-                              <span className="text-xs text-white/60 line-through font-mono" style={{ color: "rgba(255,255,255,0.6)" }}>
-                                ₹{rightCard.originalPrice}
-                              </span>
-                              <span className="text-[10px] font-bold text-[#FDE68A] bg-white/15 px-2 py-0.5 rounded-full border border-white/20" style={{ color: "#FDE68A" }}>
-                                {rightCard.saveText}
-                              </span>
-                            </div>
-
-                            <p className="text-[11px] text-white/90 font-medium leading-tight" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                              {rightCard.description}
-                            </p>
-
-                            <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold">
-                              {(rightCard.features || []).map((f: string, i: number) => (
-                                <span
-                                  key={i}
-                                  className="bg-white/15 px-2 py-0.5 rounded-md border border-white/20 text-white"
-                                  style={{ color: "#FFFFFF" }}
-                                >
-                                  {f}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="pt-3">
-                            <span className="px-5 py-2 rounded-full bg-white text-[#581C87] text-xs font-black shadow-md inline-flex items-center gap-1.5">
-                              <span>{rightCard.buttonText}</span>
-                              <ArrowRight className="w-3.5 h-3.5 text-[#581C87]" />
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSavePromoBanners}
+                    disabled={isSavingPromo}
+                    className="px-6 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingPromo ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isSavingPromo ? "Saving Passes..." : "Save Passes Live"}</span>
+                  </button>
                 </div>
               </div>
             </div>

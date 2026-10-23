@@ -28,6 +28,7 @@ import { StudentBookmarksTab, StudentBookmarkItem } from "@/components/student/S
 import { StudentProgressTab } from "@/components/student/StudentProgressTab";
 import { StudentHelpSupportTab } from "@/components/student/StudentHelpSupportTab";
 import { getApiBaseUrl, type AuthUser } from "@/lib/api";
+import { type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
 
 interface ChapterUnit {
   unitNumber: number;
@@ -665,6 +666,9 @@ export default function StudentDashboardPage() {
     duration: number;
   } | null>(null);
 
+  // Student Dashboard Promo Codex Passes (Live synced with Admin Panel)
+  const [promoBanners, setPromoBanners] = useState<PromoBannersSetting>(DEFAULT_PROMO_BANNERS);
+
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
 
   // Purchase-Based Access Control: reflects whether active course stream has been subscribed to
@@ -732,27 +736,40 @@ export default function StudentDashboardPage() {
   const handleBuyCourse = (courseType: "ca" | "cs" | string) => {
     const isCa = courseType === "ca" || courseType === "ca-foundation" || courseType === "course-ca-foundation-sub";
     const isCs = courseType === "cs" || courseType === "cseet" || courseType === "course-cseet" || courseType === "course-cseet-sub";
+    const isCombo = courseType === "all-access" || courseType === "combo" || courseType === "prod-combo";
     if (isCa) {
       addToCart({
         id: "course-ca-foundation-sub",
-        title: "CA Foundation Business Laws Master Pass",
+        title: promoBanners.caCard?.title || "CA Foundation Business Laws Master Pass",
         format: "pdf",
-        price: 99,
-        originalPrice: 299,
+        price: promoBanners.caCard?.price || 99,
+        originalPrice: promoBanners.caCard?.originalPrice || 299,
         category: "Full Course Subscription",
-        badge: "Paper 2 • 7 Chapters",
+        badge: promoBanners.caCard?.streamBadge || "Paper 2 • 7 Chapters",
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
     } else if (isCs) {
       addToCart({
         id: "course-cseet-sub",
-        title: "CSEET Business Laws and Management Master Pass",
+        title: promoBanners.csCard?.title || "CSEET Business Laws and Management Master Pass",
         format: "pdf",
-        price: 99,
-        originalPrice: 299,
+        price: promoBanners.csCard?.price || 99,
+        originalPrice: promoBanners.csCard?.originalPrice || 299,
         category: "Full Course Subscription",
-        badge: "ICSI • 8 Units",
+        badge: promoBanners.csCard?.streamBadge || "ICSI • 8 Units",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else if (isCombo) {
+      addToCart({
+        id: "prod-combo",
+        title: promoBanners.comboCard?.title || "All-Access Dual Codex Pass",
+        format: "pdf",
+        price: promoBanners.comboCard?.price || 180,
+        originalPrice: promoBanners.comboCard?.originalPrice || 499,
+        category: "Full Course Subscription",
+        badge: promoBanners.comboCard?.streamBadge || "Best Value • Dual Pass",
       });
       setIsCartOpen(true);
       setCheckoutStep("details");
@@ -1112,11 +1129,31 @@ export default function StudentDashboardPage() {
             setLiveResources(JSON.parse(storedResources));
           } catch {}
         }
+
+        const storedPromo = localStorage.getItem("lawkaksha_admin_promo_banners");
+        if (storedPromo) {
+          try {
+            setPromoBanners(JSON.parse(storedPromo));
+          } catch {}
+        }
       } catch {
         setStreak(0);
         setLongestStreak(0);
         setLawXp(0);
       }
+
+      // Fetch live promo passes from MongoDB Atlas backend
+      fetch(`${API_URL}/api/promo-banners`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d && d.success && d.promoBanners) {
+            setPromoBanners(d.promoBanners);
+            try {
+              localStorage.setItem("lawkaksha_admin_promo_banners", JSON.stringify(d.promoBanners));
+            } catch {}
+          }
+        })
+        .catch(() => {});
 
       const handleResourcesUpdated = () => {
         try {
@@ -1126,10 +1163,25 @@ export default function StudentDashboardPage() {
       };
       window.addEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
 
+      const handlePromoUpdated = (e: Event) => {
+        const detail = (e as CustomEvent).detail;
+        if (detail) {
+          setPromoBanners(detail);
+        } else {
+          try {
+            const stored = localStorage.getItem("lawkaksha_admin_promo_banners");
+            if (stored) setPromoBanners(JSON.parse(stored));
+          } catch {}
+        }
+      };
+      window.addEventListener("lawkaksha_promo_updated", handlePromoUpdated);
+
       removeSessionListeners = () => {
         window.removeEventListener("lawkaksha_student_updated", handleStudentUpdated);
         window.removeEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
+        window.removeEventListener("lawkaksha_promo_updated", handlePromoUpdated);
         window.removeEventListener("storage", handleStudentUpdated);
+        window.removeEventListener("storage", handlePromoUpdated);
       };
     };
 
@@ -1550,6 +1602,7 @@ export default function StudentDashboardPage() {
                   studentCourses={studentCourses}
                   completedUnits={completedUnits}
                   catalogProducts={catalogProducts}
+                  promoBanners={promoBanners}
                 />
               </div>
 
