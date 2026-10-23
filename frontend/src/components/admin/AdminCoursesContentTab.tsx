@@ -18,6 +18,11 @@ import {
   ExternalLink,
   FolderOpen,
   ArrowUpRight,
+  CheckCircle2,
+  Check,
+  Loader2,
+  Sparkles,
+  FileCheck,
 } from "lucide-react";
 
 export interface CourseRecord {
@@ -154,6 +159,38 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   });
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Simplified PDF Upload Modal State
+  const [simplifiedUploadOpen, setSimplifiedUploadOpen] = useState<boolean>(false);
+  const [targetCourseId, setTargetCourseId] = useState<string>("");
+  const [targetActId, setTargetActId] = useState<string>("");
+  const [targetUnitId, setTargetUnitId] = useState<string>("");
+
+  const [uploadActsList, setUploadActsList] = useState<ActRecord[]>([]);
+  const [uploadUnitsList, setUploadUnitsList] = useState<UnitRecord[]>([]);
+  const [loadingUploadActs, setLoadingUploadActs] = useState<boolean>(false);
+  const [loadingUploadUnits, setLoadingUploadUnits] = useState<boolean>(false);
+
+  const [creatingActInline, setCreatingActInline] = useState<boolean>(false);
+  const [inlineActName, setInlineActName] = useState<string>("");
+  const [creatingUnitInline, setCreatingUnitInline] = useState<boolean>(false);
+  const [inlineUnitName, setInlineUnitName] = useState<string>("");
+
+  const [pdfUploadFile, setPdfUploadFile] = useState<File | null>(null);
+  const [pdfUploadProgress, setPdfUploadProgress] = useState<boolean>(false);
+  const [pdfUploadedPublicId, setPdfUploadedPublicId] = useState<string>("");
+  const [pdfUploadedFileName, setPdfUploadedFileName] = useState<string>("");
+  const [pdfUploadedFileSize, setPdfUploadedFileSize] = useState<number>(0);
+
+  const [pdfTitle, setPdfTitle] = useState<string>("");
+  const [pdfContentType, setPdfContentType] = useState<ContentItemRecord["type"]>("notes");
+  const [pdfIsSample, setPdfIsSample] = useState<boolean>(false);
+  const [pdfSamplePages, setPdfSamplePages] = useState<string>("1-5");
+  const [pdfIsPublished, setPdfIsPublished] = useState<boolean>(true);
+  const [pdfDescription, setPdfDescription] = useState<string>("");
+  const [pdfSaving, setPdfSaving] = useState<boolean>(false);
+
+  const simplifiedFileInputRef = useRef<HTMLInputElement>(null);
 
   const adminFetchRef = useRef(adminFetch);
 
@@ -865,6 +902,304 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     }
   };
 
+  // Simplified PDF Upload Helper Methods
+  const loadModalUnits = async (actIdToLoad: string, preferUnitId?: string) => {
+    if (!actIdToLoad || actIdToLoad === "__new_act__") {
+      setUploadUnitsList([]);
+      setTargetUnitId("");
+      return;
+    }
+    setLoadingUploadUnits(true);
+    try {
+      const res = await adminFetchRef.current(`/api/admin/units?actId=${actIdToLoad}`);
+      const data = await res.json();
+      const fetched: UnitRecord[] = data.success && Array.isArray(data.units) ? data.units : [];
+      setUploadUnitsList(fetched);
+      if (fetched.length > 0) {
+        const uId = preferUnitId && fetched.some((u) => u.id === preferUnitId) ? preferUnitId : fetched[0].id;
+        setTargetUnitId(uId);
+        setCreatingUnitInline(false);
+      } else {
+        setTargetUnitId("__new_unit__");
+        setCreatingUnitInline(true);
+      }
+    } catch (err) {
+      console.error("Error loading units in upload modal:", err);
+      setUploadUnitsList([]);
+      setTargetUnitId("");
+    } finally {
+      setLoadingUploadUnits(false);
+    }
+  };
+
+  const loadModalActs = async (courseIdToLoad: string, preferActId?: string, preferUnitId?: string) => {
+    if (!courseIdToLoad) {
+      setUploadActsList([]);
+      setTargetActId("");
+      setUploadUnitsList([]);
+      setTargetUnitId("");
+      return;
+    }
+    setLoadingUploadActs(true);
+    try {
+      const res = await adminFetchRef.current(`/api/admin/acts?courseId=${courseIdToLoad}`);
+      const data = await res.json();
+      const fetched: ActRecord[] = data.success && Array.isArray(data.acts) ? data.acts : [];
+      setUploadActsList(fetched);
+      if (fetched.length > 0) {
+        const aId = preferActId && fetched.some((a) => a.id === preferActId) ? preferActId : fetched[0].id;
+        setTargetActId(aId);
+        setCreatingActInline(false);
+        await loadModalUnits(aId, preferUnitId);
+      } else {
+        setTargetActId("__new_act__");
+        setCreatingActInline(true);
+        setUploadUnitsList([]);
+        setTargetUnitId("__new_unit__");
+        setCreatingUnitInline(true);
+      }
+    } catch (err) {
+      console.error("Error loading acts in upload modal:", err);
+      setUploadActsList([]);
+      setTargetActId("");
+      setUploadUnitsList([]);
+      setTargetUnitId("");
+    } finally {
+      setLoadingUploadActs(false);
+    }
+  };
+
+  const handleOpenSimplifiedUpload = async (courseId?: string, actId?: string, unitId?: string) => {
+    const chosenCourse = courseId || selectedCourseId || courses[0]?.id || "";
+    setTargetCourseId(chosenCourse);
+    setCreatingActInline(false);
+    setInlineActName("");
+    setCreatingUnitInline(false);
+    setInlineUnitName("");
+    setPdfUploadFile(null);
+    setPdfUploadedPublicId("");
+    setPdfUploadedFileName("");
+    setPdfUploadedFileSize(0);
+    setPdfTitle("");
+    setPdfContentType("notes");
+    setPdfIsSample(false);
+    setPdfSamplePages("1-5");
+    setPdfIsPublished(true);
+    setPdfDescription("");
+
+    setSimplifiedUploadOpen(true);
+
+    if (chosenCourse) {
+      await loadModalActs(chosenCourse, actId || selectedActId, unitId || selectedUnitId);
+    }
+  };
+
+  const handleCourseChangeInModal = async (newCourseId: string) => {
+    setTargetCourseId(newCourseId);
+    setCreatingActInline(false);
+    setCreatingUnitInline(false);
+    await loadModalActs(newCourseId);
+  };
+
+  const handleActChangeInModal = async (newActId: string) => {
+    setTargetActId(newActId);
+    if (newActId === "__new_act__") {
+      setCreatingActInline(true);
+      setUploadUnitsList([]);
+      setTargetUnitId("__new_unit__");
+      setCreatingUnitInline(true);
+    } else {
+      setCreatingActInline(false);
+      await loadModalUnits(newActId);
+    }
+  };
+
+  const handleUnitChangeInModal = (newUnitId: string) => {
+    setTargetUnitId(newUnitId);
+    if (newUnitId === "__new_unit__") {
+      setCreatingUnitInline(true);
+    } else {
+      setCreatingUnitInline(false);
+    }
+  };
+
+  const handleSimplifiedPdfSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      alert("Please select a valid PDF file (.pdf).");
+      return;
+    }
+
+    setPdfUploadFile(file);
+    setPdfUploadedFileName(file.name);
+    setPdfUploadedFileSize(file.size);
+
+    const inferredTitle = file.name
+      .replace(/\.pdf$/i, "")
+      .replace(/[_-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!pdfTitle.trim()) {
+      setPdfTitle(inferredTitle);
+    }
+
+    setPdfUploadProgress(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await adminFetchRef.current("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && (data.publicId || data.url)) {
+        setPdfUploadedPublicId(data.publicId || data.url);
+        showToast(`Uploaded ${file.name}`);
+      } else {
+        alert(data.message || "Failed to upload PDF. Please check server logs.");
+      }
+    } catch (err) {
+      alert("PDF upload failed: " + errorMessage(err));
+    } finally {
+      setPdfUploadProgress(false);
+    }
+  };
+
+  const handleSubmitSimplifiedUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetCourseId) {
+      alert("Please choose a course for this PDF.");
+      return;
+    }
+    if (!pdfTitle.trim()) {
+      alert("Please enter a title for this PDF.");
+      return;
+    }
+    if (!pdfUploadedPublicId && !pdfUploadFile) {
+      alert("Please select a PDF file to upload.");
+      return;
+    }
+
+    setPdfSaving(true);
+    try {
+      let finalPublicId = pdfUploadedPublicId;
+      if (!finalPublicId && pdfUploadFile) {
+        const formData = new FormData();
+        formData.append("file", pdfUploadFile);
+        const uploadRes = await adminFetchRef.current("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadData.success || (!uploadData.publicId && !uploadData.url)) {
+          throw new Error(uploadData.message || "Failed to upload PDF file.");
+        }
+        finalPublicId = uploadData.publicId || uploadData.url;
+      }
+
+      // Resolve Act
+      let finalActId = targetActId;
+      if (!finalActId || creatingActInline || finalActId === "__new_act__") {
+        const actTitleToCreate =
+          inlineActName.trim() ||
+          (uploadActsList.length === 0 ? "General Subject Modules" : `Module ${uploadActsList.length + 1}`);
+        const actRes = await adminFetchRef.current("/api/admin/acts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseId: targetCourseId,
+            title: actTitleToCreate,
+            availability: "live",
+            order: uploadActsList.length + 1,
+          }),
+        });
+        const actData = await actRes.json();
+        if (actData.success && actData.act) {
+          finalActId = actData.act.id;
+          if (selectedCourseId === targetCourseId) {
+            setActs((prev) => [...prev, actData.act]);
+          }
+        } else {
+          throw new Error(actData.message || "Failed to initialize Act for course.");
+        }
+      }
+
+      // Resolve Unit
+      let finalUnitId = targetUnitId;
+      if (!finalUnitId || creatingUnitInline || finalUnitId === "__new_unit__") {
+        const unitTitleToCreate =
+          inlineUnitName.trim() ||
+          (uploadUnitsList.length === 0 ? "Unit 1 - Core Notes" : `Unit ${uploadUnitsList.length + 1}`);
+        const unitRes = await adminFetchRef.current("/api/admin/units", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actId: finalActId,
+            title: unitTitleToCreate,
+            order: uploadUnitsList.length + 1,
+          }),
+        });
+        const unitData = await unitRes.json();
+        if (unitData.success && unitData.unit) {
+          finalUnitId = unitData.unit.id;
+          if (selectedActId === finalActId) {
+            setUnits((prev) => [...prev, unitData.unit]);
+          }
+        } else {
+          throw new Error(unitData.message || "Failed to initialize Unit for act.");
+        }
+      }
+
+      // Save Content Item
+      const payload = {
+        unitId: finalUnitId,
+        title: pdfTitle.trim(),
+        type: pdfContentType,
+        cloudinaryPublicId: finalPublicId,
+        fileName: pdfUploadedFileName || pdfUploadFile?.name || "document.pdf",
+        fileSize: pdfUploadedFileSize || pdfUploadFile?.size || 0,
+        isSample: pdfIsSample,
+        samplePagesRange: pdfSamplePages || "1-5",
+        isPublished: pdfIsPublished,
+        description: pdfDescription.trim(),
+        order: 1,
+      };
+
+      const res = await adminFetchRef.current("/api/admin/content-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success && data.item) {
+        showToast(`Published PDF: ${data.item.title}`);
+        setSimplifiedUploadOpen(false);
+
+        // Switch active hierarchy to display newly uploaded item
+        setSelectedCourseId(targetCourseId);
+        setSelectedActId(finalActId);
+        setSelectedUnitId(finalUnitId);
+
+        // Fetch fresh content items
+        const itemsRes = await adminFetchRef.current(`/api/admin/content-items?unitId=${finalUnitId}`);
+        const itemsData = await itemsRes.json();
+        if (itemsData.success && itemsData.items) {
+          setContentItems(itemsData.items);
+        }
+      } else {
+        alert(data.message || "Failed to save content item.");
+      }
+    } catch (err) {
+      alert("Error saving PDF content: " + errorMessage(err));
+    } finally {
+      setPdfSaving(false);
+    }
+  };
+
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) || courses[0];
   const selectedAct = acts.find((a) => a.id === selectedActId) || acts[0];
   const selectedUnit = units.find((u) => u.id === selectedUnitId) || units[0];
@@ -881,6 +1216,15 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleOpenSimplifiedUpload()}
+              className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer"
+              title="Upload a new PDF to any course or unit"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload New PDF</span>
+            </button>
             <button
               onClick={() => setCourseModalOpen(true)}
               className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
@@ -1140,6 +1484,15 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       <Eye className="w-3.5 h-3.5" />
                       <span>View Live</span>
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSimplifiedUpload(course.id)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors cursor-pointer"
+                      title={`Upload a new PDF to ${course.title}`}
+                    >
+                      <UploadCloud className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Upload PDF</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleOpenEditCourse(course)}
@@ -1461,6 +1814,16 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
             <button
               type="button"
+              onClick={() => handleOpenSimplifiedUpload(selectedCourseId, selectedActId, selectedUnitId)}
+              className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer"
+              title="Upload a new PDF to this unit or any other course"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload New PDF</span>
+            </button>
+
+            <button
+              type="button"
               disabled={!selectedUnitId}
               onClick={() =>
                 setContentModal({
@@ -1475,10 +1838,10 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                   },
                 })
               }
-              className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Content Item</span>
+              <span>Manual Entry</span>
             </button>
           </div>
         </div>
@@ -1498,29 +1861,25 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 <p className="text-[11px] text-slate-400">Upload chapter notes, practice questions, or revision flowcharts.</p>
                 <button
                   type="button"
-                  onClick={() =>
-                    setContentModal({
-                      open: true,
-                      mode: "add",
-                      data: {
-                        unitId: selectedUnitId,
-                        type: "notes",
-                        isPublished: true,
-                        isSample: false,
-                        samplePagesRange: "1-5",
-                      },
-                    })
-                  }
-                  className="mt-2 px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  onClick={() => handleOpenSimplifiedUpload(selectedCourseId, selectedActId, selectedUnitId)}
+                  className="mt-2 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add First Content Item
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload PDF Document</span>
                 </button>
               </>
             ) : (
               <>
-                <p className="font-semibold text-slate-700">Select a unit to manage its content.</p>
-                <p className="text-[11px] text-slate-400">Choose a course, then an Act and Unit above to upload study material.</p>
+                <p className="font-semibold text-slate-700">Select a unit or upload directly.</p>
+                <p className="text-[11px] text-slate-400">Upload a PDF to any course, Act or unit with one click.</p>
+                <button
+                  type="button"
+                  onClick={() => handleOpenSimplifiedUpload(selectedCourseId)}
+                  className="mt-3 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload New PDF to Course</span>
+                </button>
               </>
             )}
           </div>
@@ -2316,6 +2675,334 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                   className="px-5 py-2 rounded-xl bg-[#221D1D] hover:bg-black text-white font-semibold cursor-pointer"
                 >
                   {contentModal.mode === "add" ? "Create Item" : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* SIMPLIFIED PDF UPLOAD MODAL                                  */}
+      {/* ============================================================ */}
+      {simplifiedUploadOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50/60 via-slate-50 to-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+                  <UploadCloud className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    Upload Study Material PDF
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Simplified Flow
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Upload notes, flowcharts, or questions directly to any course with 1 click.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSimplifiedUploadOpen(false)}
+                className="w-9 h-9 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmitSimplifiedUpload} className="p-6 space-y-5 text-xs text-slate-700">
+              {/* STEP 1: TARGET COURSE & STRUCTURE */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">1</span>
+                    Target Course & Placement
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium">Auto-creates chapters if none exist</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Course Selector */}
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Course *</label>
+                    <select
+                      value={targetCourseId}
+                      onChange={(e) => handleCourseChangeInModal(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      required
+                    >
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Act / Subject Selector */}
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Act / Subject *</span>
+                      {loadingUploadActs && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
+                    </label>
+                    <select
+                      value={targetActId}
+                      onChange={(e) => handleActChangeInModal(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    >
+                      {uploadActsList.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.title}
+                        </option>
+                      ))}
+                      <option value="__new_act__">+ New Act / Subject...</option>
+                    </select>
+                  </div>
+
+                  {/* Unit / Chapter Selector */}
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Unit / Chapter *</span>
+                      {loadingUploadUnits && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
+                    </label>
+                    <select
+                      value={targetUnitId}
+                      onChange={(e) => handleUnitChangeInModal(e.target.value)}
+                      disabled={targetActId === "__new_act__"}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      {uploadUnitsList.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.title}
+                        </option>
+                      ))}
+                      <option value="__new_unit__">+ New Unit / Chapter...</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Inline Creation Inputs if needed */}
+                {(creatingActInline || creatingUnitInline) && (
+                  <div className="pt-2 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {creatingActInline && (
+                      <div>
+                        <label className="block font-semibold text-emerald-800 mb-1">
+                          New Act Name <span className="text-slate-400 font-normal">(Auto-creates)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={inlineActName}
+                          onChange={(e) => setInlineActName(e.target.value)}
+                          placeholder="e.g. Indian Contract Act, 1872"
+                          className="w-full p-2.5 rounded-xl border border-emerald-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        />
+                      </div>
+                    )}
+                    {creatingUnitInline && (
+                      <div>
+                        <label className="block font-semibold text-emerald-800 mb-1">
+                          New Chapter Name <span className="text-slate-400 font-normal">(Auto-creates)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={inlineUnitName}
+                          onChange={(e) => setInlineUnitName(e.target.value)}
+                          placeholder="e.g. Unit 1: Nature of Contracts"
+                          className="w-full p-2.5 rounded-xl border border-emerald-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* STEP 2: PDF UPLOAD ZONE */}
+              <div>
+                <input
+                  type="file"
+                  ref={simplifiedFileInputRef}
+                  accept="application/pdf"
+                  onChange={handleSimplifiedPdfSelected}
+                  className="hidden"
+                />
+
+                <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5 mb-2">
+                  <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">2</span>
+                  Select & Upload PDF File *
+                </span>
+
+                {pdfUploadProgress ? (
+                  <div className="border border-emerald-200 bg-emerald-50/60 rounded-2xl p-6 text-center space-y-3">
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+                    <div>
+                      <p className="font-bold text-slate-800">Uploading & Securing PDF...</p>
+                      <p className="text-[11px] text-slate-500">Storing on secure cloud storage with DRM protection.</p>
+                    </div>
+                  </div>
+                ) : pdfUploadedPublicId ? (
+                  <div className="border border-emerald-200 bg-emerald-50/80 rounded-2xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <FileCheck className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-900 truncate">{pdfUploadedFileName || "Document.pdf"}</p>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900">
+                            <Check className="w-3 h-3" /> Ready
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          {pdfUploadedFileSize ? `${(pdfUploadedFileSize / (1024 * 1024)).toFixed(2)} MB` : "PDF file ready"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => simplifiedFileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs transition-colors cursor-pointer shrink-0"
+                    >
+                      Change File
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => simplifiedFileInputRef.current?.click()}
+                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-7 text-center cursor-pointer transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-emerald-200/80 text-emerald-600 group-hover:scale-105 transition-transform flex items-center justify-center mx-auto mb-3">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <p className="font-bold text-slate-800 text-sm">
+                      Click here to choose PDF file or drag & drop
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Accepts standard PDF documents. Title and file details will auto-fill automatically.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* STEP 3: DOCUMENT METADATA */}
+              <div className="space-y-3 pt-1">
+                <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">3</span>
+                  Document Details & Settings
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block font-semibold text-slate-700 mb-1">Document Title *</label>
+                    <input
+                      type="text"
+                      value={pdfTitle}
+                      onChange={(e) => setPdfTitle(e.target.value)}
+                      placeholder="e.g. Chapter 1: Comprehensive Study Notes & Analysis"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Material Type</label>
+                    <select
+                      value={pdfContentType}
+                      onChange={(e) => setPdfContentType(e.target.value as ContentItemRecord["type"])}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    >
+                      <option value="notes">📘 Study Notes</option>
+                      <option value="flowcharts">📊 Flowcharts / Mindmaps</option>
+                      <option value="practice">📝 Practice Questions</option>
+                      <option value="case_problems">⚖️ Case Study & Precedents</option>
+                      <option value="pyqs">🏛️ Previous Year Questions (PYQs)</option>
+                      <option value="revision">⚡ Rapid Revision</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Description (Optional)</label>
+                  <textarea
+                    rows={2}
+                    value={pdfDescription}
+                    onChange={(e) => setPdfDescription(e.target.value)}
+                    placeholder="Short summary, covered ICAI sections, or chapter keywords..."
+                    className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Free Sample & Publish Options */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={pdfIsSample}
+                      onChange={(e) => setPdfIsSample(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                    />
+                    <div>
+                      <span className="font-semibold text-slate-800">Allow Free Sample Preview</span>
+                      <p className="text-[10px] text-slate-500">Unregistered visitors can preview selected pages.</p>
+                    </div>
+                  </label>
+
+                  {pdfIsSample && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-600 text-[11px]">Pages Range:</span>
+                      <input
+                        type="text"
+                        value={pdfSamplePages}
+                        onChange={(e) => setPdfSamplePages(e.target.value)}
+                        placeholder="1-5"
+                        className="w-20 p-1.5 rounded-lg border border-slate-300 bg-white text-center font-mono text-xs focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  )}
+
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={pdfIsPublished}
+                      onChange={(e) => setPdfIsPublished(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                    />
+                    <span className="font-semibold text-slate-800">Publish Immediately</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* FOOTER ACTIONS */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setSimplifiedUploadOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={pdfSaving || pdfUploadProgress || (!pdfUploadedPublicId && !pdfUploadFile) || !pdfTitle.trim()}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold flex items-center gap-2 shadow-md hover:shadow transition-all cursor-pointer"
+                >
+                  {pdfSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Publishing PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4" />
+                      <span>Upload & Publish PDF</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
