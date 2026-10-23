@@ -98,6 +98,22 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     availability: "live" as "live" | "coming_soon",
   });
 
+  const [editCourseModalOpen, setEditCourseModalOpen] = useState<boolean>(false);
+  const [editingCourseData, setEditingCourseData] = useState<CourseRecord | null>(null);
+  const [editCourseForm, setEditCourseForm] = useState({
+    title: "",
+    examBody: "ICAI",
+    description: "",
+    price: 99,
+    mrp: 299,
+    accessDays: 30,
+    availability: "live" as "live" | "coming_soon",
+    slug: "",
+    thumbnail: "",
+  });
+  const [editCourseSaving, setEditCourseSaving] = useState<boolean>(false);
+  const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
+
   // Acts state
   const [acts, setActs] = useState<ActRecord[]>([]);
   const [selectedActId, setSelectedActId] = useState<string>("");
@@ -480,6 +496,119 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     }
   };
 
+  // Handle Open Edit Course Modal
+  const handleOpenEditCourse = (course: CourseRecord) => {
+    setEditingCourseData(course);
+    setEditCourseForm({
+      title: course.title || "",
+      examBody: course.exam_body || "ICAI",
+      description: course.description || "",
+      price: typeof course.price === "number" ? course.price : 99,
+      mrp: typeof course.mrp === "number" ? course.mrp : (typeof course.price === "number" ? course.price * 2 : 299),
+      accessDays: typeof course.accessDays === "number" ? course.accessDays : 30,
+      availability: course.availability === "coming_soon" ? "coming_soon" : "live",
+      slug: course.slug || course.id || "",
+      thumbnail: course.thumbnail || "",
+    });
+    setEditCourseModalOpen(true);
+  };
+
+  // Handle Save Course Edits
+  const handleUpdateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCourseData) return;
+    setEditCourseSaving(true);
+    try {
+      const res = await adminFetchRef.current(`/api/admin/courses/${editingCourseData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editCourseForm.title.trim(),
+          exam_body: editCourseForm.examBody,
+          description: editCourseForm.description.trim(),
+          price: Number(editCourseForm.price),
+          mrp: Number(editCourseForm.mrp),
+          accessDays: Number(editCourseForm.accessDays),
+          availability: editCourseForm.availability,
+          slug: editCourseForm.slug.trim(),
+          thumbnail: editCourseForm.thumbnail,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCourses((prev) =>
+          prev.map((c) =>
+            c.id === editingCourseData.id
+              ? {
+                  ...c,
+                  title: editCourseForm.title.trim(),
+                  exam_body: editCourseForm.examBody,
+                  description: editCourseForm.description.trim(),
+                  price: Number(editCourseForm.price),
+                  mrp: Number(editCourseForm.mrp),
+                  accessDays: Number(editCourseForm.accessDays),
+                  availability: editCourseForm.availability,
+                  slug: editCourseForm.slug.trim(),
+                  thumbnail: editCourseForm.thumbnail || c.thumbnail,
+                }
+              : c
+          )
+        );
+        setEditingCourse((prev) => ({
+          ...prev,
+          [editingCourseData.id]: {
+            price: Number(editCourseForm.price),
+            accessDays: Number(editCourseForm.accessDays),
+            saving: false,
+          },
+        }));
+        setEditCourseModalOpen(false);
+        setEditingCourseData(null);
+        showToast(`Course "${editCourseForm.title}" updated successfully.`);
+      } else {
+        alert(data.message || "Failed to update course.");
+      }
+    } catch (err) {
+      alert("Error updating course: " + errorMessage(err));
+    } finally {
+      setEditCourseSaving(false);
+    }
+  };
+
+  // Handle Delete Course
+  const handleDeleteCourse = async (course: CourseRecord) => {
+    const isCore = course.id === "course-ca-foundation" || course.id === "course-cseet";
+    const promptMsg = isCore
+      ? `CAUTION: "${course.title}" is a primary foundational course.\n\nAre you sure you want to permanently delete it from the website?`
+      : `Are you sure you want to delete course "${course.title}"?\n\nThis will remove the course and its configuration from the website.`;
+
+    if (!confirm(promptMsg)) return;
+
+    setDeletingCourseId(course.id);
+    try {
+      const res = await adminFetchRef.current(`/api/admin/courses/${course.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCourses((prev) => prev.filter((c) => c.id !== course.id));
+        if (selectedCourseId === course.id) {
+          setSelectedCourseId("");
+          setActs([]);
+          setUnits([]);
+          setContentItems([]);
+        }
+        showToast(`Course "${course.title}" deleted.`);
+      } else {
+        alert(data.message || "Failed to delete course.");
+      }
+    } catch (err) {
+      alert("Error deleting course: " + errorMessage(err));
+    } finally {
+      setDeletingCourseId(null);
+    }
+  };
+
   // Handle Add Act
   const handleCreateAct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -853,20 +982,47 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     </div>
                   </div>
 
-                  {/* Toggle Live vs Coming Soon Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleCourseAvailability(course)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
-                      isLive
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
-                        : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-                    }`}
-                    title="Click to toggle Live vs Coming Soon"
-                  >
-                    <span className={`w-2 h-2 rounded-full ${isLive ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
-                    <span>{isLive ? "Live" : "Coming Soon"}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditCourse(course)}
+                      className="px-2.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 bg-white hover:bg-slate-100 text-[#005A9C] border border-[#BFDBFE] transition-colors cursor-pointer shadow-2xs"
+                      title="Edit Course Details"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={deletingCourseId === course.id}
+                      onClick={() => handleDeleteCourse(course)}
+                      className="px-2.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                      title="Delete Course"
+                    >
+                      {deletingCourseId === course.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Delete</span>
+                    </button>
+
+                    {/* Toggle Live vs Coming Soon Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleCourseAvailability(course)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                        isLive
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                          : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                      }`}
+                      title="Click to toggle Live vs Coming Soon"
+                    >
+                      <span className={`w-2 h-2 rounded-full ${isLive ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                      <span>{isLive ? "Live" : "Coming Soon"}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Course Cover Image & Direct Device Upload Section */}
@@ -984,6 +1140,29 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       <Eye className="w-3.5 h-3.5" />
                       <span>View Live</span>
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditCourse(course)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
+                      title="Edit Course Details"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deletingCourseId === course.id}
+                      onClick={() => handleDeleteCourse(course)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer disabled:opacity-50"
+                      title="Delete Course"
+                    >
+                      {deletingCourseId === course.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Delete</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setSelectedCourseId(course.id)}
@@ -1586,6 +1765,184 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 >
                   Create Course
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT COURSE MODAL */}
+      {editCourseModalOpen && editingCourseData && (
+        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
+              <div>
+                <h3 className="font-serif font-bold text-base text-[#221D1D]">
+                  Edit Course Details
+                </h3>
+                <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                  ID: {editingCourseData.id}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditCourseModalOpen(false);
+                  setEditingCourseData(null);
+                }}
+                className="p-1 rounded-xl hover:bg-[#F7F7F5] cursor-pointer"
+              >
+                <X className="w-4 h-4 text-[#77716E]" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateCourse} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Course Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Course Title"
+                  value={editCourseForm.title}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, title: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Course URL Slug</label>
+                <input
+                  type="text"
+                  placeholder="e.g. ca-foundation or course-ca-foundation"
+                  value={editCourseForm.slug}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, slug: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Exam Body</label>
+                  <select
+                    value={editCourseForm.examBody}
+                    onChange={(e) => setEditCourseForm({ ...editCourseForm, examBody: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#AED7E9]"
+                  >
+                    <option value="ICAI">ICAI</option>
+                    <option value="ICSI">ICSI</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Availability Status</label>
+                  <select
+                    value={editCourseForm.availability}
+                    onChange={(e) =>
+                      setEditCourseForm({
+                        ...editCourseForm,
+                        availability: e.target.value as "live" | "coming_soon",
+                      })
+                    }
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#AED7E9]"
+                  >
+                    <option value="live">Live (Active on Website)</option>
+                    <option value="coming_soon">Coming Soon</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Course Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="What does this course codex cover?"
+                  value={editCourseForm.description}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, description: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] resize-y"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Selling Price (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editCourseForm.price}
+                    onChange={(e) => setEditCourseForm({ ...editCourseForm, price: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold text-[#221D1D] focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">MRP Strike Price (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editCourseForm.mrp}
+                    onChange={(e) => setEditCourseForm({ ...editCourseForm, mrp: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Access (Days)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editCourseForm.accessDays}
+                    onChange={(e) => setEditCourseForm({ ...editCourseForm, accessDays: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:border-[#AED7E9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Cover Image URL / Path</label>
+                <input
+                  type="text"
+                  placeholder="/assets/ca-cs-hero-books-sharp.png or https://..."
+                  value={editCourseForm.thumbnail}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, thumbnail: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9] font-mono text-[11px]"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  You can also upload a cover image directly from your computer using the &quot;Upload Cover Image from Device&quot; button on the course card.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-[#E7E4E7]">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCourse(editingCourseData)}
+                  className="px-3.5 py-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 font-semibold cursor-pointer flex items-center gap-1.5 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Course</span>
+                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditCourseModalOpen(false);
+                      setEditingCourseData(null);
+                    }}
+                    className="px-4 py-2 rounded-xl border border-[#E7E4E7] text-slate-600 font-semibold cursor-pointer hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={editCourseSaving}
+                    className="px-5 py-2 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold cursor-pointer flex items-center gap-1.5 transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    {editCourseSaving ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    <span>{editCourseSaving ? "Saving..." : "Save Changes"}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

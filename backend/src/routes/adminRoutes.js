@@ -1581,8 +1581,26 @@ router.put("/admin/courses/:id", async (req, res) => {
 
 router.delete("/admin/courses/:id", async (req, res) => {
   try {
+    const id = req.params.id;
     const coursesTable = Database.table("courses");
-    coursesTable.delete(req.params.id);
+    const local = coursesTable.findOne((c) => c.id === id || c._id === id || c.slug === id);
+    if (local) coursesTable.delete(local.id);
+    coursesTable.delete(id);
+
+    if (isConnected()) {
+      try {
+        const mongoose = require("mongoose");
+        const filter = mongoose.isValidObjectId(id)
+          ? { $or: [{ _id: id }, { id }, { slug: id }] }
+          : { $or: [{ id }, { slug: id }] };
+        await Course.deleteMany(filter);
+        await Subscription.deleteMany({
+          $or: [{ course_ids: id }, { id: `sub-${id}` }, { slug: id }],
+        });
+      } catch (mongoErr) {
+        console.warn("[AdminRoutes] Course delete from Atlas error:", mongoErr.message);
+      }
+    }
     res.status(200).json({ success: true, message: "Course deleted." });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
