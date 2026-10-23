@@ -11,6 +11,9 @@ import {
   CheckCircle2,
   X,
   ArrowRight,
+  UploadCloud,
+  ImageIcon,
+  Loader2,
 } from "lucide-react";
 
 export interface SlideData {
@@ -39,7 +42,12 @@ const FALLBACK_SLIDE_IMAGE = "/images/hero_ca_foundation.jpg";
 
 function SlideImage({ src, alt, className }: { src: string; alt: string; className: string }) {
   const [fallbackApplied, setFallbackApplied] = useState(false);
-  const resolvedSrc = fallbackApplied ? FALLBACK_SLIDE_IMAGE : src;
+  const resolvedSrc = fallbackApplied ? FALLBACK_SLIDE_IMAGE : (src || FALLBACK_SLIDE_IMAGE);
+  const isExternalOrData =
+    resolvedSrc.startsWith("http://") ||
+    resolvedSrc.startsWith("https://") ||
+    resolvedSrc.startsWith("data:") ||
+    resolvedSrc.startsWith("blob:");
 
   return (
     <Image
@@ -48,6 +56,7 @@ function SlideImage({ src, alt, className }: { src: string; alt: string; classNa
       fill
       className={className}
       onError={() => setFallbackApplied(true)}
+      unoptimized={isExternalOrData}
     />
   );
 }
@@ -123,6 +132,8 @@ export function AdminCarouselTab({
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentSlide, setCurrentSlide] = useState<Partial<SlideData>>({
     placement: "website",
     title: "",
@@ -194,6 +205,69 @@ export function AdminCarouselTab({
       showToast("Applied live website carousel hero defaults.");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleDeviceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select a valid image file (JPG, PNG, WebP).");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("Image exceeds 15MB limit. Please select a smaller image.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    showToast("Uploading image from your device...");
+
+    // Immediate preview for instant visual feedback
+    const localPreview = URL.createObjectURL(file);
+    setCurrentSlide((prev) => ({ ...prev, image: localPreview }));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await adminFetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setCurrentSlide((prev) => ({ ...prev, image: data.url }));
+        showToast("Image uploaded successfully from device!");
+      } else {
+        // Fallback to base64 Data URL so user is never blocked
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const resStr = typeof reader.result === "string" ? reader.result : "";
+          if (resStr) {
+            setCurrentSlide((prev) => ({ ...prev, image: resStr }));
+          }
+        };
+        reader.readAsDataURL(file);
+        showToast("Image loaded from device!");
+      }
+    } catch {
+      // Offline / network fallback to base64 Data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const resStr = typeof reader.result === "string" ? reader.result : "";
+        if (resStr) {
+          setCurrentSlide((prev) => ({ ...prev, image: resStr }));
+        }
+      };
+      reader.readAsDataURL(file);
+      showToast("Image loaded from device!");
+    } finally {
+      setIsUploadingImage(false);
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -486,51 +560,146 @@ export function AdminCarouselTab({
                 />
               </div>
 
-              {/* Artwork Selection */}
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-                  <span>3D Statutory Artwork Image</span>
-                  <span className="text-[10px] text-slate-400 font-normal">Choose preset or custom URL</span>
-                </label>
-
-                {/* Preset Artwork Buttons */}
-                <div className="grid grid-cols-3 gap-2 mb-2.5">
-                  {PRESET_ARTWORKS.map((preset) => {
-                    const isSelected = currentSlide.image === preset.src;
-                    return (
-                      <button
-                        type="button"
-                        key={preset.src}
-                        onClick={() => setCurrentSlide({ ...currentSlide, image: preset.src })}
-                        className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-[#221D1D] bg-[#F7F7F5] ring-2 ring-[#221D1D]/10"
-                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="relative w-full h-14 rounded-lg overflow-hidden bg-slate-100">
-                          <Image
-                            src={preset.src}
-                            alt={preset.label}
-                            fill
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span className="text-[10px] font-semibold text-center text-[#221D1D] line-clamp-1">
-                          {preset.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+              {/* 3D Statutory Artwork & Device Upload */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-700 flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#005A9C]" />
+                    <span>3D Statutory Artwork Image</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-normal">Choose preset or upload from device</span>
                 </div>
 
+                {/* Hidden File Input for Device Upload */}
                 <input
-                  type="text"
-                  value={currentSlide.image || ""}
-                  onChange={(e) => setCurrentSlide({ ...currentSlide, image: e.target.value })}
-                  placeholder="Custom image path or URL (e.g. /images/hero_ca_foundation.jpg)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#BFAFE5] focus:ring-2 focus:ring-[#BFAFE5]/20 transition font-mono"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleDeviceImageUpload}
                 />
+
+                {/* Prominent Upload Image from Device Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="w-full group flex items-center justify-between px-4 py-3 rounded-xl border-2 border-dashed border-[#005A9C]/40 hover:border-[#005A9C] bg-[#EFF6FF] hover:bg-[#DBEAFE]/70 text-[#005A9C] transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#005A9C] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                      {isUploadingImage ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      ) : (
+                        <UploadCloud className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-bold text-xs text-[#0A192F] flex items-center gap-2">
+                        <span>{isUploadingImage ? "Uploading from Device..." : "Upload Image from Device"}</span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-[#005A9C]/10 text-[#005A9C] text-[9px] font-bold">
+                          Direct Phone / PC Upload
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#64748B]">
+                        Choose any JPG, PNG, or WebP photo directly from your files
+                      </p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1 text-[11px] font-semibold text-[#005A9C] bg-white px-2.5 py-1.5 rounded-lg border border-[#005A9C]/20 shadow-2xs">
+                    <span>Browse Device</span>
+                  </div>
+                </button>
+
+                {/* Current Active Preview Banner */}
+                {currentSlide.image && (
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="relative w-14 h-12 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={currentSlide.image}
+                        alt="Current selected artwork"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-[#0A192F]">Selected Artwork</span>
+                        {PRESET_ARTWORKS.some((p) => p.src === currentSlide.image) ? (
+                          <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[9px] font-semibold">
+                            Official 3D Preset
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9px] font-semibold">
+                            Uploaded from Device
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-500 truncate font-mono mt-0.5" title={currentSlide.image}>
+                        {currentSlide.image}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-semibold transition cursor-pointer shrink-0"
+                    >
+                      Change
+                    </button>
+                  </div>
+                )}
+
+                {/* Preset Artwork Buttons */}
+                <div>
+                  <span className="block text-[11px] font-semibold text-slate-600 mb-1.5">
+                    Or choose from official 3D statutory presets:
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PRESET_ARTWORKS.map((preset) => {
+                      const isSelected = currentSlide.image === preset.src;
+                      return (
+                        <button
+                          type="button"
+                          key={preset.src}
+                          onClick={() => setCurrentSlide({ ...currentSlide, image: preset.src })}
+                          className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[#005A9C] bg-[#EFF6FF] ring-2 ring-[#005A9C]/20 shadow-xs"
+                              : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="relative w-full h-14 rounded-lg overflow-hidden bg-slate-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={preset.src}
+                              alt={preset.label}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className={`text-[10px] font-semibold text-center line-clamp-1 ${
+                            isSelected ? "text-[#005A9C] font-bold" : "text-[#221D1D]"
+                          }`}>
+                            {preset.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom URL Input */}
+                <div>
+                  <span className="block text-[10px] text-slate-400 mb-1">
+                    Or custom image path or URL:
+                  </span>
+                  <input
+                    type="text"
+                    value={currentSlide.image || ""}
+                    onChange={(e) => setCurrentSlide({ ...currentSlide, image: e.target.value })}
+                    placeholder="Custom image path or URL (e.g. /images/hero_ca_foundation.jpg or https://...)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-[#221D1D] bg-[#F7F7F5] focus:bg-white focus:outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 transition font-mono"
+                  />
+                </div>
               </div>
 
               {/* Badge & Order */}
