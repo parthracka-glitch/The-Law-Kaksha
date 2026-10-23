@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { isUserAuthenticated } from "@/lib/api";
 import {
   Trash2,
   Plus,
@@ -12,9 +14,21 @@ import {
   ArrowRight,
   ShoppingBag,
   Tag,
+  Lock,
 } from "lucide-react";
 
 export default function CartPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const authed = isUserAuthenticated();
+    setIsAuthenticated(authed);
+    if (!authed) {
+      router.push("/login?redirect=/cart");
+    }
+  }, [router]);
+
   const {
     items,
     removeFromCart,
@@ -39,6 +53,32 @@ export default function CartPage() {
       setInputCode("");
     }
   };
+
+  if (isAuthenticated === false) {
+    return (
+      <div className="min-h-screen bg-[#F0F7FF]/40 flex flex-col justify-between">
+        <Navbar />
+        <main className="flex-1 max-w-md mx-auto px-4 py-24 text-center flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center mb-4 shadow-sm">
+            <Lock className="w-8 h-8 text-[#005A9C]" />
+          </div>
+          <h1 className="text-2xl font-serif font-black text-[#0A192F] mb-2">
+            Authentication Required
+          </h1>
+          <p className="text-sm text-[#64748B] mb-6 leading-relaxed">
+            Please log in to your Law Kaksha student account to view and access your shopping cart.
+          </p>
+          <Link
+            href="/login?redirect=/cart"
+            className="w-full py-3.5 px-6 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm shadow-md transition-all active:scale-95"
+          >
+            Log In to Access Cart &rarr;
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F7F5] flex flex-col justify-between">

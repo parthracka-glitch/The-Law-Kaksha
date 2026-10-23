@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { EnhancedSampleChapterModal } from "@/components/EnhancedSampleChapterModal";
 import { useCart } from "@/context/CartContext";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, isUserAuthenticated } from "@/lib/api";
 import {
   CheckCircle2,
   ArrowRight,
@@ -245,6 +245,7 @@ const FALLBACK_CATALOG: Record<string, ProductItem> = {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const productId = params?.id as string;
 
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
@@ -311,6 +312,11 @@ export default function ProductDetailPage() {
     String(product.title || "").includes("CSEET");
 
   const handleAddToCart = () => {
+    if (!isUserAuthenticated()) {
+      router.push(`/login?redirect=${encodeURIComponent(`/product/${product?.id || productId}`)}`);
+      return;
+    }
+    if (!product) return;
     addToCart({
       id: product.id,
       title: product.title,
@@ -324,6 +330,10 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
+    if (!isUserAuthenticated()) {
+      router.push(`/login?redirect=${encodeURIComponent(`/product/${product?.id || productId}`)}`);
+      return;
+    }
     handleAddToCart();
     setCheckoutStep("details");
   };

@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { useCart } from "@/context/CartContext";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, isUserAuthenticated } from "@/lib/api";
 import {
   Search,
   BookOpen,
@@ -58,6 +58,7 @@ interface FreeResource {
 const FALLBACK_PRODUCTS: Product[] = [];
 
 function CoursesCatalogContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialCourse = searchParams.get("course");
 
@@ -181,6 +182,10 @@ function CoursesCatalogContent() {
   };
 
   const handleSubscribeNow = (product: Product) => {
+    if (!isUserAuthenticated()) {
+      router.push("/login?redirect=/courses");
+      return;
+    }
     addToCart({
       id: product.id,
       title: product.title,

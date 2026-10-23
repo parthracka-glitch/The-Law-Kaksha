@@ -138,6 +138,19 @@ export function getStudentAuthToken(): string | null {
   );
 }
 
+export function isUserAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!(
+    localStorage.getItem("lawkaksha_active_student") ||
+    localStorage.getItem("lawkaksha_student_session") ||
+    localStorage.getItem("lawkaksha_student_user") ||
+    localStorage.getItem("lawkaksha_admin_session") ||
+    localStorage.getItem("lawkaksha_student_token") ||
+    localStorage.getItem("lawkaksha_token") ||
+    localStorage.getItem("token")
+  );
+}
+
 export function setStudentAuthSession(token: string, user: AuthUser) {
   if (typeof window === "undefined") return;
   localStorage.setItem("lawkaksha_student_token", token);

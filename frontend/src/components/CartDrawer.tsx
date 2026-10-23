@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useCart, type CartItem } from "@/context/CartContext";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, isUserAuthenticated } from "@/lib/api";
 
 interface RazorpayPaymentResponse {
   razorpay_payment_id?: string;
@@ -155,7 +155,16 @@ export function CartDrawer() {
     }
   }, [isCartOpen]);
 
+  // Auto-close and redirect if user is not authenticated
+  useEffect(() => {
+    if (isCartOpen && typeof window !== "undefined" && !isUserAuthenticated()) {
+      setIsCartOpen(false);
+      router.push("/login?redirect=cart");
+    }
+  }, [isCartOpen, router, setIsCartOpen]);
+
   if (!isCartOpen) return null;
+  if (typeof window !== "undefined" && !isUserAuthenticated()) return null;
 
   const handleApplyCoupon = (e?: React.FormEvent, customCode?: string) => {
     if (e) e.preventDefault();

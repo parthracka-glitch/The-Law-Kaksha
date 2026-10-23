@@ -15,7 +15,7 @@ import {
   Award,
   Layers,
 } from "lucide-react";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, isUserAuthenticated } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 
 export interface PlanFeatureItem {
@@ -246,6 +246,10 @@ export function SubscriptionOverview() {
   }, []);
 
   const handleBuyNow = (plan: SubscriptionPlanItem) => {
+    if (!isUserAuthenticated()) {
+      router.push("/login?redirect=/checkout");
+      return;
+    }
     addToCart({
       id: plan.id,
       title: plan.title,
@@ -259,6 +263,10 @@ export function SubscriptionOverview() {
   };
 
   const handleAddToCart = (plan: SubscriptionPlanItem) => {
+    if (!isUserAuthenticated()) {
+      router.push("/login?redirect=/#pricing");
+      return;
+    }
     addToCart({
       id: plan.id,
       title: plan.title,

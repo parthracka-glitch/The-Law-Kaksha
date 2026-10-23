@@ -390,19 +390,21 @@ export function Navbar() {
               <Search className="w-5 h-5 stroke-[2]" />
             </button>
 
-            {/* Shopping Cart */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="p-2.5 rounded-full text-[#0A192F] hover:text-[#005A9C] hover:bg-[#F0F7FF] transition-all duration-200 relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C]"
-              aria-label="View Cart"
-            >
-              <ShoppingBag className="w-5 h-5 stroke-[2]" />
-              {totalItemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#005A9C] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
-                  {totalItemCount}
-                </span>
-              )}
-            </button>
+            {/* Shopping Cart — Only visible when user is logged in */}
+            {activeStudent && (
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="p-2.5 rounded-full text-[#0A192F] hover:text-[#005A9C] hover:bg-[#F0F7FF] transition-all duration-200 relative cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C]"
+                aria-label="View Cart"
+              >
+                <ShoppingBag className="w-5 h-5 stroke-[2]" />
+                {totalItemCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-[#005A9C] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
+                    {totalItemCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT DASHBOARD & PROFILE (when logged in) */}
             {activeStudent ? (

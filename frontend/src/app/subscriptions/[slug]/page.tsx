@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, isUserAuthenticated } from "@/lib/api";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -219,6 +219,10 @@ export default function SubscriptionDetailPage() {
   const discountPercent = Math.round(((subData.mrp - subData.price) / subData.mrp) * 100);
 
   const handleBuyNow = () => {
+    if (!isUserAuthenticated()) {
+      router.push("/login?redirect=/checkout");
+      return;
+    }
     addToCart({
       id: subData.id,
       title: subData.title,
@@ -232,6 +236,10 @@ export default function SubscriptionDetailPage() {
   };
 
   const handleAddToCart = () => {
+    if (!isUserAuthenticated()) {
+      router.push(`/login?redirect=${encodeURIComponent(`/subscriptions/${slug}`)}`);
+      return;
+    }
     addToCart({
       id: subData.id,
       title: subData.title,
