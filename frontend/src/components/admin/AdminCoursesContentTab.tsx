@@ -669,22 +669,22 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-serif font-bold text-[#221D1D]">Courses &amp; Content Management</h2>
-            <p className="text-xs text-[#77716E] mt-0.5">
+            <h2 className="text-xl font-bold text-[#0A192F]">Courses &amp; Content Management</h2>
+            <p className="text-xs text-[#475569] font-medium mt-0.5">
               Create a course, add its Acts and Units, then upload study resources — all from one place.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setCourseModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Course</span>
             </button>
             <button
               onClick={() => loadCourses()}
-              className="p-2 rounded-2xl bg-white border border-[#E7E4E7] text-[#77716E] hover:text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              className="p-2 rounded-2xl bg-white border border-[#CBD5E1] text-[#0A192F] hover:text-[#005A9C] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
               title="Refresh Courses"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${courseLoading ? "animate-spin" : ""}`} />
@@ -696,14 +696,14 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {courses.length === 0 && !courseLoading && (
-            <div className="lg:col-span-2 rounded-3xl border-2 border-dashed border-[#AED7E9] bg-[#F7FBFD] p-6 sm:p-8">
+            <div className="lg:col-span-2 rounded-3xl border-2 border-dashed border-[#BFDBFE] bg-[#EFF6FF]/40 p-6 sm:p-8">
               <div className="max-w-2xl mx-auto text-center space-y-5">
-                <div className="w-14 h-14 rounded-2xl bg-white border border-[#AED7E9] flex items-center justify-center mx-auto shadow-sm">
-                  <BookOpen className="w-7 h-7 text-[#4B8097]" />
+                <div className="w-14 h-14 rounded-2xl bg-white border border-[#BFDBFE] flex items-center justify-center mx-auto shadow-sm">
+                  <BookOpen className="w-7 h-7 text-[#005A9C]" />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-lg text-[#221D1D]">Start building your curriculum</h3>
-                  <p className="text-xs text-[#77716E] mt-1.5 max-w-lg mx-auto">
+                  <h3 className="font-bold text-lg text-[#0A192F]">Start building your curriculum</h3>
+                  <p className="text-xs text-[#475569] font-medium mt-1.5 max-w-lg mx-auto">
                     Create your first course, then add Acts, Units, and study resources in a simple three-step flow.
                   </p>
                 </div>
@@ -713,19 +713,19 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     ["2", "Add Acts", "Group the syllabus into statutory Acts."],
                     ["3", "Add Units & Content", "Build units and upload notes, PYQs and flowcharts."],
                   ].map(([step, label, help]) => (
-                    <div key={step} className="rounded-2xl bg-white border border-[#E7E4E7] p-3">
-                      <span className="w-6 h-6 rounded-full bg-[#AED7E9] text-[#221D1D] text-[11px] font-bold flex items-center justify-center mb-2">
+                    <div key={step} className="rounded-2xl bg-white border border-[#CBD5E1] p-3 shadow-2xs">
+                      <span className="w-6 h-6 rounded-full bg-[#EFF6FF] text-[#005A9C] text-[11px] font-bold flex items-center justify-center mb-2 border border-[#BFDBFE]">
                         {step}
                       </span>
-                      <p className="text-xs font-bold text-[#221D1D]">{label}</p>
-                      <p className="text-[11px] text-[#77716E] mt-0.5 leading-relaxed">{help}</p>
+                      <p className="text-xs font-bold text-[#0A192F]">{label}</p>
+                      <p className="text-[11px] text-[#475569] font-medium mt-0.5 leading-relaxed">{help}</p>
                     </div>
                   ))}
                 </div>
                 <button
                   type="button"
                   onClick={() => setCourseModalOpen(true)}
-                  className="px-5 py-2.5 rounded-xl bg-[#221D1D] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Create First Course</span>
@@ -742,25 +742,25 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 key={course.id}
                 className={`bg-white rounded-3xl border p-5 shadow-sm space-y-4 transition-all ${
                   selectedCourseId === course.id
-                    ? "border-[#4B8097] ring-2 ring-[#AED7E9]/40"
-                    : "border-[#E7E4E7] hover:border-[#AED7E9]"
+                    ? "border-[#005A9C] ring-2 ring-[#BFDBFE]"
+                    : "border-[#CBD5E1] hover:border-[#005A9C]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 border border-[#AED7E9] flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5 text-[#4B8097]" />
+                    <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center shrink-0">
+                      <BookOpen className="w-5 h-5 text-[#005A9C]" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-serif font-bold text-sm text-[#221D1D] leading-tight">
+                        <h3 className="font-bold text-sm text-[#0A192F] leading-tight">
                           {course.title}
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE]">
                           {course.exam_body || "ICAI"}
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#77716E] mt-0.5 line-clamp-1">{course.description || "Course Codex"}</p>
+                      <p className="text-[11px] text-[#475569] font-medium mt-0.5 line-clamp-1">{course.description || "Course Codex"}</p>
                     </div>
                   </div>
 

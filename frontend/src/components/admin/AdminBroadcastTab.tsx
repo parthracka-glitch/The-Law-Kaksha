@@ -93,16 +93,16 @@ export function AdminBroadcastTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#AED7E9]/40 text-[#221D1D] border border-[#AED7E9] uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE] uppercase tracking-wider">
               Website Header Control
             </span>
-            <span className="text-xs text-[#77716E]">Live across all pages</span>
+            <span className="text-xs text-[#475569] font-medium">Live across all pages</span>
           </div>
-          <h2 className="text-xl font-serif font-bold text-[#221D1D] mt-1 flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-[#4B8097]" />
+          <h2 className="text-xl font-bold text-[#0A192F] mt-1 flex items-center gap-2">
+            <Megaphone className="w-5 h-5 text-[#005A9C]" />
             <span>Live Broadcast Announcement Bar</span>
           </h2>
-          <p className="text-xs text-[#77716E] mt-0.5 max-w-xl">
+          <p className="text-xs text-[#475569] font-medium mt-0.5 max-w-xl">
             Control the top announcement marquee shown to all visitors on the homepage and student dashboard. Set urgency alerts, discounts, or live batch reminders.
           </p>
         </div>
@@ -111,54 +111,54 @@ export function AdminBroadcastTab({
           <Link
             href="/"
             target="_blank"
-            className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>View Live Website</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#4B8097]" />
+            <ExternalLink className="w-3.5 h-3.5 text-[#005A9C]" />
           </Link>
           <button
             type="button"
             onClick={handleSaveAnnouncement}
             disabled={isSavingAnnouncement}
-            className="px-5 py-2 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-5 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <Send className="w-3.5 h-3.5 text-[#AED7E9]" />
+            <Send className="w-3.5 h-3.5 text-white" />
             <span>{isSavingAnnouncement ? "Publishing..." : "Save & Publish"}</span>
           </button>
         </div>
       </div>
 
       {/* 2. MASTER TOGGLE & LIVE PREVIEW STRIP */}
-      <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+      <div className="bg-white rounded-3xl border border-[#CBD5E1] p-5 sm:p-6 shadow-2xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#CBD5E1]">
           <div className="flex items-center gap-3">
             <div
               className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all ${
                 announcement.enabled
                   ? "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-xs"
-                  : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E]"
+                  : "bg-[#F8FAFC] border-[#CBD5E1] text-[#64748B]"
               }`}
             >
               {announcement.enabled ? (
                 <Radio className="w-5 h-5 animate-pulse text-emerald-600" />
               ) : (
-                <EyeOff className="w-5 h-5 text-[#77716E]" />
+                <EyeOff className="w-5 h-5 text-[#64748B]" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-[#221D1D]">Broadcast Visibility Status</h3>
+                <h3 className="text-sm font-bold text-[#0A192F]">Broadcast Visibility Status</h3>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                     announcement.enabled
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                      : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
+                      : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
                   }`}
                 >
                   {announcement.enabled ? "● Currently Live on Website" : "○ Hidden from Public"}
                 </span>
               </div>
-              <p className="text-xs text-[#77716E] mt-0.5">
+              <p className="text-xs text-[#475569] font-medium mt-0.5">
                 {announcement.enabled
                   ? "This announcement bar is active and visible to all students and website visitors."
                   : "The announcement bar is currently turned off and invisible."}
@@ -198,11 +198,11 @@ export function AdminBroadcastTab({
         {/* REAL-TIME PREVIEW CONTAINER */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-[#4D433F] flex items-center gap-1.5">
-              <Eye className="w-3.5 h-3.5 text-[#4B8097]" />
+            <span className="font-bold text-[#0A192F] flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#005A9C]" />
               <span>Real-Time Website Preview:</span>
             </span>
-            <span className="text-[11px] text-[#77716E]">
+            <span className="text-[11px] font-semibold text-[#475569]">
               {announcement.enabled ? "Live Preview (Active)" : "Live Preview (Will appear when enabled)"}
             </span>
           </div>
@@ -210,41 +210,41 @@ export function AdminBroadcastTab({
           <div
             className={`p-3.5 sm:p-4 rounded-2xl transition-all duration-300 ${
               announcement.enabled
-                ? "bg-[#221D1D] text-white border border-[#383130] shadow-sm"
-                : "bg-[#F7F7F5] text-[#77716E] border border-dashed border-[#D5D0D5]"
+                ? "bg-[#0A192F] text-white border border-[#162A45] shadow-sm"
+                : "bg-[#F8FAFC] text-[#475569] border border-dashed border-[#CBD5E1]"
             }`}
           >
             <div className="flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-[#AED7E9] text-[#221D1D] shrink-0 font-sans shadow-2xs">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#EFF6FF] text-[#005A9C] shrink-0 font-sans shadow-2xs border border-[#BFDBFE]">
                   {announcement.badge || "ANNOUNCEMENT"}
                 </span>
-                <p className="font-medium truncate text-white/95">
+                <p className="font-semibold truncate text-white/95">
                   {announcement.text || "Type your announcement message in the form below..."}
                 </p>
               </div>
               {announcement.link && (
-                <div className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-[#AED7E9] underline underline-offset-2">
+                <div className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-[#38BDF8] underline underline-offset-2">
                   <span>Explore</span>
                   <ArrowRight className="w-3 h-3 stroke-[2.5]" />
                 </div>
               )}
             </div>
           </div>
-          <p className="text-[11px] text-[#77716E] italic">
+          <p className="text-[11px] text-[#475569] font-medium">
             This banner stays pinned right above the navigation bar at the top of every page.
           </p>
         </div>
       </div>
 
       {/* 3. SIMPLE, MINIMAL EDIT FORM */}
-      <div className="bg-white rounded-3xl border border-[#E7E4E7] p-5 sm:p-6 shadow-2xs space-y-5">
-        <div className="border-b border-[#E7E4E7] pb-3">
-          <h3 className="text-sm font-bold text-[#221D1D] flex items-center gap-2">
-            <Tag className="w-4 h-4 text-[#4B8097]" />
+      <div className="bg-white rounded-3xl border border-[#CBD5E1] p-5 sm:p-6 shadow-2xs space-y-5">
+        <div className="border-b border-[#CBD5E1] pb-3">
+          <h3 className="text-sm font-bold text-[#0A192F] flex items-center gap-2">
+            <Tag className="w-4 h-4 text-[#005A9C]" />
             <span>Customize Announcement Details</span>
           </h3>
-          <p className="text-xs text-[#77716E] mt-0.5">
+          <p className="text-xs text-[#475569] font-medium mt-0.5">
             Fill in the badge, text, and link. Changes apply instantly once saved.
           </p>
         </div>

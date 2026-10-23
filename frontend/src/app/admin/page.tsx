@@ -765,11 +765,11 @@ export default function AdminPortalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-[#F8FAFC] flex font-sans">
       {/* TOAST NOTIFICATION */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-full bg-[#221D1D] text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
+        <div className="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-full bg-[#0A192F] text-white text-xs font-semibold shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-[#38BDF8]" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -777,26 +777,26 @@ export default function AdminPortalPage() {
       {/* MOBILE SIDEBAR BACKDROP */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* 1. SHORTLISTED MINIMAL SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-[#E7E4E7] flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-[#CBD5E1] flex flex-col min-h-screen transition-transform duration-300 lg:sticky lg:top-0 lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* LOGO & ADMIN BADGE */}
-        <div className="px-4 pt-5 pb-4 border-b border-[#E7E4E7]">
+        <div className="px-4 pt-5 pb-4 border-b border-[#E2E8F0]">
           <div className="flex items-center justify-between gap-2">
             <Link href="/" className="flex items-center shrink-0">
               <div className="relative h-8 w-28">
                 <Image src="/assets/logo-transparent.png" alt="The Law Kaksha" fill className="object-contain object-left" priority />
               </div>
             </Link>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#C4E1EC]/60 border border-[#AED7E9]">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#221D1D]" />
-              <span className="text-[11px] font-bold text-[#221D1D]">Admin Dashboard</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
+              <span className="text-[11px] font-bold text-[#005A9C]">Admin Dashboard</span>
             </div>
           </div>
         </div>
@@ -825,22 +825,22 @@ export default function AdminPortalPage() {
                 }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer text-left min-h-[46px] ${
                   isNavActive
-                    ? "bg-[#AED7E9]/40 text-[#221D1D] font-bold border border-[#AED7E9] shadow-xs"
-                    : "text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold border border-[#BFDBFE] shadow-xs"
+                    : "text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0A192F]"
                 }`}
               >
-                <Icon className={`shrink-0 ${isNavActive ? "text-[#4B8097]" : "text-[#77716E]"}`} style={{ width: 18, height: 18 }} />
+                <Icon className={`shrink-0 ${isNavActive ? "text-[#005A9C]" : "text-[#64748B]"}`} style={{ width: 18, height: 18 }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold leading-tight">{nav.label}</p>
-                  <p className="text-[10px] text-[#77716E] font-normal truncate mt-0.5">{nav.description}</p>
+                  <p className={`text-[11px] font-medium truncate mt-0.5 ${isNavActive ? "text-[#005A9C]" : "text-[#64748B]"}`}>{nav.description}</p>
                 </div>
                 {nav.badge !== undefined && (typeof nav.badge === "number" ? nav.badge > 0 : Boolean(nav.badge)) && (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     nav.badge === "LIVE"
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                       : isNavActive
-                      ? "bg-[#AED7E9] text-[#221D1D]"
-                      : "bg-[#F7F7F5] text-[#4D433F] border border-[#E7E4E7]"
+                      ? "bg-[#DBEAFE] text-[#005A9C]"
+                      : "bg-[#F1F5F9] text-[#334155] border border-[#CBD5E1]"
                   }`}>
                     {nav.badge}
                   </span>
@@ -851,19 +851,19 @@ export default function AdminPortalPage() {
         </nav>
 
         {/* BOTTOM ADMIN PROFILE */}
-        <div className="p-3.5 border-t border-[#E7E4E7]">
-          <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7]">
-            <div className="w-8 h-8 rounded-full bg-[#AED7E9] text-[#221D1D] text-xs font-bold flex items-center justify-center shrink-0 shadow-xs border border-[#98C5D8]">
+        <div className="p-3.5 border-t border-[#E2E8F0]">
+          <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
+            <div className="w-8 h-8 rounded-full bg-[#EFF6FF] text-[#005A9C] text-xs font-bold flex items-center justify-center shrink-0 shadow-xs border border-[#BFDBFE]">
               AD
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#221D1D] truncate">The Law Kaksha</p>
-              <p className="text-[10px] text-[#77716E] leading-none mt-0.5">Admin Dashboard</p>
+              <p className="text-xs font-bold text-[#0A192F] truncate">The Law Kaksha</p>
+              <p className="text-[11px] text-[#475569] font-medium leading-none mt-0.5">Admin Dashboard</p>
             </div>
             <button
               onClick={handleLogout}
               title="Log Out"
-              className="p-1.5 rounded-xl text-[#77716E] hover:text-[#C35F3B] hover:bg-[#F4C5C0]/30 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-[#64748B] hover:text-[#DC2626] hover:bg-rose-50 transition-colors cursor-pointer"
             >
               <LogOut style={{ width: 14, height: 14 }} />
             </button>
@@ -874,35 +874,35 @@ export default function AdminPortalPage() {
       {/* 2. MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
         {/* STICKY TOP HEADER */}
-        <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#E7E4E7] px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 shadow-xs">
+        <header className="sticky top-0 z-20 bg-white border-b border-[#CBD5E1] px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="lg:hidden p-2 rounded-xl bg-white border border-[#CBD5E1] text-[#0A192F] hover:bg-[#F8FAFC] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-base font-serif font-bold text-[#221D1D]">
+              <h1 className="text-base font-bold text-[#0A192F]">
                 {HUB_HEADERS[activeHub]?.title || "Admin Dashboard"}
               </h1>
-              <p className="text-[11px] text-[#77716E] leading-none mt-0.5">
+              <p className="text-xs text-[#475569] font-medium leading-none mt-1">
                 {HUB_HEADERS[activeHub]?.subtitle || "The Law Kaksha Admin Control Center"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border ${
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
               isAtlasConnected
-                ? "bg-[#AED7E9]/40 text-[#221D1D] border-[#AED7E9]"
-                : "bg-[#F4C5C0]/30 text-[#C35F3B] border-[#F4C5C0]"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                : "bg-amber-50 text-amber-800 border-amber-300"
             }`}>
-              <span className={`w-2 h-2 rounded-full shrink-0 ${isAtlasConnected ? "bg-[#4B8097] animate-pulse" : "bg-[#F7892A]"}`} />
-              <span className="hidden sm:inline">{isAtlasConnected ? "Database Connected" : "Local Sync Active"}</span>
-              <span className="sm:hidden">{isAtlasConnected ? "Live DB" : "Sync"}</span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isAtlasConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+              <span className="hidden sm:inline font-bold">{isAtlasConnected ? "Database Connected" : "Local Sync Active"}</span>
+              <span className="sm:hidden font-bold">{isAtlasConnected ? "Live DB" : "Sync"}</span>
             </div>
           </div>
         </header>
@@ -912,19 +912,19 @@ export default function AdminPortalPage() {
 
           {/* SUB-NAV PILLS FOR STUDY MATERIALS */}
           {activeHub === "materials" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("books_and_notes")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "books_and_notes"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Books & Notes</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
                   {products.length + resources.length}
                 </span>
               </button>
@@ -933,13 +933,13 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("cases")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "cases"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Flame className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Flame className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Case Studies</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
                   {cases.length}
                 </span>
               </button>
@@ -949,13 +949,13 @@ export default function AdminPortalPage() {
                   onClick={() => setActiveTab("mcq")}
                   className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     activeTab === "mcq"
-                      ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                      : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                      ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                      : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#4B8097]" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
                   <span>MCQ Tests</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
                     {mcqTests.length}
                   </span>
                 </button>
@@ -965,11 +965,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("exam_countdown_qotd")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "exam_countdown_qotd" || activeTab === "qotd"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Calendar className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Exam Dates &amp; QOTD</span>
               </button>
             </div>
@@ -977,17 +977,17 @@ export default function AdminPortalPage() {
 
           {/* SUB-NAV PILLS FOR ORDERS & SALES */}
           {activeHub === "sales" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("orders")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "orders"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <CreditCard className="w-3.5 h-3.5 text-[#4B8097]" />
+                <CreditCard className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Orders & Bookings</span>
               </button>
               <button
@@ -995,13 +995,13 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("subscriptions")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "subscriptions"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Key className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Key className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Subscriptions</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
                   {subscriptions.length}
                 </span>
               </button>
@@ -1010,13 +1010,13 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("coupons")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "coupons"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Percent className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Percent className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Coupons</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-white text-[#221D1D] border border-[#E7E4E7]">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
                   {coupons.length}
                 </span>
               </button>
@@ -1025,11 +1025,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("payments")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "payments"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-[#4B8097]" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Payments Ledger</span>
               </button>
               <button
@@ -1037,11 +1037,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("expenses")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "expenses"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <DollarSign className="w-3.5 h-3.5 text-[#4B8097]" />
+                <DollarSign className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Expenses & P&L</span>
               </button>
             </div>
@@ -1049,17 +1049,17 @@ export default function AdminPortalPage() {
 
           {/* SUB-NAV PILLS FOR WEBSITE & BRANDING */}
           {activeHub === "website" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
                 type="button"
                 onClick={() => setActiveTab("broadcast")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "broadcast"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Megaphone className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Live Broadcast Bar</span>
                 {announcement.enabled && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1070,11 +1070,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("carousel")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "carousel"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Homepage Hero Carousel</span>
               </button>
               <button
@@ -1082,11 +1082,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("promo_banners")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "promo_banners"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Student Codex Passes</span>
               </button>
               <button
@@ -1094,11 +1094,11 @@ export default function AdminPortalPage() {
                 onClick={() => setActiveTab("settings")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === "settings"
-                    ? "bg-[#AED7E9]/60 text-[#221D1D] font-bold shadow-xs border border-[#98C5D8]"
-                    : "text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5]"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
                 }`}
               >
-                <Settings className="w-3.5 h-3.5 text-[#4B8097]" />
+                <Settings className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Platform Settings</span>
               </button>
             </div>
@@ -1106,29 +1106,29 @@ export default function AdminPortalPage() {
 
           {/* COMPACT BROADCAST STATUS STRIP (VISIBLE ON OTHER WEBSITE SUB-TABS) */}
           {activeHub === "website" && activeTab !== "broadcast" && (
-            <div className="bg-white rounded-2xl border border-[#E7E4E7] p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div
                   className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
                     announcement.enabled
-                      ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]"
-                      : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E]"
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                      : "bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B]"
                   }`}
                 >
                   <Megaphone className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  <span className="font-bold text-[#221D1D] shrink-0">Live Broadcast Bar:</span>
+                  <span className="font-bold text-[#0A192F] shrink-0">Live Broadcast Bar:</span>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
                       announcement.enabled
                         ? "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]"
-                        : "bg-[#F7F7F5] text-[#77716E] border border-[#E7E4E7]"
+                        : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
                     }`}
                   >
                     {announcement.enabled ? "● Live / Active" : "○ Hidden"}
                   </span>
-                  <span className="text-[#77716E] truncate max-w-sm sm:max-w-md font-medium">
+                  <span className="text-[#334155] truncate max-w-sm sm:max-w-md font-medium">
                     {announcement.enabled
                       ? (announcement.text || "Announcement active")
                       : "No announcement currently showing on the website"}
@@ -1156,14 +1156,14 @@ export default function AdminPortalPage() {
                       showToast("Saved locally");
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] cursor-pointer transition-colors"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] cursor-pointer transition-colors"
                 >
                   {announcement.enabled ? "Quick Turn Off" : "Quick Turn On"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("broadcast")}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#AED7E9]/50 hover:bg-[#AED7E9] text-[#221D1D] flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs font-bold"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
                 >
                   <span>Edit Broadcast</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1178,37 +1178,37 @@ export default function AdminPortalPage() {
             {activeTab === "overview" && (
             <div className="space-y-6">
               {/* TOP HERO BANNER */}
-              <div className="rounded-3xl bg-[#AED7E9] p-6 text-[#221D1D] border border-[#98C5D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+              <div className="rounded-3xl bg-gradient-to-r from-[#EFF6FF] via-[#E0F2FE] to-[#DBEAFE] p-6 text-[#0A192F] border border-[#BFDBFE] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                 <div className="space-y-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#4D433F] bg-white/60 px-2.5 py-0.5 rounded-full border border-[#AED7E9]">Admin Operations Portal</span>
-                  <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-1">Dashboard Overview</h2>
-                  <p className="text-[#4D433F] text-xs sm:text-sm leading-relaxed max-w-lg">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#005A9C] bg-white px-2.5 py-0.5 rounded-full border border-[#BFDBFE]">Admin Operations Portal</span>
+                  <h2 className="text-2xl font-bold text-[#0A192F] mt-1">Dashboard Overview</h2>
+                  <p className="text-[#334155] text-xs sm:text-sm font-medium leading-relaxed max-w-lg">
                     Real-time overview of active student passes, DRM codices, daily case studies, and live revenue.
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center bg-white/80 backdrop-blur-xs rounded-2xl p-4 min-w-[100px] border border-[#E7E4E7]">
-                    <TrendingUp className="w-5 h-5 text-[#221D1D] mx-auto mb-1" />
-                    <p className="text-xl font-bold font-serif text-[#221D1D]">₹{totalRevenue.toLocaleString()}</p>
-                    <p className="text-[10px] text-[#4D433F] uppercase tracking-wide font-semibold">Total Sales</p>
+                  <div className="text-center bg-white/95 rounded-2xl p-4 min-w-[100px] border border-[#BFDBFE] shadow-xs">
+                    <TrendingUp className="w-5 h-5 text-[#005A9C] mx-auto mb-1" />
+                    <p className="text-xl font-bold text-[#0A192F]">₹{totalRevenue.toLocaleString()}</p>
+                    <p className="text-[10px] text-[#475569] uppercase tracking-wide font-bold">Total Sales</p>
                   </div>
-                  <div className="text-center bg-white/80 backdrop-blur-xs rounded-2xl p-4 min-w-[100px] border border-[#E7E4E7]">
-                    <Key className="w-5 h-5 text-[#4B8097] mx-auto mb-1" />
-                    <p className="text-xl font-bold font-serif text-[#221D1D]">{activeSubsCount}</p>
-                    <p className="text-[10px] text-[#4D433F] uppercase tracking-wide font-semibold">Active Passes</p>
+                  <div className="text-center bg-white/95 rounded-2xl p-4 min-w-[100px] border border-[#BFDBFE] shadow-xs">
+                    <Key className="w-5 h-5 text-[#005A9C] mx-auto mb-1" />
+                    <p className="text-xl font-bold text-[#0A192F]">{activeSubsCount}</p>
+                    <p className="text-[10px] text-[#475569] uppercase tracking-wide font-bold">Active Passes</p>
                   </div>
                 </div>
               </div>
 
               {/* QUICK OWNER SHORTCUTS */}
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E7E4E7] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#CBD5E1] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#BFAFE5]/40 border border-[#BFAFE5] flex items-center justify-center text-[#221D1D] shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#221D1D]" />
+                  <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#005A9C] shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#005A9C]" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#221D1D]">Owner Quick Shortcuts</h4>
-                    <p className="text-[11px] text-[#77716E]">Fastest actions for everyday management.</p>
+                    <h4 className="text-xs font-bold text-[#0A192F]">Owner Quick Shortcuts</h4>
+                    <p className="text-[11px] text-[#475569] font-medium">Fastest actions for everyday management.</p>
                   </div>
                 </div>
 
@@ -1216,7 +1216,7 @@ export default function AdminPortalPage() {
                   <button
                     type="button"
                     onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
-                    className="px-3.5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                    className="px-3.5 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Student</span>
@@ -1227,9 +1227,9 @@ export default function AdminPortalPage() {
                       setActiveTab("books_and_notes");
                       setMaterialSubTab("books");
                     }}
-                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
-                    <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                     <span>Upload Notes</span>
                   </button>
                   <button
@@ -1238,17 +1238,17 @@ export default function AdminPortalPage() {
                       setActiveTab("coupons");
                       setCouponModal({ open: true, mode: "add", data: { status: "Active", discountPercent: 15, minOrder: 99, maxUses: 100 } });
                     }}
-                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
-                    <Percent className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <Percent className="w-3.5 h-3.5 text-[#005A9C]" />
                     <span>New Coupon</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab("carousel")}
-                    className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                    className="px-3.5 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
-                    <Layers className="w-3.5 h-3.5 text-[#4B8097]" />
+                    <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
                     <span>Homepage Carousel</span>
                   </button>
                 </div>
@@ -1259,110 +1259,110 @@ export default function AdminPortalPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("books_and_notes")}
-                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                  className="bg-white rounded-3xl p-5 border border-[#CBD5E1] hover:border-[#005A9C] hover:shadow-md text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
+                    <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] text-[#005A9C] flex items-center justify-center border border-[#BFDBFE] group-hover:bg-[#DBEAFE] transition-colors">
                       <BookOpen className="w-5 h-5" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#005A9C] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">Study Materials</p>
-                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{products.length + resources.length} Items</h3>
-                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
+                  <p className="text-xs text-[#475569] font-bold uppercase tracking-wider">Study Materials</p>
+                  <h3 className="text-xl font-bold text-[#0A192F] mt-0.5">{products.length + resources.length} Items</h3>
+                  <p className="text-[11px] text-[#005A9C] font-semibold mt-1">{products.length} Books • {resources.length} Notes</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab("subscriptions")}
-                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#BFAFE5] hover:shadow-md text-left transition-all cursor-pointer group"
+                  className="bg-white rounded-3xl p-5 border border-[#CBD5E1] hover:border-[#005A9C] hover:shadow-md text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#BFAFE5]/40 text-[#221D1D] flex items-center justify-center border border-[#BFAFE5] group-hover:bg-[#BFAFE5] transition-colors">
+                    <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] text-[#005A9C] flex items-center justify-center border border-[#BFDBFE] group-hover:bg-[#DBEAFE] transition-colors">
                       <CreditCard className="w-5 h-5" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#005A9C] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">Subscriptions</p>
-                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{subscriptions.length} Passes</h3>
-                  <p className="text-[11px] text-[#221D1D] font-semibold mt-1">{activeSubsCount} Active Passes</p>
+                  <p className="text-xs text-[#475569] font-bold uppercase tracking-wider">Subscriptions</p>
+                  <h3 className="text-xl font-bold text-[#0A192F] mt-0.5">{subscriptions.length} Passes</h3>
+                  <p className="text-[11px] text-[#005A9C] font-semibold mt-1">{activeSubsCount} Active Passes</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab("students")}
-                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                  className="bg-white rounded-3xl p-5 border border-[#CBD5E1] hover:border-[#005A9C] hover:shadow-md text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
+                    <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] text-[#005A9C] flex items-center justify-center border border-[#BFDBFE] group-hover:bg-[#DBEAFE] transition-colors">
                       <Users className="w-5 h-5" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#005A9C] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">Students Directory</p>
-                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">{students.length} Registered</h3>
-                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">{activeStudentsCount} Active Access</p>
+                  <p className="text-xs text-[#475569] font-bold uppercase tracking-wider">Students Directory</p>
+                  <h3 className="text-xl font-bold text-[#0A192F] mt-0.5">{students.length} Registered</h3>
+                  <p className="text-[11px] text-[#005A9C] font-semibold mt-1">{activeStudentsCount} Active Access</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab("students")}
-                  className="bg-white rounded-3xl p-5 border border-[#E7E4E7] hover:border-[#AED7E9] hover:shadow-md text-left transition-all cursor-pointer group"
+                  className="bg-white rounded-3xl p-5 border border-[#CBD5E1] hover:border-[#005A9C] hover:shadow-md text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#AED7E9]/40 text-[#221D1D] flex items-center justify-center border border-[#AED7E9] group-hover:bg-[#AED7E9] transition-colors">
-                      <ShieldCheck className="w-5 h-5 text-[#4B8097]" />
+                    <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] text-[#005A9C] flex items-center justify-center border border-[#BFDBFE] group-hover:bg-[#DBEAFE] transition-colors">
+                      <ShieldCheck className="w-5 h-5 text-[#005A9C]" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#77716E] group-hover:text-[#221D1D] group-hover:translate-x-0.5 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#005A9C] group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-[#77716E] font-medium">DRM Protection</p>
-                  <h3 className="text-xl font-bold font-serif text-[#221D1D] mt-0.5">Active</h3>
-                  <p className="text-[11px] text-[#4B8097] font-semibold mt-1">1-Click Toggle Mode</p>
+                  <p className="text-xs text-[#475569] font-bold uppercase tracking-wider">DRM Protection</p>
+                  <h3 className="text-xl font-bold text-[#0A192F] mt-0.5">Active</h3>
+                  <p className="text-[11px] text-[#005A9C] font-semibold mt-1">1-Click Toggle Mode</p>
                 </button>
               </div>
 
               {/* LIVE ANNOUNCEMENT STATUS SHORTCUT IN OVERVIEW */}
-              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E7E4E7] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#CBD5E1] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3.5">
                   <div
                     className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
                       announcement.enabled
-                        ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]"
-                        : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E]"
+                        ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                        : "bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B]"
                     }`}
                   >
                     <Megaphone className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-[#221D1D]">Live Website Announcement Bar</h3>
+                      <h3 className="text-sm font-bold text-[#0A192F]">Live Website Announcement Bar</h3>
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           announcement.enabled
-                            ? "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]"
-                            : "bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
                         }`}
                       >
-                        {announcement.enabled ? "● Live on Website" : "○ Hidden"}
+                        {announcement.enabled ? "● Active & Visible" : "○ Currently Hidden"}
                       </span>
                     </div>
-                    <p className="text-xs text-[#77716E] mt-0.5 truncate max-w-lg">
+                    <p className="text-xs text-[#475569] font-medium mt-0.5">
                       {announcement.enabled
-                        ? `[${announcement.badge || "ALERT"}] ${announcement.text || "Active"}`
-                        : "No announcement currently showing on the website."}
+                        ? (announcement.text || "Your marquee announcement is broadcasting across the site.")
+                        : "Announcement bar is turned off. Turn it on to show broadcast ticker to students."}
                     </p>
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("broadcast")}
-                  className="px-4 py-2.5 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold shadow-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer"
-                >
-                  <Megaphone className="w-3.5 h-3.5 text-[#4B8097]" />
-                  <span>Configure in Website & Branding</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#77716E]" />
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("broadcast")}
+                    className="px-4 py-2 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#005A9C] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <span>Configure Broadcast</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* STUDENT DASHBOARD PROMO BANNERS QUICK SHORTCUT IN OVERVIEW */}
@@ -1892,16 +1892,16 @@ export default function AdminPortalPage() {
               {/* HEADER */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Subscriptions &amp; Student Passes</h2>
-                  <p className="text-xs text-[#4D433F] mt-0.5">Manage 30-day monthly passes, renewals, and WhatsApp reminder triggers.</p>
+                  <h2 className="text-xl font-bold text-[#0A192F]">Subscriptions &amp; Student Passes</h2>
+                  <p className="text-xs text-[#475569] font-medium mt-0.5">Manage 30-day monthly passes, renewals, and WhatsApp reminder triggers.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExportSubscriptions}
-                    className="px-4 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                     title="Export all subscriptions as CSV file"
                   >
-                    <Download className="w-3.5 h-3.5 text-[#77716E]" />
+                    <Download className="w-3.5 h-3.5 text-[#005A9C]" />
                     <span>Export CSV</span>
                   </button>
                   <button
@@ -1916,9 +1916,9 @@ export default function AdminPortalPage() {
                         item: "CA Foundation Business Laws (Monthly Access)",
                       }
                     })}
-                    className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 text-white" />
                     <span>Add Subscription</span>
                   </button>
                 </div>
@@ -1926,23 +1926,23 @@ export default function AdminPortalPage() {
 
               {/* EXPIRING SOON ALERT BANNER */}
               {expiringSoonCount > 0 && (
-                <div className="p-4 rounded-3xl bg-[#F7892A]/10 border border-[#F7892A]/30 text-[#221D1D] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in shadow-xs">
+                <div className="p-4 rounded-3xl bg-amber-50 border border-amber-300 text-[#0A192F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in shadow-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-2xl bg-[#F7892A]/20 flex items-center justify-center text-[#C35F3B] shrink-0">
-                      <AlertTriangle className="w-4 h-4 text-[#C35F3B]" />
+                    <div className="w-8 h-8 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0 border border-amber-200">
+                      <AlertTriangle className="w-4 h-4 text-amber-700" />
                     </div>
                     <div>
-                      <p className="font-bold text-[#221D1D]">
+                      <p className="font-bold text-[#0A192F]">
                         {expiringSoonCount} Student Pass{expiringSoonCount > 1 ? "es" : ""} Expiring Soon (≤ 5 Days)
                       </p>
-                      <p className="text-[#4D433F] text-[11px] mt-0.5">
+                      <p className="text-[#475569] text-[11px] font-medium mt-0.5">
                         Click the green WhatsApp button next to any student to send an instant pre-formatted renewal link.
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setSubFilterTab("expiring_soon")}
-                    className="px-3.5 py-1.5 rounded-full bg-[#AED7E9] hover:bg-[#98C5D8] text-[#221D1D] font-bold text-xs shrink-0 transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-full bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold text-xs shrink-0 transition-colors cursor-pointer"
                   >
                     View {expiringSoonCount} Expiring
                   </button>
@@ -1950,59 +1950,59 @@ export default function AdminPortalPage() {
               )}
 
               {/* SEARCH & SUB-FILTERS */}
-              <div className="bg-white rounded-3xl p-4 border border-[#E7E4E7] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-full overflow-x-auto border border-[#E7E4E7]">
+              <div className="bg-white rounded-2xl p-3.5 border border-[#CBD5E1] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-1 p-1 bg-[#F1F5F9] rounded-xl overflow-x-auto border border-[#CBD5E1]">
                   <button
                     onClick={() => setSubFilterTab("all")}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "all" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "all" ? "bg-white text-[#0A192F] font-bold shadow-xs border border-[#CBD5E1]" : "text-[#475569] hover:text-[#0A192F]"
                     }`}
                   >
                     All Passes ({subscriptions.length})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("active")}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "active" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "active" ? "bg-emerald-100 text-emerald-900 font-bold shadow-xs border border-emerald-300" : "text-[#475569] hover:text-[#0A192F]"
                     }`}
                   >
                     Active ({activeSubsCount})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("expiring_soon")}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "expiring_soon" ? "bg-[#AED7E9] text-[#221D1D] font-bold shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "expiring_soon" ? "bg-amber-100 text-amber-900 font-bold shadow-xs border border-amber-300" : "text-[#475569] hover:text-[#0A192F]"
                     }`}
                   >
                     Expiring Soon ({expiringSoonCount})
                   </button>
                   <button
                     onClick={() => setSubFilterTab("revoked")}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                      subFilterTab === "revoked" ? "bg-[#C35F3B] text-white shadow-xs" : "text-[#4D433F] hover:text-[#221D1D]"
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      subFilterTab === "revoked" ? "bg-rose-100 text-rose-900 font-bold shadow-xs border border-rose-300" : "text-[#475569] hover:text-[#0A192F]"
                     }`}
                   >
                     Revoked ({subscriptions.filter((s) => s.accessStatus === "Revoked").length})
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 bg-[#F7F7F5] px-3.5 py-2.5 rounded-2xl border border-[#E7E4E7] w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 text-[#77716E] shrink-0" />
+                <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#CBD5E1] w-full sm:w-64 shadow-2xs">
+                  <Search className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
                   <input
                     type="text"
                     placeholder="Search student, roll, email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs text-[#221D1D] bg-transparent outline-none placeholder:text-[#77716E]"
+                    className="w-full text-xs text-[#0A192F] bg-transparent outline-none placeholder:text-[#64748B] font-medium"
                   />
                 </div>
               </div>
 
               {/* SUBSCRIPTIONS LIST */}
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
+              <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[720px]">
-                    <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#221D1D] font-semibold">
+                    <thead className="bg-[#F8FAFC] border-b border-[#CBD5E1] text-[#1E293B] font-bold text-[11px] uppercase tracking-wider">
                       <tr>
                         <th className="py-3 px-4">ID &amp; Date</th>
                         <th className="py-3 px-4">Student</th>
@@ -2013,7 +2013,7 @@ export default function AdminPortalPage() {
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E7E4E7]">
+                    <tbody className="divide-y divide-[#E2E8F0]">
                       {subscriptions
                         .filter((s) => {
                           if (subFilterTab === "active") return s.accessStatus === "Active";
@@ -2030,30 +2030,30 @@ export default function AdminPortalPage() {
                         .map((sub) => {
                           const isExpiring = sub.accessStatus === "Active" && sub.daysRemaining !== undefined && sub.daysRemaining <= 5;
                           return (
-                            <tr key={sub.id} className="hover:bg-[#F7F7F5]/60 transition-colors">
+                            <tr key={sub.id} className="hover:bg-[#F8FAFC] transition-colors">
                               <td className="py-3.5 px-4">
-                                <p className="font-mono font-bold text-[#221D1D]">{sub.id}</p>
-                                <p className="text-[10px] text-[#77716E]">{sub.date}</p>
+                                <p className="font-mono font-bold text-[#0A192F]">{sub.id}</p>
+                                <p className="text-[11px] text-[#475569] font-medium">{sub.date}</p>
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="font-bold text-[#221D1D]">{sub.studentName}</p>
-                                <p className="text-[11px] text-[#221D1D] font-mono bg-[#BFAFE5]/30 px-1.5 py-0.5 rounded-md inline-block mt-0.5">{sub.studentRoll}</p>
-                                <p className="text-[10px] text-[#77716E]">{sub.email}</p>
-                                {sub.phone && <p className="text-[10px] text-[#77716E] font-mono">{sub.phone}</p>}
+                                <p className="font-bold text-[#0A192F]">{sub.studentName}</p>
+                                <p className="text-[11px] text-[#005A9C] font-mono bg-[#EFF6FF] px-2 py-0.5 rounded-md inline-block mt-0.5 border border-[#BFDBFE] font-bold">{sub.studentRoll}</p>
+                                <p className="text-[11px] text-[#475569] font-medium">{sub.email}</p>
+                                {sub.phone && <p className="text-[11px] text-[#475569] font-mono font-medium">{sub.phone}</p>}
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="text-[#221D1D] font-semibold">{sub.item}</p>
-                                <p className="text-[10px] text-[#77716E]">{sub.targetExam}</p>
+                                <p className="text-[#0A192F] font-bold">{sub.item}</p>
+                                <p className="text-[11px] text-[#475569] font-medium">{sub.targetExam}</p>
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="text-xs font-bold font-serif text-[#221D1D]">{sub.amount}</p>
-                                <p className="text-[10px] text-[#77716E]">{sub.paymentMode}</p>
+                                <p className="text-xs font-bold font-serif text-[#0A192F]">{sub.amount}</p>
+                                <p className="text-[11px] text-[#475569] font-medium">{sub.paymentMode}</p>
                               </td>
                               <td className="py-3.5 px-4">
                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                                   isExpiring
-                                    ? "bg-[#F7892A]/15 text-[#C35F3B] border-[#F7892A]/40 animate-pulse"
-                                    : "bg-[#C4E1EC]/60 text-[#221D1D] border-[#AED7E9]"
+                                    ? "bg-amber-100 text-amber-900 border-amber-300 animate-pulse"
+                                    : "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]"
                                 }`}>
                                   {sub.daysRemaining !== undefined ? `${sub.daysRemaining} days left` : "30 days"}
                                 </span>
@@ -2199,46 +2199,46 @@ export default function AdminPortalPage() {
                 {/* DIRECTORY HEADER & PRIMARY ACTIONS */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-serif font-bold text-[#221D1D]">Students Directory</h2>
-                    <p className="text-xs text-[#4D433F] mt-0.5">
+                    <h2 className="text-xl font-bold text-[#0A192F]">Students Directory</h2>
+                    <p className="text-xs text-[#334155] font-medium mt-0.5">
                       Effortlessly search students, toggle DRM permissions in 1-click, and manage registrations.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleExportStudents}
-                      className="px-3.5 py-2 rounded-full bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      className="px-3.5 py-2 rounded-full bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                       title="Export all students as CSV file"
                     >
-                      <Download className="w-3.5 h-3.5 text-[#77716E]" />
+                      <Download className="w-3.5 h-3.5 text-[#005A9C]" />
                       <span>Export CSV</span>
                     </button>
                     <button
                       onClick={() => setStudentModal({ open: true, mode: "add", data: { is_active: true, drm_access: true, target_exam: "CA Foundation Paper 2" } })}
-                      className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                      className="px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 text-white" />
                       <span>Add Student</span>
                     </button>
                   </div>
                 </div>
 
                 {/* SEARCH & FILTER CONTROLS */}
-                <div className="bg-white rounded-2xl border border-[#E7E4E7] p-3.5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="bg-white rounded-2xl border border-[#CBD5E1] p-3.5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
                   {/* SEARCH BAR */}
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#77716E]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
                     <input
                       type="text"
                       value={studentSearchQuery}
                       onChange={(e) => setStudentSearchQuery(e.target.value)}
                       placeholder="Search by name, roll no, email, or mobile..."
-                      className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-[#F7F7F5] border border-transparent focus:border-[#BFAFE5] focus:bg-white text-[#221D1D] placeholder-[#77716E] outline-none transition-all"
+                      className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-white border border-[#CBD5E1] focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-[#0A192F] placeholder-[#64748B] font-medium outline-none transition-all shadow-2xs"
                     />
                     {studentSearchQuery && (
                       <button
                         onClick={() => setStudentSearchQuery("")}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-[#E7E4E7] text-[#77716E] cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
                         title="Clear search"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -2248,14 +2248,14 @@ export default function AdminPortalPage() {
 
                   {/* STATUS FILTER PILLS & COUNT */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-xl border border-[#E7E4E7]">
+                    <div className="flex items-center gap-1 p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1]">
                       <button
                         type="button"
                         onClick={() => setStudentStatusFilter("all")}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           studentStatusFilter === "all"
-                            ? "bg-white text-[#221D1D] shadow-xs font-bold"
-                            : "text-[#77716E] hover:text-[#221D1D]"
+                            ? "bg-white text-[#0A192F] shadow-xs font-bold border border-[#CBD5E1]"
+                            : "text-[#475569] hover:text-[#0A192F]"
                         }`}
                       >
                         All ({students.length})
@@ -2265,8 +2265,8 @@ export default function AdminPortalPage() {
                         onClick={() => setStudentStatusFilter("active")}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           studentStatusFilter === "active"
-                            ? "bg-[#AED7E9]/60 text-[#221D1D] shadow-xs font-bold"
-                            : "text-[#77716E] hover:text-[#221D1D]"
+                            ? "bg-emerald-100 text-emerald-900 shadow-xs font-bold border border-emerald-300"
+                            : "text-[#475569] hover:text-[#0A192F]"
                         }`}
                       >
                         Active ({activeCount})
@@ -2276,29 +2276,29 @@ export default function AdminPortalPage() {
                         onClick={() => setStudentStatusFilter("blocked")}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           studentStatusFilter === "blocked"
-                            ? "bg-[#F4C5C0]/60 text-[#C35F3B] shadow-xs font-bold"
-                            : "text-[#77716E] hover:text-[#221D1D]"
+                            ? "bg-rose-100 text-rose-900 shadow-xs font-bold border border-rose-300"
+                            : "text-[#475569] hover:text-[#0A192F]"
                         }`}
                       >
                         Blocked ({blockedCount})
                       </button>
                     </div>
 
-                    <span className="text-[11px] text-[#77716E] px-1 font-medium">
+                    <span className="text-xs text-[#334155] px-1 font-semibold">
                       Showing {filteredStudents.length} of {students.length}
                     </span>
                   </div>
                 </div>
 
                 {/* STUDENTS TABLE */}
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm overflow-hidden">
+                <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-sm overflow-hidden">
                   {filteredStudents.length === 0 ? (
                     <div className="py-12 px-4 text-center">
-                      <div className="w-12 h-12 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] mx-auto flex items-center justify-center text-[#77716E] mb-3">
-                        <Users className="w-5 h-5" />
+                      <div className="w-12 h-12 rounded-full bg-[#F8FAFC] border border-[#CBD5E1] mx-auto flex items-center justify-center text-[#64748B] mb-3">
+                        <Users className="w-5 h-5 text-[#005A9C]" />
                       </div>
-                      <h3 className="text-sm font-serif font-bold text-[#221D1D]">No students found</h3>
-                      <p className="text-xs text-[#77716E] mt-1 max-w-sm mx-auto">
+                      <h3 className="text-sm font-bold text-[#0A192F]">No students found</h3>
+                      <p className="text-xs text-[#475569] font-medium mt-1 max-w-sm mx-auto">
                         {studentSearchQuery
                           ? `No student matching "${studentSearchQuery}" in ${studentStatusFilter} status.`
                           : "No students registered under the selected status filter."}
@@ -2309,7 +2309,7 @@ export default function AdminPortalPage() {
                             setStudentSearchQuery("");
                             setStudentStatusFilter("all");
                           }}
-                          className="mt-3.5 px-4 py-1.5 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] text-xs font-semibold text-[#221D1D] hover:bg-[#E7E4E7] transition-colors cursor-pointer"
+                          className="mt-3.5 px-4 py-1.5 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-bold text-[#005A9C] hover:bg-[#DBEAFE] transition-colors cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -2318,7 +2318,7 @@ export default function AdminPortalPage() {
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs min-w-[720px]">
-                        <thead className="bg-[#F7F7F5] border-b border-[#E7E4E7] text-[#77716E] font-semibold">
+                        <thead className="bg-[#F8FAFC] border-b border-[#CBD5E1] text-[#1E293B] font-bold text-[11px] uppercase tracking-wider">
                           <tr>
                             <th className="py-3 px-4">Student &amp; Roll No.</th>
                             <th className="py-3 px-4">Contact Info</th>
@@ -2328,32 +2328,32 @@ export default function AdminPortalPage() {
                             <th className="py-3 px-4 text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E7E4E7]">
+                        <tbody className="divide-y divide-[#E2E8F0]">
                           {filteredStudents.map((std) => (
-                            <tr key={std.id} className="hover:bg-[#F7F7F5]/50 transition-colors">
+                            <tr key={std.id} className="hover:bg-[#F8FAFC] transition-colors">
                               <td className="py-3.5 px-4">
-                                <p className="font-bold text-[#221D1D]">{std.name}</p>
-                                <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-[#AED7E9]/30 text-[#4B8097] text-[10px] font-mono border border-[#AED7E9]/50">
+                                <p className="font-bold text-[#0A192F] text-sm">{std.name}</p>
+                                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-[#EFF6FF] text-[#005A9C] text-[11px] font-mono font-bold border border-[#BFDBFE]">
                                   {std.student_id}
                                 </span>
                               </td>
                               <td className="py-3.5 px-4">
-                                <p className="text-[#4D433F]">{std.email}</p>
-                                <p className="text-[10px] text-[#77716E]">{std.phone}</p>
+                                <p className="text-[#0A192F] font-semibold text-xs">{std.email}</p>
+                                <p className="text-[11px] text-[#475569] font-medium mt-0.5">{std.phone}</p>
                               </td>
-                              <td className="py-3.5 px-4 font-semibold text-[#4D433F]">
+                              <td className="py-3.5 px-4 font-semibold text-[#0A192F] text-xs">
                                 {std.target_exam}
                               </td>
                               <td className="py-3.5 px-4">
                                 <div className="flex flex-wrap gap-1">
                                   {std.enrolled_books && std.enrolled_books.length > 0 ? (
                                     std.enrolled_books.map((b, i) => (
-                                      <span key={i} className="text-[10px] bg-[#F7F7F5] text-[#4D433F] px-2 py-0.5 rounded-full border border-[#E7E4E7]">
+                                      <span key={i} className="text-[11px] bg-[#F1F5F9] text-[#0A192F] font-semibold px-2.5 py-0.5 rounded-md border border-[#CBD5E1]">
                                         {b}
                                       </span>
                                     ))
                                   ) : (
-                                    <span className="text-[10px] text-[#77716E] italic">Standard Pass</span>
+                                    <span className="text-[11px] text-[#475569] font-medium bg-[#F8FAFC] px-2.5 py-0.5 rounded border border-[#E2E8F0]">Standard Pass</span>
                                   )}
                                 </div>
                               </td>
@@ -2361,21 +2361,21 @@ export default function AdminPortalPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleToggleStudentDrm(std)}
-                                  className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
+                                  className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
                                     std.drm_access
-                                      ? "bg-[#AED7E9]/50 hover:bg-[#AED7E9] text-[#221D1D] border border-[#98C5D8]"
-                                      : "bg-[#F4C5C0]/50 hover:bg-[#F4C5C0] text-[#C35F3B] border border-[#F4C5C0]"
+                                      ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                      : "bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300"
                                   }`}
                                   title={`Click to ${std.drm_access ? "revoke/block" : "grant"} DRM access`}
                                 >
                                   {std.drm_access ? (
                                     <>
-                                      <Unlock className="w-3 h-3 text-[#4B8097]" />
+                                      <Unlock className="w-3.5 h-3.5 text-emerald-600" />
                                       <span>Active</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Lock className="w-3 h-3 text-[#C35F3B]" />
+                                      <Lock className="w-3.5 h-3.5 text-rose-600" />
                                       <span>Blocked</span>
                                     </>
                                   )}
@@ -2385,7 +2385,7 @@ export default function AdminPortalPage() {
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
                                     onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
-                                    className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D] transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-xl bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] text-[#0A192F] transition-colors cursor-pointer"
                                     title="Edit Student Details"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
@@ -2402,7 +2402,7 @@ export default function AdminPortalPage() {
                                         showToast("Student deleted.");
                                       }
                                     }}
-                                    className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B] transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-xl bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 hover:border-rose-300 transition-colors cursor-pointer"
                                     title="Delete Student"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -3482,57 +3482,57 @@ export default function AdminPortalPage() {
 
       {/* 4. STUDENT MODAL */}
       {studentModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
-              <h3 className="text-sm font-serif font-bold text-[#221D1D]">
+        <div className="fixed inset-0 z-50 bg-[#0A192F]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl border border-[#CBD5E1] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+              <h3 className="text-base font-bold text-[#0A192F]">
                 {studentModal.mode === "add" ? "Add Student" : "Edit Student"}
               </h3>
-              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F7F7F5] cursor-pointer">
-                <X className="w-5 h-5 text-[#77716E]" />
+              <button onClick={() => setStudentModal({ open: false, mode: "add", data: {} })} className="p-2 rounded-xl hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#0A192F] cursor-pointer">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Student Name *</label>
+                <label className="block font-bold text-[#1E293B] mb-1">Student Name *</label>
                 <input
                   type="text"
                   value={studentModal.data.name || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, name: e.target.value } })}
                   placeholder="e.g. Student Name"
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                  className="w-full p-2.5 rounded-xl border border-[#CBD5E1] outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-xs font-semibold text-[#0A192F] placeholder-[#64748B]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Student / Roll ID *</label>
+                <label className="block font-bold text-[#1E293B] mb-1">Student / Roll ID *</label>
                 <input
                   type="text"
                   value={studentModal.data.student_id || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, student_id: e.target.value } })}
                   placeholder="LRK-2026-001234"
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] font-mono text-xs text-[#221D1D]"
+                  className="w-full p-2.5 rounded-xl border border-[#CBD5E1] outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 font-mono text-xs font-bold text-[#005A9C] placeholder-[#64748B]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Email Address *</label>
+                <label className="block font-bold text-[#1E293B] mb-1">Email Address *</label>
                 <input
                   type="email"
                   value={studentModal.data.email || ""}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, email: e.target.value } })}
                   placeholder="student@thelawkaksha.com"
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] text-xs text-[#221D1D]"
+                  className="w-full p-2.5 rounded-xl border border-[#CBD5E1] outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 text-xs font-semibold text-[#0A192F] placeholder-[#64748B]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#4D433F] mb-1">Target Exam</label>
+                <label className="block font-bold text-[#1E293B] mb-1">Target Exam</label>
                 <select
                   value={studentModal.data.target_exam || "CA Foundation Paper 2"}
                   onChange={(e) => setStudentModal({ ...studentModal, data: { ...studentModal.data, target_exam: e.target.value } })}
-                  className="w-full p-2.5 rounded-2xl border border-[#E7E4E7] outline-none focus:border-[#BFAFE5] bg-white text-xs text-[#221D1D]"
+                  className="w-full p-2.5 rounded-xl border border-[#CBD5E1] outline-none focus:border-[#005A9C] focus:ring-2 focus:ring-[#005A9C]/20 bg-white text-xs font-semibold text-[#0A192F]"
                 >
                   <option value="CA Foundation Paper 2">CA Foundation Paper 2 (Business Laws)</option>
                   <option value="CSEET Business Laws and Management">CSEET Business Laws and Management</option>
@@ -3540,10 +3540,10 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
               <button
                 onClick={() => setStudentModal({ open: false, mode: "add", data: {} })}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[#4D433F] hover:bg-[#F7F7F5] cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-bold text-[#475569] hover:bg-[#F1F5F9] cursor-pointer"
               >
                 Cancel
               </button>
@@ -3573,12 +3573,12 @@ export default function AdminPortalPage() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify(payload),
                     });
-                    showToast("Student saved!");
                   } catch {}
+                  showToast(isAdd ? "Student added!" : "Student updated!");
                 }}
-                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold shadow-xs cursor-pointer transition-all"
               >
-                Save Student
+                {studentModal.mode === "add" ? "Create Student" : "Save Changes"}
               </button>
             </div>
           </div>
