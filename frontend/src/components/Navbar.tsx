@@ -18,6 +18,25 @@ interface NavbarCatalogItem {
   type?: string;
 }
 
+const DEFAULT_NAVBAR_ITEMS: NavbarCatalogItem[] = [
+  {
+    id: "course-ca-foundation",
+    title: "CA Foundation Paper 2",
+    subtitle: "Complete Business Laws curriculum & question bank",
+    examBody: "ICAI",
+    category: "CA Foundation",
+    type: "course",
+  },
+  {
+    id: "course-cseet",
+    title: "CSEET Business Laws and Management",
+    subtitle: "Complete Business Laws & Management curriculum",
+    examBody: "ICSI",
+    category: "CSEET",
+    type: "course",
+  },
+];
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +50,7 @@ export function Navbar() {
     role?: string;
   } | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [catalogItems, setCatalogItems] = useState<NavbarCatalogItem[]>([]);
+  const [catalogItems, setCatalogItems] = useState<NavbarCatalogItem[]>(DEFAULT_NAVBAR_ITEMS);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -124,13 +143,53 @@ export function Navbar() {
 
   useEffect(() => {
     let cancelled = false;
-    apiRequest<{ products?: NavbarCatalogItem[]; items?: NavbarCatalogItem[] }>("/api/catalog")
-      .then((res) => {
-        if (cancelled || !res.success) return;
-        const items = res.data?.products || res.data?.items;
-        if (Array.isArray(items)) setCatalogItems(items.slice(0, 4));
-      })
-      .catch(() => {});
+    const loadCatalog = async () => {
+      try {
+        const res = await apiRequest<{ products?: NavbarCatalogItem[]; items?: NavbarCatalogItem[] }>(
+          "/api/catalog"
+        );
+        if (!cancelled && res.success && res.data) {
+          const raw = res.data.products || res.data.items;
+          if (Array.isArray(raw) && raw.length > 0) {
+            const filtered = raw.filter(
+              (p) =>
+                p.id !== "prod-vol1" &&
+                p.id !== "prod-vol2" &&
+                !p.title.includes("Volume 1: Business Law") &&
+                !p.title.includes("Volume 2: CSEET")
+            );
+            if (filtered.length > 0) {
+              setCatalogItems(filtered.slice(0, 6));
+              return;
+            }
+          }
+        }
+
+        // Secondary fallback to /api/courses
+        const coursesRes = await apiRequest<{ courses?: any[] }>("/api/courses");
+        if (
+          !cancelled &&
+          coursesRes.success &&
+          Array.isArray(coursesRes.data?.courses) &&
+          coursesRes.data.courses.length > 0
+        ) {
+          const mapped: NavbarCatalogItem[] = coursesRes.data.courses.map((c) => ({
+            id: c.id,
+            title: c.title,
+            subtitle: c.description || `${c.exam_body === "ICSI" ? "CSEET" : "CA Foundation"} Business Laws`,
+            examBody: c.exam_body || "ICAI",
+            category: c.exam_body === "ICSI" ? "CSEET" : "CA Foundation",
+            type: "course",
+          }));
+          if (mapped.length > 0) {
+            setCatalogItems(mapped.slice(0, 6));
+          }
+        }
+      } catch (err) {
+        console.warn("[Navbar] Catalog load warning:", err);
+      }
+    };
+    loadCatalog();
     return () => {
       cancelled = true;
     };
