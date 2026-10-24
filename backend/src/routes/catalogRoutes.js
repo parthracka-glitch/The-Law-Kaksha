@@ -14,15 +14,78 @@ const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { serializeProduct, serializeCourse, serializeResource } = require("../utils/responseSerializer");
 
-const DEFAULT_COURSES = [];
+const DEFAULT_COURSES = [
+  {
+    id: "course-ca-foundation",
+    slug: "ca-foundation-paper-2",
+    type: "course",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Paper 2",
+    subtitle: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
+    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
+    price: 1,
+    original_price: 0,
+    badge: "₹1 / 30 Days",
+    category: "CA Foundation",
+    examBody: "ICAI",
+    pages_or_duration: "19 Units",
+    cover_image: "/assets/crop_ca_foundation_book.png",
+    highlights: [
+      "Unit-wise notes for Sale of Goods, Partnership and LLP",
+      "Act-wise practice questions, PYQs, LDR charts and infographics",
+      "Question Bank Part 1 and Part 2 with detailed solutions",
+      "Companies Act and Negotiable Instruments Act coming soon"
+    ],
+    paymentType: "monthly",
+    comingSoon: false,
+  },
+  {
+    id: "course-cseet",
+    slug: "cseet-business-laws-management",
+    type: "course",
+    courseId: "course-cseet",
+    title: "CSEET Business Laws and Management",
+    subtitle: "Comprehensive Business Laws & Management preparation platform for CSEET.",
+    description: "Comprehensive Business Laws & Management preparation platform for CSEET.",
+    price: 99,
+    original_price: 0,
+    badge: "Coming Soon",
+    category: "CSEET",
+    examBody: "ICSI",
+    pages_or_duration: "Launching Soon",
+    cover_image: "https://res.cloudinary.com/wpt4eabs/image/upload/v1792791439/thelawkaksha/covers/WhatsApp_Image_2026-10-22_at_6_51_05_PM-1792791439051.jpg",
+    highlights: [
+      "Business Laws and Management syllabus coverage",
+      "Unit-wise notes and practice questions",
+      "Launching soon"
+    ],
+    paymentType: "monthly",
+    comingSoon: true,
+  },
+];
 
 async function getActiveCourses() {
-  if (isConnected()) {
-    return Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
+  try {
+    if (isConnected()) {
+      const courses = await Course.find({ is_active: { $ne: false } }).sort({ order: 1, display_order: 1 }).lean();
+      if (Array.isArray(courses) && courses.length > 0) {
+        return courses;
+      }
+    }
+  } catch (err) {
+    console.warn("[catalogRoutes] MongoDB courses lookup warning:", err.message);
   }
-  return Database.table("courses")
-    .find((c) => c.is_active !== false)
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  try {
+    const localCourses = Database.table("courses")
+      .find((c) => c.is_active !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (Array.isArray(localCourses) && localCourses.length > 0) {
+      return localCourses;
+    }
+  } catch (err) {
+    console.warn("[catalogRoutes] Local courses lookup warning:", err.message);
+  }
+  return [];
 }
 
 function courseToCatalogItem(course, syllabus = []) {
@@ -157,7 +220,13 @@ router.get("/catalog", async (req, res) => {
     const courses = await getActiveCourses();
     const courseItems = courses.map((course) => courseToCatalogItem(course));
 
-    let allProducts = [...DEFAULT_COURSES, ...courseItems, ...formattedDbProducts].filter(
+    // Deduplicate courses by id/slug, prioritizing live DB courseItems over DEFAULT_COURSES
+    const coursesMap = new Map();
+    DEFAULT_COURSES.forEach((c) => coursesMap.set(c.id, c));
+    courseItems.forEach((c) => coursesMap.set(c.id, c));
+    const mergedCourses = Array.from(coursesMap.values());
+
+    let allProducts = [...mergedCourses, ...formattedDbProducts].filter(
       (p) => !isRemovedProduct(p)
     );
 
@@ -191,7 +260,14 @@ router.get("/catalog", async (req, res) => {
       items: serializedProducts,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching catalog." });
+    console.error("[catalogRoutes] Error fetching catalog, returning fallback courses:", err);
+    res.status(200).json({
+      success: true,
+      source: "fallback_cache",
+      count: DEFAULT_COURSES.length,
+      products: DEFAULT_COURSES,
+      items: DEFAULT_COURSES,
+    });
   }
 });
 
@@ -203,11 +279,8 @@ router.get("/catalog/:id", async (req, res) => {
   }
   try {
     const resolvedId = resolveCourseAlias(id);
-    // Check in default courses
-    let product = DEFAULT_COURSES.find((p) => p.id === id || p.slug === id || p.id === resolvedId || p.slug === resolvedId);
-
     let course = null;
-    if (!product) {
+    try {
       if (isConnected()) {
         course = await Course.findOne({
           $or: [{ id }, { slug: id }, { id: resolvedId }, { slug: resolvedId }],
@@ -218,7 +291,12 @@ router.get("/catalog/:id", async (req, res) => {
           (c) => c.id === id || c.slug === id || c.id === resolvedId || c.slug === resolvedId
         );
       }
+    } catch (e) {
+      console.warn("[catalogRoutes] Course lookup error:", e.message);
     }
+
+    // Check in default courses as fallback if not in DB
+    let product = course ? null : DEFAULT_COURSES.find((p) => p.id === id || p.slug === id || p.id === resolvedId || p.slug === resolvedId);
 
     if (course) {
       let acts = [];

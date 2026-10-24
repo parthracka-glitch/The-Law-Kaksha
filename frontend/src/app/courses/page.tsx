@@ -55,7 +55,61 @@ interface FreeResource {
   fileUrl?: string;
 }
 
-const FALLBACK_PRODUCTS: Product[] = [];
+const FALLBACK_PRODUCTS: Product[] = [
+  {
+    id: "course-ca-foundation",
+    slug: "ca-foundation-paper-2",
+    type: "course",
+    courseId: "course-ca-foundation",
+    title: "CA Foundation Paper 2",
+    subtitle: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
+    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2 with unit-wise codified notes, high-yield charts, and model answers.",
+    price: 1,
+    original_price: 0,
+    badge: "₹1 / 30 Days",
+    category: "CA Foundation",
+    examBody: "ICAI",
+    pages_or_duration: "19 Units",
+    cover_image: "/assets/crop_ca_foundation_book.png",
+    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
+    highlights: [
+      "Unit-wise notes for Sale of Goods, Partnership and LLP",
+      "Act-wise practice questions, PYQs, LDR charts and infographics",
+      "Question Bank Part 1 and Part 2 with detailed solutions",
+      "Companies Act and Negotiable Instruments Act coming soon"
+    ],
+    paymentType: "monthly",
+    comingSoon: false,
+    accentColor: "from-[#0A192F] via-[#102A4C] to-[#004275]",
+    iconEmoji: "📘",
+  },
+  {
+    id: "course-cseet",
+    slug: "cseet-business-laws-management",
+    type: "course",
+    courseId: "course-cseet",
+    title: "CSEET Business Laws and Management",
+    subtitle: "Comprehensive Business Laws & Management preparation platform for CSEET.",
+    description: "Comprehensive Business Laws & Management preparation platform for CSEET under latest ICSI Syllabus.",
+    price: 99,
+    original_price: 0,
+    badge: "Coming Soon",
+    category: "CSEET",
+    examBody: "ICSI",
+    pages_or_duration: "Launching Soon",
+    cover_image: "https://res.cloudinary.com/wpt4eabs/image/upload/v1792791439/thelawkaksha/covers/WhatsApp_Image_2026-10-22_at_6_51_05_PM-1792791439051.jpg",
+    pdfUrl: "/notes/cseet-management-full.pdf",
+    highlights: [
+      "Business Laws and Management syllabus coverage",
+      "Unit-wise notes and practice questions",
+      "Launching soon"
+    ],
+    paymentType: "monthly",
+    comingSoon: true,
+    accentColor: "from-[#0F172A] via-[#1E293B] to-[#334155]",
+    iconEmoji: "⚖️",
+  },
+];
 
 function CoursesCatalogContent() {
   const router = useRouter();
@@ -95,24 +149,86 @@ function CoursesCatalogContent() {
     price: 99,
   });
 
-  // Fetch catalog from backend API
+  // Fetch catalog from backend API with multi-endpoint fallback
   useEffect(() => {
+    let isMounted = true;
     async function loadCatalog() {
-      const res = await apiRequest<{ items?: Product[]; products?: Product[] }>("/api/catalog");
-      if (res.success && res.data) {
-        const fetched = (res.data.products || res.data.items || []).filter(
-          (p) =>
-            p.id !== "prod-vol1" &&
-            p.id !== "prod-vol2" &&
-            !p.title.includes("Volume 1: Business Law") &&
-            !p.title.includes("Volume 2: CSEET")
-        );
-        if (Array.isArray(fetched)) {
-          setProducts(fetched);
+      try {
+        // 1. Try primary /api/catalog endpoint
+        const res = await apiRequest<{ items?: Product[]; products?: Product[] }>("/api/catalog");
+        if (isMounted && res.success && res.data) {
+          const raw = res.data.products || res.data.items || [];
+          const fetched = (Array.isArray(raw) ? raw : []).filter(
+            (p) =>
+              p.id !== "prod-vol1" &&
+              p.id !== "prod-vol2" &&
+              !p.title.includes("Volume 1: Business Law") &&
+              !p.title.includes("Volume 2: CSEET")
+          );
+          if (fetched.length > 0) {
+            setProducts(fetched);
+            return;
+          }
         }
+
+        // 2. Secondary fallback: /api/courses
+        const coursesRes = await apiRequest<{ courses?: any[] }>("/api/courses");
+        if (
+          isMounted &&
+          coursesRes.success &&
+          Array.isArray(coursesRes.data?.courses) &&
+          coursesRes.data.courses.length > 0
+        ) {
+          const mapped: Product[] = coursesRes.data.courses.map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            type: "course",
+            courseId: c.id,
+            title: c.title,
+            subtitle:
+              c.description ||
+              `${c.exam_body === "ICSI" ? "CSEET" : "CA Foundation"} Business Laws curriculum`,
+            description: c.description || "",
+            price: Number(c.price ?? 99),
+            original_price: Number(c.mrp ?? 0),
+            badge:
+              c.availability === "coming_soon"
+                ? "Coming Soon"
+                : `₹${c.price} / ${c.accessDays || 30} Days`,
+            category: c.exam_body === "ICSI" ? "CSEET" : "CA Foundation",
+            examBody: c.exam_body || "ICAI",
+            pages_or_duration: c.units_count
+              ? `${c.units_count} Units`
+              : c.availability === "coming_soon"
+              ? "Launching Soon"
+              : "Self-paced",
+            cover_image: c.thumbnail || "/assets/crop_ca_foundation_book.png",
+            highlights: c.highlights || [
+              "Unit-wise notes for comprehensive coverage",
+              "Act-wise practice questions & PYQs",
+              "Model answer writing techniques",
+            ],
+            paymentType: "monthly",
+            comingSoon: c.availability === "coming_soon",
+            accentColor:
+              c.exam_body === "ICSI" || (c.id && c.id.includes("cseet"))
+                ? "from-[#0F172A] via-[#1E293B] to-[#334155]"
+                : "from-[#0A192F] via-[#102A4C] to-[#004275]",
+            iconEmoji:
+              c.exam_body === "ICSI" || (c.id && c.id.includes("cseet")) ? "⚖️" : "📘",
+          }));
+          if (mapped.length > 0) {
+            setProducts(mapped);
+          }
+        }
+      } catch (err) {
+        console.warn("[CoursesCatalog] Catalog load warning:", err);
       }
     }
     loadCatalog();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -138,18 +254,27 @@ function CoursesCatalogContent() {
       return false;
     }
 
+    const cat = (p.category || "").toLowerCase();
+    const id = (p.id || "").toLowerCase();
+    const courseId = (p.courseId || "").toLowerCase();
+    const body = (p.examBody || "").toLowerCase();
+
     const matchesCourse =
       selectedCourse === "all" ||
       p.courseId === selectedCourse ||
-      (selectedCourse === "course-ca-foundation" && (p.category.includes("CA") || p.id.includes("ca"))) ||
-      (selectedCourse === "course-cseet" && (p.category.includes("CSEET") || p.id.includes("cseet")));
+      p.id === selectedCourse ||
+      (selectedCourse === "course-ca-foundation" &&
+        (cat.includes("ca") || id.includes("ca") || courseId.includes("ca") || body === "icai")) ||
+      (selectedCourse === "course-cseet" &&
+        (cat.includes("cseet") || id.includes("cseet") || courseId.includes("cseet") || body === "icsi"));
 
     const matchesSearch =
       search.trim() === "" ||
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.subtitle.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase());
+      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      (p.examBody && p.examBody.toLowerCase().includes(search.toLowerCase()));
 
     return matchesCourse && matchesSearch;
   });
@@ -397,12 +522,12 @@ function CoursesCatalogContent() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button
-                        onClick={() => product.pdfUrl && handleOpenPreview(product)}
-                        disabled={!product.pdfUrl || product.comingSoon}
+                        onClick={() => handleOpenPreview(product)}
+                        disabled={product.comingSoon}
                         className="py-3 px-4 rounded-full border border-[#0A192F] hover:bg-[#F0F7FF] hover:border-[#005A9C] hover:text-[#005A9C] bg-white text-[#0A192F] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#0A192F]"
                       >
                         <Eye className="w-4 h-4" />
-                        <span>{product.comingSoon ? "Sample Coming Soon" : product.pdfUrl ? "Free Sample" : "Sample Coming Soon"}</span>
+                        <span>{product.comingSoon ? "Sample Coming Soon" : "Free Sample"}</span>
                       </button>
 
                       <Link
