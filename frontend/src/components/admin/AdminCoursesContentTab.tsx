@@ -19,10 +19,8 @@ import {
   ExternalLink,
   FolderOpen,
   ArrowUpRight,
-  CheckCircle2,
   Check,
   Loader2,
-  Sparkles,
   FileCheck,
 } from "lucide-react";
 

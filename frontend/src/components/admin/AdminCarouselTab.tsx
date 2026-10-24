@@ -13,7 +13,6 @@ import {
   X,
   ArrowRight,
   ArrowUpRight,
-  ExternalLink,
   UploadCloud,
   ImageIcon,
   Loader2,

@@ -135,8 +135,8 @@ const INITIAL_COURSES = [
 const INITIAL_PRODUCTS = [];
 
 const INITIAL_COUPONS = [
-  { id: "cp-1", code: "LAUNCH50", discountPercent: 50, minOrder: 99, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31", status: "Active" },
-  { id: "cp-2", code: "EXEMPTION2026", discountPercent: 20, minOrder: 200, maxUses: 500, usedCount: 0, expiryDate: "2026-12-31", status: "Active" },
+  { id: "cp-1", code: "LAUNCH50", discount_type: "percent", value: 50, discountPercent: 50, min_order: 99, minOrder: 99, usage_limit: 500, maxUses: 500, used_count: 0, usedCount: 0, valid_to: new Date("2026-12-31"), expiryDate: "2026-12-31", is_active: true, status: "Active" },
+  { id: "cp-2", code: "EXEMPTION2026", discount_type: "percent", value: 20, discountPercent: 20, min_order: 200, minOrder: 200, usage_limit: 500, maxUses: 500, used_count: 0, usedCount: 0, valid_to: new Date("2026-12-31"), expiryDate: "2026-12-31", is_active: true, status: "Active" },
 ];
 
 const { isConnected } = require("./mongo");

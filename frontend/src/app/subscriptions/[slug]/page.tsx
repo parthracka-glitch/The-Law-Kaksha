@@ -201,7 +201,7 @@ export default function SubscriptionDetailPage() {
         }
 
         const fallback = FALLBACK_SUBSCRIPTION_DATA[slug] || FALLBACK_SUBSCRIPTION_DATA["ca-foundation-monthly"];
-        let merged: SubscriptionDetail = {
+        const merged: SubscriptionDetail = {
           ...fallback,
           ...(plan || {}),
           title: fallback?.title || plan?.title || "",

@@ -19,15 +19,16 @@ import {
 
 export default function CartPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated] = useState<boolean | null>(() => {
+    if (typeof window === "undefined") return null;
+    return isUserAuthenticated();
+  });
 
   useEffect(() => {
-    const authed = isUserAuthenticated();
-    setIsAuthenticated(authed);
-    if (!authed) {
+    if (isAuthenticated === false) {
       router.push("/login?redirect=/cart");
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   const {
     items,

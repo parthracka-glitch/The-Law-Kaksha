@@ -105,7 +105,6 @@ export function SubscriptionCarousel() {
   const [modalBookId, setModalBookId] = useState<"ca-foundation" | "cseet">("ca-foundation");
   const [modalTitle, setModalTitle] = useState("");
 
-  const total = coursesList.length;
   const current = coursesList[currentIndex] || coursesList[0] || FEATURED_COURSES[0];
 
   const nextSlide = useCallback(() => {

@@ -244,16 +244,35 @@ router.post("/admin/cases", async (req, res) => {
       courseId: req.body.courseId || "course-ca-foundation",
     };
 
+    const caseStudyData = {
+      id: payload.id,
+      slug: payload.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || payload.id,
+      title: payload.title,
+      summary: payload.scenario || "",
+      content: payload.scenario + "\n\n### Model Answer:\n" + payload.modelAnswer + (payload.precedent ? "\n\n### Precedent:\n" + payload.precedent : ""),
+      act_name: payload.badge || payload.subject || "Contract Act",
+      marks_weight: parseInt(payload.marks, 10) || 6,
+      show_on_website: true,
+      show_on_dashboard: true,
+      is_published: true,
+    };
+
     if (isConnected()) {
       const created = await WeeklyCase.findOneAndUpdate({ id: payload.id }, payload, {
         upsert: true,
         new: true,
       });
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        await CaseStudy.findOneAndUpdate({ id: payload.id }, caseStudyData, { upsert: true });
+      } catch (_) {}
       Database.table("weekly_cases").insert(payload);
+      Database.table("case_studies").insert(caseStudyData);
       return res.status(201).json({ success: true, source: "mongodb_atlas", caseStudy: created });
     }
 
     const created = Database.table("weekly_cases").insert(payload);
+    Database.table("case_studies").insert(caseStudyData);
     res.status(201).json({ success: true, source: "local_cache", caseStudy: created });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error creating case." });
@@ -266,11 +285,21 @@ router.put("/admin/cases/:id", async (req, res) => {
     if (isConnected()) {
       const updated = await WeeklyCase.findOneAndUpdate({ id }, req.body, { new: true });
       if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        await CaseStudy.findOneAndUpdate({ id }, {
+          ...(req.body.title ? { title: req.body.title } : {}),
+          ...(req.body.scenario ? { summary: req.body.scenario } : {}),
+          ...(req.body.badge ? { act_name: req.body.badge } : {}),
+        });
+      } catch (_) {}
       Database.table("weekly_cases").update(id, req.body);
+      Database.table("case_studies").update(id, req.body);
       return res.status(200).json({ success: true, source: "mongodb_atlas", caseStudy: updated });
     }
     const updated = Database.table("weekly_cases").update(id, req.body);
     if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
+    Database.table("case_studies").update(id, req.body);
     res.status(200).json({ success: true, caseStudy: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating case." });
@@ -282,10 +311,16 @@ router.delete("/admin/cases/:id", async (req, res) => {
     const id = req.params.id;
     if (isConnected()) {
       await WeeklyCase.deleteOne({ id });
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        await CaseStudy.deleteOne({ id });
+      } catch (_) {}
       Database.table("weekly_cases").delete(id);
+      Database.table("case_studies").delete(id);
       return res.status(200).json({ success: true, source: "mongodb_atlas" });
     }
     const success = Database.table("weekly_cases").delete(id);
+    Database.table("case_studies").delete(id);
     res.status(200).json({ success });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error deleting case." });
@@ -580,6 +615,29 @@ router.get("/admin/subscriptions", async (req, res) => {
 
 router.post("/admin/subscriptions", async (req, res) => {
   try {
+    // If request contains plan attributes rather than student enrollment attributes, handle plan creation
+    if (req.body.title && req.body.price !== undefined && !req.body.studentName && !req.body.email) {
+      const { title, slug, short_desc, description, price, mrp, duration_days, thumbnail, features, course_ids, display_order } = req.body;
+      const plansTable = Database.table("subscription_plans");
+      const generatedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const newPlan = plansTable.insert({
+        id: req.body.id || `sub-${Date.now()}`,
+        title,
+        slug: generatedSlug,
+        short_desc: short_desc || "",
+        description: description || "",
+        price: Number(price),
+        mrp: Number(mrp || price * 2),
+        duration_days: Number(duration_days || 30),
+        thumbnail: thumbnail || "/assets/ca-cs-hero-books-sharp.png",
+        features: Array.isArray(features) ? features : [],
+        course_ids: Array.isArray(course_ids) ? course_ids : [],
+        display_order: Number(display_order || 0),
+        is_active: true,
+      });
+      return res.status(201).json({ success: true, subscription: newPlan });
+    }
+
     const payload = {
       id: req.body.id || `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       studentName: req.body.studentName || "Enrolled Student",
@@ -1366,7 +1424,17 @@ router.post("/admin/entitlements/:id/extend", async (req, res) => {
 });
 
 // B2: SUBSCRIPTION PLANS CRUD (§8 B2)
-router.post("/admin/subscriptions", async (req, res) => {
+router.get("/admin/subscription-plans", async (req, res) => {
+  try {
+    const plansTable = Database.table("subscription_plans");
+    const plans = plansTable.find();
+    res.status(200).json({ success: true, count: plans.length, subscriptions: plans, plans });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching subscription plans: " + err.message });
+  }
+});
+
+router.post(["/admin/subscription-plans", "/admin/subscriptions/plan"], async (req, res) => {
   try {
     const { title, slug, short_desc, description, price, mrp, duration_days, thumbnail, features, course_ids, display_order } = req.body;
     if (!title || price === undefined) {
@@ -1377,7 +1445,7 @@ router.post("/admin/subscriptions", async (req, res) => {
     const generatedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
     const newPlan = plansTable.insert({
-      id: `sub-${Date.now()}`,
+      id: req.body.id || `sub-${Date.now()}`,
       title,
       slug: generatedSlug,
       short_desc: short_desc || "",
@@ -1666,9 +1734,17 @@ router.post("/admin/courses/delete", async (req, res) => {
 // B3: EXTRA COURSES SPECIFIC ENDPOINTS
 router.get("/admin/extra-courses", async (req, res) => {
   try {
+    if (isConnected()) {
+      try {
+        const mongoExtras = await Course.find({ kind: "extra" }).sort({ order: 1, display_order: 1 }).lean();
+        if (mongoExtras && mongoExtras.length > 0) {
+          return res.status(200).json({ success: true, count: mongoExtras.length, source: "mongodb_atlas", extraCourses: mongoExtras });
+        }
+      } catch (_) {}
+    }
     const coursesTable = Database.table("courses");
     const extraCourses = coursesTable.find((c) => c.kind === "extra");
-    res.status(200).json({ success: true, extraCourses });
+    res.status(200).json({ success: true, count: extraCourses.length, source: "local_cache", extraCourses });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -1677,19 +1753,35 @@ router.get("/admin/extra-courses", async (req, res) => {
 router.post("/admin/extra-courses", async (req, res) => {
   try {
     req.body.kind = "extra";
-    const coursesTable = Database.table("courses");
-    const newExtra = coursesTable.insert({
-      id: `course-extra-${Date.now()}`,
-      title: req.body.title,
+    const payload = {
+      id: req.body.id || `course-extra-${Date.now()}`,
+      slug: createSlug(req.body.slug || req.body.title || `extra-${Date.now()}`),
+      title: req.body.title || "Extra Course",
       description: req.body.description || "",
       thumbnail: req.body.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
       kind: "extra",
       price: Number(req.body.price || 49),
       mrp: Number(req.body.mrp || 149),
+      accessDays: Number(req.body.accessDays || 30),
+      availability: req.body.availability || "live",
+      exam_body: req.body.exam_body || "ICAI",
       show_on_website: req.body.show_on_website !== false,
       is_active: true,
-    });
-    res.status(201).json({ success: true, course: newExtra });
+      order: 99,
+      display_order: 99,
+    };
+
+    if (isConnected()) {
+      try {
+        const created = await Course.create(payload);
+        Database.table("courses").insert(payload);
+        return res.status(201).json({ success: true, source: "mongodb_atlas", course: created });
+      } catch (_) {}
+    }
+
+    const coursesTable = Database.table("courses");
+    const newExtra = coursesTable.insert(payload);
+    res.status(201).json({ success: true, source: "local_cache", course: newExtra });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2141,27 +2233,146 @@ router.get("/admin/payments", async (req, res) => {
   }
 });
 
+// B5: LIVE SESSIONS & GOOGLE MEET LINKS CRUD (§8 B5)
+router.get("/admin/live-sessions", async (req, res) => {
+  try {
+    if (isConnected()) {
+      try {
+        const LiveSession = require("../models/LiveSession");
+        const sessions = await LiveSession.find().sort({ scheduled_at: -1 }).lean();
+        if (sessions && sessions.length > 0) {
+          return res.status(200).json({ success: true, count: sessions.length, source: "mongodb_atlas", sessions });
+        }
+      } catch (_) {}
+    }
+    const sessionsTable = Database.table("live_sessions");
+    const sessions = sessionsTable.find().sort((a, b) => new Date(b.scheduled_at || 0).getTime() - new Date(a.scheduled_at || 0).getTime());
+    res.status(200).json({ success: true, count: sessions.length, source: "local_cache", sessions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching live sessions: " + err.message });
+  }
+});
+
+router.post("/admin/live-sessions", async (req, res) => {
+  try {
+    const { title, description, meet_url, target_exam, faculty_name, scheduled_at, duration_minutes, is_active } = req.body;
+    if (!title || !meet_url) {
+      return res.status(400).json({ success: false, message: "Title and Google Meet URL are required." });
+    }
+
+    const payload = {
+      id: req.body.id || `session-${Date.now()}`,
+      title,
+      description: description || "",
+      meet_url,
+      target_exam: target_exam || "All Exams",
+      faculty_name: faculty_name || "Faculty",
+      scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : new Date().toISOString(),
+      duration_minutes: Number(duration_minutes || 60),
+      is_active: is_active !== false,
+    };
+
+    if (isConnected()) {
+      try {
+        const LiveSession = require("../models/LiveSession");
+        const created = await LiveSession.findOneAndUpdate({ id: payload.id }, payload, { upsert: true, new: true });
+        Database.table("live_sessions").insert(payload);
+        return res.status(201).json({ success: true, source: "mongodb_atlas", session: created });
+      } catch (_) {}
+    }
+
+    const sessionsTable = Database.table("live_sessions");
+    const created = sessionsTable.insert(payload);
+    res.status(201).json({ success: true, source: "local_cache", session: created });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating live session: " + err.message });
+  }
+});
+
+router.delete("/admin/live-sessions/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (isConnected()) {
+      try {
+        const LiveSession = require("../models/LiveSession");
+        await LiveSession.deleteOne({ id });
+      } catch (_) {}
+    }
+    const sessionsTable = Database.table("live_sessions");
+    sessionsTable.delete(id);
+    res.status(200).json({ success: true, message: "Live session removed." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting live session: " + err.message });
+  }
+});
+
 // B10: DATA EXPORT (CSV / EXCEL FORMAT)
 router.get("/admin/export/:entity", async (req, res) => {
   try {
-    const { entity } = req.params; // orders, payments, expenses
+    const { entity } = req.params; // orders, payments, expenses, students
     let records = [];
 
     if (entity === "orders") {
-      records = Database.table("orders").find();
+      if (isConnected()) {
+        try {
+          const Order = require("../models/Order");
+          records = await Order.find().sort({ createdAt: -1 }).lean();
+        } catch (_) {}
+      }
+      if (records.length === 0) {
+        records = Database.table("orders").find();
+      }
     } else if (entity === "payments") {
-      records = Database.table("payments").find();
+      if (isConnected()) {
+        try {
+          const Payment = require("../models/Payment");
+          records = await Payment.find().sort({ createdAt: -1 }).lean();
+        } catch (_) {}
+      }
+      if (records.length === 0) {
+        records = Database.table("payments").find();
+      }
       if (records.length === 0) {
         records = Database.table("orders").find((o) => o.status === "paid" || o.status === "COMPLETED");
       }
     } else if (entity === "expenses") {
-      records = Database.table("expenses").find();
+      if (isConnected()) {
+        try {
+          const Expense = require("../models/Expense");
+          records = await Expense.find().sort({ createdAt: -1 }).lean();
+        } catch (_) {}
+      }
+      if (records.length === 0) {
+        records = Database.table("expenses").find();
+      }
+    } else if (entity === "students" || entity === "users") {
+      if (isConnected()) {
+        try {
+          const User = require("../models/User");
+          const users = await User.find({ role: { $ne: "admin" } }).sort({ createdAt: -1 }).lean();
+          if (users && users.length > 0) {
+            records = users.map((u) => {
+              const { password_hash, ...safe } = u;
+              return safe;
+            });
+          }
+        } catch (_) {}
+      }
+      if (records.length === 0) {
+        records = Database.table("users").find((u) => u.role !== "admin").map((u) => {
+          const { password_hash, ...safe } = u;
+          return safe;
+        });
+      }
     } else {
-      return res.status(400).json({ success: false, message: "Unsupported export entity. Use orders, payments, or expenses." });
+      return res.status(400).json({ success: false, message: "Unsupported export entity. Use orders, payments, expenses, or students." });
     }
 
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename=lawkaksha_${entity}_${Date.now()}.csv`);
+
     if (records.length === 0) {
-      return res.status(200).send("No records found to export.");
+      return res.status(200).send("id,message\n0,\"No records found to export\"");
     }
 
     // Convert to CSV
@@ -2172,8 +2383,6 @@ router.get("/admin/export/:entity", async (req, res) => {
     );
     const csvContent = [csvHeader, ...csvRows].join("\n");
 
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", `attachment; filename=lawkaksha_${entity}_${Date.now()}.csv`);
     res.status(200).send(csvContent);
   } catch (err) {
     res.status(500).json({ success: false, message: "Export error: " + err.message });

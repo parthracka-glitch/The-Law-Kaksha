@@ -117,7 +117,7 @@ function CoursesCatalogContent() {
   const searchParams = useSearchParams();
   const initialCourse = searchParams.get("course");
 
-  const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
   const [selectedCourse, setSelectedCourse] = useState<string>(
     initialCourse === "ca"
@@ -173,7 +173,21 @@ function CoursesCatalogContent() {
         }
 
         // 2. Secondary fallback: /api/courses
-        const coursesRes = await apiRequest<{ courses?: any[] }>("/api/courses");
+        interface RawCourseItem {
+          id: string;
+          slug?: string;
+          title: string;
+          description?: string;
+          price?: number;
+          mrp?: number;
+          availability?: string;
+          accessDays?: number;
+          exam_body?: string;
+          units_count?: number;
+          thumbnail?: string;
+          highlights?: string[];
+        }
+        const coursesRes = await apiRequest<{ courses?: RawCourseItem[] }>("/api/courses");
         if (
           isMounted &&
           coursesRes.success &&
@@ -182,7 +196,7 @@ function CoursesCatalogContent() {
         ) {
           const mapped: Product[] = coursesRes.data.courses.map((c) => ({
             id: c.id,
-            slug: c.slug,
+            slug: c.slug || c.id,
             type: "course",
             courseId: c.id,
             title: c.title,

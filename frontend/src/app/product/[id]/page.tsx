@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = params?.id as string;
 
-  const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const [product, setProduct] = useState<ProductItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [sampleModalOpen, setSampleModalOpen] = useState(false);

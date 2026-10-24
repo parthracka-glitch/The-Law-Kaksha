@@ -55,7 +55,7 @@ const DEFAULT_COURSES = [
     category: "CSEET",
     examBody: "ICSI",
     pages_or_duration: "Launching Soon",
-    cover_image: "https://res.cloudinary.com/wpt4eabs/image/upload/v1792791439/thelawkaksha/covers/WhatsApp_Image_2026-10-22_at_6_51_05_PM-1792791439051.jpg",
+    cover_image: "/assets/ca-cs-hero-books-sharp.png",
     highlights: [
       "Business Laws and Management syllabus coverage",
       "Unit-wise notes and practice questions",
@@ -171,6 +171,7 @@ function resolveCourseAlias(rawId) {
 
 // GET /api/public/site-data — Public site sync data (products, countdowns, QOTD)
 router.get("/public/site-data", async (req, res) => {
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
   try {
     let products = [];
     let examSettings = [];
@@ -209,6 +210,7 @@ router.get("/public/site-data", async (req, res) => {
 
 // GET /api/catalog — List all catalog products (DB + Courses)
 router.get("/catalog", async (req, res) => {
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
   try {
     let dbProducts = [];
     if (isConnected()) {
@@ -1044,6 +1046,45 @@ router.get("/case-studies", async (req, res) => {
       } catch (_) {}
     }
 
+    if (!caseStudies || caseStudies.length === 0) {
+      if (isConnected()) {
+        try {
+          const WeeklyCase = require("../models/WeeklyCase");
+          const wCases = await WeeklyCase.find().lean();
+          if (wCases && wCases.length > 0) {
+            caseStudies = wCases.map((w) => ({
+              id: w.id,
+              slug: w.slug || w.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || w.id,
+              title: w.title,
+              subject: w.subject || "The Indian Contract Act, 1872",
+              summary: w.scenario || w.summary || "",
+              badge: w.badge || "ICAI FAVORITE",
+              marks: w.marks || "6 Marks Model Case",
+              precedent: w.precedent || "",
+              created_at: w.createdAt,
+            }));
+          }
+        } catch (_) {}
+      }
+      if (!caseStudies || caseStudies.length === 0) {
+        const wTable = Database.table("weekly_cases");
+        const localW = wTable.find();
+        if (localW && localW.length > 0) {
+          caseStudies = localW.map((w) => ({
+            id: w.id,
+            slug: w.slug || w.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || w.id,
+            title: w.title,
+            subject: w.subject || "The Indian Contract Act, 1872",
+            summary: w.scenario || w.summary || "",
+            badge: w.badge || "ICAI FAVORITE",
+            marks: w.marks || "6 Marks Model Case",
+            precedent: w.precedent || "",
+            created_at: w.createdAt,
+          }));
+        }
+      }
+    }
+
     res.status(200).json({ success: true, count: caseStudies.length, caseStudies });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching case studies: " + err.message });
@@ -1224,6 +1265,26 @@ router.get("/public/site-settings", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching site settings: " + err.message });
+  }
+});
+
+// GET /api/live-sessions — Active live Google Meet sessions
+router.get("/live-sessions", async (req, res) => {
+  try {
+    if (isConnected()) {
+      try {
+        const LiveSession = require("../models/LiveSession");
+        const sessions = await LiveSession.find({ is_active: true }).sort({ scheduled_at: -1 }).lean();
+        if (sessions && sessions.length > 0) {
+          return res.status(200).json({ success: true, count: sessions.length, source: "mongodb_atlas", sessions });
+        }
+      } catch (_) {}
+    }
+    const sessionsTable = Database.table("live_sessions");
+    const sessions = sessionsTable.find((s) => s.is_active !== false).sort((a, b) => new Date(b.scheduled_at || 0).getTime() - new Date(a.scheduled_at || 0).getTime());
+    res.status(200).json({ success: true, count: sessions.length, source: "local_cache", sessions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching live sessions: " + err.message });
   }
 });
 

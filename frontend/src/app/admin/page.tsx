@@ -41,6 +41,7 @@ import {
   DollarSign,
   FileSpreadsheet,
   Settings,
+  Tag,
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
@@ -315,8 +316,8 @@ export default function AdminPortalPage() {
   // Student Dashboard Promo Codex Passes state
   const [promoBanners, setPromoBanners] = useState<PromoBannersSetting>(DEFAULT_PROMO_BANNERS);
   const [isSavingPromo, setIsSavingPromo] = useState<boolean>(false);
-  const [activePromoCardTab, setActivePromoCardTab] = useState<"ca" | "cs" | "combo">("ca");
-  const [promoPreviewStream, setPromoPreviewStream] = useState<"ca" | "cs">("ca");
+  const [_activePromoCardTab, _setActivePromoCardTab] = useState<"ca" | "cs" | "combo">("ca");
+  const [_promoPreviewStream, _setPromoPreviewStream] = useState<"ca" | "cs">("ca");
 
   // In-App PDF Preview Inspector Modal state
   const [previewPdfModal, setPreviewPdfModal] = useState<{
@@ -1088,6 +1089,18 @@ export default function AdminPortalPage() {
               >
                 <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Student Codex Passes</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("offers")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "offers"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5 text-[#005A9C]" />
+                <span>Offers & Promos</span>
               </button>
               <button
                 type="button"

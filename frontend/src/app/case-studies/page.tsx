@@ -68,9 +68,16 @@ export default function CaseStudiesDirectoryPage() {
     async function loadCases() {
       try {
         setLoading(true);
-        const res = await apiRequest<CaseStudyItem[]>("/api/case-studies");
-        if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
-          if (isMounted) setCases(res.data);
+        const res = await apiRequest<{ caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] } | CaseStudyItem[]>("/api/case-studies");
+        if (res.success && res.data) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data as { caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] }).caseStudies ||
+              (res.data as { caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] }).cases ||
+              [];
+          if (list.length > 0 && isMounted) {
+            setCases(list);
+          }
         }
       } catch {
         // Fallback remains

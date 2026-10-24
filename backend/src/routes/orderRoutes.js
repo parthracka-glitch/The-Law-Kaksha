@@ -627,12 +627,17 @@ router.post("/orders/reconcile-my-access", requireAuth, async (req, res) => {
  * 3. GET /api/orders/:id
  * Retrieval of order confirmation summary for receipt and success screen
  */
-router.get("/orders/:id", async (req, res) => {
+router.get("/orders/:id", requireAuth, async (req, res) => {
   try {
     const ordersTable = Database.table("orders");
     let order =
       ordersTable.findById(req.params.id) ||
-      ordersTable.findOne((o) => o.gateway_order_id === req.params.id || o.order_no === req.params.id);
+      ordersTable.findOne(
+        (o) =>
+          o.id === req.params.id ||
+          o.gateway_order_id === req.params.id ||
+          o.order_no === req.params.id
+      );
 
     if (!order && isConnected()) {
       try {
@@ -649,6 +654,23 @@ router.get("/orders/:id", async (req, res) => {
 
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found." });
+    }
+
+    // IDOR Protection: Caller must be admin or authentic order owner
+    const user = req.user || {};
+    const isAdmin = user.role === "admin" || user.isAdmin === true;
+    const userEmail = String(user.email || "").toLowerCase().trim();
+    const orderEmail = String(order.customer_email || order.personal_details?.email || "").toLowerCase().trim();
+    const isOwner =
+      (user.id && (order.user_id === user.id || order.userId === user.id)) ||
+      (user.student_id && (order.student_id === user.student_id || order.studentId === user.student_id)) ||
+      (userEmail && orderEmail && userEmail === orderEmail);
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have permission to view this order.",
+      });
     }
 
     const safeOrder = {

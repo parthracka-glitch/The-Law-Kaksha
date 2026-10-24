@@ -70,9 +70,14 @@ export default function OffersPage() {
     async function fetchOffers() {
       try {
         setLoading(true);
-        const res = await apiRequest<OfferItem[]>("/api/offers");
-        if (res.success && res.data && Array.isArray(res.data) && res.data.length > 0) {
-          if (isMounted) setOffers(res.data);
+        const res = await apiRequest<{ offers?: OfferItem[] } | OfferItem[]>("/api/offers");
+        if (res.success && res.data) {
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data as { offers?: OfferItem[] }).offers || [];
+          if (list.length > 0 && isMounted) {
+            setOffers(list);
+          }
         }
       } catch {
         // Fallback remains

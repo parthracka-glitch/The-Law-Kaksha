@@ -1190,7 +1190,7 @@ export default function StudentDashboardPage() {
     return () => {
       removeSessionListeners?.();
     };
-  }, [router]);
+  }, [router, API_URL]);
 
   // Sync Atlas Data
   useEffect(() => {

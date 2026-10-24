@@ -165,7 +165,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const initialEmail = getActiveUserEmail();
-    syncCartWithAuth(initialEmail);
+    const timer = setTimeout(() => {
+      void syncCartWithAuth(initialEmail);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [syncCartWithAuth]);
 
   // Listen for login/logout events across the app and storage updates

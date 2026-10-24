@@ -166,7 +166,9 @@ export function Navbar() {
         }
 
         // Secondary fallback to /api/courses
-        const coursesRes = await apiRequest<{ courses?: any[] }>("/api/courses");
+        const coursesRes = await apiRequest<{
+          courses?: { id: string; title: string; description?: string; exam_body?: string; slug?: string }[];
+        }>("/api/courses");
         if (
           !cancelled &&
           coursesRes.success &&
