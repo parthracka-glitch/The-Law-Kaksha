@@ -201,19 +201,22 @@ const orderRateLimiter = (req, res, next) => {
 };
 app.use("/api/orders", orderRateLimiter);
 
-// Low-End Device & Network Optimization: Cache-Control for Public Catalog Endpoints
+// Ensure real-time reflection of admin changes: never serve stale cached catalog/resource data
 app.use(
   [
     "/api/catalog",
     "/api/public/site-data",
     "/api/products",
+    "/api/courses",
     "/api/resources",
     "/api/announcement",
     "/api/target-exams",
   ],
   (req, res, next) => {
     if (req.method === "GET") {
-      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
     }
     next();
   }

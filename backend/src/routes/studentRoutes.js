@@ -1057,8 +1057,17 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       const enrolledCourses = allCourses
         .map((course) => {
           const isEnrolled = activeCourseIds.has("*") || activeCourseIds.has(course.id) || activeCourseIds.has(String(course._id));
+          const courseVariants = [course.id, course.slug, String(course._id)].filter(Boolean);
           const acts = allActs
-            .filter((a) => a.courseId === course.id)
+            .filter((a) => {
+              if (!a.courseId) return false;
+              return (
+                courseVariants.includes(a.courseId) ||
+                courseVariants.includes(String(a.courseId).toLowerCase()) ||
+                a.courseId.includes(course.id) ||
+                course.id.includes(a.courseId)
+              );
+            })
             .map((act) => {
               const units = allUnits
                 .filter((u) => u.actId === act.id)
@@ -1107,8 +1116,11 @@ router.get("/my-courses", requireAuth, async (req, res) => {
             acts,
           };
         })
-        .filter((c) => (c.acts && c.acts.length > 0) || c.id === "course-ca-foundation" || c.id === "ca-foundation")
-        .sort((a, b) => (b.acts?.length || 0) - (a.acts?.length || 0));
+        .sort((a, b) => {
+          if (a.isEnrolled && !b.isEnrolled) return -1;
+          if (!a.isEnrolled && b.isEnrolled) return 1;
+          return (b.acts?.length || 0) - (a.acts?.length || 0);
+        });
 
       return res.status(200).json({ success: true, courses: enrolledCourses });
     }
@@ -1217,8 +1229,17 @@ router.get("/my-courses", requireAuth, async (req, res) => {
     const enrolledCourses = allCourses
       .map((course) => {
         const isEnrolled = activeCourseIds.has("*") || activeCourseIds.has(course.id);
+        const courseVariants = [course.id, course.slug].filter(Boolean);
         const acts = allActs
-          .filter((a) => a.courseId === course.id)
+          .filter((a) => {
+            if (!a.courseId) return false;
+            return (
+              courseVariants.includes(a.courseId) ||
+              courseVariants.includes(String(a.courseId).toLowerCase()) ||
+              a.courseId.includes(course.id) ||
+              course.id.includes(a.courseId)
+            );
+          })
           .sort((a, b) => (a.order || 0) - (b.order || 0))
           .map((act) => {
             const units = allUnits
@@ -1270,8 +1291,11 @@ router.get("/my-courses", requireAuth, async (req, res) => {
           acts,
         };
       })
-      .filter((c) => (c.acts && c.acts.length > 0) || c.id === "course-ca-foundation" || c.id === "ca-foundation")
-      .sort((a, b) => (b.acts?.length || 0) - (a.acts?.length || 0));
+      .sort((a, b) => {
+        if (a.isEnrolled && !b.isEnrolled) return -1;
+        if (!a.isEnrolled && b.isEnrolled) return 1;
+        return (b.acts?.length || 0) - (a.acts?.length || 0);
+      });
 
     res.status(200).json({ success: true, courses: enrolledCourses });
   } catch (err) {

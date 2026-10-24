@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -14,6 +14,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { SecurePdfReader } from "./SecurePdfReader";
+import { apiRequest } from "@/lib/api";
 
 interface SampleResource {
   id: string;
@@ -88,6 +89,7 @@ const SAMPLE_RESOURCES: SampleResource[] = [
 ];
 
 export function FreeResourceModule() {
+  const [resources, setResources] = useState<SampleResource[]>(SAMPLE_RESOURCES);
   const [activeReader, setActiveReader] = useState<{
     isOpen: boolean;
     pdfUrl: string;
@@ -97,6 +99,79 @@ export function FreeResourceModule() {
     pdfUrl: "",
     title: "",
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDynamicResources() {
+      try {
+        const res = await apiRequest<{ resources?: Array<{
+          id: string;
+          title: string;
+          actName?: string;
+          description?: string;
+          isSample?: boolean;
+          pages?: string;
+          fileSize?: string;
+          fileName?: string;
+          fileUrl?: string;
+          sampleUrl?: string;
+        }> }>("/api/resources?sampleOnly=true");
+
+        if (isMounted && res.success && Array.isArray(res.data?.resources)) {
+          const dynamicItems = res.data.resources.filter(
+            (r) => !r.id.includes("qb-part1") && !r.id.includes("qb-part2")
+          );
+
+          if (dynamicItems.length > 0) {
+            const mappedDynamic: SampleResource[] = dynamicItems.map((item, idx) => ({
+              id: item.id,
+              part: `SAMPLE ${idx + 1}`,
+              badge: "FREE STUDY CODEX",
+              title: item.title,
+              subtitle: item.actName || "Study Notes & Curriculum Sample",
+              actName: item.actName,
+              description:
+                item.description ||
+                `Official free study material for ${item.actName || "CA Foundation"}. Read sample preview online.`,
+              highlights: [
+                `Official study codex: ${item.title}`,
+                `Curriculum: ${item.actName || "CA Foundation Business Laws"}`,
+                "Examiner-Tested Legal Writing & Structured Model Notes",
+                "Instant In-Browser DRM Reading Vault Access",
+              ],
+              pages: item.pages || "Official PDF",
+              fileSize: item.fileSize || "PDF",
+              fileName: item.fileName || `${item.title}.pdf`,
+              pdfUrl: item.sampleUrl || item.fileUrl || `/api/content/${item.id}/file?sample=true`,
+              downloadUrl: item.fileUrl || `/api/content/${item.id}/file`,
+              gradientTheme:
+                idx % 2 === 0
+                  ? "from-[#F0FDF4] via-white to-white"
+                  : "from-[#FAF5FF] via-white to-white",
+              borderTheme:
+                idx % 2 === 0
+                  ? "border-[#BBF7D0] hover:border-[#16A34A]"
+                  : "border-[#E9D5FF] hover:border-[#9333EA]",
+              accentBadge:
+                idx % 2 === 0
+                  ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                  : "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
+              pillColor:
+                idx % 2 === 0 ? "bg-[#16A34A] text-white" : "bg-[#9333EA] text-white",
+            }));
+
+            setResources([...SAMPLE_RESOURCES, ...mappedDynamic]);
+          }
+        }
+      } catch (err) {
+        console.warn("[FreeResourceModule] Error loading dynamic resources:", err);
+      }
+    }
+    loadDynamicResources();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenReader = (resource: SampleResource) => {
     setActiveReader({
@@ -148,9 +223,9 @@ export function FreeResourceModule() {
           </div>
         </div>
 
-        {/* Two Sample Cards Grid */}
+        {/* Dynamic & Curated Sample Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {SAMPLE_RESOURCES.map((resource) => (
+          {resources.map((resource) => (
             <div
               key={resource.id}
               className={`rounded-3xl border-2 ${resource.borderTheme} bg-gradient-to-br ${resource.gradientTheme} p-6 sm:p-8 shadow-[0_10px_35px_rgba(10,25,47,0.06)] hover:shadow-[0_16px_48px_rgba(0,90,156,0.12)] transition-all duration-300 flex flex-col justify-between group relative`}

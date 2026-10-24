@@ -2229,6 +2229,21 @@ router.put("/admin/acts/:id", async (req, res) => {
   }
 });
 
+router.delete("/admin/acts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isConnected()) {
+      await Act.deleteOne({ id });
+      Database.table("acts").delete(id);
+      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    }
+    Database.table("acts").delete(id);
+    res.status(200).json({ success: true, source: "local_cache" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting act: " + err.message });
+  }
+});
+
 // -----------------------------------------------------------------------------
 // 17. UNITS MANAGEMENT (P5)
 // -----------------------------------------------------------------------------
@@ -2298,6 +2313,21 @@ router.put("/admin/units/:id", async (req, res) => {
     res.status(200).json({ success: true, source: "local_cache", unit: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error updating unit: " + err.message });
+  }
+});
+
+router.delete("/admin/units/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isConnected()) {
+      await Unit.deleteOne({ id });
+      Database.table("units").delete(id);
+      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    }
+    Database.table("units").delete(id);
+    res.status(200).json({ success: true, source: "local_cache" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error deleting unit: " + err.message });
   }
 });
 

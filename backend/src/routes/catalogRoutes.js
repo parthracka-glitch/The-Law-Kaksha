@@ -10,9 +10,11 @@ const Resource = require("../models/Resource");
 const SiteSetting = require("../models/SiteSetting");
 const Course = require("../models/Course");
 const Act = require("../models/Act");
+const Unit = require("../models/Unit");
+const ContentItem = require("../models/ContentItem");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
-const { serializeProduct, serializeCourse, serializeResource } = require("../utils/responseSerializer");
+const { serializeProduct, serializeCourse, serializeResource, serializeContentItem } = require("../utils/responseSerializer");
 
 const DEFAULT_COURSES = [
   {
@@ -92,12 +94,13 @@ function courseToCatalogItem(course, syllabus = []) {
   const price = Number(course.price ?? 99);
   const mrp = Number(course.mrp ?? 0);
   const examBody = course.exam_body || "ICAI";
-  const category = examBody === "ICSI" ? "CSEET" : "CA Foundation";
+  const category = course.category || (examBody === "ICSI" ? "CSEET" : "CA Foundation");
   const comingSoon = course.availability === "coming_soon";
+  const unitsCount = course.units_count || (syllabus.length > 0 ? syllabus.length : 0);
 
   return {
     id: course.id,
-    slug: course.slug,
+    slug: course.slug || course.id,
     type: "course",
     courseId: course.id,
     title: course.title,
@@ -108,13 +111,19 @@ function courseToCatalogItem(course, syllabus = []) {
     badge: comingSoon ? "Coming Soon" : `₹${price} / ${course.accessDays || 30} Days`,
     category,
     examBody,
-    pages_or_duration: course.units_count
-      ? `${course.units_count} Units`
+    pages_or_duration: unitsCount
+      ? `${unitsCount} Units`
       : comingSoon
       ? "Launching Soon"
       : "Self-paced",
     cover_image: course.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
-    highlights: course.highlights || [],
+    highlights: Array.isArray(course.highlights) && course.highlights.length > 0
+      ? course.highlights
+      : [
+          "Unit-wise notes for comprehensive statutory coverage",
+          "Act-wise practice questions & exam-pattern case studies",
+          "ICAI/ICSI model answer writing techniques",
+        ],
     paymentType: "monthly",
     comingSoon,
     ...(syllabus.length > 0 ? { syllabus } : {}),
@@ -273,6 +282,7 @@ router.get("/catalog", async (req, res) => {
 
 // GET /api/catalog/:id — Get a single course/product's complete details
 router.get("/catalog/:id", async (req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
   const id = req.params.id;
   if (REMOVED_PRODUCT_IDS.has(id)) {
     return res.status(404).json({ success: false, message: "Course discontinued and removed from catalog." });
@@ -299,18 +309,56 @@ router.get("/catalog/:id", async (req, res) => {
     let product = course ? null : DEFAULT_COURSES.find((p) => p.id === id || p.slug === id || p.id === resolvedId || p.slug === resolvedId);
 
     if (course) {
+      const courseIds = [course.id, course.slug, resolvedId, id].filter(Boolean);
       let acts = [];
       if (isConnected()) {
-        acts = await Act.find({ courseId: course.id }).sort({ order: 1 }).lean();
+        acts = await Act.find({ courseId: { $in: courseIds } }).sort({ order: 1 }).lean();
       } else {
         acts = Database.table("acts")
-          .find((a) => a.courseId === course.id)
+          .find((a) => courseIds.includes(a.courseId))
           .sort((a, b) => (a.order || 0) - (b.order || 0));
       }
-      const syllabus = acts.map((act, index) => ({
-        chapter: `Chapter ${index + 1}`,
-        title: act.title,
-      }));
+
+      const actIds = acts.map((a) => a.id);
+      let allUnits = [];
+      let allItems = [];
+      try {
+        if (isConnected() && actIds.length > 0) {
+          allUnits = await Unit.find({ actId: { $in: actIds } }).sort({ order: 1 }).lean();
+          const unitIds = allUnits.map((u) => u.id);
+          if (unitIds.length > 0) {
+            allItems = await ContentItem.find({ unitId: { $in: unitIds }, isPublished: { $ne: false } }).sort({ order: 1 }).lean();
+          }
+        } else if (actIds.length > 0) {
+          allUnits = Database.table("units").find((u) => actIds.includes(u.actId)).sort((a, b) => (a.order || 0) - (b.order || 0));
+          const unitIds = allUnits.map((u) => u.id);
+          allItems = Database.table("content_items").find((i) => unitIds.includes(i.unitId) && i.isPublished !== false);
+        }
+      } catch (err) {
+        console.warn("[catalogRoutes] Units/items lookup warning:", err.message);
+      }
+
+      const syllabus = acts.map((act, index) => {
+        const actUnits = allUnits.filter((u) => u.actId === act.id);
+        return {
+          id: act.id,
+          chapter: `Chapter ${index + 1}`,
+          title: act.title,
+          description: act.description || "",
+          availability: act.availability || "live",
+          units: actUnits.map((u) => {
+            const uItems = allItems.filter((i) => i.unitId === u.id);
+            return {
+              id: u.id,
+              title: u.title,
+              summary: u.summary || "",
+              itemsCount: uItems.length,
+              hasSample: uItems.some((i) => i.isSample),
+            };
+          }),
+        };
+      });
+
       const cleanCourse = courseToCatalogItem(course, syllabus);
       return res.status(200).json({
         success: true,
@@ -382,13 +430,16 @@ router.get("/courses/:courseId", async (req, res) => {
 // GET /api/courses/:courseId/acts — Get acts/units for a course
 router.get("/courses/:courseId/acts", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     const { courseId } = req.params;
+    const resolvedId = resolveCourseAlias(courseId);
+    const courseIds = [courseId, resolvedId, courseId.replace(/^course-/, ""), `course-${courseId.replace(/^course-/, "")}`];
     let acts = [];
     if (isConnected()) {
-      acts = await Act.find({ courseId }).sort({ order: 1 }).lean();
+      acts = await Act.find({ courseId: { $in: courseIds } }).sort({ order: 1 }).lean();
     } else {
       acts = Database.table("acts")
-        .find((a) => a.courseId === courseId)
+        .find((a) => courseIds.includes(a.courseId))
         .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
     res.status(200).json({ success: true, acts });
@@ -398,21 +449,49 @@ router.get("/courses/:courseId/acts", async (req, res) => {
 });
 
 // GET /api/courses/:courseId/content — Get all content for a course
-router.get("/courses/:courseId/content", (req, res) => {
-  const contentTable = Database.table("content");
-  let content = contentTable.find((c) => c.courseId === req.params.courseId);
+router.get("/courses/:courseId/content", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    const { courseId } = req.params;
+    const resolvedId = resolveCourseAlias(courseId);
+    const courseVariants = [courseId, resolvedId, courseId.replace(/^course-/, ""), `course-${courseId.replace(/^course-/, "")}`];
 
-  if (req.query.type) {
-    content = content.filter((c) => c.type === req.query.type);
-  }
-  if (req.query.actId) {
-    content = content.filter((c) => c.actId === req.query.actId);
-  }
-  if (req.query.sampleOnly === "true") {
-    content = content.filter((c) => c.isSample === true);
-  }
+    let items = [];
+    if (isConnected()) {
+      const acts = await Act.find({ courseId: { $in: courseVariants } }).lean();
+      const actIds = acts.map((a) => a.id);
+      const units = await Unit.find({ actId: { $in: actIds } }).lean();
+      const unitIds = units.map((u) => u.id);
 
-  res.status(200).json({ success: true, content });
+      items = await ContentItem.find({
+        $or: [
+          { courseId: { $in: courseVariants } },
+          { unitId: { $in: unitIds } },
+        ],
+        isPublished: { $ne: false },
+      }).sort({ order: 1 }).lean();
+    } else {
+      const contentTable = Database.table("content_items");
+      items = contentTable.find((c) => courseVariants.includes(c.courseId) && c.isPublished !== false);
+      if (!items || items.length === 0) {
+        items = Database.table("content").find((c) => courseVariants.includes(c.courseId));
+      }
+    }
+
+    if (req.query.type) {
+      items = items.filter((c) => c.type === req.query.type);
+    }
+    if (req.query.actId) {
+      items = items.filter((c) => c.actId === req.query.actId);
+    }
+    if (req.query.sampleOnly === "true") {
+      items = items.filter((c) => c.isSample === true);
+    }
+
+    res.status(200).json({ success: true, content: items.map(serializeContentItem) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching course content: " + err.message });
+  }
 });
 
 // GET /api/courses/:courseId/weekly — Get weekly content
@@ -424,29 +503,159 @@ router.get("/courses/:courseId/weekly", (req, res) => {
   res.status(200).json({ success: true, weekly });
 });
 
-// GET /api/resources — Act-wise resources query
+// GET /api/resources — Act-wise resources & uploaded study materials query
 router.get("/resources", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     const { course, actName, type, sampleOnly } = req.query;
-    const filter = {};
-    if (course) filter.course = course;
-    if (actName) filter.actName = actName;
-    if (type) filter.type = type;
-    if (sampleOnly === "true") filter.isSample = true;
+
+    const courseVariants = course
+      ? [
+          course,
+          resolveCourseAlias(course),
+          course.replace(/^course-/, ""),
+          `course-${course.replace(/^course-/, "")}`,
+        ]
+      : [];
+
+    let combinedResources = [];
+    const seenIds = new Set();
 
     if (isConnected()) {
-      const resources = await Resource.find(filter).sort({ chapterNumber: 1, order: 1 }).lean();
-      return res.status(200).json({ success: true, source: "mongodb_atlas", resources: resources.map((r) => serializeResource(r)) });
+      // 1. Fetch from legacy Resource collection
+      const resFilter = {};
+      if (courseVariants.length > 0) resFilter.course = { $in: courseVariants };
+      if (actName) resFilter.actName = actName;
+      if (type) resFilter.type = type;
+      if (sampleOnly === "true") resFilter.isSample = true;
+
+      const rawResources = await Resource.find(resFilter).sort({ chapterNumber: 1, order: 1 }).lean();
+      for (const r of rawResources) {
+        const ser = serializeResource(r);
+        if (ser && !seenIds.has(ser.id)) {
+          seenIds.add(ser.id);
+          combinedResources.push(ser);
+        }
+      }
+
+      // 2. Fetch modern ContentItems (PDFs, Notes, Practice, etc. uploaded in Admin)
+      const itemFilter = { isPublished: { $ne: false } };
+      if (sampleOnly === "true") itemFilter.isSample = true;
+      if (type) itemFilter.type = type;
+
+      const contentItems = await ContentItem.find(itemFilter).sort({ order: 1 }).lean();
+
+      // Load acts and units to accurately populate hierarchy metadata
+      const allUnits = await Unit.find().lean();
+      const allActs = await Act.find().lean();
+      const unitsMap = new Map(allUnits.map((u) => [u.id, u]));
+      const actsMap = new Map(allActs.map((a) => [a.id, a]));
+
+      for (const item of contentItems) {
+        const unit = unitsMap.get(item.unitId);
+        const act = unit ? actsMap.get(unit.actId) : (item.actId ? actsMap.get(item.actId) : null);
+
+        const itemCourseId = act?.courseId || item.courseId || "course-ca-foundation";
+        const itemActName = act?.title || item.actName || "Core Study Material";
+
+        // Filter by course if specified
+        if (courseVariants.length > 0) {
+          const itemResolved = resolveCourseAlias(itemCourseId);
+          const matchesCourse = courseVariants.some((v) =>
+            v === itemCourseId || v === itemResolved || itemCourseId.includes(v) || v.includes(itemCourseId)
+          );
+          if (!matchesCourse) continue;
+        }
+
+        // Filter by actName if specified
+        if (actName && !itemActName.toLowerCase().includes(actName.toLowerCase())) {
+          continue;
+        }
+
+        const cleanId = item.id || String(item._id);
+        if (!seenIds.has(cleanId)) {
+          seenIds.add(cleanId);
+          combinedResources.push({
+            id: cleanId,
+            course: resolveCourseAlias(itemCourseId),
+            actName: itemActName,
+            chapterNumber: act?.order || 1,
+            type: item.type || "notes",
+            title: item.title,
+            description: item.description || (unit?.title ? `Unit: ${unit.title}` : ""),
+            isSample: Boolean(item.isSample),
+            status: "Published",
+            order: item.order || 0,
+            pages: item.pages || (item.sampleFromPage && item.sampleToPage ? `Pages ${item.sampleFromPage} - ${item.sampleToPage}` : (item.fileSize ? `${Math.round(item.fileSize / 1024)} KB` : "Official PDF")),
+            fileSize: item.fileSize ? `${Math.round(item.fileSize / 1024)} KB` : "",
+            fileName: item.fileName || `${item.title}.pdf`,
+            fileUrl: `/api/content/${cleanId}/file`,
+            ...(item.isSample ? { sampleUrl: `/api/content/${cleanId}/file?sample=true` } : {}),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        source: "mongodb_atlas",
+        count: combinedResources.length,
+        resources: combinedResources,
+      });
     }
 
+    // Local JSON cache fallback
     const resourcesTable = Database.table("resources");
     let resources = resourcesTable.find();
-    if (course) resources = resources.filter((r) => r.course === course);
+    if (courseVariants.length > 0) resources = resources.filter((r) => courseVariants.includes(r.course));
     if (actName) resources = resources.filter((r) => r.actName === actName);
     if (type) resources = resources.filter((r) => r.type === type);
     if (sampleOnly === "true") resources = resources.filter((r) => r.isSample === true);
 
-    res.status(200).json({ success: true, source: "local_cache", resources: resources.map((r) => serializeResource(r)) });
+    const localContent = Database.table("content_items").find((i) => i.isPublished !== false);
+    const localUnits = Database.table("units").find();
+    const localActs = Database.table("acts").find();
+    const localUnitsMap = new Map(localUnits.map((u) => [u.id, u]));
+    const localActsMap = new Map(localActs.map((a) => [a.id, a]));
+
+    for (const item of localContent) {
+      if (sampleOnly === "true" && !item.isSample) continue;
+      if (type && item.type !== type) continue;
+
+      const unit = localUnitsMap.get(item.unitId);
+      const act = unit ? localActsMap.get(unit.actId) : null;
+      const itemCourseId = act?.courseId || item.courseId || "course-ca-foundation";
+      const itemActName = act?.title || "Core Study Material";
+
+      if (courseVariants.length > 0) {
+        const itemResolved = resolveCourseAlias(itemCourseId);
+        if (!courseVariants.some((v) => v === itemCourseId || v === itemResolved)) continue;
+      }
+
+      const cleanId = item.id;
+      if (!seenIds.has(cleanId)) {
+        seenIds.add(cleanId);
+        combinedResources.push({
+          id: cleanId,
+          course: resolveCourseAlias(itemCourseId),
+          actName: itemActName,
+          chapterNumber: act?.order || 1,
+          type: item.type || "notes",
+          title: item.title,
+          description: item.description || "",
+          isSample: Boolean(item.isSample),
+          status: "Published",
+          order: item.order || 0,
+          pages: item.pages || "PDF",
+          fileSize: item.fileSize ? `${Math.round(item.fileSize / 1024)} KB` : "",
+          fileName: item.fileName || `${item.title}.pdf`,
+          fileUrl: `/api/content/${cleanId}/file`,
+          ...(item.isSample ? { sampleUrl: `/api/content/${cleanId}/file?sample=true` } : {}),
+        });
+      }
+    }
+
+    const merged = [...resources.map(serializeResource), ...combinedResources];
+    res.status(200).json({ success: true, source: "local_cache", count: merged.length, resources: merged });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching resources: " + err.message });
   }

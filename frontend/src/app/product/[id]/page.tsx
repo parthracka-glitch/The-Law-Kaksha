@@ -22,9 +22,21 @@ import {
   Clock,
 } from "lucide-react";
 
+interface ProductUnitItem {
+  id: string;
+  title: string;
+  summary?: string;
+  itemsCount?: number;
+  hasSample?: boolean;
+}
+
 interface ProductSyllabusItem {
+  id?: string;
   chapter: string;
   title: string;
+  description?: string;
+  availability?: string;
+  units?: ProductUnitItem[];
 }
 
 interface ProductItem {
@@ -670,14 +682,43 @@ export default function ProductDetailPage() {
 
             <div className="divide-y divide-[#E7E4E7]">
               {product.syllabus.map((ch: ProductSyllabusItem, idx: number) => (
-                <div key={idx} className="py-3.5 flex items-center justify-between text-xs sm:text-sm">
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-xs font-bold text-[#4B8097] w-28 shrink-0">
-                      {ch.chapter}
-                    </span>
-                    <span className="font-medium text-[#221D1D]">{ch.title}</span>
+                <div key={idx} className="py-4 space-y-2 text-xs sm:text-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <span className="font-mono text-xs font-bold text-[#4B8097] w-24 sm:w-28 shrink-0">
+                        {ch.chapter}
+                      </span>
+                      <span className="font-medium text-[#221D1D]">{ch.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {ch.units && ch.units.length > 0 && (
+                        <span className="text-[11px] font-semibold text-[#005A9C] bg-[#EFF6FF] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]">
+                          {ch.units.length} {ch.units.length === 1 ? "Unit" : "Units"}
+                        </span>
+                      )}
+                      <Check className="w-4 h-4 text-[#4B8097] shrink-0" />
+                    </div>
                   </div>
-                  <Check className="w-4 h-4 text-[#4B8097] shrink-0" />
+                  {ch.units && ch.units.length > 0 && (
+                    <div className="pl-6 sm:pl-32 pr-2 pt-1 space-y-1.5">
+                      {ch.units.map((unit, uIdx) => (
+                        <div
+                          key={uIdx}
+                          className="flex items-center justify-between text-xs text-[#64748B] py-0.5"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#94A3B8]" />
+                            <span>{unit.title}</span>
+                          </span>
+                          {unit.hasSample && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              Free Sample PDF
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -50,6 +50,7 @@ interface FreeResource {
   description?: string;
   type: string;
   actName: string;
+  course?: string;
   pages?: string;
   sampleUrl?: string;
   fileUrl?: string;
@@ -234,7 +235,7 @@ function CoursesCatalogContent() {
   useEffect(() => {
     async function loadFreeResources() {
       const res = await apiRequest<{ resources?: FreeResource[] }>(
-        "/api/resources?course=ca-foundation&sampleOnly=true"
+        "/api/resources?sampleOnly=true"
       );
       if (res.success && Array.isArray(res.data?.resources)) {
         setFreeResources(res.data.resources);
@@ -279,16 +280,24 @@ function CoursesCatalogContent() {
     return matchesCourse && matchesSearch;
   });
 
-  const filteredFreeResources =
-    selectedCourse === "course-cseet"
-      ? []
-      : freeResources.filter((resource) => {
-          const query = search.trim().toLowerCase();
-          if (!query) return true;
-          return [resource.title, resource.description, resource.actName]
-            .filter(Boolean)
-            .some((value) => String(value).toLowerCase().includes(query));
-        });
+  const filteredFreeResources = freeResources.filter((resource) => {
+    const course = String(resource.course || "").toLowerCase();
+    const act = String(resource.actName || "").toLowerCase();
+
+    if (selectedCourse === "course-cseet") {
+      const isCs = course.includes("cseet") || course.includes("cs") || act.includes("cseet");
+      if (!isCs) return false;
+    } else if (selectedCourse === "course-ca-foundation") {
+      const isCs = course.includes("cseet") || act.includes("cseet");
+      if (isCs) return false;
+    }
+
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+    return [resource.title, resource.description, resource.actName]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
 
   const handleOpenPreview = (product: Product) => {
     const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
