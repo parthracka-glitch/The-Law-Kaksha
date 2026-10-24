@@ -1579,28 +1579,55 @@ router.put("/admin/courses/:id", async (req, res) => {
   }
 });
 
+// Helper function to delete course from both local and Atlas
+async function executeDeleteCourse(id) {
+  const coursesTable = Database.table("courses");
+  const local = coursesTable.findOne((c) => c.id === id || c._id === id || c.slug === id);
+  if (local) coursesTable.delete(local.id);
+  coursesTable.delete(id);
+
+  if (isConnected()) {
+    try {
+      const mongoose = require("mongoose");
+      const filter = mongoose.isValidObjectId(id)
+        ? { $or: [{ _id: id }, { id }, { slug: id }] }
+        : { $or: [{ id }, { slug: id }] };
+      await Course.deleteMany(filter);
+      await Subscription.deleteMany({
+        $or: [{ course_ids: id }, { id: `sub-${id}` }, { slug: id }],
+      });
+    } catch (mongoErr) {
+      console.warn("[AdminRoutes] Course delete from Atlas error:", mongoErr.message);
+    }
+  }
+}
+
 router.delete("/admin/courses/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const coursesTable = Database.table("courses");
-    const local = coursesTable.findOne((c) => c.id === id || c._id === id || c.slug === id);
-    if (local) coursesTable.delete(local.id);
-    coursesTable.delete(id);
+    await executeDeleteCourse(id);
+    res.status(200).json({ success: true, message: "Course deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
-    if (isConnected()) {
-      try {
-        const mongoose = require("mongoose");
-        const filter = mongoose.isValidObjectId(id)
-          ? { $or: [{ _id: id }, { id }, { slug: id }] }
-          : { $or: [{ id }, { slug: id }] };
-        await Course.deleteMany(filter);
-        await Subscription.deleteMany({
-          $or: [{ course_ids: id }, { id: `sub-${id}` }, { slug: id }],
-        });
-      } catch (mongoErr) {
-        console.warn("[AdminRoutes] Course delete from Atlas error:", mongoErr.message);
-      }
-    }
+// POST fallback for clients/proxies that restrict DELETE method
+router.post("/admin/courses/:id/delete", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await executeDeleteCourse(id);
+    res.status(200).json({ success: true, message: "Course deleted." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post("/admin/courses/delete", async (req, res) => {
+  try {
+    const id = req.body.id || req.body.courseId;
+    if (!id) return res.status(400).json({ success: false, message: "Course ID is required." });
+    await executeDeleteCourse(id);
     res.status(200).json({ success: true, message: "Course deleted." });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

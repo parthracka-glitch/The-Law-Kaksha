@@ -68,35 +68,49 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middlewares
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      const allowedPatterns = [
-        /^http:\/\/localhost(:\d+)?$/,
-        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-        /^https:\/\/(www\.)?lawkaksha\.in$/,
-        /^https:\/\/(www\.)?thelawkaksha\.com$/,
-        /^https:\/\/the-law-kaksha(-[a-z0-9-]+)?\.vercel\.app$/,
-        /^https:\/\/the-law-kaksha\.onrender\.com$/,
-      ];
-      const envOrigins = (process.env.FRONTEND_URL || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const isAllowed =
-        allowedPatterns.some((pattern) => pattern.test(origin)) ||
-        envOrigins.includes(origin) ||
-        origin === FRONTEND_URL;
-      if (isAllowed) {
-        return callback(null, true);
-      }
-      return callback(null, false);
-    },
-    credentials: true,
-  })
-);
+// Middlewares - Robust CORS with preflight OPTIONS support
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    const allowedPatterns = [
+      /^http:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+      /^https:\/\/(www\.)?lawkaksha\.in$/,
+      /^https:\/\/(www\.)?thelawkaksha\.com$/,
+      /^https:\/\/the-law-kaksha(-[a-z0-9-]+)?\.vercel\.app$/,
+      /^https:\/\/the-law-kaksha\.onrender\.com$/,
+    ];
+    const envOrigins = (process.env.FRONTEND_URL || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const isAllowed =
+      allowedPatterns.some((pattern) => pattern.test(origin)) ||
+      envOrigins.includes(origin) ||
+      origin === FRONTEND_URL;
+    if (isAllowed) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "x-admin-key",
+    "x-device-id",
+    "x-fingerprint",
+  ],
+  exposedHeaders: ["Content-Disposition"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(
   express.json({

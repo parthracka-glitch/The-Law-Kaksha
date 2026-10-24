@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   BookOpen,
@@ -84,6 +85,11 @@ function errorMessage(err: unknown): string {
 }
 
 export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: Props) {
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Courses state
   const [courses, setCourses] = useState<CourseRecord[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
@@ -623,9 +629,22 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
     setDeletingCourseId(course.id);
     try {
-      const res = await adminFetchRef.current(`/api/admin/courses/${course.id}`, {
-        method: "DELETE",
-      });
+      let res: Response;
+      try {
+        res = await adminFetchRef.current(`/api/admin/courses/${course.id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok && res.status !== 404) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch {
+        // Fallback to POST /delete if browser CORS/firewall restricts DELETE method
+        res = await adminFetchRef.current(`/api/admin/courses/${course.id}/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: course.id }),
+        });
+      }
       const data = await res.json();
       if (data.success) {
         setCourses((prev) => prev.filter((c) => c.id !== course.id));
@@ -2017,8 +2036,8 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       </div>
 
       {/* 4. CREATE NEW COURSE MODAL */}
-      {courseModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {courseModalOpen && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="font-serif font-bold text-sm text-[#221D1D]">Create New Course</h3>
@@ -2127,12 +2146,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* EDIT COURSE MODAL */}
-      {editCourseModalOpen && editingCourseData && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {editCourseModalOpen && editingCourseData && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <div>
@@ -2305,12 +2325,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 5. CREATE NEW ACT MODAL */}
-      {actModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {actModalOpen && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-[#E7E4E7] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="font-serif font-bold text-sm text-[#221D1D]">Create New Act</h3>
@@ -2373,12 +2394,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 6. CREATE NEW UNIT MODAL */}
-      {unitModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {unitModalOpen && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-[#E7E4E7] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="font-serif font-bold text-sm text-[#221D1D]">Create New Unit</h3>
@@ -2425,12 +2447,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 7. BULK ADD UNITS MODAL */}
-      {bulkUnitsModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {bulkUnitsModalOpen && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#E7E4E7] space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <div>
@@ -2484,12 +2507,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 5. ADD / EDIT CONTENT ITEM MODAL */}
-      {contentModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-4">
+      {contentModal.open && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-[#221D1D]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E7E4E7] space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7]">
               <h3 className="font-serif font-bold text-sm text-[#221D1D]">
@@ -2679,23 +2703,27 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ============================================================ */}
       {/* SIMPLIFIED PDF UPLOAD MODAL                                  */}
       {/* ============================================================ */}
-      {simplifiedUploadOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in zoom-in-95 duration-150">
-            {/* Header */}
-            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50/60 via-slate-50 to-white flex items-center justify-between">
+      {simplifiedUploadOpen && isMounted && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleSubmitSimplifiedUpload}
+            className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden animate-in zoom-in-95 duration-150"
+          >
+            {/* 1. PINNED HEADER - Always visible at top, never cut off */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
-                  <UploadCloud className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 shrink-0">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
                     Upload Study Material PDF
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                       Simplified Flow
@@ -2709,21 +2737,21 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               <button
                 type="button"
                 onClick={() => setSimplifiedUploadOpen(false)}
-                className="w-9 h-9 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
                 title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmitSimplifiedUpload} className="p-6 space-y-5 text-xs text-slate-700">
+            {/* 2. SCROLLABLE FORM BODY - Smooth internal scroll on any screen size */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs text-slate-700">
               {/* STEP 1: TARGET COURSE & STRUCTURE */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                     <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">1</span>
-                    Target Course & Placement
+                    Target Course &amp; Placement
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium">Auto-creates chapters if none exist</span>
                 </div>
@@ -2835,14 +2863,14 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
                 <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5 mb-2">
                   <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">2</span>
-                  Select & Upload PDF File *
+                  Select &amp; Upload PDF File *
                 </span>
 
                 {pdfUploadProgress ? (
                   <div className="border border-emerald-200 bg-emerald-50/60 rounded-2xl p-6 text-center space-y-3">
                     <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
                     <div>
-                      <p className="font-bold text-slate-800">Uploading & Securing PDF...</p>
+                      <p className="font-bold text-slate-800">Uploading &amp; Securing PDF...</p>
                       <p className="text-[11px] text-slate-500">Storing on secure cloud storage with DRM protection.</p>
                     </div>
                   </div>
@@ -2875,15 +2903,15 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 ) : (
                   <div
                     onClick={() => simplifiedFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-7 text-center cursor-pointer transition-all group"
+                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-6 text-center cursor-pointer transition-all group"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-emerald-200/80 text-emerald-600 group-hover:scale-105 transition-transform flex items-center justify-center mx-auto mb-3">
-                      <UploadCloud className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-emerald-200/80 text-emerald-600 group-hover:scale-105 transition-transform flex items-center justify-center mx-auto mb-2.5">
+                      <UploadCloud className="w-5 h-5" />
                     </div>
-                    <p className="font-bold text-slate-800 text-sm">
-                      Click here to choose PDF file or drag & drop
+                    <p className="font-bold text-slate-800 text-xs sm:text-sm">
+                      Click here to choose PDF file or drag &amp; drop
                     </p>
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-slate-500 mt-0.5">
                       Accepts standard PDF documents. Title and file details will auto-fill automatically.
                     </p>
                   </div>
@@ -2894,7 +2922,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
               <div className="space-y-3 pt-1">
                 <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <span className="w-4 h-4 rounded-full bg-slate-800 text-white text-[9px] flex items-center justify-center font-black">3</span>
-                  Document Details & Settings
+                  Document Details &amp; Settings
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2904,7 +2932,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       type="text"
                       value={pdfTitle}
                       onChange={(e) => setPdfTitle(e.target.value)}
-                      placeholder="e.g. Chapter 1: Comprehensive Study Notes & Analysis"
+                      placeholder="e.g. Chapter 1: Comprehensive Study Notes &amp; Analysis"
                       className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
                       required
                     />
@@ -2920,7 +2948,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       <option value="notes">📘 Study Notes</option>
                       <option value="flowcharts">📊 Flowcharts / Mindmaps</option>
                       <option value="practice">📝 Practice Questions</option>
-                      <option value="case_problems">⚖️ Case Study & Precedents</option>
+                      <option value="case_problems">⚖️ Case Study &amp; Precedents</option>
                       <option value="pyqs">🏛️ Previous Year Questions (PYQs)</option>
                       <option value="revision">⚡ Rapid Revision</option>
                     </select>
@@ -2939,7 +2967,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 </div>
 
                 {/* Free Sample & Publish Options */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -2955,13 +2983,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
                   {pdfIsSample && (
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-600 text-[11px]">Pages Range:</span>
+                      <span className="font-medium text-slate-600 text-[11px]">Pages:</span>
                       <input
                         type="text"
                         value={pdfSamplePages}
                         onChange={(e) => setPdfSamplePages(e.target.value)}
                         placeholder="1-5"
-                        className="w-20 p-1.5 rounded-lg border border-slate-300 bg-white text-center font-mono text-xs focus:outline-none focus:border-emerald-500"
+                        className="w-16 p-1.5 rounded-lg border border-slate-300 bg-white text-center font-mono text-xs focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                   )}
@@ -2977,37 +3005,38 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                   </label>
                 </div>
               </div>
+            </div>
 
-              {/* FOOTER ACTIONS */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setSimplifiedUploadOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={pdfSaving || pdfUploadProgress || (!pdfUploadedPublicId && !pdfUploadFile) || !pdfTitle.trim()}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold flex items-center gap-2 shadow-md hover:shadow transition-all cursor-pointer"
-                >
-                  {pdfSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Publishing PDF...</span>
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud className="w-4 h-4" />
-                      <span>Upload & Publish PDF</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            {/* 3. PINNED FOOTER - Always visible at bottom, never cut off */}
+            <div className="p-4 sm:px-6 border-t border-slate-100 bg-slate-50/90 flex items-center justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSimplifiedUploadOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={pdfSaving || pdfUploadProgress || (!pdfUploadedPublicId && !pdfUploadFile) || !pdfTitle.trim()}
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold flex items-center gap-2 shadow-md hover:shadow transition-all cursor-pointer"
+              >
+                {pdfSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Publishing PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="w-4 h-4" />
+                    <span>Upload &amp; Publish PDF</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>,
+        document.body
       )}
     </div>
   );
