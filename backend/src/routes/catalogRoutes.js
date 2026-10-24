@@ -704,20 +704,25 @@ router.get("/public/section16-comparison", async (req, res) => {
 // SURFACE A & C PUBLIC CONTENT ENDPOINTS (§6)
 // ==========================================
 
-// GET /api/subscriptions — List active subscriptions
 // GET /api/subscriptions — List active subscriptions (Always synchronized with live courses)
 router.get("/subscriptions", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   try {
     const courses = await getActiveCourses();
     const caCourse = courses.find((c) => {
       const id = String(c.id || "").toLowerCase();
+      const slug = String(c.slug || "").toLowerCase();
       const title = String(c.title || "").toLowerCase();
-      return id.includes("ca-foundation") || id === "ca-foundation" || title.includes("foundation");
+      return id.includes("ca-foundation") || id === "ca-foundation" || slug.includes("ca-foundation") || title.includes("foundation");
     });
     const cseetCourse = courses.find((c) => {
       const id = String(c.id || "").toLowerCase();
+      const slug = String(c.slug || "").toLowerCase();
       const title = String(c.title || "").toLowerCase();
-      return id.includes("cseet") || title.includes("cseet");
+      return id.includes("cseet") || slug.includes("cseet") || title.includes("cseet");
     });
 
     let plans = [];
@@ -741,11 +746,15 @@ router.get("/subscriptions", async (req, res) => {
 
     // Dynamic course pricing
     const caPrice = caCourse && typeof caCourse.price === "number" ? caCourse.price : 99;
-    const caMrp = caCourse && typeof caCourse.mrp === "number" && caCourse.mrp > 0 ? caCourse.mrp : 299;
+    const caMrp = caCourse && typeof caCourse.mrp === "number" && caCourse.mrp > 0
+      ? caCourse.mrp
+      : (caPrice > 0 ? Math.max(caPrice * 2, 299) : 299);
     const caDuration = caCourse && typeof caCourse.accessDays === "number" && caCourse.accessDays > 0 ? caCourse.accessDays : 30;
 
     const csPrice = cseetCourse && typeof cseetCourse.price === "number" ? cseetCourse.price : 99;
-    const csMrp = cseetCourse && typeof cseetCourse.mrp === "number" && cseetCourse.mrp > 0 ? cseetCourse.mrp : 299;
+    const csMrp = cseetCourse && typeof cseetCourse.mrp === "number" && cseetCourse.mrp > 0
+      ? cseetCourse.mrp
+      : (csPrice > 0 ? Math.max(csPrice * 2, 299) : 299);
     const csDuration = cseetCourse && typeof cseetCourse.accessDays === "number" && cseetCourse.accessDays > 0 ? cseetCourse.accessDays : 30;
     const csComingSoon = cseetCourse?.availability === "coming_soon";
 
@@ -815,6 +824,10 @@ router.get("/subscriptions", async (req, res) => {
 
 // GET /api/subscriptions/:slug — Single subscription detail
 router.get("/subscriptions/:slug", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   try {
     const slug = req.params.slug;
     const resolvedCourseId = resolveCourseAlias(slug);

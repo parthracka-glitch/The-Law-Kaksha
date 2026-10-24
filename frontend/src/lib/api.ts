@@ -229,8 +229,6 @@ export async function apiRequest<T = JsonObject>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Cache-Control": "no-cache",
-    Pragma: "no-cache",
     ...(options.headers as Record<string, string>),
   };
 

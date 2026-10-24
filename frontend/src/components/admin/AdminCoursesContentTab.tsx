@@ -94,7 +94,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   const [courses, setCourses] = useState<CourseRecord[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [courseLoading, setCourseLoading] = useState<boolean>(true);
-  const [editingCourse, setEditingCourse] = useState<{ [id: string]: { price: number; accessDays: number; saving: boolean } }>({});
+  const [editingCourse, setEditingCourse] = useState<{ [id: string]: { price: number; mrp: number; accessDays: number; saving: boolean } }>({});
   const [uploadingCourseId, setUploadingCourseId] = useState<string | null>(null);
   const courseImageInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
@@ -230,9 +230,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       });
 
       setCourses(sorted);
-      const editMap: { [id: string]: { price: number; accessDays: number; saving: boolean } } = {};
+      const editMap: { [id: string]: { price: number; mrp: number; accessDays: number; saving: boolean } } = {};
       sorted.forEach((c: CourseRecord) => {
-        editMap[c.id] = { price: c.price || 99, accessDays: c.accessDays || 30, saving: false };
+        const p = typeof c.price === "number" ? c.price : 99;
+        const m = typeof c.mrp === "number" && c.mrp > 0 ? c.mrp : (p > 0 ? Math.max(p * 2, 299) : 299);
+        editMap[c.id] = { price: p, mrp: m, accessDays: c.accessDays || 30, saving: false };
       });
       setEditingCourse(editMap);
 
@@ -433,11 +435,13 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     }));
 
     try {
+      const payloadMrp = Number(edit.mrp || (edit.price > 0 ? Math.max(edit.price * 2, 299) : 299));
       const res = await adminFetch(`/api/admin/courses/${courseId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           price: Number(edit.price),
+          mrp: payloadMrp,
           accessDays: Number(edit.accessDays),
         }),
       });
@@ -446,11 +450,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         setCourses((prev) =>
           prev.map((c) =>
             c.id === courseId
-              ? { ...c, price: Number(edit.price), accessDays: Number(edit.accessDays) }
+              ? { ...c, price: Number(edit.price), mrp: payloadMrp, accessDays: Number(edit.accessDays) }
               : c
           )
         );
-        showToast(`Saved ₹${edit.price} (${edit.accessDays} days) for course. Price is live across the website.`);
+        showToast(`Saved ₹${edit.price} (MRP: ₹${payloadMrp}, ${edit.accessDays} days) for course. Price is live across the website.`);
         loadCourses();
 
         if (andRedirect) {
@@ -517,7 +521,12 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         setCourses((prev) => [...prev, data.course]);
         setEditingCourse((prev) => ({
           ...prev,
-          [data.course.id]: { price: data.course.price || 0, accessDays: data.course.accessDays || 30, saving: false },
+          [data.course.id]: {
+            price: data.course.price || 0,
+            mrp: data.course.mrp || 299,
+            accessDays: data.course.accessDays || 30,
+            saving: false,
+          },
         }));
         setSelectedCourseId(data.course.id);
         setNewCourseForm({
@@ -601,6 +610,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
           ...prev,
           [editingCourseData.id]: {
             price: Number(editCourseForm.price),
+            mrp: Number(editCourseForm.mrp || (Number(editCourseForm.price) > 0 ? Number(editCourseForm.price) * 2 : 299)),
             accessDays: Number(editCourseForm.accessDays),
             saving: false,
           },
@@ -1303,7 +1313,12 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             </div>
           )}
           {courses.map((course) => {
-            const edit = editingCourse[course.id] || { price: course.price, accessDays: course.accessDays, saving: false };
+            const edit = editingCourse[course.id] || {
+              price: course.price,
+              mrp: typeof course.mrp === "number" && course.mrp > 0 ? course.mrp : (course.price > 0 ? Math.max(course.price * 2, 299) : 299),
+              accessDays: course.accessDays,
+              saving: false,
+            };
             const isLive = course.availability === "live";
             const thumbnailSrc = course.thumbnail || "/assets/ca-cs-hero-books-sharp.png";
 
@@ -1430,7 +1445,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
 
                 {/* Price & accessDays Editor Form */}
                 <div className="pt-3 border-t border-[#E7E4E7] flex flex-wrap items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-slate-700">Price:</span>
                       <div className="relative flex items-center">
@@ -1445,6 +1460,25 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                             })
                           }
                           className="w-20 pl-6 pr-2 py-1 rounded-xl border border-slate-200 text-xs font-bold text-[#221D1D] focus:outline-none focus:border-[#AED7E9]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-slate-700">MRP:</span>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-2.5 text-[#77716E]">₹</span>
+                        <input
+                          type="number"
+                          value={edit.mrp}
+                          onChange={(e) =>
+                            setEditingCourse({
+                              ...editingCourse,
+                              [course.id]: { ...edit, mrp: Number(e.target.value) },
+                            })
+                          }
+                          className="w-20 pl-6 pr-2 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-500 focus:outline-none focus:border-[#AED7E9]"
+                          title="MRP / Strike Price"
                         />
                       </div>
                     </div>

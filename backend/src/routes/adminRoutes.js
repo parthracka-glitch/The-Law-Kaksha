@@ -1517,20 +1517,27 @@ router.put("/admin/courses/:id", async (req, res) => {
 
     // Propagate price, duration, thumbnail & title to subscription_plans so the whole website reflects the admin's change
     if (updates.price !== undefined || updates.accessDays !== undefined || updates.mrp !== undefined || updates.thumbnail !== undefined || updates.title !== undefined) {
+      const courseDoc = updatedMongo || localItem;
+      const courseIdentifier = `${id} ${courseDoc?.id || ""} ${courseDoc?.slug || ""} ${courseDoc?.title || ""}`.toLowerCase();
+      const isCa = courseIdentifier.includes("ca-foundation") || courseIdentifier.includes("paper 2") || courseIdentifier.includes("foundation");
+      const isCs = courseIdentifier.includes("cseet");
+
       const planUpdates = {};
       if (updates.price !== undefined) planUpdates.price = updates.price;
-      if (updates.mrp !== undefined) planUpdates.mrp = updates.mrp || updates.price * 2;
-      if (updates.accessDays !== undefined) planUpdates.duration_days = updates.accessDays;
+      if (updates.mrp !== undefined && updates.mrp > 0) {
+        planUpdates.mrp = updates.mrp;
+      } else if (updates.price !== undefined) {
+        const existingMrp = Number(courseDoc?.mrp || 0);
+        planUpdates.mrp = existingMrp > updates.price ? existingMrp : Math.max(updates.price * 2, 299);
+      }
+      if (updates.accessDays !== undefined && updates.accessDays > 0) planUpdates.duration_days = updates.accessDays;
       if (updates.thumbnail !== undefined) planUpdates.thumbnail = updates.thumbnail;
       if (updates.title !== undefined) planUpdates.title = updates.title;
       if (updates.description !== undefined) planUpdates.description = updates.description;
 
       const plansTable = Database.table("subscription_plans");
-      const isCa = id.includes("ca") || (localItem && localItem.id && localItem.id.includes("ca"));
-      const isCs = id.includes("cs") || (localItem && localItem.id && localItem.id.includes("cs"));
-
       const matchedPlans = plansTable.find((p) => {
-        if (p.course_ids && (p.course_ids.includes(id) || (localItem && p.course_ids.includes(localItem.id)))) return true;
+        if (p.course_ids && (p.course_ids.includes(id) || (courseDoc && p.course_ids.includes(courseDoc.id)))) return true;
         if (isCa && (p.id.includes("ca") || p.slug.includes("ca"))) return true;
         if (isCs && (p.id.includes("cs") || p.slug.includes("cs"))) return true;
         return false;
@@ -1543,12 +1550,19 @@ router.put("/admin/courses/:id", async (req, res) => {
       if (isConnected()) {
         try {
           const Subscription = require("../models/Subscription");
-          const subId = isCa ? "sub-ca-foundation-monthly" : isCs ? "sub-cseet-monthly" : `sub-${id}`;
-          const subSlug = isCa ? "ca-foundation-monthly" : isCs ? "cseet-monthly" : id;
-          const subTitle = updates.title || (isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : id);
+          const subId = isCa ? "sub-ca-foundation-monthly" : isCs ? "sub-cseet-monthly" : `sub-${courseDoc?.id || id}`;
+          const subSlug = isCa ? "ca-foundation-monthly" : isCs ? "cseet-monthly" : (courseDoc?.slug || id);
+          const subTitle = updates.title || (isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : (courseDoc?.title || id));
 
-          await Subscription.findOneAndUpdate(
-            { $or: [{ id: subId }, { slug: subSlug }] },
+          const updatedDoc = await Subscription.findOneAndUpdate(
+            {
+              $or: [
+                { id: subId },
+                { slug: subSlug },
+                { course_ids: id },
+                ...(courseDoc?.id ? [{ course_ids: courseDoc.id }, { id: `sub-${courseDoc.id}` }] : []),
+              ],
+            },
             {
               $set: {
                 id: subId,
@@ -1556,12 +1570,27 @@ router.put("/admin/courses/:id", async (req, res) => {
                 title: subTitle,
                 ...planUpdates,
                 is_active: true,
-                course_ids: [id],
+                course_ids: [courseDoc?.id || id],
               },
             },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
+            { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
           );
-        } catch (_) {}
+
+          // In case there are other duplicate plans in Atlas, sync them as well
+          await Subscription.updateMany(
+            {
+              $or: [
+                { id: subId },
+                { slug: subSlug },
+                { course_ids: id },
+                ...(courseDoc?.id ? [{ course_ids: courseDoc.id }] : []),
+              ],
+            },
+            { $set: planUpdates }
+          );
+        } catch (subErr) {
+          console.warn("[AdminRoutes] Subscription sync warning:", subErr.message);
+        }
       }
     }
 

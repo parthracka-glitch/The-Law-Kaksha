@@ -211,14 +211,21 @@ export default function SubscriptionDetailPage() {
         if (coursesRes.status === "fulfilled" && coursesRes.value.success) {
           const courses = coursesRes.value.data?.courses || [];
           const isCs = `${slug} ${merged.id || ""} ${merged.title || ""}`.toLowerCase().includes("cseet");
-          const course = courses.find((c) =>
-            isCs
-              ? c.id?.toLowerCase().includes("cseet") || c.title?.toLowerCase().includes("cseet")
-              : c.id?.toLowerCase().includes("ca-foundation") || c.title?.toLowerCase().includes("foundation")
-          );
+          const course = courses.find((c) => {
+            const id = (c.id || "").toLowerCase();
+            const s = (c.slug || "").toLowerCase();
+            const t = (c.title || "").toLowerCase();
+            return isCs
+              ? id.includes("cseet") || s.includes("cseet") || t.includes("cseet")
+              : id.includes("ca-foundation") || id === "ca-foundation" || s.includes("ca-foundation") || t.includes("foundation");
+          });
           if (course) {
             if (typeof course.price === "number") merged.price = course.price;
-            if (typeof course.mrp === "number" && course.mrp > 0) merged.mrp = course.mrp;
+            if (typeof course.mrp === "number" && course.mrp > 0) {
+              merged.mrp = course.mrp;
+            } else if (typeof course.price === "number" && course.price > 0) {
+              merged.mrp = Math.max(course.price * 2, 299);
+            }
             if (typeof course.accessDays === "number" && course.accessDays > 0) merged.duration_days = course.accessDays;
           }
         }

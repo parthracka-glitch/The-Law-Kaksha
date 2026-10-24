@@ -237,30 +237,37 @@ export function SubscriptionOverview() {
             const vp = visiblePlans(remotePlans);
             if (vp.length >= 2) {
               loadedPlans = vp.slice(0, 2);
+            } else if (vp.length === 1) {
+              const other = FALLBACK_PLANS.find((p) => isCseetPlan(p) !== isCseetPlan(vp[0]));
+              loadedPlans = other ? [vp[0], other] : vp;
             }
           }
         }
 
         if (courseRes.status === "fulfilled" && courseRes.value.success) {
           const courses = courseRes.value.data?.courses || [];
-          const caCourse = courses.find(
-            (c) =>
-              c.id?.toLowerCase().includes("ca-foundation") ||
-              c.id?.toLowerCase() === "ca-foundation" ||
-              c.title?.toLowerCase().includes("foundation")
-          );
-          const csCourse = courses.find(
-            (c) =>
-              c.id?.toLowerCase().includes("cseet") ||
-              c.title?.toLowerCase().includes("cseet")
-          );
+          const caCourse = courses.find((c) => {
+            const id = (c.id || "").toLowerCase();
+            const slug = (c.slug || "").toLowerCase();
+            const title = (c.title || "").toLowerCase();
+            return id.includes("ca-foundation") || id === "ca-foundation" || slug.includes("ca-foundation") || title.includes("foundation");
+          });
+          const csCourse = courses.find((c) => {
+            const id = (c.id || "").toLowerCase();
+            const slug = (c.slug || "").toLowerCase();
+            const title = (c.title || "").toLowerCase();
+            return id.includes("cseet") || slug.includes("cseet") || title.includes("cseet");
+          });
 
           loadedPlans = loadedPlans.map((plan) => {
             const isCs = isCseetPlan(plan);
             const course = isCs ? csCourse : caCourse;
             if (course) {
               const livePrice = typeof course.price === "number" ? course.price : plan.price;
-              const liveMrp = typeof course.mrp === "number" && course.mrp > 0 ? course.mrp : plan.mrp;
+              const liveMrp =
+                typeof course.mrp === "number" && course.mrp > 0
+                  ? course.mrp
+                  : (livePrice > 0 && livePrice < plan.mrp ? plan.mrp : Math.max(livePrice * 2, 299));
               const liveDuration =
                 typeof course.accessDays === "number" && course.accessDays > 0
                   ? course.accessDays
