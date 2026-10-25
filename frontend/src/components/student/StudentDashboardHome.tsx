@@ -669,24 +669,41 @@ export function StudentDashboardHome({
       {/* ========================================================================= */}
       {/* 3B. LIVE ADMIN-CONFIGURED MASTER CODEX PASSES (DYNAMIC STREAM CARDS)      */}
       {/* ========================================================================= */}
-      {promoBanners?.enabled !== false && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
-              <span>{promoBanners?.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
-            </span>
-            <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-              Instant DRM Auto-Unlock
-            </span>
-          </div>
+      {/* ========================================================================= */}
+      {/* 3B. LIVE ADMIN-CONFIGURED MASTER CODEX PASSES (DYNAMIC STREAM CARDS)      */}
+      {/* ========================================================================= */}
+      {(() => {
+        if (promoBanners?.enabled === false) return null;
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left Card: Stream-tailored (CA or CSEET) */}
-            {(() => {
-              const leftCard = (activeCourse === "ca" ? promoBanners?.caCard : promoBanners?.csCard) || DEFAULT_PROMO_BANNERS.caCard;
-              const isUnlocked = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
-              return (
+        // If the student is enrolled in a course, they should NOT be shown that course's pass
+        const isCurrentStreamUnlocked = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
+        const showStreamCard = !isCurrentStreamUnlocked;
+        // The combo pass bundles CA Foundation + CSEET. If the student has already enrolled in either or both,
+        // do not show the combo pass.
+        const showComboCard = !isCaUnlocked && !isCsUnlocked;
+
+        // If neither the current stream pass nor the combo pass should be shown (e.g. course is already enrolled),
+        // completely hide this promotional passes section.
+        if (!showStreamCard && !showComboCard) return null;
+
+        const leftCard = (activeCourse === "ca" ? promoBanners?.caCard : promoBanners?.csCard) || DEFAULT_PROMO_BANNERS.caCard;
+        const rightCard = promoBanners?.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
+
+        return (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
+                <span>{promoBanners?.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                Instant DRM Auto-Unlock
+              </span>
+            </div>
+
+            <div className={`grid grid-cols-1 ${showStreamCard && showComboCard ? "md:grid-cols-2" : "max-w-2xl"} gap-4`}>
+              {/* Stream-tailored Pass Card (CA or CSEET) - Only shown if student has NOT enrolled yet */}
+              {showStreamCard && (
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F6EFFD] via-[#F3E8FC] to-[#ECE0F8] border border-[#E9DDF5] p-5 sm:p-6 shadow-2xs flex flex-col justify-between min-h-[190px]">
                   <div className="absolute top-0 right-6 bg-[#4A0E4E] text-[#FDE68A] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
                     {leftCard.discountBadge || "67% OFF"}
@@ -734,35 +751,20 @@ export function StudentDashboardHome({
                   </div>
 
                   <div className="pt-3">
-                    {isUnlocked ? (
-                      <button
-                        type="button"
-                        onClick={() => onExploreCourse && onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
-                        className="px-5 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                        <span>Enrolled in Dashboard • Open Course</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onBuyCourse ? onBuyCourse(activeCourse) : onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
-                        className="px-5 py-2.5 rounded-full bg-[#581C87] hover:bg-[#4A0E4E] text-white text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span>{leftCard.buttonText || `Get Pass • ₹${leftCard.price}`}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => onBuyCourse ? onBuyCourse(activeCourse) : onExploreCourse && onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
+                      className="px-5 py-2.5 rounded-full bg-[#581C87] hover:bg-[#4A0E4E] text-white text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>{leftCard.buttonText || `Get Pass • ₹${leftCard.price}`}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-              );
-            })()}
+              )}
 
-            {/* Right Card: All-Access Dual Combo Pass */}
-            {(() => {
-              const rightCard = promoBanners?.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
-              const isUnlocked = isCaUnlocked && isCsUnlocked;
-              return (
+              {/* All-Access Dual Combo Pass - Only shown if NEITHER course is enrolled yet */}
+              {showComboCard && (
                 <div
                   className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#3B0764] via-[#581C87] to-[#7E22CE] text-white p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[190px] border border-[#9333EA]/30"
                   style={{ color: "#FFFFFF" }}
@@ -825,31 +827,21 @@ export function StudentDashboardHome({
                   </div>
 
                   <div className="pt-3">
-                    {isUnlocked ? (
-                      <button
-                        type="button"
-                        className="px-5 py-2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold inline-flex items-center gap-1.5"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>All-Access Dual Pass Active</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onBuyCourse ? onBuyCourse("all-access") : onExploreCourse("all-access")}
-                        className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span>{rightCard.buttonText || `Unlock All-Access • ₹${rightCard.price}`}</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-amber-950" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => onBuyCourse ? onBuyCourse("all-access") : onExploreCourse && onExploreCourse("all-access")}
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>{rightCard.buttonText || `Unlock All-Access • ₹${rightCard.price}`}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-amber-950" />
+                    </button>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        </section>
-      )}
+              )}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* 4. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}
