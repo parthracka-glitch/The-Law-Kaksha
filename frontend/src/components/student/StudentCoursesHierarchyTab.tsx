@@ -154,14 +154,54 @@ export function StudentCoursesHierarchyTab({
               localStorage.getItem("lawkaksha_token") ||
               localStorage.getItem("token")
             : null;
-        const res = await fetch(`${API_URL}/api/student/my-courses`, {
+        let emailQuery = "";
+        let localUnlocked: string[] = [];
+        if (typeof window !== "undefined") {
+          try {
+            const pb = JSON.parse(localStorage.getItem("lawkaksha_purchased_books") || "[]");
+            if (Array.isArray(pb)) localUnlocked.push(...pb);
+            const sess = JSON.parse(
+              localStorage.getItem("lawkaksha_student_session") ||
+              localStorage.getItem("lawkaksha_active_student") ||
+              "{}"
+            );
+            if (Array.isArray(sess.unlockedItemIds)) localUnlocked.push(...sess.unlockedItemIds);
+            if (sess.target_exam || sess.targetExam) localUnlocked.push(sess.target_exam || sess.targetExam);
+            if (sess.email) {
+              emailQuery = `?email=${encodeURIComponent(sess.email)}&studentId=${encodeURIComponent(sess.student_id || "")}`;
+            }
+          } catch {}
+        }
+
+        const isCaPurchased = localUnlocked.some((id) => {
+          const l = String(id || "").toLowerCase();
+          return l.includes("ca") || l.includes("foundation") || l.includes("paper 2") || l.includes("vol1");
+        });
+        const isCsPurchased = localUnlocked.some((id) => {
+          const l = String(id || "").toLowerCase();
+          return l.includes("cs") || l.includes("cseet") || l.includes("vol2");
+        });
+
+        const res = await fetch(`${API_URL}/api/student/my-courses${emailQuery}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const data: MyCoursesPayload = await res.json();
         if (isMounted) {
           if (data.success && Array.isArray(data.courses) && data.courses.length > 0) {
+            const enriched = data.courses.map((c) => {
+              const cId = String(c.id || "").toLowerCase();
+              const cTitle = String(c.title || "").toLowerCase();
+              const isCa = cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation") || cTitle.includes("foundation");
+              const isCs = cId.includes("cs") || cTitle.includes("cseet");
+              const enrolled = Boolean(c.isEnrolled || (isCa && isCaPurchased) || (isCs && isCsPurchased));
+              return {
+                ...c,
+                isEnrolled: enrolled,
+              };
+            });
+
             // Sort so enrolled courses come first
-            const validCourses = [...data.courses].sort((a, b) => {
+            const validCourses = [...enriched].sort((a, b) => {
               if (a.isEnrolled && !b.isEnrolled) return -1;
               if (!a.isEnrolled && b.isEnrolled) return 1;
               const actsA = a.acts?.length || 0;

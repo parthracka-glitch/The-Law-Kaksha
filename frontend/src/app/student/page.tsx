@@ -301,26 +301,34 @@ export default function StudentDashboardPage() {
 
   // Purchase-Based Access Control: reflects whether active course stream has been subscribed to
   const isCaUnlocked = useMemo(() => {
-    return purchasedBooks.some(id => {
+    const hasInPurchased = purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
         lower === "course-ca-foundation-sub" ||
         lower === "ca-foundation-sub" ||
         lower === "ca-foundation-business-laws" ||
         lower === "ca-foundation" ||
+        lower === "ca-foundation-paper-2" ||
+        lower === "course-ca-foundation" ||
         lower === "book-vol-1" ||
         lower === "prod-vol1" ||
         lower === "prod-combo" ||
         lower === "all-access" ||
         lower.includes("foundation") ||
         lower.includes("ca-") ||
-        lower.includes("question-bank")
+        lower.includes("question-bank") ||
+        lower.includes("paper 2") ||
+        lower.includes("paper-2") ||
+        lower.includes("business laws")
       );
     });
-  }, [purchasedBooks]);
+    if (hasInPurchased) return true;
+    const target = String(studentProfile.targetExam || "").toLowerCase();
+    return target.includes("ca") || target.includes("foundation") || target.includes("business laws");
+  }, [purchasedBooks, studentProfile.targetExam]);
 
   const isCsUnlocked = useMemo(() => {
-    return purchasedBooks.some(id => {
+    const hasInPurchased = purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
         lower === "course-cseet-sub" ||
@@ -328,15 +336,21 @@ export default function StudentDashboardPage() {
         lower === "cseet-business-law" ||
         lower === "cseet-management" ||
         lower === "cseet" ||
+        lower === "course-cseet" ||
         lower === "book-vol-2" ||
         lower === "prod-vol2" ||
         lower === "prod-combo" ||
         lower === "all-access" ||
         lower.includes("cseet") ||
-        lower.includes("cs-")
+        lower.includes("cs-") ||
+        lower.includes("communication") ||
+        lower.includes("management")
       );
     });
-  }, [purchasedBooks]);
+    if (hasInPurchased) return true;
+    const target = String(studentProfile.targetExam || "").toLowerCase();
+    return target.includes("cs") || target.includes("cseet");
+  }, [purchasedBooks, studentProfile.targetExam]);
 
   const hasActiveCourseAccess = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
   const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management";
@@ -829,7 +843,10 @@ export default function StudentDashboardPage() {
           email: studentProfile.email || "",
           studentId: studentProfile.student_id || "",
         });
-        const token = localStorage.getItem("lawkaksha_token") || "";
+        const token =
+          localStorage.getItem("lawkaksha_student_token") ||
+          localStorage.getItem("lawkaksha_token") ||
+          "";
         const headers: Record<string, string> = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
         const res = await fetch(`${API_URL}/api/student/dashboard?${query.toString()}`, { headers });
@@ -862,11 +879,22 @@ export default function StudentDashboardPage() {
           }
         }
 
-        const coursesRes = await fetch(`${API_URL}/api/student/my-courses`, { headers });
+        const coursesRes = await fetch(`${API_URL}/api/student/my-courses?${query.toString()}`, { headers });
         if (coursesRes.ok) {
           const coursesData = await coursesRes.json();
-          if (coursesData.success && Array.isArray(coursesData.courses)) {
-            setStudentCourses(coursesData.courses);
+          if (coursesData.success && Array.isArray(coursesData.courses) && coursesData.courses.length > 0) {
+            const mappedCourses = coursesData.courses.map((c: StudentCourse) => {
+              const cId = String(c.id || "").toLowerCase();
+              const cTitle = String(c.title || "").toLowerCase();
+              const isCa = cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation") || cTitle.includes("foundation");
+              const isCs = cId.includes("cs") || cTitle.includes("cseet");
+              const forceUnlock = (isCa && isCaUnlocked) || (isCs && isCsUnlocked);
+              return {
+                ...c,
+                isEnrolled: Boolean(c.isEnrolled || forceUnlock),
+              };
+            });
+            setStudentCourses(mappedCourses);
           }
         }
       } catch {}

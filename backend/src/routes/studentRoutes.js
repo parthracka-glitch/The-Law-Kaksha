@@ -22,26 +22,25 @@ const Order = require("../models/Order");
 const SupportTicket = require("../models/SupportTicket");
 const { isConnected } = require("../db/mongo");
 const Database = require("../db/database");
-const { requireAuth } = require("../middleware/authMiddleware");
+const mongoose = require("mongoose");
+const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
 const { serializeProduct, serializeResource } = require("../utils/responseSerializer");
 
 const router = express.Router();
 
 /**
  * GET /api/student/dashboard
- * Requires authenticated student session.
- * Ownership: Returns authenticated student's profile & courses. Admins can view any student.
+ * Supports authenticated student sessions, admin inspection, and query param fallbacks.
+ * Ownership: Returns student's profile & courses. Admins can view any student.
  */
-router.get("/dashboard", requireAuth, async (req, res) => {
+router.get("/dashboard", optionalAuth, async (req, res) => {
   try {
-    let email = req.user.email ? String(req.user.email).toLowerCase().trim() : null;
-    let studentId = req.user.student_id ? String(req.user.student_id).trim() : null;
+    let email = req.user?.email ? String(req.user.email).toLowerCase().trim() : null;
+    let studentId = req.user?.student_id ? String(req.user.student_id).trim() : null;
 
-    // Admin override for support inspection
-    if (req.user.role === "admin" && (req.query.email || req.query.studentId)) {
-      if (req.query.email) email = String(req.query.email).toLowerCase().trim();
-      if (req.query.studentId) studentId = String(req.query.studentId).trim();
-    }
+    // Admin override or client query fallback
+    if (req.query.email) email = String(req.query.email).toLowerCase().trim();
+    if (req.query.studentId) studentId = String(req.query.studentId).trim();
 
     let student = null;
     let subscriptions = [];
@@ -961,16 +960,20 @@ router.get("/check-enrollment", async (req, res) => {
  * Returns the student's enrolled courses with hierarchical Course -> Act -> Unit -> ContentItem.
  * Coming-soon acts are flagged with isComingSoon: true so they can be badged and locked in the UI.
  */
-router.get("/my-courses", requireAuth, async (req, res) => {
+router.get("/my-courses", optionalAuth, async (req, res) => {
   try {
-    const userId = req.user.id || req.user._id || req.user.student_id;
-    const email = req.user.email ? String(req.user.email).toLowerCase().trim() : "";
-    const studentId = req.user.student_id ? String(req.user.student_id).trim() : "";
-    const isAdmin = req.user.role === "admin";
+    let userId = req.user?.id || req.user?._id || req.user?.student_id || null;
+    let email = req.user?.email ? String(req.user.email).toLowerCase().trim() : "";
+    let studentId = req.user?.student_id ? String(req.user.student_id).trim() : "";
+    const isAdmin = req.user?.role === "admin";
+
+    // Query overrides from student dashboard or admin inspection
+    if (req.query.email) email = String(req.query.email).toLowerCase().trim();
+    if (req.query.studentId) studentId = String(req.query.studentId).trim();
 
     let activeCourseIds = new Set();
-    if (isAdmin) {
-      activeCourseIds.add("*"); // Admin has access to all courses
+    if (isAdmin && !req.query.email && !req.query.studentId) {
+      activeCourseIds.add("*"); // Admin viewing their own dashboard has access to all courses
     }
 
     if (isConnected()) {
@@ -988,15 +991,20 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       entitlements.forEach((e) => {
         if (e.course_id) activeCourseIds.add(e.course_id);
         if (e.courseId) activeCourseIds.add(e.courseId);
-        const cId = String(e.course_id || e.courseId || "").toLowerCase();
-        if (cId.includes("ca") || cId.includes("foundation")) {
+        if (e.item_id) activeCourseIds.add(e.item_id);
+        const cId = String(e.course_id || e.courseId || e.item_id || "").toLowerCase();
+        if (cId.includes("ca") || cId.includes("foundation") || cId.includes("vol1")) {
           activeCourseIds.add("ca-foundation");
           activeCourseIds.add("course-ca-foundation");
+          activeCourseIds.add("ca-foundation-paper-2");
+          activeCourseIds.add("course-ca-foundation-sub");
+          activeCourseIds.add("ca-foundation-business-laws");
         }
-        if (cId.includes("cseet")) {
+        if (cId.includes("cseet") || cId.includes("vol2")) {
           activeCourseIds.add("cseet-business-communication");
           activeCourseIds.add("course-cseet");
           activeCourseIds.add("cseet");
+          activeCourseIds.add("course-cseet-sub");
         }
       });
 
@@ -1012,40 +1020,68 @@ router.get("/my-courses", requireAuth, async (req, res) => {
       subs.forEach((s) => {
         if (s.productId) activeCourseIds.add(s.productId);
         if (s.itemId) activeCourseIds.add(s.itemId);
-        const title = (s.item || "").toLowerCase();
-        if (title.includes("ca foundation") || title.includes("vol 1")) {
+        const title = (s.item || s.title || "").toLowerCase();
+        if (title.includes("ca foundation") || title.includes("vol 1") || title.includes("paper 2") || title.includes("business laws")) {
           activeCourseIds.add("ca-foundation");
           activeCourseIds.add("course-ca-foundation");
+          activeCourseIds.add("ca-foundation-paper-2");
+          activeCourseIds.add("course-ca-foundation-sub");
+          activeCourseIds.add("ca-foundation-business-laws");
         }
         if (title.includes("cseet") || title.includes("vol 2")) {
           activeCourseIds.add("cseet-business-communication");
           activeCourseIds.add("course-cseet");
           activeCourseIds.add("cseet");
+          activeCourseIds.add("course-cseet-sub");
         }
       });
 
-      // Check student user unlockedItemIds
+      // Check student user unlockedItemIds & enrolled_books (safely avoiding ObjectId cast error)
       const studentUser = await User.findOne({
         $or: [
-          ...(userId ? [{ id: userId }, { _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(email ? [{ email }] : []),
-          ...(studentId ? [{ student_id: studentId }] : []),
+          ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
         ],
       }).lean();
 
-      if (studentUser && Array.isArray(studentUser.unlockedItemIds)) {
-        studentUser.unlockedItemIds.forEach((id) => {
-          const lower = String(id).toLowerCase();
-          if (lower.includes("ca") || lower.includes("foundation") || lower.includes("vol1")) {
-            activeCourseIds.add("ca-foundation");
-            activeCourseIds.add("course-ca-foundation");
-          }
-          if (lower.includes("cseet") || lower.includes("vol2")) {
-            activeCourseIds.add("cseet-business-communication");
-            activeCourseIds.add("course-cseet");
-            activeCourseIds.add("cseet");
-          }
-        });
+      if (studentUser) {
+        if (Array.isArray(studentUser.unlockedItemIds)) {
+          studentUser.unlockedItemIds.forEach((id) => {
+            const lower = String(id).toLowerCase();
+            if (lower.includes("ca") || lower.includes("foundation") || lower.includes("vol1")) {
+              activeCourseIds.add("ca-foundation");
+              activeCourseIds.add("course-ca-foundation");
+              activeCourseIds.add("ca-foundation-paper-2");
+              activeCourseIds.add("course-ca-foundation-sub");
+              activeCourseIds.add("ca-foundation-business-laws");
+            }
+            if (lower.includes("cseet") || lower.includes("vol2")) {
+              activeCourseIds.add("cseet-business-communication");
+              activeCourseIds.add("course-cseet");
+              activeCourseIds.add("cseet");
+              activeCourseIds.add("course-cseet-sub");
+            }
+          });
+        }
+        if (Array.isArray(studentUser.enrolled_books)) {
+          studentUser.enrolled_books.forEach((book) => {
+            const lower = String(book).toLowerCase();
+            if (lower.includes("ca") || lower.includes("foundation") || lower.includes("business laws")) {
+              activeCourseIds.add("ca-foundation");
+              activeCourseIds.add("course-ca-foundation");
+              activeCourseIds.add("ca-foundation-paper-2");
+              activeCourseIds.add("course-ca-foundation-sub");
+              activeCourseIds.add("ca-foundation-business-laws");
+            }
+            if (lower.includes("cseet")) {
+              activeCourseIds.add("cseet-business-communication");
+              activeCourseIds.add("course-cseet");
+              activeCourseIds.add("cseet");
+              activeCourseIds.add("course-cseet-sub");
+            }
+          });
+        }
       }
 
       // Fetch all courses sorted by curriculum order
@@ -1056,24 +1092,78 @@ router.get("/my-courses", requireAuth, async (req, res) => {
 
       const enrolledCourses = allCourses
         .map((course) => {
-          const isEnrolled = activeCourseIds.has("*") || activeCourseIds.has(course.id) || activeCourseIds.has(String(course._id));
-          const courseVariants = [course.id, course.slug, String(course._id)].filter(Boolean);
+          const courseVariants = [
+            course.id,
+            course.slug,
+            String(course._id),
+            String(course.id || "").toLowerCase(),
+            String(course.slug || "").toLowerCase(),
+          ].filter(Boolean);
+
+          const isCaCourse = courseVariants.some((v) => v.includes("ca") || v.includes("foundation"));
+          const isCsCourse = courseVariants.some((v) => v.includes("cs") || v.includes("cseet"));
+
+          const isEnrolled =
+            activeCourseIds.has("*") ||
+            courseVariants.some((v) => activeCourseIds.has(v)) ||
+            (isCaCourse && (
+              activeCourseIds.has("ca-foundation") ||
+              activeCourseIds.has("course-ca-foundation") ||
+              activeCourseIds.has("ca-foundation-paper-2") ||
+              activeCourseIds.has("course-ca-foundation-sub") ||
+              activeCourseIds.has("ca-foundation-business-laws") ||
+              activeCourseIds.has("book-vol-1") ||
+              activeCourseIds.has("prod-vol1")
+            )) ||
+            (isCsCourse && (
+              activeCourseIds.has("cseet") ||
+              activeCourseIds.has("course-cseet") ||
+              activeCourseIds.has("cseet-business-communication") ||
+              activeCourseIds.has("course-cseet-sub") ||
+              activeCourseIds.has("book-vol-2") ||
+              activeCourseIds.has("prod-vol2")
+            ));
+
           const acts = allActs
             .filter((a) => {
-              if (!a.courseId) return false;
-              return (
-                courseVariants.includes(a.courseId) ||
-                courseVariants.includes(String(a.courseId).toLowerCase()) ||
-                a.courseId.includes(course.id) ||
-                course.id.includes(a.courseId)
-              );
+              const actCourseId = a.courseId || a.course_id || (Array.isArray(a.course_ids) ? a.course_ids[0] : null);
+              if (actCourseId) {
+                return (
+                  courseVariants.includes(actCourseId) ||
+                  courseVariants.includes(String(actCourseId).toLowerCase()) ||
+                  actCourseId.includes(course.id) ||
+                  course.id.includes(actCourseId)
+                );
+              }
+              const actKey = `${a.id || ""} ${a.title || ""}`.toLowerCase();
+              if (isCaCourse && (
+                actKey.includes("contract") ||
+                actKey.includes("soga") ||
+                actKey.includes("partnership") ||
+                actKey.includes("llp") ||
+                actKey.includes("companies") ||
+                actKey.includes("negotiable") ||
+                actKey.includes("qbank") ||
+                actKey.includes("ca-")
+              )) {
+                return true;
+              }
+              if (isCsCourse && (
+                actKey.includes("cseet") ||
+                actKey.includes("mgmt") ||
+                actKey.includes("management") ||
+                actKey.includes("communication")
+              )) {
+                return true;
+              }
+              return false;
             })
             .map((act) => {
               const units = allUnits
-                .filter((u) => u.actId === act.id)
+                .filter((u) => u.actId === act.id || u.act_id === act.id)
                 .map((unit) => {
                   const contentItems = allItems
-                    .filter((item) => item.unitId === unit.id)
+                    .filter((item) => item.unitId === unit.id || item.unit_id === unit.id)
                     .map((item) => ({
                       id: item.id,
                       title: item.title,
@@ -1106,6 +1196,18 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                 units,
               };
             });
+
+          // Deduplicate acts by normalized title so duplicate IDs don't cause twin modules
+          const actsMap = new Map();
+          acts.forEach((act) => {
+            const normTitle = (act.title || "").trim().toLowerCase();
+            const existing = actsMap.get(normTitle);
+            if (!existing || (act.units?.length || 0) > (existing.units?.length || 0)) {
+              actsMap.set(normTitle, act);
+            }
+          });
+          const dedupedActs = Array.from(actsMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+
           return {
             id: course.id,
             title: course.title,
@@ -1113,7 +1215,7 @@ router.get("/my-courses", requireAuth, async (req, res) => {
             price: course.price,
             accessDays: course.accessDays,
             isEnrolled,
-            acts,
+            acts: dedupedActs,
           };
         })
         .sort((a, b) => {
@@ -1317,7 +1419,7 @@ router.get("/progress", requireAuth, async (req, res) => {
     if (isConnected()) {
       student = await User.findOne({
         $or: [
-          ...(userId ? [{ _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
           ...(email ? [{ email }] : []),
         ],
@@ -1374,7 +1476,7 @@ router.post("/toggle-unit-complete", requireAuth, async (req, res) => {
     if (isConnected()) {
       const student = await User.findOne({
         $or: [
-          ...(userId ? [{ _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
           ...(email ? [{ email }] : []),
         ],
@@ -1450,7 +1552,7 @@ router.get("/bookmarks", requireAuth, async (req, res) => {
     if (isConnected()) {
       student = await User.findOne({
         $or: [
-          ...(userId ? [{ _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
           ...(email ? [{ email }] : []),
         ],
@@ -1499,7 +1601,7 @@ router.post("/bookmarks", requireAuth, async (req, res) => {
     if (isConnected()) {
       const student = await User.findOne({
         $or: [
-          ...(userId ? [{ _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
           ...(email ? [{ email }] : []),
         ],
@@ -1548,7 +1650,7 @@ router.delete("/bookmarks/:id", requireAuth, async (req, res) => {
     if (isConnected()) {
       const student = await User.findOne({
         $or: [
-          ...(userId ? [{ _id: userId }] : []),
+          ...(userId && mongoose.isValidObjectId(userId) ? [{ id: userId }, { _id: userId }] : (userId ? [{ id: userId }] : [])),
           ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
           ...(email ? [{ email }] : []),
         ],

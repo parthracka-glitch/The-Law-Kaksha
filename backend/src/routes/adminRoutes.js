@@ -1658,15 +1658,18 @@ router.put("/admin/courses/:id", async (req, res) => {
           const subSlug = isCa ? "ca-foundation-monthly" : isCs ? "cseet-monthly" : (courseDoc?.slug || id);
           const subTitle = updates.title || (isCa ? "CA Foundation Business Laws" : isCs ? "CSEET Business Law and Management" : (courseDoc?.title || id));
 
-          const updatedDoc = await Subscription.findOneAndUpdate(
-            {
-              $or: [
-                { id: subId },
-                { slug: subSlug },
-                { course_ids: id },
-                ...(courseDoc?.id ? [{ course_ids: courseDoc.id }, { id: `sub-${courseDoc.id}` }] : []),
-              ],
-            },
+          // Safeguard: ONLY update catalog plan templates, NEVER touch actual student subscriptions (which have email or studentRoll)
+          const planFilter = {
+            $or: [
+              { id: subId },
+              { slug: subSlug },
+            ],
+            email: { $exists: false },
+            studentRoll: { $exists: false },
+          };
+
+          await Subscription.findOneAndUpdate(
+            planFilter,
             {
               $set: {
                 id: subId,
@@ -1677,20 +1680,7 @@ router.put("/admin/courses/:id", async (req, res) => {
                 course_ids: [courseDoc?.id || id],
               },
             },
-            { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
-          );
-
-          // In case there are other duplicate plans in Atlas, sync them as well
-          await Subscription.updateMany(
-            {
-              $or: [
-                { id: subId },
-                { slug: subSlug },
-                { course_ids: id },
-                ...(courseDoc?.id ? [{ course_ids: courseDoc.id }] : []),
-              ],
-            },
-            { $set: planUpdates }
+            { upsert: false }
           );
         } catch (subErr) {
           console.warn("[AdminRoutes] Subscription sync warning:", subErr.message);
