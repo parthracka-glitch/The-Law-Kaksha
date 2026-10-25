@@ -131,6 +131,12 @@ export interface StudentRecord {
   drm_access: boolean;
   enrolled_books: string[];
   joined_date: string;
+  has_active_purchase?: boolean;
+  latest_purchase_date?: string;
+  updatedAt?: string;
+  createdAt?: string;
+  lastActiveAt?: string;
+  unlockedItemIds?: string[];
 }
 
 export interface CaseStudyItem {
@@ -2250,6 +2256,17 @@ export default function AdminPortalPage() {
                           s.studentRoll.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           s.email.toLowerCase().includes(searchQuery.toLowerCase())
                         )
+                        .sort((a, b) => {
+                          // Prioritize student subscriptions over plan blueprints
+                          const isStudentA = Boolean(a.studentName || a.email);
+                          const isStudentB = Boolean(b.studentName || b.email);
+                          if (isStudentA && !isStudentB) return -1;
+                          if (!isStudentA && isStudentB) return 1;
+
+                          const timeA = new Date((a as any).createdAt || (a as any).updatedAt || a.date || 0).getTime();
+                          const timeB = new Date((b as any).createdAt || (b as any).updatedAt || b.date || 0).getTime();
+                          return timeB - timeA;
+                        })
                         .map((sub) => {
                           const isExpiring = sub.accessStatus === "Active" && sub.daysRemaining !== undefined && sub.daysRemaining <= 5;
                           return (
@@ -2400,22 +2417,67 @@ export default function AdminPortalPage() {
             const blockedCount = students.filter((s) => !s.drm_access).length;
             const query = studentSearchQuery.trim().toLowerCase();
 
-            const filteredStudents = students.filter((std) => {
-              const matchesSearch =
-                !query ||
-                std.name?.toLowerCase().includes(query) ||
-                std.student_id?.toLowerCase().includes(query) ||
-                std.email?.toLowerCase().includes(query) ||
-                std.phone?.toLowerCase().includes(query) ||
-                std.target_exam?.toLowerCase().includes(query);
+            const filteredStudents = students
+              .filter((std) => {
+                const matchesSearch =
+                  !query ||
+                  std.name?.toLowerCase().includes(query) ||
+                  std.student_id?.toLowerCase().includes(query) ||
+                  std.email?.toLowerCase().includes(query) ||
+                  std.phone?.toLowerCase().includes(query) ||
+                  std.target_exam?.toLowerCase().includes(query);
 
-              const matchesStatus =
-                studentStatusFilter === "all" ||
-                (studentStatusFilter === "active" && std.drm_access) ||
-                (studentStatusFilter === "blocked" && !std.drm_access);
+                const matchesStatus =
+                  studentStatusFilter === "all" ||
+                  (studentStatusFilter === "active" && std.drm_access) ||
+                  (studentStatusFilter === "blocked" && !std.drm_access);
 
-              return matchesSearch && matchesStatus;
-            });
+                return matchesSearch && matchesStatus;
+              })
+              .sort((a, b) => {
+                const subA = subscriptions.find((s) => s.email?.toLowerCase() === a.email?.toLowerCase());
+                const subB = subscriptions.find((s) => s.email?.toLowerCase() === b.email?.toLowerCase());
+
+                const hasCourseA = Boolean(
+                  (a.enrolled_books && a.enrolled_books.length > 0) ||
+                  subA ||
+                  ((a as any).unlockedItemIds && (a as any).unlockedItemIds.length > 0) ||
+                  a.has_active_purchase
+                );
+                const hasCourseB = Boolean(
+                  (b.enrolled_books && b.enrolled_books.length > 0) ||
+                  subB ||
+                  ((b as any).unlockedItemIds && (b as any).unlockedItemIds.length > 0) ||
+                  b.has_active_purchase
+                );
+
+                // Priority 1: Course buyers on top
+                if (hasCourseA && !hasCourseB) return -1;
+                if (!hasCourseA && hasCourseB) return 1;
+
+                // Priority 2: Latest purchase date / update timestamp descending
+                const getTime = (std: StudentRecord, sub?: SubscriptionRecord) => {
+                  let t = 0;
+                  const anyStd = std as any;
+                  if (anyStd.updatedAt) t = Math.max(t, new Date(anyStd.updatedAt).getTime());
+                  if (anyStd.createdAt) t = Math.max(t, new Date(anyStd.createdAt).getTime());
+                  if (anyStd.lastActiveAt) t = Math.max(t, new Date(anyStd.lastActiveAt).getTime());
+                  if (sub) {
+                    const anySub = sub as any;
+                    if (anySub.createdAt) t = Math.max(t, new Date(anySub.createdAt).getTime());
+                    if (anySub.updatedAt) t = Math.max(t, new Date(anySub.updatedAt).getTime());
+                    if (sub.date) {
+                      const p = Date.parse(sub.date);
+                      if (!isNaN(p)) t = Math.max(t, p);
+                    }
+                  }
+                  return t;
+                };
+
+                const timeA = getTime(a, subA);
+                const timeB = getTime(b, subB);
+                return timeB - timeA;
+              });
 
             return (
               <div className="space-y-5">
@@ -2507,9 +2569,15 @@ export default function AdminPortalPage() {
                       </button>
                     </div>
 
-                    <span className="text-xs text-[#334155] px-1 font-semibold">
-                      Showing {filteredStudents.length} of {students.length}
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-[#334155] px-1 font-semibold">
+                        Showing {filteredStudents.length} of {students.length}
+                      </span>
+                      <span className="text-[11px] text-[#005A9C] bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-2xs">
+                        <Sparkles className="w-3 h-3 text-[#005A9C]" />
+                        <span>Latest Course Purchases on Top</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -2568,16 +2636,48 @@ export default function AdminPortalPage() {
                                 {std.target_exam}
                               </td>
                               <td className="py-3.5 px-4">
-                                <div className="flex flex-wrap gap-1">
-                                  {std.enrolled_books && std.enrolled_books.length > 0 ? (
-                                    std.enrolled_books.map((b, i) => (
-                                      <span key={i} className="text-[11px] bg-[#F1F5F9] text-[#0A192F] font-semibold px-2.5 py-0.5 rounded-md border border-[#CBD5E1]">
-                                        {b}
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {(() => {
+                                    const matchingSub = subscriptions.find(
+                                      (s) => s.email?.toLowerCase() === std.email?.toLowerCase()
+                                    );
+                                    const courses =
+                                      std.enrolled_books && std.enrolled_books.length > 0
+                                        ? std.enrolled_books
+                                        : matchingSub && matchingSub.item
+                                        ? [matchingSub.item]
+                                        : (std as any).unlockedItemIds && (std as any).unlockedItemIds.length > 0
+                                        ? ["CA Foundation Paper 2: Business Laws"]
+                                        : [];
+
+                                    if (courses.length > 0) {
+                                      return (
+                                        <>
+                                          {courses.map((b, i) => (
+                                            <span
+                                              key={i}
+                                              className="text-[11px] bg-[#EFF6FF] text-[#005A9C] font-semibold px-2.5 py-0.5 rounded-md border border-[#BFDBFE] flex items-center gap-1 shadow-2xs"
+                                            >
+                                              <BookOpen className="w-3 h-3 text-[#005A9C]" />
+                                              <span>{b}</span>
+                                            </span>
+                                          ))}
+                                          {matchingSub && (
+                                            <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                              <span>Latest Buyer</span>
+                                            </span>
+                                          )}
+                                        </>
+                                      );
+                                    }
+
+                                    return (
+                                      <span className="text-[11px] text-[#475569] font-medium bg-[#F8FAFC] px-2.5 py-0.5 rounded border border-[#E2E8F0]">
+                                        Standard Pass
                                       </span>
-                                    ))
-                                  ) : (
-                                    <span className="text-[11px] text-[#475569] font-medium bg-[#F8FAFC] px-2.5 py-0.5 rounded border border-[#E2E8F0]">Standard Pass</span>
-                                  )}
+                                    );
+                                  })()}
                                 </div>
                               </td>
                               <td className="py-3.5 px-4">

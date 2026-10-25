@@ -501,11 +501,47 @@ router.delete("/admin/coupons/:id", async (req, res) => {
 router.get("/admin/students", async (req, res) => {
   try {
     if (isConnected()) {
-      const students = await User.find({ role: "student" }).select("-password_hash").lean();
+      let students = await User.find({ role: "student" }).sort({ updatedAt: -1, createdAt: -1 }).select("-password_hash").lean();
+
+      try {
+        const subs = await Subscription.find().sort({ createdAt: -1 }).lean();
+        const subsByEmail = new Map();
+        for (const s of subs) {
+          if (s.email && !subsByEmail.has(s.email.toLowerCase())) {
+            subsByEmail.set(s.email.toLowerCase(), s);
+          }
+        }
+
+        students = students.map((std) => {
+          const sub = subsByEmail.get((std.email || "").toLowerCase());
+          const enrolled =
+            Array.isArray(std.enrolled_books) && std.enrolled_books.length > 0
+              ? std.enrolled_books
+              : sub && sub.item
+              ? [sub.item]
+              : [];
+          return {
+            ...std,
+            enrolled_books: enrolled,
+            latest_purchase_date: sub?.date || (sub?.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-IN") : undefined),
+            has_active_purchase: Boolean(enrolled.length > 0 || (std.unlockedItemIds && std.unlockedItemIds.length > 0) || sub),
+          };
+        });
+
+        // Segregate: Course buyers on top, sorted by latest purchase date descending
+        students.sort((a, b) => {
+          const scoreA = (a.has_active_purchase ? 10000000000000 : 0) + (new Date(a.updatedAt || a.createdAt || 0).getTime());
+          const scoreB = (b.has_active_purchase ? 10000000000000 : 0) + (new Date(b.updatedAt || b.createdAt || 0).getTime());
+          return scoreB - scoreA;
+        });
+      } catch (subErr) {
+        console.warn("[AdminRoutes] Subscriptions enrichment warning:", subErr.message);
+      }
+
       return res.status(200).json({ success: true, source: "mongodb_atlas", students });
     }
     const usersTable = Database.table("users");
-    const students = usersTable.find((u) => u.role === "student").map(({ password_hash, ...u }) => u);
+    const students = usersTable.find((u) => u.role === "student").reverse().map(({ password_hash, ...u }) => u);
     res.status(200).json({ success: true, students });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching students." });

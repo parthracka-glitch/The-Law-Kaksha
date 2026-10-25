@@ -319,6 +319,9 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
             },
             $addToSet: {
               unlockedItemIds: { $each: finalUnlockedItems },
+              enrolled_books: (order.items && order.items.length > 0)
+                ? (order.items[0].title || "CA Foundation Paper 2: Business Laws")
+                : "CA Foundation Paper 2: Business Laws",
             },
           },
           { upsert: true, new: true }
