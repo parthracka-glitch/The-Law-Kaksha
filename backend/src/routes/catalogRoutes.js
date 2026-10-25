@@ -16,55 +16,7 @@ const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { serializeProduct, serializeCourse, serializeResource, serializeContentItem } = require("../utils/responseSerializer");
 
-const DEFAULT_COURSES = [
-  {
-    id: "course-ca-foundation",
-    slug: "ca-foundation-paper-2",
-    type: "course",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Paper 2",
-    subtitle: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
-    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
-    price: 1,
-    original_price: 0,
-    badge: "₹1 / 30 Days",
-    category: "CA Foundation",
-    examBody: "ICAI",
-    pages_or_duration: "19 Units",
-    cover_image: "/assets/crop_ca_foundation_book.png",
-    highlights: [
-      "Unit-wise notes for Sale of Goods, Partnership and LLP",
-      "Act-wise practice questions, PYQs, LDR charts and infographics",
-      "Question Bank Part 1 and Part 2 with detailed solutions",
-      "Companies Act and Negotiable Instruments Act coming soon"
-    ],
-    paymentType: "monthly",
-    comingSoon: false,
-  },
-  {
-    id: "course-cseet",
-    slug: "cseet-business-laws-management",
-    type: "course",
-    courseId: "course-cseet",
-    title: "CSEET Business Laws and Management",
-    subtitle: "Comprehensive Business Laws & Management preparation platform for CSEET.",
-    description: "Comprehensive Business Laws & Management preparation platform for CSEET.",
-    price: 99,
-    original_price: 0,
-    badge: "Coming Soon",
-    category: "CSEET",
-    examBody: "ICSI",
-    pages_or_duration: "Launching Soon",
-    cover_image: "/assets/ca-cs-hero-books-sharp.png",
-    highlights: [
-      "Business Laws and Management syllabus coverage",
-      "Unit-wise notes and practice questions",
-      "Launching soon"
-    ],
-    paymentType: "monthly",
-    comingSoon: true,
-  },
-];
+const DEFAULT_COURSES = [];
 
 async function getActiveCourses() {
   try {
@@ -117,6 +69,12 @@ function courseToCatalogItem(course, syllabus = []) {
       ? "Launching Soon"
       : "Self-paced",
     cover_image: course.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
+    pdfUrl:
+      course.pdfUrl ||
+      (String(course.id || "").includes("cseet")
+        ? "/samples/Lesson 7 Introduction to Management (Comprehensive Notes).pdf"
+        : "/samples/Question Bank Part 1- Sample Copy.pdf"),
+    previewPagesLimit: course.previewPagesLimit || 10,
     highlights: Array.isArray(course.highlights) && course.highlights.length > 0
       ? course.highlights
       : [
@@ -237,7 +195,15 @@ router.get("/catalog", async (req, res) => {
     courseItems.forEach((c) => coursesMap.set(c.id, c));
     const mergedCourses = Array.from(coursesMap.values());
 
-    let allProducts = [...mergedCourses, ...formattedDbProducts].filter(
+    const catalogMap = new Map();
+    mergedCourses.forEach((c) => catalogMap.set(c.id, c));
+    formattedDbProducts.forEach((p) => {
+      if (!catalogMap.has(p.id)) {
+        catalogMap.set(p.id, p);
+      }
+    });
+
+    let allProducts = Array.from(catalogMap.values()).filter(
       (p) => !isRemovedProduct(p)
     );
 
@@ -789,7 +755,11 @@ router.get("/subscriptions", async (req, res) => {
     };
 
     if (!plans || plans.length === 0) {
-      plans = [defaultCaPlan, defaultCsPlan];
+      if (courses.length > 0 && (caCourse || cseetCourse)) {
+        plans = [caCourse ? defaultCaPlan : null, cseetCourse ? defaultCsPlan : null].filter(Boolean);
+      } else {
+        plans = [];
+      }
     } else {
       plans = plans.map((p) => {
         const key = `${p.id || ""} ${p.slug || ""} ${p.title || ""}`.toLowerCase();

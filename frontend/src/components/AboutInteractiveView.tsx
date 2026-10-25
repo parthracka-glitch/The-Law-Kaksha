@@ -440,7 +440,7 @@ export function AboutInteractiveView() {
           </Link>
 
           <Link
-            href="/#pricing"
+            href="/courses"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border-2 border-[#005A9C] text-[#005A9C] hover:bg-[#F0F7FF] text-sm font-bold px-7 py-3 rounded-full transition-all duration-200 active:scale-95 cursor-pointer min-h-[48px]"
           >
             <span>Explore All Passes @ ₹99</span>

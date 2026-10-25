@@ -3,7 +3,6 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { SubscriptionCarousel } from "@/components/SubscriptionCarousel";
 import { FreeResourceModule } from "@/components/FreeResourceModule";
-import { SubscriptionOverview } from "@/components/SubscriptionOverview";
 import { ExamCountdownsAndQOTD } from "@/components/ExamCountdownsAndQOTD";
 import { Section16ComparisonBlock } from "@/components/Section16ComparisonBlock";
 import { FaqSection } from "@/components/FaqSection";
@@ -50,10 +49,7 @@ export default function Home() {
       {/* 4. Free Resources & Sample Question Banks Module */}
       <FreeResourceModule />
 
-      {/* 5. Live Subscription Passes Overview (Pricing & Passes) */}
-      <SubscriptionOverview />
-
-      {/* 6. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
+      {/* 5. Streamlined Exam Countdowns & Daily High-Yield Case Scenarios */}
       <ExamCountdownsAndQOTD />
 
       {/* 7. ICAI Section 16(1) Model Answer Comparison */}

@@ -158,137 +158,7 @@ function buildShowcaseResource(product: CatalogProduct, index: number): Showcase
   };
 }
 
-export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [
-  {
-    id: "course-ca-foundation-sub",
-    courseType: "ca",
-    title: "CA Foundation Business Laws Master Pass",
-    badge: "🔥 ICAI NEW SCHEME • PAPER 2",
-    category: "Paper 2 • Complete 7 Acts",
-    examBody: "ICAI 2026 Curriculum",
-    subtitle: "Comprehensive preparation covering Contract Act, Sale of Goods, Partnership, LLP, Companies & NI Act.",
-    coverImage: "/covers/vol1-codex.webp",
-    price: 99,
-    originalPrice: 299,
-    discount: "67% OFF",
-    savings: "Save ₹200",
-    highlights: [
-      "All 7 Legislative Chapters simplified with section flowcharts",
-      "3 High-Yield Weekly Case Studies: Monster Monday & Final Boss",
-      "ICAI Answer Drafting Framework & Step-by-Step Scoring Templates",
-    ],
-    bannerGradient: "from-[#451A03] via-[#78350F] to-[#92400E]",
-    borderTheme: "border-[#F59E0B]/40 hover:border-[#FBBF24]",
-    accentColor: "text-amber-300",
-    buttonGradient: "bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#F59E0B] hover:to-[#D97706] text-white shadow-amber-950/40",
-    validityTag: "Paper 2 Pass • Instant Activation",
-    cartPayload: {
-      id: "course-ca-foundation-sub",
-      title: "CA Foundation Business Laws Master Pass",
-      price: 99,
-      originalPrice: 299,
-      category: "Full Course Subscription",
-      badge: "Paper 2 • 7 Chapters",
-    },
-  },
-  {
-    id: "course-cseet-sub",
-    courseType: "cs",
-    title: "CSEET Business Laws and Management Master Pass",
-    badge: "⚡ ICSI SYLLABUS • 8 UNITS",
-    category: "ICSI Paper 2 • Complete Syllabus",
-    examBody: "ICSI Executive Entrance",
-    subtitle: "Full Legal Aptitude, Henri Fayol/Taylor Management Theories & Timed Live Mock Drills.",
-    coverImage: "/covers/vol2-codex.webp",
-    price: 99,
-    originalPrice: 299,
-    discount: "67% OFF",
-    savings: "Save ₹200",
-    highlights: [
-      "All 8 units: Constitution of India, Torts, Company Law & Contracts",
-      "Henri Fayol 14 Principles, Scientific Management & Business Ethics",
-      "Weekly timed mock test with instant score report & leaderboard",
-    ],
-    bannerGradient: "from-[#082F49] via-[#075985] to-[#0284C7]",
-    borderTheme: "border-[#38BDF8]/40 hover:border-[#7DD3FC]",
-    accentColor: "text-sky-300",
-    buttonGradient: "bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:from-[#38BDF8] hover:to-[#0284C7] text-white shadow-sky-950/40",
-    validityTag: "CSEET Pass • Launching Soon",
-    comingSoon: true,
-    cartPayload: {
-      id: "course-cseet-sub",
-      title: "CSEET Business Laws and Management Master Pass",
-      price: 99,
-      originalPrice: 299,
-      category: "Full Course Subscription",
-      badge: "ICSI • 8 Units",
-    },
-  },
-  {
-    id: "prod-cases-vault",
-    courseType: "volume",
-    title: "High-Yield Practical Case Studies Bank (250+ Scenarios)",
-    badge: "🎯 EXAM SCENARIOS & ANSWER RUBRICS",
-    category: "Exam Scoring Bank",
-    examBody: "ICAI Exam Standard",
-    subtitle: "250+ application-based practical cases with step-by-step model answers and ICAI marking rubrics.",
-    coverImage: "/assets/ca-cs-hero-books-sharp.png",
-    price: 79,
-    originalPrice: 199,
-    discount: "60% OFF",
-    savings: "Save ₹120",
-    highlights: [
-      "Monster Monday, Midweek Madness & Final Boss Friday problems",
-      "Section 73 damages & Section 16 implied conditions trap cases",
-      "Model answer drafting rubrics that examiners award full marks for",
-    ],
-    bannerGradient: "from-[#881337] via-[#9F1239] to-[#BE123C]",
-    borderTheme: "border-[#FB7185]/40 hover:border-[#FDA4AF]",
-    accentColor: "text-rose-200",
-    buttonGradient: "bg-gradient-to-r from-[#E11D48] to-[#BE123C] hover:from-[#F43F5E] hover:to-[#E11D48] text-white shadow-rose-950/40",
-    validityTag: "250+ Cases • Exam Scoring Vault",
-    cartPayload: {
-      id: "prod-cases-vault",
-      title: "High-Yield Practical Case Studies Bank (250+ Scenarios)",
-      price: 79,
-      originalPrice: 199,
-      category: "Question Bank",
-      badge: "250+ Cases • Solved",
-    },
-  },
-  {
-    id: "prod-mcq-simulator",
-    courseType: "cs",
-    title: "CSEET 30-Question Live MCQ Timed Mock Simulator",
-    badge: "⏱️ LIVE MOCK SIMULATOR",
-    category: "Timed Practice Series",
-    examBody: "ICSI CSEET Pattern",
-    subtitle: "Full-length timed MCQ mock drills with instant negative marking calculation and platform rankings.",
-    coverImage: "/images/foundation_testseries_card.webp",
-    price: 49,
-    originalPrice: 149,
-    discount: "67% OFF",
-    savings: "Save ₹100",
-    highlights: [
-      "Real-time countdown timer simulating actual ICSI exam software",
-      "Instant percentile score, question-by-question rationale analysis",
-      "Leaderboard ranking against thousands of peers across India",
-    ],
-    bannerGradient: "from-[#1E1B4B] via-[#312E81] to-[#4338CA]",
-    borderTheme: "border-[#818CF8]/40 hover:border-[#A5B4FC]",
-    accentColor: "text-indigo-200",
-    buttonGradient: "bg-gradient-to-r from-[#6366F1] to-[#4F46E5] hover:from-[#818CF8] hover:to-[#6366F1] text-white shadow-indigo-950/40",
-    validityTag: "Live Simulator • Mock Tests",
-    cartPayload: {
-      id: "prod-mcq-simulator",
-      title: "CSEET 30-Question Live MCQ Timed Mock Simulator",
-      price: 49,
-      originalPrice: 149,
-      category: "Mock Test Series",
-      badge: "ICSI Pattern • Timed",
-    },
-  },
-];
+export const SHOWCASE_RESOURCES: ShowcaseResourceItem[] = [];
 
 interface LevelInfo {
   level: number;
@@ -380,176 +250,7 @@ export interface FreeResourceItem {
   accentBadge: string;
 }
 
-export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [
-  {
-    id: "free-smart-question-bank-part1-sample",
-    actName: "Smart Revision Question Bank • Part 1",
-    unitNumber: 1,
-    title: "Question Bank Part 1 — Free Sample",
-    subtitle: "The Indian Contract Act, 1872 (Units 1 - 9) • Complete Unit 2 & Part Unit 9 with full model answers.",
-    badge: "🎁 FREE SAMPLE",
-    pages: "30 Pages",
-    pdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-  {
-    id: "free-smart-question-bank-part2-sample",
-    actName: "Smart Revision Question Bank • Part 2",
-    unitNumber: 2,
-    title: "Question Bank Part 2 — Free Sample",
-    subtitle: "Rest of the Acts (SOGA, Partnership, LLP, Companies, N.I. Act) • 24 Hand-Picked Case Studies with full model answers.",
-    badge: "🎁 FREE SAMPLE",
-    pages: "43 Pages",
-    pdfUrl: "/samples/Part 2_Sample Copy.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0F9FF] via-white to-white",
-    borderTheme: "border-[#BAE6FD] hover:border-[#0284C7]",
-    accentBadge: "bg-[#E0F2FE] text-[#0369A1] border-[#7DD3FC]",
-  },
-  {
-    id: "free-soga-1",
-    actName: "The Sale of Goods Act, 1930",
-    unitNumber: 1,
-    title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-    subtitle: "Sale vs Agreement to Sell, Ascertained vs Unascertained Goods & Formalities",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "12 Pages",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-  {
-    id: "free-soga-2",
-    actName: "The Sale of Goods Act, 1930",
-    unitNumber: 2,
-    title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-    subtitle: "Stipulations, Implied Conditions of Fitness & Landmark Case Priest v. Last",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "10 Pages",
-    pdfUrl: "/notes/sale-of-goods-unit-2.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDFA] via-white to-white",
-    borderTheme: "border-[#99F6E4] hover:border-[#0D9488]",
-    accentBadge: "bg-[#CCFBF1] text-[#0F766E] border-[#5EEAD4]",
-  },
-  {
-    id: "free-partner-1",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 1,
-    title: "Unit 1: General Nature of Partnership",
-    subtitle: "Definition, Mutual Agency, True Test of Partnership (Cox v. Hickman)",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "24 Pages",
-    pdfUrl: "/notes/unit-1-general-nature-of-partnership.pdf",
-    courseType: "ca",
-    gradient: "from-[#FFFBEB] via-white to-white",
-    borderTheme: "border-[#FDE68A] hover:border-[#D97706]",
-    accentBadge: "bg-[#FEF3C7] text-[#B45309] border-[#FCD34D]",
-  },
-  {
-    id: "free-partner-2",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 2,
-    title: "Unit 2: Relations of Partners",
-    subtitle: "Rights, Duties, Implied Authority, Holding Out & Minor as Beneficiary",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "28 Pages",
-    pdfUrl: "/notes/unit-2-relations-of-partners.pdf",
-    courseType: "ca",
-    gradient: "from-[#FAF5FF] via-white to-white",
-    borderTheme: "border-[#E9D5FF] hover:border-[#7E22CE]",
-    accentBadge: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-  },
-  {
-    id: "free-partner-3",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 3,
-    title: "Unit 3: Registration & Dissolution of Firm",
-    subtitle: "Section 69 Disabilities, Modes of Dissolution (Sec 40-44) & Account Settlement",
-    badge: "🎁 FREE STUDY RESOURCE",
-    pages: "32 Pages",
-    pdfUrl: "/notes/unit-3-registration-and-dissolution-of-firm.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-  {
-    id: "free-partner-ldr",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 4,
-    title: "Partnership Act: LDR Revision Flowcharts & Matrix",
-    subtitle: "High-speed visual recall aids for the final 36 hours before your examination",
-    badge: "🗺️ LDR FLOWCHARTS",
-    pages: "18 Pages",
-    pdfUrl: "/notes/partnership-ldr-charts.pdf",
-    courseType: "ca",
-    gradient: "from-[#EFF6FF] via-white to-white",
-    borderTheme: "border-[#BFDBFE] hover:border-[#2563EB]",
-    accentBadge: "bg-[#DBEAFE] text-[#1D4ED8] border-[#93C5FD]",
-  },
-  {
-    id: "free-partner-infographics",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 5,
-    title: "Partnership Act: Visual Infographics Deck",
-    subtitle: "High-retention infographics on Mutual Agency, Minor Beneficiary & Dissolution",
-    badge: "🎨 VISUAL INFOGRAPHICS",
-    pages: "12 Posters",
-    pdfUrl: "/notes/partnership-infographics.pdf",
-    courseType: "ca",
-    gradient: "from-[#FAF5FF] via-white to-white",
-    borderTheme: "border-[#E9D5FF] hover:border-[#9333EA]",
-    accentBadge: "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-  },
-  {
-    id: "free-partner-practice",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 6,
-    title: "Partnership Act: Practice Questions & Problem Drills",
-    subtitle: "ICAI pattern chapter-wise questions with step-by-step model legal answers",
-    badge: "📝 PRACTICE QUESTIONS",
-    pages: "25 Pages",
-    pdfUrl: "/notes/indian-partnership-act-practice-questions.pdf",
-    courseType: "ca",
-    gradient: "from-[#FFF7ED] via-white to-white",
-    borderTheme: "border-[#FFEDD5] hover:border-[#EA580C]",
-    accentBadge: "bg-[#FFEDD5] text-[#C2410C] border-[#FDBA74]",
-  },
-  {
-    id: "free-partner-qbank",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 7,
-    title: "Smart Revision Question Bank (Part 1)",
-    subtitle: "Exhaustive application scenarios, case-based questions & model test papers",
-    badge: "📚 QUESTION BANK",
-    pages: "65+ Pages",
-    pdfUrl: "/notes/smart-revision-question-bank-part-1.pdf",
-    courseType: "ca",
-    gradient: "from-[#FEF2F2] via-white to-white",
-    borderTheme: "border-[#FECACA] hover:border-[#DC2626]",
-    accentBadge: "bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]",
-  },
-  {
-    id: "free-partner-paper-analysis",
-    actName: "The Indian Partnership Act, 1932",
-    unitNumber: 8,
-    title: "September 2026 Examination Paper Analysis",
-    subtitle: "Provision mapping, examiner keyword checklist & suggested solutions",
-    badge: "📊 EXAM PAPER ANALYSIS",
-    pages: "16 Pages",
-    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    courseType: "ca",
-    gradient: "from-[#F0FDF4] via-white to-white",
-    borderTheme: "border-[#DCFCE7] hover:border-[#16A34A]",
-    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
-  },
-];
+export const FREE_STUDY_RESOURCES: FreeResourceItem[] = [];
 
 export function StudentDashboardHome({
   studentName = "Student",
@@ -1414,104 +1115,106 @@ export function StudentDashboardHome({
       {/* ========================================================================= */}
       {/* 2. FREE STUDY RESOURCES & SAMPLE NOTES (HORIZONTAL SCROLLABLE CAROUSEL)    */}
       {/* ========================================================================= */}
-      <section className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                <Gift className="w-3 h-3 text-emerald-700" />
-                <span>Free Study Resources</span>
-              </span>
-              <span className="text-[11px] font-semibold text-[#6B7280]">
-                100% Free • Direct In-Web DRM Reader
-              </span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
-              Free Sample Papers
-            </h3>
-          </div>
-
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <span className="text-xs text-[#6B7280] hidden md:block">
-              Preview before you subscribe
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollFreeNotes("left")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Previous note"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollFreeNotes("right")}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                aria-label="Next note"
-              >
-                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          ref={freeNotesCarouselRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar snap-x touch-pan-x"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {FREE_STUDY_RESOURCES.filter(
-            (resource) =>
-              resource.id.includes("question-bank") ||
-              resource.pdfUrl.includes("Sample") ||
-              resource.pdfUrl.includes("sample")
-          ).map((res) => (
-            <div
-              key={res.id}
-              className={`w-[260px] sm:w-[285px] shrink-0 snap-start rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shadow-2xs ${res.accentBadge}`}>
-                    {res.badge}
-                  </span>
-                  <span className="text-[10px] font-semibold text-[#6B7280] bg-white/80 px-2 py-0.5 rounded-md border border-gray-200">
-                    {res.pages}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
-                    {res.actName}
-                  </span>
-                  <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5 line-clamp-1">
-                    {res.title}
-                  </h4>
-                  <p className="text-[11px] text-[#4B5563] mt-1 line-clamp-2 leading-relaxed">
-                    {res.subtitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-emerald-600" />
-                  <span>Free Full PDF</span>
+      {FREE_STUDY_RESOURCES.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <Gift className="w-3 h-3 text-emerald-700" />
+                  <span>Free Study Resources</span>
                 </span>
+                <span className="text-[11px] font-semibold text-[#6B7280]">
+                  100% Free • Direct In-Web DRM Reader
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
+                Free Sample Papers
+              </h3>
+            </div>
 
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <span className="text-xs text-[#6B7280] hidden md:block">
+                Preview before you subscribe
+              </span>
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => onOpenPdf(res.pdfUrl, res.actName, res.title, res.courseType, true)}
-                  className="px-3 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  type="button"
+                  onClick={() => scrollFreeNotes("left")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  aria-label="Previous note"
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Read Note</span>
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollFreeNotes("right")}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D1D5DB] bg-white hover:bg-[#FAF5FF] hover:border-[#7E22CE] text-[#4B5563] hover:text-[#7E22CE] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  aria-label="Next note"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          <div
+            ref={freeNotesCarouselRef}
+            className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar snap-x touch-pan-x"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {FREE_STUDY_RESOURCES.filter(
+              (resource) =>
+                resource.id.includes("question-bank") ||
+                resource.pdfUrl.includes("Sample") ||
+                resource.pdfUrl.includes("sample")
+            ).map((res) => (
+              <div
+                key={res.id}
+                className={`w-[260px] sm:w-[285px] shrink-0 snap-start rounded-2xl sm:rounded-3xl border ${res.borderTheme} bg-gradient-to-br ${res.gradient} p-4 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 group`}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shadow-2xs ${res.accentBadge}`}>
+                      {res.badge}
+                    </span>
+                    <span className="text-[10px] font-semibold text-[#6B7280] bg-white/80 px-2 py-0.5 rounded-md border border-gray-200">
+                      {res.pages}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                      {res.actName}
+                    </span>
+                    <h4 className="text-sm font-bold text-[#1F2937] leading-snug group-hover:text-[#7E22CE] transition-colors mt-0.5 line-clamp-1">
+                      {res.title}
+                    </h4>
+                    <p className="text-[11px] text-[#4B5563] mt-1 line-clamp-2 leading-relaxed">
+                      {res.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-emerald-600" />
+                    <span>Free Full PDF</span>
+                  </span>
+
+                  <button
+                    onClick={() => onOpenPdf(res.pdfUrl, res.actName, res.title, res.courseType, true)}
+                    className="px-3 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Read Note</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 3. DAILY PRACTICE & STUDY DRILL (CLEAN & MINIMAL GAMIFICATION)             */}

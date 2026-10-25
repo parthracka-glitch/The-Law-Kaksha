@@ -103,7 +103,7 @@ export function HeroSection() {
               {/* CTA Action Buttons */}
               <div className="animate-hero-fade-5 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
                 <Link
-                  href="#subscriptions"
+                  href="/courses"
                   className="group inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white text-base font-bold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto min-h-[48px]"
                 >
                   <span>Start Learning @ ₹{livePrice}</span>

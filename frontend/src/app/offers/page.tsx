@@ -27,41 +27,10 @@ interface OfferItem {
   is_active: boolean;
 }
 
-const FALLBACK_OFFERS: OfferItem[] = [
-  {
-    id: "offer-launch-99",
-    title: "Launch Celebration Pass: Study Law at ₹99/Month",
-    description: "Introductory price on the CA Foundation Business Laws pass. Instant unlocking of the complete digital codex. CSEET pass launching soon.",
-    coupon_code: "LAUNCH99",
-    discount_badge: "FLAT ₹200 OFF",
-    valid_from: "2026-10-01",
-    valid_to: "2026-11-30",
-    is_active: true,
-  },
-  {
-    id: "offer-exemption",
-    title: "Ranker's Exemption Discount",
-    description: "Get an extra 20% off on your checkout with promo code EXEMPTION2026 on all multi-item cart purchases.",
-    coupon_code: "EXEMPTION2026",
-    discount_badge: "20% OFF",
-    valid_from: "2026-10-01",
-    valid_to: "2026-12-31",
-    is_active: true,
-  },
-  {
-    id: "offer-first50",
-    title: "Early Bird Aspirant Pass",
-    description: "Exclusive for the first 500 aspirants. Get 15% instant reduction on any single-subject or combo pass.",
-    coupon_code: "FIRST50",
-    discount_badge: "15% OFF",
-    valid_from: "2026-10-01",
-    valid_to: "2026-11-30",
-    is_active: true,
-  },
-];
+const FALLBACK_OFFERS: OfferItem[] = [];
 
 export default function OffersPage() {
-  const [offers, setOffers] = useState<OfferItem[]>(FALLBACK_OFFERS);
+  const [offers, setOffers] = useState<OfferItem[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [, setLoading] = useState(false);
 
@@ -75,12 +44,14 @@ export default function OffersPage() {
           const list = Array.isArray(res.data)
             ? res.data
             : (res.data as { offers?: OfferItem[] }).offers || [];
-          if (list.length > 0 && isMounted) {
+          if (isMounted) {
             setOffers(list);
           }
+        } else if (isMounted) {
+          setOffers([]);
         }
       } catch {
-        // Fallback remains
+        if (isMounted) setOffers([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -120,7 +91,14 @@ export default function OffersPage() {
         </div>
 
         {/* Offers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {offers.length === 0 ? (
+          <div className="bg-white rounded-3xl p-12 text-center border border-[#DBEAFE] shadow-sm max-w-lg mx-auto">
+            <Gift className="w-12 h-12 text-[#64748B] mx-auto mb-4" />
+            <h3 className="font-serif font-bold text-lg text-[#0A192F]">No Active Offers</h3>
+            <p className="text-sm text-[#64748B] mt-1">Check back later for seasonal discounts and promotional coupon codes.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {offers.map((offer) => (
             <div
               key={offer.id}
@@ -191,7 +169,7 @@ export default function OffersPage() {
 
                 {/* CTA */}
                 <Link
-                  href="/#subscriptions"
+                  href="/courses"
                   className="w-full py-3 px-4 rounded-full font-bold text-xs sm:text-sm bg-[#EFF6FF] hover:bg-[#005A9C] hover:text-white text-[#005A9C] border border-[#DBEAFE] transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer shadow-2xs"
                 >
                   <span>Apply on Subscriptions</span>
@@ -201,6 +179,7 @@ export default function OffersPage() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Security / Terms Notice */}
         <div className="mt-16 p-6 rounded-3xl bg-white border border-[#DBEAFE] text-center max-w-2xl mx-auto shadow-xs">

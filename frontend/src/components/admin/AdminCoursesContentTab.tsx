@@ -1852,7 +1852,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {contentItems.length > 0 && (
               <a
-                href={`/reader?file=${encodeURIComponent(contentItems[0].cloudinaryPublicId || '/notes/sale-of-goods-unit-1.pdf')}&title=${encodeURIComponent(contentItems[0].title)}`}
+                href={`/reader?file=${encodeURIComponent(contentItems[0].cloudinaryPublicId || (contentItems[0].fileName ? `/notes/${contentItems[0].fileName}` : '/notes/sale-of-goods-unit-1.pdf'))}&title=${encodeURIComponent(contentItems[0].title)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3.5 py-2 rounded-full bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -2009,7 +2009,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     <div className="flex items-center gap-1.5">
                       {/* Direct DRM Reader preview */}
                       <a
-                        href={`/reader?file=${encodeURIComponent(item.cloudinaryPublicId || '/notes/sale-of-goods-unit-1.pdf')}&title=${encodeURIComponent(item.title)}`}
+                        href={`/reader?file=${encodeURIComponent(item.cloudinaryPublicId || (item.fileName ? `/notes/${item.fileName}` : '/notes/sale-of-goods-unit-1.pdf'))}&title=${encodeURIComponent(item.title)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-1.5 rounded-xl bg-[#EFF6FF] text-[#005A9C] hover:bg-[#DBEAFE] border border-[#BFDBFE] transition-colors cursor-pointer"
@@ -2024,7 +2024,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                           onClick={() =>
                             onPreviewPdf({
                               title: item.title,
-                              pdfUrl: item.cloudinaryPublicId || "/notes/sale-of-goods-unit-1.pdf",
+                              pdfUrl: item.cloudinaryPublicId || (item.fileName ? `/notes/${item.fileName}` : "/notes/sale-of-goods-unit-1.pdf"),
                               isSample: item.isSample,
                             })
                           }

@@ -41,61 +41,10 @@ export interface FeaturedCourseData {
   isComingSoon?: boolean;
 }
 
-const FEATURED_COURSES: FeaturedCourseData[] = [
-  {
-    id: "ca-foundation",
-    categoryTag: "🔥 #1 BESTSELLER • ICAI NEW SCHEME",
-    tagColor: "bg-amber-50 text-amber-800 border-amber-200",
-    title: "CA Foundation Business Laws Master Codex",
-    subtitle:
-      "Complete 7 Acts codified notes, high-yield visual flowcharts, landmark case laws, and ICAI Section 16(1) model answers.",
-    price: 99,
-    mrp: 299,
-    discount: "67% OFF",
-    image: "/assets/crop_ca_foundation_book.png",
-    bookId: "ca-foundation",
-    sampleTitle: "CA Foundation Business Laws Master Codex",
-    rating: "4.9 / 5.0",
-    studentCount: "1,240+ Enrolled",
-    features: [
-      "All 7 CA Foundation Acts Fully Codified",
-      "45+ Landmark Case Studies with Model Answers",
-      "Unit-wise Practice Tests & Chapter Mindmaps",
-      "Single-Device Watermarked DRM Security",
-      "Weekly Live Google Meet Doubt Clearing",
-    ],
-    ctaLink: "/product/course-ca-foundation-sub",
-    isBestseller: true,
-  },
-  {
-    id: "cseet-law",
-    categoryTag: "⏳ COMING SOON • 2026 ICSI SYLLABUS",
-    tagColor: "bg-slate-100 text-slate-600 border-slate-200",
-    title: "CSEET Business Law and Management",
-    subtitle:
-      "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
-    price: 99,
-    mrp: 299,
-    discount: "67% OFF",
-    image: "/assets/bookcover.png",
-    bookId: "cseet",
-    sampleTitle: "CSEET Business Laws and Management Codex",
-    rating: "4.9 / 5.0",
-    studentCount: "Launching Soon",
-    features: [
-      "Full 8 Units Legal Aptitude & Business Mgt",
-      "High-Yield Timed MCQ Drills with Analytics",
-      "Statutory Definitions & Judicial Precedents",
-      "Interactive 3D Digital Codex Reader",
-      "Live Strategy Sessions & Doubt Support",
-    ],
-    ctaLink: "/courses",
-    isComingSoon: true,
-  },
-];
+const FEATURED_COURSES: FeaturedCourseData[] = [];
 
 export function SubscriptionCarousel() {
-  const [coursesList, setCoursesList] = useState<FeaturedCourseData[]>(FEATURED_COURSES);
+  const [coursesList, setCoursesList] = useState<FeaturedCourseData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -105,7 +54,7 @@ export function SubscriptionCarousel() {
   const [modalBookId, setModalBookId] = useState<"ca-foundation" | "cseet">("ca-foundation");
   const [modalTitle, setModalTitle] = useState("");
 
-  const current = coursesList[currentIndex] || coursesList[0] || FEATURED_COURSES[0];
+  const current = coursesList[currentIndex] || coursesList[0];
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % (coursesList.length || 1));
@@ -210,14 +159,14 @@ export function SubscriptionCarousel() {
             : "/assets/crop_ca_foundation_book.png";
 
         const caFeaturedSlide: FeaturedCourseData = {
-          id: liveCaObj?.id || "ca-foundation",
+          id: liveCaObj?.id || "course-ca-foundation",
           categoryTag: caSlide?.badge || "🔥 #1 BESTSELLER • ICAI NEW SCHEME",
           tagColor: "bg-amber-50 text-amber-800 border-amber-200",
-          title: liveCaObj?.title || caSlide?.title || "CA Foundation Paper 2",
+          title: liveCaObj?.title || caSlide?.title || "CA Foundation Business Laws",
           subtitle:
             liveCaObj?.description ||
             caSlide?.subtitle ||
-            "Complete 7 Acts codified notes, high-yield visual flowcharts, landmark case laws, and ICAI Section 16(1) model answers.",
+            "Complete 4 Statutory Acts + Smart Question Banks, high-yield visual flowcharts, landmark case laws, and ICAI model answers.",
           price: liveCaPrice,
           mrp: liveCaMrp,
           discount: caDiscount,
@@ -227,29 +176,29 @@ export function SubscriptionCarousel() {
           rating: caSlide?.rating || "4.9 / 5.0",
           studentCount: "1,240+ Enrolled",
           features: [
-            "All 7 CA Foundation Acts Fully Codified",
-            "45+ Landmark Case Studies with Model Answers",
-            "Unit-wise Practice Tests & Chapter Mindmaps",
+            "All 4 Statutory Acts + Question Banks (22 Units)",
+            "The Indian Contract Act, 1872 (10 Units)",
+            "Sale of Goods & Partnership Acts with LDR Charts",
+            "Smart Revision Question Banks Part 1 & Part 2",
             "Single-Device Watermarked DRM Security",
-            "Weekly Live Google Meet Doubt Clearing",
           ],
-          ctaLink: `/product/${liveCaObj?.slug || "course-ca-foundation-sub"}`,
+          ctaLink: `/product/${liveCaObj?.slug || "course-ca-foundation"}`,
           ctaText: caSlide?.cta_label || "Enroll in Course",
           isBestseller: true,
           isComingSoon: liveCaObj?.availability === "coming_soon",
         };
 
         // Slide 2: Official CSEET 3D Codex
-        const csHeroImage = csSlide?.image || "/assets/ca-cs-hero-books-sharp.png";
+        const csHeroImage = csSlide?.image || "/covers/vol2-codex.webp";
         const csFeaturedSlide: FeaturedCourseData = {
-          id: liveCsObj?.id || "cseet-law",
-          categoryTag: csSlide?.badge || "⏳ COMING SOON • 2026 ICSI SYLLABUS",
-          tagColor: "bg-slate-100 text-slate-600 border-slate-200",
-          title: liveCsObj?.title || csSlide?.title || "CSEET Business Law and Management",
+          id: liveCsObj?.id || "course-cseet",
+          categoryTag: csSlide?.badge || "✨ ICSI CSEET • NEW 2026 SCHEME",
+          tagColor: "bg-indigo-50 text-indigo-800 border-indigo-200",
+          title: liveCsObj?.title || csSlide?.title || "CSEET Business Laws and Management",
           subtitle:
             liveCsObj?.description ||
             csSlide?.subtitle ||
-            "Master all 8 Units under latest ICSI Syllabus with timed MCQ drills, conceptual flowcharts & statutory precedents deck.",
+            "Master all 4 Management Lessons (Lessons 7-10) with comprehensive chapter codices, concept frameworks & instant free sample preview.",
           price: liveCsPrice,
           mrp: liveCsMrp,
           discount: csDiscount,
@@ -257,17 +206,17 @@ export function SubscriptionCarousel() {
           bookId: "cseet",
           sampleTitle: liveCsObj?.title || "CSEET Business Laws and Management Codex",
           rating: csSlide?.rating || "4.9 / 5.0",
-          studentCount: "Launching Soon",
+          studentCount: "New 2026 Edition",
           features: [
-            "Full 8 Units Legal Aptitude & Business Mgt",
-            "High-Yield Timed MCQ Drills with Analytics",
-            "Statutory Definitions & Judicial Precedents",
-            "Interactive 3D Digital Codex Reader",
-            "Live Strategy Sessions & Doubt Support",
+            "All 4 Core Management Lessons (Lessons 7-10)",
+            "Introduction, Functions & Principles of Management",
+            "Specialized Management Knowledge for Company Secretaries",
+            "Interactive In-Web DRM Codex Reader",
+            "Instant Free Sample Preview of Lesson 7 Notes",
           ],
           ctaLink: `/product/${liveCsObj?.slug || "course-cseet"}`,
           ctaText: csSlide?.cta_label || "Explore CSEET Pass",
-          isComingSoon: true,
+          isComingSoon: liveCsObj?.availability === "coming_soon",
         };
 
         // 3. Dynamically map EVERY other course added by admin (e.g. Parth or new custom courses)
@@ -344,13 +293,12 @@ export function SubscriptionCarousel() {
             isNew: true,
           }));
 
-        // Final dynamic slides array: CA Foundation + CSEET + All admin-created courses + any extra slides
-        const dynamicShowcaseList: FeaturedCourseData[] = [
-          caFeaturedSlide,
-          csFeaturedSlide,
-          ...customCourseSlides,
-          ...extraSlides,
-        ];
+        // Dynamic slides array: only courses and slides that actually exist
+        const dynamicShowcaseList: FeaturedCourseData[] = [];
+        if (liveCaObj) dynamicShowcaseList.push(caFeaturedSlide);
+        if (liveCsObj) dynamicShowcaseList.push(csFeaturedSlide);
+        dynamicShowcaseList.push(...customCourseSlides);
+        dynamicShowcaseList.push(...extraSlides);
 
         setCoursesList(dynamicShowcaseList);
       } catch (err) {
@@ -363,20 +311,24 @@ export function SubscriptionCarousel() {
 
   // Auto-play timer (6 seconds, pauses on hover)
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || coursesList.length <= 1) return;
     timerRef.current = setInterval(() => {
       nextSlide();
     }, 6000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPaused, nextSlide]);
+  }, [isPaused, nextSlide, coursesList.length]);
 
   const handleOpenSample = (bookId: "ca-foundation" | "cseet", title: string) => {
     setModalBookId(bookId);
     setModalTitle(title);
     setSampleModalOpen(true);
   };
+
+  if (coursesList.length === 0) {
+    return null;
+  }
 
   return (
     <>

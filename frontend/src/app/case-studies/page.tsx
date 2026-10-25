@@ -24,41 +24,10 @@ interface CaseStudyItem {
   created_at?: string;
 }
 
-const FALLBACK_CASES: CaseStudyItem[] = [
-  {
-    id: "cs-mohoribibee",
-    slug: "mohoribibee-v-dharmodas-ghose",
-    title: "Mohoribibee v. Dharmodas Ghose (1903): Minor's Capacity to Contract",
-    subject: "The Indian Contract Act, 1872",
-    summary: "Landmark Privy Council ruling establishing that an agreement entered into by a minor is void ab initio under Section 11, and no restitution can be claimed.",
-    badge: "ICAI FAVORITE",
-    marks: "6 Marks Model Case",
-    precedent: "Privy Council (1903) 30 IA 114",
-  },
-  {
-    id: "cs-salomon",
-    slug: "salomon-v-salomon-co-ltd",
-    title: "Salomon v. Salomon & Co. Ltd: The Principle of Separate Legal Entity",
-    subject: "The Companies Act, 2013",
-    summary: "The foundational English House of Lords decision establishing that an incorporated company has a legal personality distinct from its members and shareholders.",
-    badge: "FOUNDATIONAL",
-    marks: "5 Marks Theory Question",
-    precedent: "[1897] AC 22 (House of Lords)",
-  },
-  {
-    id: "cs-carlill",
-    slug: "carlill-v-carbolic-smoke-ball-co",
-    title: "Carlill v. Carbolic Smoke Ball Co: General Offer & Unilateral Contracts",
-    subject: "The Indian Contract Act, 1872",
-    summary: "Court of Appeal ruling on how an offer made to the world at large can be accepted through performance of conditions without formal notification.",
-    badge: "HIGH YIELD",
-    marks: "4 Marks Application",
-    precedent: "[1893] 1 QB 256",
-  },
-];
+const FALLBACK_CASES: CaseStudyItem[] = [];
 
 export default function CaseStudiesDirectoryPage() {
-  const [cases, setCases] = useState<CaseStudyItem[]>(FALLBACK_CASES);
+  const [cases, setCases] = useState<CaseStudyItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [, setLoading] = useState(false);
@@ -75,12 +44,14 @@ export default function CaseStudiesDirectoryPage() {
             : (res.data as { caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] }).caseStudies ||
               (res.data as { caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] }).cases ||
               [];
-          if (list.length > 0 && isMounted) {
+          if (isMounted) {
             setCases(list);
           }
+        } else if (isMounted) {
+          setCases([]);
         }
       } catch {
-        // Fallback remains
+        if (isMounted) setCases([]);
       } finally {
         if (isMounted) setLoading(false);
       }

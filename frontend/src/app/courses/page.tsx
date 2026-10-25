@@ -56,61 +56,7 @@ interface FreeResource {
   fileUrl?: string;
 }
 
-const FALLBACK_PRODUCTS: Product[] = [
-  {
-    id: "course-ca-foundation",
-    slug: "ca-foundation-paper-2",
-    type: "course",
-    courseId: "course-ca-foundation",
-    title: "CA Foundation Paper 2",
-    subtitle: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2.",
-    description: "Comprehensive Business Laws preparation platform for CA Foundation Paper 2 with unit-wise codified notes, high-yield charts, and model answers.",
-    price: 1,
-    original_price: 0,
-    badge: "₹1 / 30 Days",
-    category: "CA Foundation",
-    examBody: "ICAI",
-    pages_or_duration: "19 Units",
-    cover_image: "/assets/crop_ca_foundation_book.png",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    highlights: [
-      "Unit-wise notes for Sale of Goods, Partnership and LLP",
-      "Act-wise practice questions, PYQs, LDR charts and infographics",
-      "Question Bank Part 1 and Part 2 with detailed solutions",
-      "Companies Act and Negotiable Instruments Act coming soon"
-    ],
-    paymentType: "monthly",
-    comingSoon: false,
-    accentColor: "from-[#0A192F] via-[#102A4C] to-[#004275]",
-    iconEmoji: "📘",
-  },
-  {
-    id: "course-cseet",
-    slug: "cseet-business-laws-management",
-    type: "course",
-    courseId: "course-cseet",
-    title: "CSEET Business Laws and Management",
-    subtitle: "Comprehensive Business Laws & Management preparation platform for CSEET.",
-    description: "Comprehensive Business Laws & Management preparation platform for CSEET under latest ICSI Syllabus.",
-    price: 99,
-    original_price: 0,
-    badge: "Coming Soon",
-    category: "CSEET",
-    examBody: "ICSI",
-    pages_or_duration: "Launching Soon",
-    cover_image: "https://res.cloudinary.com/wpt4eabs/image/upload/v1792791439/thelawkaksha/covers/WhatsApp_Image_2026-10-22_at_6_51_05_PM-1792791439051.jpg",
-    pdfUrl: "/notes/cseet-management-full.pdf",
-    highlights: [
-      "Business Laws and Management syllabus coverage",
-      "Unit-wise notes and practice questions",
-      "Launching soon"
-    ],
-    paymentType: "monthly",
-    comingSoon: true,
-    accentColor: "from-[#0F172A] via-[#1E293B] to-[#334155]",
-    iconEmoji: "⚖️",
-  },
-];
+const FALLBACK_PRODUCTS: Product[] = [];
 
 function CoursesCatalogContent() {
   const router = useRouter();
@@ -118,14 +64,8 @@ function CoursesCatalogContent() {
   const initialCourse = searchParams.get("course");
 
   const { addToCart } = useCart();
-  const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
-  const [selectedCourse, setSelectedCourse] = useState<string>(
-    initialCourse === "ca"
-      ? "course-ca-foundation"
-      : initialCourse === "cs"
-      ? "course-cseet"
-      : "all"
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
   const [freePreview, setFreePreview] = useState({
@@ -166,10 +106,8 @@ function CoursesCatalogContent() {
               !p.title.includes("Volume 1: Business Law") &&
               !p.title.includes("Volume 2: CSEET")
           );
-          if (fetched.length > 0) {
-            setProducts(fetched);
-            return;
-          }
+          setProducts(fetched);
+          return;
         }
 
         // 2. Secondary fallback: /api/courses
@@ -191,8 +129,7 @@ function CoursesCatalogContent() {
         if (
           isMounted &&
           coursesRes.success &&
-          Array.isArray(coursesRes.data?.courses) &&
-          coursesRes.data.courses.length > 0
+          Array.isArray(coursesRes.data?.courses)
         ) {
           const mapped: Product[] = coursesRes.data.courses.map((c) => ({
             id: c.id,
@@ -232,10 +169,10 @@ function CoursesCatalogContent() {
             iconEmoji:
               c.exam_body === "ICSI" || (c.id && c.id.includes("cseet")) ? "⚖️" : "📘",
           }));
-          if (mapped.length > 0) {
-            setProducts(mapped);
-          }
+          setProducts(mapped);
+          return;
         }
+        if (isMounted) setProducts([]);
       } catch (err) {
         console.warn("[CoursesCatalog] Catalog load warning:", err);
       }
@@ -315,8 +252,8 @@ function CoursesCatalogContent() {
 
   const handleOpenPreview = (product: Product) => {
     const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
-      ? "/notes/cseet-management-full.pdf"
-      : "/notes/sale-of-goods-unit-1.pdf";
+      ? "/samples/Lesson 7 Introduction to Management (Comprehensive Notes).pdf"
+      : "/samples/Question Bank Part 1- Sample Copy.pdf";
     const rawPdf = product.pdfUrl || defaultPdf;
     const samplePdfUrl = rawPdf.includes("sample=true") ? rawPdf : `${rawPdf}?sample=true`;
     setPreviewState({
@@ -417,12 +354,20 @@ function CoursesCatalogContent() {
         </div>
 
         {/* 3. The Dedicated Course Cards */}
-        {filteredProducts.length === 0 ? (
+        {products.length === 0 ? (
+          <div className="bg-white border border-[#DBEAFE] rounded-3xl p-12 text-center space-y-4 shadow-sm max-w-xl mx-auto">
+            <BookOpen className="w-10 h-10 text-[#64748B] mx-auto" />
+            <h3 className="text-base font-bold text-[#0A192F]">No courses available</h3>
+            <p className="text-xs text-[#64748B]">
+              There are currently no active courses available on the website. New courses and batches will be published soon.
+            </p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="bg-white border border-[#DBEAFE] rounded-3xl p-12 text-center space-y-4 shadow-sm max-w-xl mx-auto">
             <BookOpen className="w-10 h-10 text-[#64748B] mx-auto" />
             <h3 className="text-base font-bold text-[#0A192F]">No course found</h3>
             <p className="text-xs text-[#64748B]">
-              Clear your search keyword to view the CA Foundation and CSEET courses.
+              Clear your search keyword to view the courses.
             </p>
             <button
               onClick={() => {

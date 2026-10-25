@@ -76,143 +76,17 @@ interface MyCoursesPayload extends JsonObject {
 }
 
 // Curated Free Resources for all students
-export const FREE_STUDENT_RESOURCES = [
-  {
-    id: "free-contract-unit1",
-    title: "Indian Contract Act, 1872 — Unit 1: Essentials of Valid Offer & Acceptance",
-    category: "CA Foundation • Chapter 1",
-    pages: "24 Pages",
-    badge: "Free Sample Codex",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    description: "Core legal definitions, valid proposal essentials, consensus ad idem, and Lalman Shukla precedent.",
-  },
-  {
-    id: "free-soga-unit1",
-    title: "Sale of Goods Act, 1930 — Unit 1: Formation of Contract of Sale",
-    category: "CA Foundation • Chapter 2",
-    pages: "22 Pages",
-    badge: "Free Sample Codex",
-    pdfUrl: "/notes/sale-of-goods-unit-1.pdf",
-    description: "Distinction between sale and agreement to sell, goods classification, and statutory price terms.",
-  },
-  {
-    id: "free-partnership-ldr",
-    title: "Indian Partnership Act, 1932 — LDR Flowcharts & Statutory Matrix",
-    category: "LDR Flowchart Summary",
-    pages: "12 Pages",
-    badge: "Free LDR Chart",
-    pdfUrl: "/notes/partnership-ldr-charts.pdf",
-    description: "Visual roadmap of mutual agency, Cox v. Hickman true test, and partnership property rules.",
-  },
-  {
-    id: "free-paper-analysis",
-    title: "September 2026 Paper Analysis & Verified Model Answers",
-    category: "Past Year Paper Analysis",
-    pages: "16 Pages",
-    badge: "Examiner Model Answers",
-    pdfUrl: "/notes/september-2026-paper-analysis.pdf",
-    description: "Question-by-question breakdown, section citations, marking traps, and high-scoring answer structures.",
-  },
-];
+export interface FreeStudentResource {
+  id: string;
+  title: string;
+  category: string;
+  pages: string;
+  badge: string;
+  pdfUrl: string;
+  description: string;
+}
 
-const FALLBACK_CA_COURSE: HierarchicalCourse = {
-  id: "ca-foundation",
-  title: "CA Foundation — Business Laws",
-  description: "ICAI New Syllabus comprehensive study notes, LDR charts, and case problems.",
-  price: 99,
-  accessDays: 365,
-  isEnrolled: false,
-  acts: [
-    {
-      id: "act-ca-contract",
-      title: "The Indian Contract Act, 1872",
-      order: 1,
-      isComingSoon: false,
-      units: [
-        {
-          id: "unit-ca-contract-1",
-          title: "Unit 1: Nature of Contracts & Essentials of Valid Offer",
-          order: 1,
-          contentItems: [
-            {
-              id: "item-ca-contract-1",
-              title: "Comprehensive Study Notes — Section 1-10",
-              contentType: "notes",
-              pages: "34 Pages",
-              isFreeSample: true,
-              samplePagesRange: "1-5",
-              fileUrl: "/notes/sale-of-goods-unit-1.pdf",
-            },
-            {
-              id: "item-ca-contract-ldr",
-              title: "LDR Flowchart & Statutory Revision Matrix",
-              contentType: "ldr",
-              pages: "12 Pages",
-              isFreeSample: true,
-              fileUrl: "/notes/partnership-ldr-charts.pdf",
-            },
-          ],
-        },
-        {
-          id: "unit-ca-contract-2",
-          title: "Unit 2: Consideration & Capacity to Contract",
-          order: 2,
-          contentItems: [
-            {
-              id: "item-ca-contract-2",
-              title: "Study Notes — Doctrine of Privity & Minor Capacity",
-              contentType: "notes",
-              pages: "28 Pages",
-              isFreeSample: false,
-              isLocked: true,
-              fileUrl: "/notes/sale-of-goods-unit-2.pdf",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "act-ca-soga",
-      title: "The Sale of Goods Act, 1930",
-      order: 2,
-      isComingSoon: false,
-      units: [
-        {
-          id: "unit-ca-soga-1",
-          title: "Unit 1: Formation of Contract of Sale & Subject Matter",
-          order: 1,
-          contentItems: [
-            {
-              id: "item-ca-soga-1",
-              title: "Study Notes — Sale vs Agreement to Sell (Sec 4-10)",
-              contentType: "notes",
-              pages: "22 Pages",
-              isFreeSample: true,
-              samplePagesRange: "1-5",
-              fileUrl: "/notes/sale-of-goods-unit-1.pdf",
-            },
-          ],
-        },
-        {
-          id: "unit-ca-soga-2",
-          title: "Unit 2: Conditions and Warranties (Sec 11-17)",
-          order: 2,
-          contentItems: [
-            {
-              id: "item-ca-soga-2",
-              title: "Study Notes — Caveat Emptor & Priest v. Last Rules",
-              contentType: "notes",
-              pages: "18 Pages",
-              isFreeSample: false,
-              isLocked: true,
-              fileUrl: "/notes/sale-of-goods-unit-2.pdf",
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+export const FREE_STUDENT_RESOURCES: FreeStudentResource[] = [];
 
 interface StudentCoursesHierarchyTabProps {
   onOpenReader: (url: string, title: string, isPurchased?: boolean, previewPagesLimit?: number) => void;
@@ -236,10 +110,10 @@ export function StudentCoursesHierarchyTab({
   initialCourseId,
 }: StudentCoursesHierarchyTabProps) {
   const API_URL = getApiBaseUrl();
-  const [courses, setCourses] = useState<HierarchicalCourse[]>([FALLBACK_CA_COURSE]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId || "ca-foundation");
-  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({ "act-ca-contract": true });
-  const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({ "unit-ca-contract-1": true });
+  const [courses, setCourses] = useState<HierarchicalCourse[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId || "");
+  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
+  const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [, setError] = useState<string | null>(null);
   const initialCourseIdRef = useRef(initialCourseId);
@@ -317,17 +191,17 @@ export function StudentCoursesHierarchyTab({
               }
             }
           } else {
-            setCourses([FALLBACK_CA_COURSE]);
-            setSelectedCourseId(FALLBACK_CA_COURSE.id);
-            setExpandedActs({ "act-ca-contract": true });
-            setExpandedUnits({ "unit-ca-contract-1": true });
+            setCourses([]);
+            setSelectedCourseId("");
+            setExpandedActs({});
+            setExpandedUnits({});
           }
         }
       } catch (err: unknown) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Failed to load courses");
-          setCourses([FALLBACK_CA_COURSE]);
-          setSelectedCourseId(FALLBACK_CA_COURSE.id);
+          setCourses([]);
+          setSelectedCourseId("");
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -389,7 +263,7 @@ export function StudentCoursesHierarchyTab({
   return (
     <div className="space-y-6">
       {/* 1. FREE RESOURCES MODULE: DISPLAYED FOR UNPURCHASED USERS OR GENERAL ACCESS */}
-      {!hasAnyEnrolledCourse && (
+      {!hasAnyEnrolledCourse && FREE_STUDENT_RESOURCES.length > 0 && (
         <div className="bg-gradient-to-br from-[#EFF6FF] via-[#F8FAFC] to-white rounded-3xl border border-[#BFDBFE] p-5 sm:p-7 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
             <div>
@@ -529,6 +403,15 @@ export function StudentCoursesHierarchyTab({
           )}
         </div>
       </div>
+
+      {/* EMPTY STATE IF NO COURSES EXIST */}
+      {courses.length === 0 && (
+        <div className="bg-white rounded-2xl border border-[#E7ECF7] p-8 text-center text-[#64748B]">
+          <BookOpen className="w-12 h-12 text-[#94A3B8] mx-auto mb-3" />
+          <h3 className="text-base font-bold text-[#0A192F]">No Courses Available</h3>
+          <p className="text-xs text-[#64748B] mt-1">There are currently no courses or curriculum codices published.</p>
+        </div>
+      )}
 
       {/* 4. ACTIVE COURSE HIERARCHY ACCORDION */}
       {activeCourse && (

@@ -39,39 +39,39 @@ export interface SubscriptionPlanItem {
   is_active: boolean;
 }
 
-// 9 Rich Features directly from reference design (Image 2)
+// 9 Rich Features directly aligned with uploaded codices & ICAI/ICSI curriculum
 export const CA_FOUNDATION_RICH_FEATURES: PlanFeatureItem[] = [
   {
-    title: "Complete syllabus",
-    subtitle: "All 7 CA Foundation Business Law Acts",
+    title: "Complete ICAI syllabus",
+    subtitle: "All 4 Acts + Smart Question Banks (22 Units)",
   },
   {
-    title: "Interactive 3D Codex",
-    subtitle: "Explore your digital law books",
+    title: "Interactive In-Web DRM Codex",
+    subtitle: "Explore 30 chapter codices with secure single-device access",
   },
   {
-    title: "Weekly Case Lab",
-    subtitle: "3 new case studies every week",
+    title: "The Indian Contract Act, 1872",
+    subtitle: "10 Units: Comprehensive statutory notes & problem sets",
   },
   {
-    title: "Suggested Answers",
-    subtitle: "Understand how to solve case studies",
+    title: "Sale of Goods & Partnership Acts",
+    subtitle: "8 Units: Comprehensive codices, LDR charts & infographics",
   },
   {
-    title: "Study Resources",
-    subtitle: "Notes, LDRs and extra practice questions",
+    title: "LLP Act, 2008 & Question Banks",
+    subtitle: "Part 1 & Part 2 comprehensive final editions included",
   },
   {
-    title: "PYQ Analysis",
-    subtitle: "Understand past-paper patterns and important areas",
+    title: "Free Sample Preview Access",
+    subtitle: "Instant sample preview of Question Bank Part 1",
   },
   {
-    title: "Landmark Cases Booklet",
-    subtitle: "Revise important judgments and their principles",
+    title: "RTP, MTP & Past Exam Questions",
+    subtitle: "Exam-oriented practice sets with model answer solutions",
   },
   {
-    title: "Streaks & Leaderboard",
-    subtitle: "Track your consistency and compete with fellow learners",
+    title: "Streaks & Reading Progress",
+    subtitle: "Track your study consistency and codex reading sessions",
   },
   {
     title: "One Dedicated Dashboard",
@@ -81,81 +81,59 @@ export const CA_FOUNDATION_RICH_FEATURES: PlanFeatureItem[] = [
 
 export const CSEET_RICH_FEATURES: PlanFeatureItem[] = [
   {
-    title: "Complete ICSI syllabus",
-    subtitle: "All 8 Units Legal Aptitude & Business Management",
+    title: "Complete ICSI Management Codex",
+    subtitle: "All 4 Core Management Lessons (Lessons 7 to 10)",
   },
   {
-    title: "Interactive 3D Codex",
-    subtitle: "Explore your digital ICSI law books",
+    title: "Interactive In-Web DRM Codex",
+    subtitle: "Instant online browser reading with single-device protection",
   },
   {
-    title: "Timed MCQ Practice Lab",
-    subtitle: "Unit-wise timed drills with score tracking",
+    title: "Lesson 7: Introduction to Management",
+    subtitle: "Nature, process, managerial hierarchy & organizational goals",
   },
   {
-    title: "Suggested Model Solutions",
-    subtitle: "Understand structured reasoning for ICSI questions",
+    title: "Lesson 8: Functions of Management",
+    subtitle: "Planning, organizing, staffing, directing & controlling",
   },
   {
-    title: "Study Resources & Mindmaps",
-    subtitle: "High-yield revision notes, LDRs and concept maps",
+    title: "Lesson 9: Principles of Management",
+    subtitle: "Henri Fayol's 14 principles & modern administrative theories",
   },
   {
-    title: "PYQ & Exam Trends",
-    subtitle: "Understand ICSI past-paper patterns and key areas",
+    title: "Lesson 10: Knowledge for Company Secretaries",
+    subtitle: "Corporate governance acumen, strategic execution & leadership",
   },
   {
-    title: "Statutory Precedents Deck",
-    subtitle: "Revise landmark judicial rulings and definitions",
+    title: "Free Sample Preview Access",
+    subtitle: "Instant preview of Lesson 7 comprehensive chapter notes",
   },
   {
-    title: "Streaks & Leaderboard",
-    subtitle: "Track your daily consistency and compete with peers",
+    title: "Continuous Reading State",
+    subtitle: "Automatic page memory & seamless study continuation",
   },
   {
     title: "One Dedicated Dashboard",
-    subtitle: "Keep your learning, practice and progress together",
+    subtitle: "Access all 4 management codices anytime in your secure vault",
   },
 ];
 
 export const CA_FOUNDATION_ACTS_LIST = [
-  { name: "The Indian Regulatory Framework", tag: "Unit 1", status: "Live" },
-  { name: "The Indian Contract Act, 1872", tag: "9 Units", status: "Live" },
+  { name: "The Indian Contract Act, 1872", tag: "10 Units", status: "Live" },
   { name: "The Sale of Goods Act, 1930", tag: "4 Units", status: "Live" },
-  { name: "The Indian Partnership Act, 1932", tag: "3 Units", status: "Live" },
-  { name: "The Limited Liability Partnership Act, 2008", tag: "Full Act", status: "Live" },
-  { name: "The Companies Act, 2013", tag: "Full Coverage", status: "Live" },
-  { name: "The Negotiable Instruments Act, 1881", tag: "Sec 138+", status: "Live" },
+  { name: "The Indian Partnership Act, 1932", tag: "4 Units", status: "Live" },
+  { name: "The Limited Liability Partnership Act, 2008", tag: "2 Units", status: "Live" },
+  { name: "Smart Revision Question Banks (Part 1 & 2)", tag: "Final + Samples", status: "Live" },
 ];
 
-const FALLBACK_PLANS: SubscriptionPlanItem[] = [
-  {
-    id: "sub-ca-foundation-monthly",
-    title: "CA Foundation Business Laws",
-    slug: "ca-foundation-monthly",
-    description: "Complete 7 Acts coverage under ICAI New Scheme with chapter codices, case notes & live doubt support.",
-    price: 99,
-    mrp: 299,
-    duration_days: 30,
-    richFeatures: CA_FOUNDATION_RICH_FEATURES,
-    badge: "MOST POPULAR",
-    is_popular: true,
-    is_active: true,
-  },
-  {
-    id: "sub-cseet-monthly",
-    title: "CSEET Business Law and Management",
-    slug: "cseet-monthly",
-    description: "Master all 8 Units under ICSI Syllabus with timed MCQ drills, conceptual mindmaps & live mentoring.",
-    price: 99,
-    mrp: 299,
-    duration_days: 30,
-    richFeatures: CSEET_RICH_FEATURES,
-    badge: "COMING SOON",
-    is_popular: false,
-    is_active: true,
-  },
+export const CSEET_MODULES_LIST = [
+  { name: "Lesson 7: Introduction to Management", tag: "Free Sample", status: "Live" },
+  { name: "Lesson 8: Functions of Management", tag: "Full Codex", status: "Live" },
+  { name: "Lesson 9: Principles of Management & Modern Approaches", tag: "Full Codex", status: "Live" },
+  { name: "Lesson 10: Management Knowledge for Company Secretaries", tag: "Full Codex", status: "Live" },
 ];
+
+const FALLBACK_PLANS: SubscriptionPlanItem[] = [];
 
 const planKey = (plan: SubscriptionPlanItem) =>
   `${plan.id || ""} ${plan.slug || ""}`.toLowerCase();
@@ -204,7 +182,7 @@ function getPlanFeatures(plan: SubscriptionPlanItem): PlanFeatureItem[] {
 export function SubscriptionOverview() {
   const router = useRouter();
   const { addToCart, setIsCartOpen } = useCart();
-  const [plans, setPlans] = useState<SubscriptionPlanItem[]>(FALLBACK_PLANS);
+  const [plans, setPlans] = useState<SubscriptionPlanItem[]>([]);
   const [, setLoading] = useState(false);
   const [selectedPlanForDetails, setSelectedPlanForDetails] = useState<SubscriptionPlanItem | null>(null);
 
@@ -228,19 +206,13 @@ export function SubscriptionOverview() {
           apiRequest<{ courses?: RemoteCourseItem[] }>("/api/courses"),
         ]);
 
-        let loadedPlans: SubscriptionPlanItem[] = FALLBACK_PLANS;
+        let loadedPlans: SubscriptionPlanItem[] = [];
 
         if (subRes.status === "fulfilled" && subRes.value.success) {
           const payload = subRes.value.data as unknown as { subscriptions?: SubscriptionPlanItem[] } | SubscriptionPlanItem[] | undefined;
           const remotePlans = Array.isArray(payload) ? payload : payload?.subscriptions;
           if (Array.isArray(remotePlans) && remotePlans.length > 0) {
-            const vp = visiblePlans(remotePlans);
-            if (vp.length >= 2) {
-              loadedPlans = vp.slice(0, 2);
-            } else if (vp.length === 1) {
-              const other = FALLBACK_PLANS.find((p) => isCseetPlan(p) !== isCseetPlan(vp[0]));
-              loadedPlans = other ? [vp[0], other] : vp;
-            }
+            loadedPlans = visiblePlans(remotePlans);
           }
         }
 
@@ -378,12 +350,22 @@ export function SubscriptionOverview() {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+        {plans.length === 0 ? (
+          <div className="bg-white border border-[#DBEAFE] rounded-3xl p-12 text-center space-y-4 max-w-xl mx-auto shadow-xs">
+            <BookOpen className="w-10 h-10 text-[#64748B] mx-auto" />
+            <h3 className="text-base font-bold text-[#0A192F]">No study passes currently active</h3>
+            <p className="text-xs text-[#64748B]">
+              New subscription plans and curriculum packages are being updated. Check back soon!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
           {plans.map((plan) => {
-            const comingSoon = isCseetPlan(plan);
-            const isHighlighted = !comingSoon;
+            const isCs = isCseetPlan(plan);
+            const comingSoon = plan.is_active === false;
+            const isHighlighted = !isCs;
             const discountPct = Math.round(((plan.mrp - plan.price) / plan.mrp) * 100);
-            const displayBadge = comingSoon ? "COMING SOON" : plan.badge || "MOST POPULAR";
+            const displayBadge = isCs ? "ICSI CSEET" : plan.badge || "MOST POPULAR";
             const richFeatures = getPlanFeatures(plan);
 
             return (
@@ -402,6 +384,8 @@ export function SubscriptionOverview() {
                       className={`inline-flex items-center gap-1.5 px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-md border ${
                         comingSoon
                           ? "bg-[#F8FAFC] text-[#64748B] border-[#CBD5E1]"
+                          : isCs
+                          ? "bg-[#0A192F] text-white border-[#1E293B] shadow-[0_2px_10px_rgba(10,25,47,0.3)]"
                           : "bg-[#005A9C] text-white border-[#004F8A] shadow-[0_2px_10px_rgba(0,90,156,0.3)]"
                       }`}
                     >
@@ -546,6 +530,7 @@ export function SubscriptionOverview() {
             );
           })}
         </div>
+        )}
 
         {/* Security / DRM Footer callout */}
         <div className="mt-12 p-6 rounded-3xl bg-white border border-[#DBEAFE] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
@@ -630,10 +615,12 @@ export function SubscriptionOverview() {
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
-                  7 Covered Acts &amp; Statutory Codices
+                  {isCseetPlan(selectedPlanForDetails)
+                    ? "4 Covered Management Modules (ICSI Syllabus)"
+                    : "5 Covered Acts & Smart Question Banks"}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {CA_FOUNDATION_ACTS_LIST.map((act, i) => (
+                  {(isCseetPlan(selectedPlanForDetails) ? CSEET_MODULES_LIST : CA_FOUNDATION_ACTS_LIST).map((act, i) => (
                     <div
                       key={i}
                       className="p-3 rounded-xl bg-[#F0F7FF] border border-[#DBEAFE] flex items-center justify-between text-xs"

@@ -18,24 +18,7 @@ interface NavbarCatalogItem {
   type?: string;
 }
 
-const DEFAULT_NAVBAR_ITEMS: NavbarCatalogItem[] = [
-  {
-    id: "course-ca-foundation",
-    title: "CA Foundation Paper 2",
-    subtitle: "Complete Business Laws curriculum & question bank",
-    examBody: "ICAI",
-    category: "CA Foundation",
-    type: "course",
-  },
-  {
-    id: "course-cseet",
-    title: "CSEET Business Laws and Management",
-    subtitle: "Complete Business Laws & Management curriculum",
-    examBody: "ICSI",
-    category: "CSEET",
-    type: "course",
-  },
-];
+const DEFAULT_NAVBAR_ITEMS: NavbarCatalogItem[] = [];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -76,36 +59,41 @@ export function Navbar() {
 
     const checkSession = () => {
       if (typeof window !== "undefined") {
-        const adminSession = localStorage.getItem("lawkaksha_admin_session");
-        if (adminSession) {
-          try {
-            const parsed = JSON.parse(adminSession);
-            if (parsed && (parsed.name || parsed.role === "admin")) {
-              setActiveStudent({
-                name: parsed.name || "Administrator",
-                email: parsed.email || "admin@thelawkaksha.com",
-                avatarInitials: "AD",
-                role: "admin",
-              });
-              return;
-            }
-          } catch {}
-        }
-        const saved = localStorage.getItem("lawkaksha_active_student") || localStorage.getItem("lawkaksha_student_session");
+        // Public website should NEVER auto-login as admin or display admin session
+        const saved =
+          localStorage.getItem("lawkaksha_active_student") ||
+          localStorage.getItem("lawkaksha_student_session");
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
+            // Verify it is a genuine student account and NOT an admin account
+            const email = typeof parsed.email === "string" ? parsed.email.toLowerCase() : "";
+            const name = typeof parsed.name === "string" ? parsed.name.toLowerCase() : "";
+            const isEmailAdmin =
+              email.includes("admin@thelawkaksha.com") ||
+              email.startsWith("admin@") ||
+              email === "thelawkaksha@gmail.com";
+            const isRoleAdmin = parsed.role === "admin";
+            const isNameAdmin = name.includes("admin");
+
+            if (isEmailAdmin || isRoleAdmin || isNameAdmin) {
+              // Stale admin credentials leaked into student storage — clear them
+              localStorage.removeItem("lawkaksha_active_student");
+              localStorage.removeItem("lawkaksha_student_session");
+              setActiveStudent(null);
+              return;
+            }
+
             if (parsed && parsed.name) {
               const initials =
                 parsed.avatarInitials ||
-                (parsed.name
-                  ? parsed.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2)
-                  : "LK");
+                parsed.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2) ||
+                "LK";
               setActiveStudent({
                 name: parsed.name,
                 email: parsed.email || "",
@@ -150,19 +138,15 @@ export function Navbar() {
         );
         if (!cancelled && res.success && res.data) {
           const raw = res.data.products || res.data.items;
-          if (Array.isArray(raw) && raw.length > 0) {
-            const filtered = raw.filter(
-              (p) =>
-                p.id !== "prod-vol1" &&
-                p.id !== "prod-vol2" &&
-                !p.title.includes("Volume 1: Business Law") &&
-                !p.title.includes("Volume 2: CSEET")
-            );
-            if (filtered.length > 0) {
-              setCatalogItems(filtered.slice(0, 6));
-              return;
-            }
-          }
+          const filtered = (Array.isArray(raw) ? raw : []).filter(
+            (p) =>
+              p.id !== "prod-vol1" &&
+              p.id !== "prod-vol2" &&
+              !p.title.includes("Volume 1: Business Law") &&
+              !p.title.includes("Volume 2: CSEET")
+          );
+          setCatalogItems(filtered.slice(0, 6));
+          return;
         }
 
         // Secondary fallback to /api/courses
@@ -172,8 +156,7 @@ export function Navbar() {
         if (
           !cancelled &&
           coursesRes.success &&
-          Array.isArray(coursesRes.data?.courses) &&
-          coursesRes.data.courses.length > 0
+          Array.isArray(coursesRes.data?.courses)
         ) {
           const mapped: NavbarCatalogItem[] = coursesRes.data.courses.map((c) => ({
             id: c.id,
@@ -183,10 +166,10 @@ export function Navbar() {
             category: c.exam_body === "ICSI" ? "CSEET" : "CA Foundation",
             type: "course",
           }));
-          if (mapped.length > 0) {
-            setCatalogItems(mapped.slice(0, 6));
-          }
+          setCatalogItems(mapped.slice(0, 6));
+          return;
         }
+        if (!cancelled) setCatalogItems([]);
       } catch (err) {
         console.warn("[Navbar] Catalog load warning:", err);
       }
@@ -377,17 +360,7 @@ export function Navbar() {
             {/* Pricing */}
             <div className="relative py-1 flex flex-col items-center">
               <Link
-                href="/#pricing"
-                onClick={(e) => {
-                  if (pathname === "/") {
-                    e.preventDefault();
-                    const el = document.getElementById("pricing") || document.getElementById("subscriptions");
-                    if (el) {
-                      el.scrollIntoView({ behavior: "smooth" });
-                      window.history.pushState(null, "", "/#pricing");
-                    }
-                  }
-                }}
+                href="/courses"
                 className="text-[#334155] hover:text-[#005A9C] transition-colors duration-200 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005A9C]"
               >
                 Pricing
@@ -467,17 +440,17 @@ export function Navbar() {
               </button>
             )}
 
-            {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT DASHBOARD & PROFILE (when logged in) */}
+            {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT STUDENT DASHBOARD & PROFILE (when logged in) */}
             {activeStudent ? (
               <div className="flex items-center gap-2">
-                {/* 1-Click Dashboard Button */}
+                {/* 1-Click Student Dashboard Button */}
                 <Link
-                  href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                  href="/student"
                   className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-[0.97]"
-                  title={activeStudent.role === "admin" ? "Admin Dashboard" : "Student Dashboard"}
+                  title="Student Dashboard"
                 >
                   <GraduationCap className="w-4 h-4 text-white" />
-                  <span>{activeStudent.role === "admin" ? "Admin Dashboard" : "Student Dashboard"}</span>
+                  <span>Student Dashboard</span>
                 </Link>
 
                 {/* Simplified User Profile Button */}
@@ -517,7 +490,7 @@ export function Navbar() {
                               {activeStudent.email || "Verified Account"}
                             </p>
                             <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
-                              {activeStudent.role === "admin" ? "🛡️ Administrator" : "🎓 Enrolled Student"}
+                              🎓 Enrolled Student
                             </span>
                           </div>
                         </div>
@@ -526,12 +499,12 @@ export function Navbar() {
                       {/* Direct Quick-Access Navigation */}
                       <div className="space-y-0.5">
                         <Link
-                          href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                          href="/student"
                           onClick={() => setProfileDropdownOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors active:scale-[0.98]"
                         >
                           <LayoutDashboard className="w-4 h-4 text-[#005A9C]" />
-                          <span>{activeStudent.role === "admin" ? "Admin Dashboard" : "Student Dashboard"}</span>
+                          <span>Student Dashboard</span>
                         </Link>
 
                         <Link
@@ -710,18 +683,8 @@ export function Navbar() {
                 </Link>
 
                 <Link
-                  href="/#pricing"
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    if (pathname === "/") {
-                      e.preventDefault();
-                      const el = document.getElementById("pricing") || document.getElementById("subscriptions");
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth" });
-                        window.history.pushState(null, "", "/#pricing");
-                      }
-                    }
-                  }}
+                  href="/courses"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center px-4 py-3 text-sm font-medium text-[#334155] hover:bg-[#F0F7FF] hover:text-[#005A9C] rounded-xl transition-colors min-h-[44px] active:scale-[0.98]"
                 >
                   Pricing
@@ -770,18 +733,18 @@ export function Navbar() {
                           {activeStudent.email || "Verified Account"}
                         </p>
                         <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
-                          {activeStudent.role === "admin" ? "🛡️ Administrator" : "🎓 Enrolled Student"}
+                          🎓 Enrolled Student
                         </span>
                       </div>
                     </div>
 
                     <Link
-                      href={activeStudent.role === "admin" ? "/admin" : "/student"}
+                      href="/student"
                       onClick={() => setMobileMenuOpen(false)}
                       className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px] active:scale-[0.98]"
                     >
                       <LayoutDashboard className="w-4 h-4 text-white" />
-                      <span>{activeStudent.role === "admin" ? "Admin Dashboard" : "Student Dashboard"}</span>
+                      <span>Student Dashboard</span>
                     </Link>
 
                     <button

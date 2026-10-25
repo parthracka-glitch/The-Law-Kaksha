@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -12,6 +12,9 @@ import {
   Scale,
   Award,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 import { SecurePdfReader } from "./SecurePdfReader";
 import { apiRequest } from "@/lib/api";
@@ -34,62 +37,19 @@ interface SampleResource {
   borderTheme: string;
   accentBadge: string;
   pillColor: string;
+  courseTag: "ca" | "cseet";
 }
 
-const SAMPLE_RESOURCES: SampleResource[] = [
-  {
-    id: "sample-qb-part1",
-    part: "PART 1",
-    badge: "FREE SAMPLE COPY",
-    title: "Smart Revision Question Bank — Part 1",
-    subtitle: "The Indian Contract Act, 1872 (Units 1 - 9)",
-    actName: "The Indian Contract Act, 1872",
-    description:
-      "Official free sample covering the largest chapter of CA Foundation Paper 2. Experience our three-step answer framework (Provision → Application → Conclusion) with solved exam questions.",
-    highlights: [
-      "Complete Unit 2: Consideration (Sections 2(d) & 25, Privity of Contract and statutory exceptions)",
-      "Part Unit 9: Agency (Sections 182-238, Irrevocable Agency Sec 202, Sub-agent vs Substituted agent)",
-      "Examiner-Tested Framework: Model answers written strictly in Provision → Application → Conclusion",
-      "Recent Examination Questions: Solved questions with official mark allocations (May & Sept 2026)",
-    ],
-    pages: "30 Pages",
-    fileSize: "932 KB",
-    fileName: "Question Bank Part 1- Sample Copy.pdf",
-    pdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
-    downloadUrl: "/samples/Question-Bank-Part-1-Sample.pdf",
-    gradientTheme: "from-[#F0F7FF] via-white to-white",
-    borderTheme: "border-[#BAE6FD] hover:border-[#005A9C]",
-    accentBadge: "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]",
-    pillColor: "bg-[#005A9C] text-white",
-  },
-  {
-    id: "sample-qb-part2",
-    part: "PART 2",
-    badge: "FREE SAMPLE COPY",
-    title: "Smart Revision Question Bank — Part 2",
-    subtitle: "Rest of the Acts (SOGA, Partnership, LLP, Companies, N.I. Act)",
-    description:
-      "24 hand-picked case studies, two from every unit across all remaining Business Laws acts, with complete step-by-step model answers matching latest exam patterns.",
-    highlights: [
-      "24 Hand-Picked Case Studies: Two comprehensive problems from every single statutory unit",
-      "All 6 Syllabi Chapters: Indian Regulatory Framework, SOGA 1930, Partnership 1932, LLP 2008, Companies Act 2013, N.I. Act 1881",
-      "Examiner Trend Mapped: Tailored to fact-pattern comprehension tested in recent ICAI exam papers",
-      "Unpaid Seller, Caveat Emptor, Sub-Partner, Section 138 Dishonour & Small Company Limits",
-    ],
-    pages: "43 Pages",
-    fileSize: "5.7 MB",
-    fileName: "Part 2_Sample Copy.pdf",
-    pdfUrl: "/samples/Part 2_Sample Copy.pdf",
-    downloadUrl: "/samples/Question-Bank-Part-2-Sample.pdf",
-    gradientTheme: "from-[#F8FAFC] via-white to-white",
-    borderTheme: "border-[#CBD5E1] hover:border-[#0284C7]",
-    accentBadge: "bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]",
-    pillColor: "bg-[#0284C7] text-white",
-  },
-];
+const SAMPLE_RESOURCES: SampleResource[] = [];
 
 export function FreeResourceModule() {
-  const [resources, setResources] = useState<SampleResource[]>(SAMPLE_RESOURCES);
+  const [resources, setResources] = useState<SampleResource[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "ca" | "cseet">("all");
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [cardsPerView, setCardsPerView] = useState(2);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   const [activeReader, setActiveReader] = useState<{
     isOpen: boolean;
     pdfUrl: string;
@@ -100,22 +60,36 @@ export function FreeResourceModule() {
     title: "",
   });
 
+  // Track responsive cards per view (1 on mobile/tablet < 1024px, 2 on desktop >= 1024px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        setCardsPerView(window.innerWidth < 1024 ? 1 : 2);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     async function loadDynamicResources() {
       try {
-        const res = await apiRequest<{ resources?: Array<{
-          id: string;
-          title: string;
-          actName?: string;
-          description?: string;
-          isSample?: boolean;
-          pages?: string;
-          fileSize?: string;
-          fileName?: string;
-          fileUrl?: string;
-          sampleUrl?: string;
-        }> }>("/api/resources?sampleOnly=true");
+        const res = await apiRequest<{
+          resources?: Array<{
+            id: string;
+            title: string;
+            actName?: string;
+            description?: string;
+            isSample?: boolean;
+            pages?: string;
+            fileSize?: string;
+            fileName?: string;
+            fileUrl?: string;
+            sampleUrl?: string;
+          }>;
+        }>("/api/resources?sampleOnly=true");
 
         if (isMounted && res.success && Array.isArray(res.data?.resources)) {
           const dynamicItems = res.data.resources.filter(
@@ -123,42 +97,58 @@ export function FreeResourceModule() {
           );
 
           if (dynamicItems.length > 0) {
-            const mappedDynamic: SampleResource[] = dynamicItems.map((item, idx) => ({
-              id: item.id,
-              part: `SAMPLE ${idx + 1}`,
-              badge: "FREE STUDY CODEX",
-              title: item.title,
-              subtitle: item.actName || "Study Notes & Curriculum Sample",
-              actName: item.actName,
-              description:
-                item.description ||
-                `Official free study material for ${item.actName || "CA Foundation"}. Read sample preview online.`,
-              highlights: [
-                `Official study codex: ${item.title}`,
-                `Curriculum: ${item.actName || "CA Foundation Business Laws"}`,
-                "Examiner-Tested Legal Writing & Structured Model Notes",
-                "Instant In-Browser DRM Reading Vault Access",
-              ],
-              pages: item.pages || "Official PDF",
-              fileSize: item.fileSize || "PDF",
-              fileName: item.fileName || `${item.title}.pdf`,
-              pdfUrl: item.sampleUrl || item.fileUrl || `/api/content/${item.id}/file?sample=true`,
-              downloadUrl: item.fileUrl || `/api/content/${item.id}/file`,
-              gradientTheme:
-                idx % 2 === 0
-                  ? "from-[#F0FDF4] via-white to-white"
-                  : "from-[#FAF5FF] via-white to-white",
-              borderTheme:
-                idx % 2 === 0
-                  ? "border-[#BBF7D0] hover:border-[#16A34A]"
-                  : "border-[#E9D5FF] hover:border-[#9333EA]",
-              accentBadge:
-                idx % 2 === 0
-                  ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
-                  : "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]",
-              pillColor:
-                idx % 2 === 0 ? "bg-[#16A34A] text-white" : "bg-[#9333EA] text-white",
-            }));
+            const mappedDynamic: SampleResource[] = dynamicItems.map((item, idx) => {
+              const text = `${item.id} ${item.title} ${item.actName || ""}`.toLowerCase();
+              const isCs = text.includes("cseet") || text.includes("management");
+
+              return {
+                id: item.id,
+                part: `SAMPLE ${idx + 1}`,
+                badge: isCs ? "ICSI CSEET SAMPLE" : "FREE STUDY CODEX",
+                title: item.title,
+                subtitle: item.actName || "Study Notes & Curriculum Sample",
+                actName: item.actName,
+                courseTag: isCs ? "cseet" : "ca",
+                description:
+                  item.description ||
+                  `Official free study material for ${item.actName || "CA Foundation"}. Read sample preview online.`,
+                highlights: [
+                  `Official study codex: ${item.title}`,
+                  `Curriculum: ${item.actName || (isCs ? "Business Management" : "CA Foundation Business Laws")}`,
+                  "Examiner-Tested Legal Writing & Structured Model Notes",
+                  "Instant In-Browser DRM Reading Vault Access",
+                ],
+                pages: item.pages || "Official PDF",
+                fileSize: item.fileSize || "PDF",
+                fileName: item.fileName || `${item.title}.pdf`,
+                pdfUrl: item.sampleUrl || item.fileUrl || `/api/content/${item.id}/file?sample=true`,
+                downloadUrl: item.fileUrl || `/api/content/${item.id}/file`,
+                gradientTheme:
+                  isCs
+                    ? "from-[#FAF5FF] via-white to-white"
+                    : idx % 2 === 0
+                    ? "from-[#F0FDF4] via-white to-white"
+                    : "from-[#EFF6FF] via-white to-white",
+                borderTheme:
+                  isCs
+                    ? "border-[#E9D5FF] hover:border-[#9333EA]"
+                    : idx % 2 === 0
+                    ? "border-[#BBF7D0] hover:border-[#16A34A]"
+                    : "border-[#BFDBFE] hover:border-[#005A9C]",
+                accentBadge:
+                  isCs
+                    ? "bg-[#F3E8FF] text-[#7E22CE] border-[#D8B4FE]"
+                    : idx % 2 === 0
+                    ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                    : "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]",
+                pillColor:
+                  isCs
+                    ? "bg-[#9333EA] text-white"
+                    : idx % 2 === 0
+                    ? "bg-[#16A34A] text-white"
+                    : "bg-[#005A9C] text-white",
+              };
+            });
 
             setResources([...SAMPLE_RESOURCES, ...mappedDynamic]);
           }
@@ -173,6 +163,66 @@ export function FreeResourceModule() {
     };
   }, []);
 
+  // Filter items based on active category tab
+  const filteredResources = useMemo(() => {
+    if (selectedCategory === "ca") {
+      return resources.filter((r) => r.courseTag === "ca");
+    }
+    if (selectedCategory === "cseet") {
+      return resources.filter((r) => r.courseTag === "cseet");
+    }
+    return resources;
+  }, [resources, selectedCategory]);
+
+  // Counts for category badges
+  const caCount = useMemo(() => resources.filter((r) => r.courseTag === "ca").length, [resources]);
+  const cseetCount = useMemo(() => resources.filter((r) => r.courseTag === "cseet").length, [resources]);
+
+  // Chunk items into slides according to cardsPerView
+  const slides = useMemo(() => {
+    const pages: SampleResource[][] = [];
+    for (let i = 0; i < filteredResources.length; i += cardsPerView) {
+      pages.push(filteredResources.slice(i, i + cardsPerView));
+    }
+    return pages;
+  }, [filteredResources, cardsPerView]);
+
+  const totalSlides = slides.length;
+
+  // Reset to first slide whenever category changes
+  useEffect(() => {
+    setCurrentSlide(0);
+  }, [selectedCategory, cardsPerView]);
+
+  const nextSlide = useCallback(() => {
+    if (totalSlides <= 1) return;
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  }, [totalSlides]);
+
+  const prevSlide = useCallback(() => {
+    if (totalSlides <= 1) return;
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  }, [totalSlides]);
+
+  // Touch Swipe handlers
+  const minSwipeDistance = 45;
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+  };
+
   const handleOpenReader = (resource: SampleResource) => {
     setActiveReader({
       isOpen: true,
@@ -180,6 +230,10 @@ export function FreeResourceModule() {
       title: resource.title,
     });
   };
+
+  if (resources.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -193,21 +247,21 @@ export function FreeResourceModule() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Module Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 space-y-4">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12 space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#005A9C] border border-[#BFDBFE] shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
             <span>100% Free Resources • No Login Required</span>
           </div>
 
           <h2 className="font-serif font-black text-3xl sm:text-4xl lg:text-5xl text-[#0A192F] tracking-tight leading-[1.15]">
-            Official Free Sample Question Banks
+            Official Free Sample Codices &amp; Notes
           </h2>
 
           <p className="text-base sm:text-lg text-[#64748B] leading-relaxed">
-            CA Foundation Paper 2: Business Laws. Preview the exact question bank format, case study fact patterns, and the 3-step <strong className="text-[#0A192F] font-semibold">Provision → Application → Conclusion</strong> framework before you subscribe.
+            CA Foundation &amp; CSEET Paper 2. Preview the exact statutory notes, chapter codices, and examiner-tested model answer frameworks before you enroll.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 pt-2 text-xs font-semibold text-[#475569]">
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-1 text-xs font-semibold text-[#475569]">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
               In-Browser Reading Vault
@@ -218,102 +272,269 @@ export function FreeResourceModule() {
             </span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
-              ICAI Examination Standard
+              ICAI &amp; ICSI Exam Aligned
             </span>
           </div>
         </div>
 
-        {/* Dynamic & Curated Sample Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {resources.map((resource) => (
-            <div
-              key={resource.id}
-              className={`rounded-3xl border-2 ${resource.borderTheme} bg-gradient-to-br ${resource.gradientTheme} p-6 sm:p-8 shadow-[0_10px_35px_rgba(10,25,47,0.06)] hover:shadow-[0_16px_48px_rgba(0,90,156,0.12)] transition-all duration-300 flex flex-col justify-between group relative`}
+        {/* Filter Tabs & Slide Navigation Controls Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-[#DBEAFE] shadow-xs">
+          
+          {/* Category Filter Tabs */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("all")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                selectedCategory === "all"
+                  ? "bg-[#005A9C] text-white shadow-xs"
+                  : "bg-[#F8FAFC] text-[#475569] hover:bg-[#EFF6FF] hover:text-[#005A9C] border border-slate-200"
+              }`}
             >
-              <div className="space-y-6">
-                
-                {/* Header row with badges */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[11px] font-black tracking-wider px-3 py-1 rounded-full ${resource.pillColor}`}>
-                      {resource.part}
-                    </span>
-                    <span className={`text-[11px] font-bold px-3 py-1 rounded-full border shadow-2xs ${resource.accentBadge}`}>
-                      {resource.badge}
-                    </span>
-                  </div>
+              <Layers className="w-3.5 h-3.5" />
+              <span>All Samples</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${selectedCategory === "all" ? "bg-white/20 text-white" : "bg-slate-200 text-[#475569]"}`}>
+                {resources.length}
+              </span>
+            </button>
 
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#64748B] bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full border border-slate-200">
-                    <FileText className="w-3.5 h-3.5 text-[#005A9C]" />
-                    <span>{resource.pages}</span>
-                    <span className="text-slate-300">•</span>
-                    <span>{resource.fileSize}</span>
-                  </div>
-                </div>
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("ca")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                selectedCategory === "ca"
+                  ? "bg-[#005A9C] text-white shadow-xs"
+                  : "bg-[#F8FAFC] text-[#475569] hover:bg-[#EFF6FF] hover:text-[#005A9C] border border-slate-200"
+              }`}
+            >
+              <span>CA Foundation</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${selectedCategory === "ca" ? "bg-white/20 text-white" : "bg-slate-200 text-[#475569]"}`}>
+                {caCount}
+              </span>
+            </button>
 
-                {/* Title & Subtitle */}
-                <div>
-                  {resource.actName && (
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#005A9C] block mb-1">
-                      {resource.actName}
-                    </span>
-                  )}
-                  <h3 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F] group-hover:text-[#005A9C] transition-colors leading-snug">
-                    {resource.title}
-                  </h3>
-                  <p className="text-sm font-semibold text-[#475569] mt-1.5">
-                    {resource.subtitle}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[#64748B] mt-3 leading-relaxed">
-                    {resource.description}
-                  </p>
-                </div>
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("cseet")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                selectedCategory === "cseet"
+                  ? "bg-[#005A9C] text-white shadow-xs"
+                  : "bg-[#F8FAFC] text-[#475569] hover:bg-[#EFF6FF] hover:text-[#005A9C] border border-slate-200"
+              }`}
+            >
+              <span>CSEET</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${selectedCategory === "cseet" ? "bg-white/20 text-white" : "bg-slate-200 text-[#475569]"}`}>
+                {cseetCount}
+              </span>
+            </button>
+          </div>
 
-                {/* Key Syllabus Highlights */}
-                <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-2.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] flex items-center gap-2">
-                    <Award className="w-4 h-4 text-[#005A9C]" />
-                    What&apos;s Included In This Free Sample:
-                  </h4>
-                  <ul className="space-y-2 text-xs text-[#334155] leading-relaxed">
-                    {resource.highlights.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+          {/* Navigation Controls & Counter */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-[#64748B] tracking-tight">
+              Slide <strong className="text-[#0A192F] font-bold">{currentSlide + 1}</strong> of {totalSlides || 1}
+            </span>
 
-              {/* Action Buttons */}
-              <div className="pt-6 mt-6 border-t border-slate-200/70 space-y-3">
-                {/* Primary CTA: Open Interactive Reader */}
-                <button
-                  type="button"
-                  onClick={() => handleOpenReader(resource)}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm px-6 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Read Sample In-Browser</span>
-                </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={prevSlide}
+                disabled={totalSlides <= 1}
+                className="w-9 h-9 rounded-full border border-[#BFDBFE] bg-white text-[#005A9C] hover:bg-[#005A9C] hover:text-white hover:border-[#005A9C] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+              </button>
 
-                <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
-                    <span>Instant reader with zoom &amp; dark mode</span>
-                  </span>
-                  <Link
-                    href={`/reader?file=${encodeURIComponent(resource.fileName)}&title=${encodeURIComponent(resource.title)}&sample=true`}
-                    className="text-[#005A9C] hover:underline font-bold flex items-center gap-0.5"
-                  >
-                    <span>Dedicated Reader Page</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </Link>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={nextSlide}
+                disabled={totalSlides <= 1}
+                className="w-9 h-9 rounded-full border border-[#BFDBFE] bg-white text-[#005A9C] hover:bg-[#005A9C] hover:text-white hover:border-[#005A9C] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+              </button>
             </div>
-          ))}
+          </div>
+        </div>
+
+        {/* Card Sliding Section Container */}
+        <div
+          className="relative"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          {/* Floating Left Arrow for Desktop */}
+          {totalSlides > 1 && (
+            <button
+              type="button"
+              onClick={prevSlide}
+              className="hidden lg:flex absolute -left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md border border-[#BFDBFE] text-[#005A9C] hover:bg-[#005A9C] hover:text-white hover:border-[#005A9C] shadow-lg items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+              aria-label="Previous card slide"
+            >
+              <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+            </button>
+          )}
+
+          {/* Floating Right Arrow for Desktop */}
+          {totalSlides > 1 && (
+            <button
+              type="button"
+              onClick={nextSlide}
+              className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md border border-[#BFDBFE] text-[#005A9C] hover:bg-[#005A9C] hover:text-white hover:border-[#005A9C] shadow-lg items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+              aria-label="Next card slide"
+            >
+              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+            </button>
+          )}
+
+          {/* Overflow-Hidden Slider Viewport */}
+          <div className="overflow-hidden rounded-3xl p-1">
+            <div
+              className="flex transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {slides.map((slideItems, slideIdx) => (
+                <div
+                  key={slideIdx}
+                  className="w-full shrink-0 px-1"
+                >
+                  <div className={`grid ${cardsPerView === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-6 lg:gap-8 items-stretch`}>
+                    {slideItems.map((resource) => (
+                      <div
+                        key={resource.id}
+                        className={`rounded-3xl border-2 ${resource.borderTheme} bg-gradient-to-br ${resource.gradientTheme} p-6 sm:p-8 shadow-[0_10px_35px_rgba(10,25,47,0.06)] hover:shadow-[0_16px_48px_rgba(0,90,156,0.12)] transition-all duration-300 flex flex-col justify-between group relative h-full`}
+                      >
+                        <div className="space-y-6">
+                          
+                          {/* Header row with badges */}
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[11px] font-black tracking-wider px-3 py-1 rounded-full ${resource.pillColor}`}>
+                                {resource.part}
+                              </span>
+                              <span className={`text-[11px] font-bold px-3 py-1 rounded-full border shadow-2xs ${resource.accentBadge}`}>
+                                {resource.badge}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs font-bold text-[#64748B] bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full border border-slate-200">
+                              <FileText className="w-3.5 h-3.5 text-[#005A9C]" />
+                              <span>{resource.pages}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>{resource.fileSize}</span>
+                            </div>
+                          </div>
+
+                          {/* Title & Subtitle */}
+                          <div>
+                            {resource.actName && (
+                              <span className="text-xs font-bold uppercase tracking-wider text-[#005A9C] block mb-1">
+                                {resource.actName}
+                              </span>
+                            )}
+                            <h3 className="text-2xl sm:text-3xl font-serif font-black text-[#0A192F] group-hover:text-[#005A9C] transition-colors leading-snug line-clamp-2">
+                              {resource.title}
+                            </h3>
+                            <p className="text-sm font-semibold text-[#475569] mt-1.5">
+                              {resource.subtitle}
+                            </p>
+                            <p className="text-xs sm:text-sm text-[#64748B] mt-3 leading-relaxed line-clamp-2">
+                              {resource.description}
+                            </p>
+                          </div>
+
+                          {/* Key Syllabus Highlights */}
+                          <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-2.5">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-[#0A192F] flex items-center gap-2">
+                              <Award className="w-4 h-4 text-[#005A9C]" />
+                              What&apos;s Included In This Free Sample:
+                            </h4>
+                            <ul className="space-y-2 text-xs text-[#334155] leading-relaxed">
+                              {resource.highlights.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2.5">
+                                  <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                                  <span className="line-clamp-1">{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="pt-6 mt-6 border-t border-slate-200/70 space-y-3">
+                          {/* Primary CTA: Open Interactive Reader */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenReader(resource)}
+                            className="w-full inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm px-6 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                          >
+                            <BookOpen className="w-4 h-4" />
+                            <span>Read Sample In-Browser</span>
+                          </button>
+
+                          <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#005A9C]" />
+                              <span>Instant reader with zoom &amp; dark mode</span>
+                            </span>
+                            <Link
+                              href={`/reader?file=${encodeURIComponent(resource.fileName)}&title=${encodeURIComponent(resource.title)}&sample=true`}
+                              className="text-[#005A9C] hover:underline font-bold flex items-center gap-0.5"
+                            >
+                              <span>Dedicated Reader Page</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Placeholder filler when odd count in 2-card desktop view */}
+                    {cardsPerView === 2 && slideItems.length === 1 && (
+                      <div className="rounded-3xl border-2 border-dashed border-[#DBEAFE] bg-white/50 p-8 flex flex-col items-center justify-center text-center space-y-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] text-[#005A9C] flex items-center justify-center shadow-2xs">
+                          <BookOpen className="w-6 h-6 text-[#005A9C]" />
+                        </div>
+                        <div className="max-w-xs space-y-1">
+                          <h4 className="font-bold text-sm text-[#0A192F]">Explore Full Catalog</h4>
+                          <p className="text-xs text-[#64748B]">All complete codices and question banks are available in our official course catalog.</p>
+                        </div>
+                        <Link
+                          href="/courses"
+                          className="px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5"
+                        >
+                          <span>View Courses Catalog</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Pagination Dots */}
+          {totalSlides > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    currentSlide === idx
+                      ? "w-8 h-2.5 bg-[#005A9C] shadow-xs"
+                      : "w-2.5 h-2.5 bg-[#CBD5E1] hover:bg-[#94A3B8]"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Bottom Banner with Full Subscription Upsell */}
@@ -332,7 +553,7 @@ export function FreeResourceModule() {
           </div>
 
           <Link
-            href="/#pricing"
+            href="/courses"
             className="inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm px-8 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
           >
             <span>Unlock Full Question Bank @ ₹99</span>

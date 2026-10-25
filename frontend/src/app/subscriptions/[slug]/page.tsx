@@ -290,11 +290,11 @@ export default function SubscriptionDetailPage() {
         {/* Back navigation */}
         <div className="mb-6">
           <Link
-            href="/#subscriptions"
+            href="/courses"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#4D433F] hover:text-[#221D1D] transition-colors"
           >
             <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
-            Back to All Subscriptions
+            Back to All Courses
           </Link>
         </div>
 
