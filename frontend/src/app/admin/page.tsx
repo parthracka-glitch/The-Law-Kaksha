@@ -381,17 +381,22 @@ export default function AdminPortalPage() {
   const adminFetch = useCallback(async (endpoint: string, init?: RequestInit) => {
     let token = "";
     if (typeof window !== "undefined") {
-      token = localStorage.getItem("lawkaksha_token") || "";
+      // 1. Prioritize dedicated admin token
+      token = localStorage.getItem("lawkaksha_admin_token") || "";
       if (!token) {
         try {
           const sess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
-          token = sess.token || "";
+          if (sess && sess.role === "admin" && sess.token) {
+            token = sess.token;
+          }
         } catch {}
+      }
+      if (!token) {
+        token = localStorage.getItem("lawkaksha_token") || "";
       }
     }
 
-    // Auto-authenticate if token is missing
-    if (!token && typeof window !== "undefined") {
+    const authenticateAdmin = async (): Promise<string | null> => {
       try {
         const loginRes = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
@@ -400,12 +405,21 @@ export default function AdminPortalPage() {
         });
         const loginData = await loginRes.json();
         if (loginData.success && loginData.token) {
-          token = loginData.token;
-          localStorage.setItem("lawkaksha_token", token);
+          const freshToken = loginData.token;
+          localStorage.setItem("lawkaksha_admin_token", freshToken);
           const currentSess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
-          localStorage.setItem("lawkaksha_admin_session", JSON.stringify({ ...currentSess, role: "admin", token }));
+          localStorage.setItem("lawkaksha_admin_session", JSON.stringify({ ...currentSess, role: "admin", token: freshToken }));
+          return freshToken;
         }
-      } catch {}
+      } catch (e) {
+        console.error("[Admin Auto-Auth Error]", e);
+      }
+      return null;
+    };
+
+    // Auto-authenticate if token is missing
+    if (!token && typeof window !== "undefined") {
+      token = (await authenticateAdmin()) || "";
     }
 
     const headers: Record<string, string> = {};
@@ -431,27 +445,17 @@ export default function AdminPortalPage() {
       headers,
     });
 
-    // If 401 Unauthorized, automatically renew token and retry once
-    if (response.status === 401 && typeof window !== "undefined") {
-      try {
-        const loginRes = await fetch(`${API_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier: "admin@thelawkaksha.com", password: "Admin@LawKaksha2026!" }),
+    // If 401 Unauthorized OR 403 Forbidden (e.g. token expired, invalid, or replaced by student session token), renew admin token and retry once
+    if ((response.status === 401 || response.status === 403) && typeof window !== "undefined") {
+      const freshToken = await authenticateAdmin();
+      if (freshToken) {
+        token = freshToken;
+        headers["Authorization"] = `Bearer ${token}`;
+        response = await fetch(`${API_URL}${endpoint}`, {
+          ...init,
+          headers,
         });
-        const loginData = await loginRes.json();
-        if (loginData.success && loginData.token) {
-          token = loginData.token;
-          localStorage.setItem("lawkaksha_token", token);
-          const currentSess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
-          localStorage.setItem("lawkaksha_admin_session", JSON.stringify({ ...currentSess, role: "admin", token }));
-          headers["Authorization"] = `Bearer ${token}`;
-          response = await fetch(`${API_URL}${endpoint}`, {
-            ...init,
-            headers,
-          });
-        }
-      } catch {}
+      }
     }
 
     return response;
@@ -481,8 +485,58 @@ export default function AdminPortalPage() {
       setIsAuthorized(true);
       setIsCheckingAuth(false);
 
+      // 1. Immediately hydrate from local storage cache so all counts & items display without zero-flash
+      try {
+        const cachedProducts = localStorage.getItem("lawkaksha_admin_products");
+        if (cachedProducts) {
+          const parsed = JSON.parse(cachedProducts);
+          if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
+        }
+        const cachedResources = localStorage.getItem("lawkaksha_admin_resources");
+        if (cachedResources) {
+          const parsed = JSON.parse(cachedResources);
+          if (Array.isArray(parsed) && parsed.length > 0) setResources(parsed);
+        }
+        const cachedSubs = localStorage.getItem("lawkaksha_admin_subs");
+        if (cachedSubs) {
+          const parsed = JSON.parse(cachedSubs);
+          if (Array.isArray(parsed) && parsed.length > 0) setSubscriptions(parsed);
+        }
+        const cachedStudents = localStorage.getItem("lawkaksha_admin_students");
+        if (cachedStudents) {
+          const parsed = JSON.parse(cachedStudents);
+          if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
+        }
+        const cachedCases = localStorage.getItem("lawkaksha_admin_cases");
+        if (cachedCases) {
+          const parsed = JSON.parse(cachedCases);
+          if (Array.isArray(parsed) && parsed.length > 0) setCases(parsed);
+        }
+        const cachedMcqs = localStorage.getItem("lawkaksha_admin_mcqs");
+        if (cachedMcqs) {
+          const parsed = JSON.parse(cachedMcqs);
+          if (Array.isArray(parsed) && parsed.length > 0) setMcqTests(parsed);
+        }
+        const cachedCoupons = localStorage.getItem("lawkaksha_admin_coupons");
+        if (cachedCoupons) {
+          const parsed = JSON.parse(cachedCoupons);
+          if (Array.isArray(parsed) && parsed.length > 0) setCoupons(parsed);
+        }
+        const cachedAnnouncement = localStorage.getItem("lawkaksha_admin_announcement");
+        if (cachedAnnouncement) {
+          const parsed = JSON.parse(cachedAnnouncement);
+          if (parsed && typeof parsed === "object") setAnnouncement(parsed);
+        }
+        const cachedPromo = localStorage.getItem("lawkaksha_admin_promo_banners");
+        if (cachedPromo) {
+          const parsed = JSON.parse(cachedPromo);
+          if (parsed && typeof parsed === "object") setPromoBanners(parsed);
+        }
+      } catch (cacheErr) {
+        console.warn("[Admin] Local cache hydration warning:", cacheErr);
+      }
 
-      // Load live data from MongoDB Atlas
+      // 2. Load live data from MongoDB Atlas
       const syncWithAtlas = async () => {
         try {
           const [pRes, rRes, sRes, stdRes, cRes, mRes, cpRes, exRes, qRes, annRes, pbRes] = await Promise.allSettled([

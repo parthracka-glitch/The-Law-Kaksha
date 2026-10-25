@@ -398,6 +398,7 @@ export function CartDrawer() {
               localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentSession));
               localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(mergedUnlockedIds));
               if (verifiedToken) {
+                localStorage.setItem("lawkaksha_student_token", verifiedToken);
                 localStorage.setItem("lawkaksha_token", verifiedToken);
               }
 
@@ -419,6 +420,26 @@ export function CartDrawer() {
               const parsedAdminSubs = existingAdminSubs ? JSON.parse(existingAdminSubs) : [];
               localStorage.setItem("lawkaksha_admin_subs", JSON.stringify([adminSubEntry, ...parsedAdminSubs]));
               localStorage.removeItem("lawkaksha_admin_orders");
+
+              const adminStudentEntry = {
+                id: `usr-${Date.now()}`,
+                student_id: rollNumber,
+                name: studentName,
+                email: studentEmail,
+                phone: studentData.phone || "",
+                target_exam: studentData.exam,
+                role: "student",
+                is_active: true,
+                drm_access: true,
+                enrolled_books: items.map((i) => i.title),
+                unlockedItemIds: mergedUnlockedIds,
+                joined_date: "Today",
+              };
+              const existingAdminStudents = localStorage.getItem("lawkaksha_admin_students");
+              const parsedAdminStudents = existingAdminStudents ? JSON.parse(existingAdminStudents) : [];
+              if (!parsedAdminStudents.some((s: { email?: string }) => s.email === studentEmail)) {
+                localStorage.setItem("lawkaksha_admin_students", JSON.stringify([adminStudentEntry, ...parsedAdminStudents]));
+              }
 
               window.dispatchEvent(new Event("storage"));
               window.dispatchEvent(new CustomEvent("lawkaksha_student_updated", { detail: mergedUnlockedIds }));

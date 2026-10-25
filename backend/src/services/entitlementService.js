@@ -273,6 +273,7 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
   const subscriptionsTable = Database.table("subscriptions");
   const subRecord = {
     id: `LK-SUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    title: (order.items || []).map((i) => i.title).join(", ") || primaryCourseId || "Course Access Pass",
     userId: student.id,
     studentName: student.name,
     studentRoll: studentRoll,
@@ -281,6 +282,7 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
     item: (order.items || []).map((i) => i.title).join(", ") || primaryCourseId,
     targetExam: order.target_exam || targetExam,
     amount: `₹${paymentAmount}`,
+    price: Number(paymentAmount) || 0,
     date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
     paymentMode: paymentMethod,
     accessStatus: "Active",
@@ -304,9 +306,11 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
           { email: student.email },
           {
             $set: {
+              id: student.id || `usr-${Date.now()}`,
               name: student.name,
               phone: student.phone,
               student_id: studentRoll,
+              role: student.role || "student",
               target_exam: targetExam,
               drm_access: true,
               is_active: true,

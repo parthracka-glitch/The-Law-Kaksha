@@ -145,7 +145,10 @@ export function GoogleSignInButton({
           localStorage.removeItem("lawkaksha_student_session");
           localStorage.removeItem("lawkaksha_active_student");
           localStorage.setItem("lawkaksha_admin_session", JSON.stringify(adminSession));
-          if (token) localStorage.setItem("lawkaksha_token", token);
+          if (token) {
+            localStorage.setItem("lawkaksha_admin_token", token);
+            localStorage.setItem("lawkaksha_token", token);
+          }
           window.dispatchEvent(new Event("storage"));
           window.dispatchEvent(new Event("lawkaksha_student_updated"));
           if (onSuccess) onSuccess(res);

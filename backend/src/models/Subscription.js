@@ -4,7 +4,7 @@ const SubscriptionSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true, index: true },
     // Plan specification fields (§5)
-    title: { type: String, required: true },
+    title: { type: String, default: "Course Access Pass" },
     slug: { type: String, default: "", index: true },
     short_desc: { type: String, default: "" },
     description: { type: String, default: "" },

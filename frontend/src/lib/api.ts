@@ -100,7 +100,18 @@ export interface ApiResponse<T> {
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("lawkaksha_token");
+  return localStorage.getItem("lawkaksha_admin_token") || localStorage.getItem("lawkaksha_token");
+}
+
+export function getAdminAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const adminTok = localStorage.getItem("lawkaksha_admin_token");
+  if (adminTok) return adminTok;
+  try {
+    const sess = JSON.parse(localStorage.getItem("lawkaksha_admin_session") || "{}");
+    if (sess && sess.role === "admin" && sess.token) return sess.token;
+  } catch {}
+  return null;
 }
 
 export function setAuthSession(token: string, user: AuthUser) {
