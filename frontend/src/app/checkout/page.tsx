@@ -61,49 +61,14 @@ interface CompletedOrder extends VerifiedOrder {
   studentName: string;
 }
 
-interface RazorpayPaymentResponse {
-  razorpay_payment_id?: string;
-  razorpay_order_id?: string;
-  razorpay_signature?: string;
-}
-
-interface RazorpayFailureResponse {
-  error?: {
-    description?: string;
-    code?: string;
-  };
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  image: string;
-  order_id?: string;
-  handler: (response: RazorpayPaymentResponse) => void | Promise<void>;
-  prefill: { name: string; email: string; contact: string };
-  notes?: Record<string, string | undefined>;
-  theme: { color: string };
-  modal: { ondismiss: () => void };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-  on: (
-    event: "payment.failed",
-    handler: (response: RazorpayFailureResponse) => void
-  ) => void;
-}
-
-interface RazorpayConstructor {
-  new (options: RazorpayOptions): RazorpayInstance;
-}
-
-interface RazorpayWindow extends Window {
-  Razorpay?: RazorpayConstructor;
-}
+import {
+  loadRazorpayCheckoutScript,
+  preloadRazorpay,
+  type RazorpayOptions,
+  type RazorpayPaymentResponse,
+  type RazorpayFailureResponse,
+  type RazorpayWindow,
+} from "@/lib/razorpayLoader";
 
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
@@ -113,21 +78,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
   }
   return fallback;
 }
-
-const loadRazorpayCheckoutScript = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (typeof window !== "undefined" && (window as RazorpayWindow).Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -153,8 +103,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
 
-  // Auto-fill student session if logged in
+  // Auto-fill student session if logged in and pre-warm Razorpay script
   useEffect(() => {
+    preloadRazorpay();
     const user = getActiveUser();
     if (user) {
       setStudentData((prev) => ({
@@ -432,6 +383,7 @@ export default function CheckoutPage() {
         name: studentData.name,
         email: studentData.email,
         contact: studentData.phone,
+        method: paymentMethod === "upi" ? "upi" : "card",
       },
       notes: {
         exam: studentData.exam,
@@ -445,7 +397,15 @@ export default function CheckoutPage() {
           setLoading(false);
           setError("Payment window closed. You can retry whenever you are ready.");
         },
+        backdropclose: false,
+        escape: true,
+        animation: true,
       },
+      retry: {
+        enabled: true,
+        max_count: 2,
+      },
+      timeout: 300,
     };
 
     try {
@@ -756,7 +716,10 @@ export default function CheckoutPage() {
                   className="w-full py-3.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-[#221D1D] border-t-transparent rounded-full animate-spin" />
+                      <span>Connecting to Razorpay...</span>
+                    </>
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />

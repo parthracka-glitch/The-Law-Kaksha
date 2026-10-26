@@ -388,6 +388,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${inter.variable} ${playfair.variable} font-sans scroll-smooth`}>
       <head>
+        <link rel="preconnect" href="https://checkout.razorpay.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+        <link rel="preconnect" href="https://api.razorpay.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.razorpay.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
@@ -395,7 +399,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-white text-[#0A192F] antialiased overflow-x-hidden selection:bg-[#DBEAFE] selection:text-[#0A192F]">
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
         <Providers>{children}</Providers>
       </body>
     </html>

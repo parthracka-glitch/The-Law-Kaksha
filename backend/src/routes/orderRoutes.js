@@ -74,53 +74,37 @@ function resolveCourseAlias(rawId) {
   return rawId;
 }
 
+const priceCache = new Map();
+
 async function getCanonicalPrice(itemId) {
   if (!itemId) return 99;
   const cleanId = String(itemId).trim().toLowerCase();
   const canonicalId = resolveCourseAlias(cleanId);
 
-  // 1. Check Course in MongoDB Atlas or Table
-  if (isConnected()) {
-    try {
-      const Course = require("../models/Course");
-      const c = await Course.findOne({
-        $or: [
-          { id: canonicalId },
-          { slug: canonicalId },
-          { id: cleanId },
-          { slug: cleanId },
-          { id: cleanId.replace(/-sub$/, "") },
-        ],
-      }).lean();
-      if (c && typeof c.price === "number") return c.price;
-    } catch (err) {
-      console.warn("[orderRoutes] getCanonicalPrice Atlas error:", err.message);
-    }
+  // 1. Instant In-Memory Cache (0ms)
+  if (priceCache.has(cleanId)) return priceCache.get(cleanId);
+  if (priceCache.has(canonicalId)) return priceCache.get(canonicalId);
+
+  // 2. Instant Canonical Catalog Price Check (0ms)
+  if (CANONICAL_CATALOG_PRICES[cleanId]) {
+    priceCache.set(cleanId, CANONICAL_CATALOG_PRICES[cleanId]);
+    return CANONICAL_CATALOG_PRICES[cleanId];
+  }
+  if (CANONICAL_CATALOG_PRICES[canonicalId]) {
+    priceCache.set(canonicalId, CANONICAL_CATALOG_PRICES[canonicalId]);
+    return CANONICAL_CATALOG_PRICES[canonicalId];
   }
 
+  // 3. Fast In-Memory Local Table Check (0ms)
   const coursesTable = Database.table("courses");
   const c =
     coursesTable.findById(canonicalId) ||
     coursesTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
     coursesTable.findById(cleanId) ||
     coursesTable.findOne((x) => x.id === cleanId || x.slug === cleanId || x.id === cleanId.replace(/-sub$/, ""));
-  if (c && typeof c.price === "number") return c.price;
-
-  // 2. Check Subscription Plan in MongoDB Atlas or Table
-  if (isConnected()) {
-    try {
-      const Subscription = require("../models/Subscription");
-      const plan = await Subscription.findOne({
-        $or: [
-          { id: canonicalId },
-          { slug: canonicalId },
-          { id: cleanId },
-          { slug: cleanId },
-          { course_ids: canonicalId },
-        ],
-      }).lean();
-      if (plan && typeof plan.price === "number") return plan.price;
-    } catch (_) {}
+  if (c && typeof c.price === "number") {
+    priceCache.set(cleanId, c.price);
+    return c.price;
   }
 
   const plansTable = Database.table("subscription_plans");
@@ -129,7 +113,10 @@ async function getCanonicalPrice(itemId) {
     plansTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
     plansTable.findById(cleanId) ||
     plansTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (plan && typeof plan.price === "number") return plan.price;
+  if (plan && typeof plan.price === "number") {
+    priceCache.set(cleanId, plan.price);
+    return plan.price;
+  }
 
   const productsTable = Database.table("products");
   const p =
@@ -137,12 +124,34 @@ async function getCanonicalPrice(itemId) {
     productsTable.findOne((x) => x.id === canonicalId || x.slug === canonicalId) ||
     productsTable.findById(cleanId) ||
     productsTable.findOne((x) => x.id === cleanId || x.slug === cleanId);
-  if (p && typeof p.price === "number") return p.price;
-
-  if (CANONICAL_CATALOG_PRICES[cleanId]) {
-    return CANONICAL_CATALOG_PRICES[cleanId];
+  if (p && typeof p.price === "number") {
+    priceCache.set(cleanId, p.price);
+    return p.price;
   }
 
+  // 4. Remote MongoDB Atlas fallback only if not in local memory
+  if (isConnected()) {
+    try {
+      const Course = require("../models/Course");
+      const doc = await Course.findOne({
+        $or: [
+          { id: canonicalId },
+          { slug: canonicalId },
+          { id: cleanId },
+          { slug: cleanId },
+          { id: cleanId.replace(/-sub$/, "") },
+        ],
+      }).lean();
+      if (doc && typeof doc.price === "number") {
+        priceCache.set(cleanId, doc.price);
+        return doc.price;
+      }
+    } catch (err) {
+      console.warn("[orderRoutes] getCanonicalPrice Atlas error:", err.message);
+    }
+  }
+
+  priceCache.set(cleanId, 99);
   return 99;
 }
 

@@ -31,37 +31,14 @@ import { useCart, type CartItem } from "@/context/CartContext";
 import { getOrCreateDeviceId, getDeviceFriendlyName } from "@/utils/deviceHelper";
 import { getApiBaseUrl, isUserAuthenticated } from "@/lib/api";
 
-interface RazorpayPaymentResponse {
-  razorpay_payment_id?: string;
-  razorpay_order_id?: string;
-  razorpay_signature?: string;
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  image: string;
-  order_id?: string;
-  handler: (response: RazorpayPaymentResponse) => void | Promise<void>;
-  prefill: { name: string; email: string; contact: string };
-  theme: { color: string };
-  modal: { ondismiss: () => void };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-}
-
-interface RazorpayConstructor {
-  new (options: RazorpayOptions): RazorpayInstance;
-}
-
-interface RazorpayWindow extends Window {
-  Razorpay?: RazorpayConstructor;
-}
+import {
+  loadRazorpayCheckoutScript,
+  preloadRazorpay,
+  type RazorpayOptions,
+  type RazorpayPaymentResponse,
+  type RazorpayFailureResponse,
+  type RazorpayWindow,
+} from "@/lib/razorpayLoader";
 
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
@@ -71,21 +48,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
   }
   return fallback;
 }
-
-const loadRazorpayCheckoutScript = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (typeof window !== "undefined" && (window as RazorpayWindow).Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 export function CartDrawer() {
   const {
@@ -134,8 +96,11 @@ export function CartDrawer() {
     }
   };
 
-  // Auto-prefill student details from existing session
+  // Auto-prefill student details and pre-warm Razorpay when cart opens
   useEffect(() => {
+    if (isCartOpen) {
+      preloadRazorpay();
+    }
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("lawkaksha_active_student");
       if (saved) {
@@ -468,6 +433,7 @@ export function CartDrawer() {
           name: studentData.name,
           email: studentData.email,
           contact: studentData.phone,
+          method: selectedPayment === "upi" ? "upi" : "card",
         },
         theme: {
           color: "#BFAFE5",
@@ -476,7 +442,15 @@ export function CartDrawer() {
           ondismiss: function () {
             setIsProcessingPayment(false);
           },
+          backdropclose: false,
+          escape: true,
+          animation: true,
         },
+        retry: {
+          enabled: true,
+          max_count: 2,
+        },
+        timeout: 300,
       };
 
       const RazorpayCtor = (window as RazorpayWindow).Razorpay;
@@ -484,6 +458,14 @@ export function CartDrawer() {
         throw new Error("Razorpay checkout script is not loaded.");
       }
       const rzp = new RazorpayCtor(options);
+      rzp.on("payment.failed", function (failResponse: RazorpayFailureResponse) {
+        console.error("[Cart Razorpay Payment Failed]", failResponse.error);
+        setIsProcessingPayment(false);
+        setPaymentError(
+          failResponse.error?.description ||
+            "Payment failed. Please verify your payment details and retry."
+        );
+      });
       rzp.open();
     } catch (err: unknown) {
       console.error("Payment error:", err);
