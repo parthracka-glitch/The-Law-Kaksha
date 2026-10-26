@@ -262,6 +262,18 @@ export async function apiRequest<T = JsonObject>(
     const payload = (await res.json().catch(() => ({}))) as JsonObject;
 
     if (!res.ok) {
+      if (
+        res.status === 401 &&
+        (payload.code === "DEVICE_REVOKED" || payload.code === "SESSION_SUPERSEDED")
+      ) {
+        clearStudentAuthSession();
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          const reasonMsg =
+            (payload.message as string) ||
+            "Your session ended because you logged in from another device.";
+          window.location.href = `/login?revoked=true&reason=${encodeURIComponent(reasonMsg)}`;
+        }
+      }
       return {
         success: false,
         message:

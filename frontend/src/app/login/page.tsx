@@ -93,13 +93,21 @@ function LoginContent() {
   const [forgotMsg, setForgotMsg] = useState("");
   const [forgotError, setForgotError] = useState("");
 
-  // Sync mode if redirect parameter changes
+  // Sync mode if redirect parameter changes or display revocation message
   useEffect(() => {
     if (isDirectAdmin) {
       setPortalMode("admin");
       setIdentifier((prev) => prev || "admin@thelawkaksha.com");
     }
-  }, [isDirectAdmin]);
+    const isRevoked = searchParams ? searchParams.get("revoked") === "true" : false;
+    if (isRevoked) {
+      const reason = searchParams?.get("reason");
+      setErrorMsg(
+        reason ||
+          "Your session has ended because this account was logged into on another device. Simultaneous logins are strictly prohibited."
+      );
+    }
+  }, [isDirectAdmin, searchParams]);
 
   const handlePortalSwitch = (mode: "admin" | "student") => {
     setPortalMode(mode);
