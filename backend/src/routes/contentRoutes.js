@@ -155,23 +155,33 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
 
     if (targetPublicId && isCloudinaryConfigured()) {
       try {
-        const signedUrl = cloudinary.utils.private_download_url(targetPublicId, "pdf", {
-          expires_at: Math.floor(Date.now() / 1000) + 60,
+        const hasExt = String(targetPublicId).toLowerCase().endsWith(".pdf");
+        const format = hasExt ? "" : "pdf";
+        const signedUrl = cloudinary.utils.private_download_url(targetPublicId, format, {
+          expires_at: Math.floor(Date.now() / 1000) + 300,
           resource_type: "raw",
           type: "upload",
         });
 
-        return https
-          .get(signedUrl, (streamRes) => {
-            if (streamRes.statusCode === 200) {
-              streamRes.pipe(res);
-            } else {
+        const streamUrlWithRedirect = (fetchUrl, depth = 0) => {
+          if (depth > 3) return fallbackLocalOrMinimal();
+          https
+            .get(fetchUrl, (streamRes) => {
+              if (streamRes.statusCode >= 300 && streamRes.statusCode < 400 && streamRes.headers.location) {
+                return streamUrlWithRedirect(streamRes.headers.location, depth + 1);
+              }
+              if (streamRes.statusCode === 200) {
+                streamRes.pipe(res);
+              } else {
+                fallbackLocalOrMinimal();
+              }
+            })
+            .on("error", () => {
               fallbackLocalOrMinimal();
-            }
-          })
-          .on("error", () => {
-            fallbackLocalOrMinimal();
-          });
+            });
+        };
+
+        return streamUrlWithRedirect(signedUrl);
       } catch (err) {
         console.warn("[ContentFile] Cloudinary signed URL error, falling back:", err.message);
       }

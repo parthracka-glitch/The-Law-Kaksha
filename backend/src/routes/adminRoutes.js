@@ -8,15 +8,17 @@ const path = require("path");
 const multer = require("multer");
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max to prevent memory exhaustion (SEC-08)
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max for high-fidelity statutory codices
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = [
       "application/pdf",
       "image/jpeg",
       "image/png",
       "image/webp",
+      "application/octet-stream",
     ];
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    const isPdfExt = (file.originalname || "").toLowerCase().endsWith(".pdf");
+    if (allowedMimeTypes.includes(file.mimetype) || isPdfExt) {
       cb(null, true);
     } else {
       cb(new Error("Unsupported file type. Only PDF and image (JPEG, PNG, WebP) files are allowed."), false);
@@ -879,37 +881,58 @@ router.post("/admin/mcq-pool", async (req, res) => {
 // -----------------------------------------------------------------------------
 // 9. FILE UPLOAD TO CLOUDINARY / SECURE STORAGE
 // -----------------------------------------------------------------------------
-router.post("/admin/upload", upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file provided for upload." });
+router.post(
+  "/admin/upload",
+  (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+      if (err) {
+        console.error("[Admin Upload Multer Error]:", err);
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({
+            success: false,
+            message: "The uploaded file is too large. Maximum supported file size is 100MB.",
+          });
+        }
+        return res.status(400).json({
+          success: false,
+          message: err.message || "Failed to process uploaded file.",
+        });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: "No file provided for upload." });
+      }
+
+      const originalName = req.file.originalname || "document";
+      const extension = originalName.substring(originalName.lastIndexOf("."));
+      const isPdf = req.file.mimetype === "application/pdf" || extension.toLowerCase() === ".pdf";
+      const resource_type = isPdf ? "raw" : "image";
+      const folder = isPdf ? "thelawkaksha/pdfs" : "thelawkaksha/covers";
+
+      const uploadResult = await uploadToStorage(req.file.buffer, {
+        folder,
+        resource_type,
+        public_id: `${path.parse(originalName).name.replace(/[^a-zA-Z0-9_-]/g, "_")}-${Date.now()}`,
+        extension,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "File uploaded successfully.",
+        url: uploadResult.url,
+        publicId: uploadResult.publicId,
+        isLocal: uploadResult.isLocal || false,
+      });
+    } catch (err) {
+      console.error("[Admin API] File upload error:", err);
+      res.status(500).json({ success: false, message: "File upload failed: " + err.message });
     }
-
-    const originalName = req.file.originalname || "document";
-    const extension = originalName.substring(originalName.lastIndexOf("."));
-    const isPdf = req.file.mimetype === "application/pdf" || extension.toLowerCase() === ".pdf";
-    const resource_type = isPdf ? "raw" : "image";
-    const folder = isPdf ? "thelawkaksha/pdfs" : "thelawkaksha/covers";
-
-    const uploadResult = await uploadToStorage(req.file.buffer, {
-      folder,
-      resource_type,
-      public_id: `${path.parse(originalName).name.replace(/[^a-zA-Z0-9_-]/g, "_")}-${Date.now()}`,
-      extension,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "File uploaded successfully.",
-      url: uploadResult.url,
-      publicId: uploadResult.publicId,
-      isLocal: uploadResult.isLocal || false,
-    });
-  } catch (err) {
-    console.error("[Admin API] File upload error:", err);
-    res.status(500).json({ success: false, message: "File upload failed: " + err.message });
   }
-});
+);
 
 // -----------------------------------------------------------------------------
 // 10. ACT-WISE RESOURCES CRUD (Direct to MongoDB Atlas)
