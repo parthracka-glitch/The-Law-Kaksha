@@ -59,7 +59,7 @@ async function requireAuth(req, res, next) {
       });
     }
 
-    // Check tokenVersion for instant revocation on password reset or force logout
+    // Check tokenVersion for instant revocation on device switch, password reset, or force logout
     if (
       decoded.tokenVersion !== undefined &&
       user.tokenVersion !== undefined &&
@@ -67,7 +67,22 @@ async function requireAuth(req, res, next) {
     ) {
       return res.status(401).json({
         success: false,
-        message: "Session has been invalidated due to a security update or password change. Please log in again.",
+        code: "SESSION_SUPERSEDED",
+        message: "Your session has ended because this account was logged into from another device. Simultaneous logins are strictly prohibited.",
+      });
+    }
+
+    // Strict single active device validation for student accounts
+    if (
+      user.role === "student" &&
+      user.activeDeviceId &&
+      decoded.deviceId &&
+      decoded.deviceId !== user.activeDeviceId
+    ) {
+      return res.status(401).json({
+        success: false,
+        code: "DEVICE_REVOKED",
+        message: "Your session has ended because this account was logged into on another device. Simultaneous logins are strictly prohibited.",
       });
     }
 

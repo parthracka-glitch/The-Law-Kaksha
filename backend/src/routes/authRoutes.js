@@ -251,7 +251,7 @@ router.post("/login", async (req, res) => {
 
       const activeDevId = user.activeDeviceId || "";
       const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
-      const isRecent = Date.now() - lastActive < 4 * 60 * 60 * 1000; // within 4 hours
+      const isRecent = Date.now() - lastActive < 24 * 60 * 60 * 1000; // within 24 hours
 
       if (activeDevId && activeDevId !== incomingDeviceId && isRecent && !forceSwitchDevice) {
         return res.status(409).json({
@@ -259,14 +259,19 @@ router.post("/login", async (req, res) => {
           conflict: true,
           code: "DEVICE_CONFLICT",
           activeDeviceName: user.activeDeviceName || "Another Device",
-          message: `This account is currently active on another device (${user.activeDeviceName || "Authorized Hardware"}). Simultaneous logins are strictly prohibited to prevent account sharing.`,
+          message: `This account is currently active on another device (${user.activeDeviceName || "Authorized Hardware"}). Simultaneous logins are strictly prohibited to prevent account sharing. Would you like to switch to this device?`,
         });
       }
+
+      // Increment tokenVersion whenever a student logs in or switches device
+      // This immediately revokes JWT tokens on all previous devices!
+      const newTokenVersion = (user.tokenVersion || 0) + 1;
 
       // Update active device binding
       const updatedFields = {
         activeDeviceId: incomingDeviceId,
         activeDeviceName: incomingDeviceName,
+        tokenVersion: newTokenVersion,
         lastActiveAt: new Date().toISOString(),
       };
 
@@ -277,6 +282,7 @@ router.post("/login", async (req, res) => {
       usersTable.update(user.id, updatedFields);
       user.activeDeviceId = incomingDeviceId;
       user.activeDeviceName = incomingDeviceName;
+      user.tokenVersion = newTokenVersion;
     }
 
     const token = jwt.sign(

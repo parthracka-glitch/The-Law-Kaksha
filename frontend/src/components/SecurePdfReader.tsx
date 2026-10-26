@@ -446,7 +446,8 @@ export function SecurePdfReader({
         isPreviewMode;
       const sampleQuery = isSample ? (token ? "&sample=true" : "?sample=true") : "";
 
-      const pdfEndpoint = isAbsoluteUrl
+      const cacheBuster = `_t=${Date.now()}`;
+      let pdfEndpoint = isAbsoluteUrl
         ? url
         : isBackendContent
         ? `${getApiBaseUrl()}${url}`
@@ -454,9 +455,16 @@ export function SecurePdfReader({
         ? `/api/pdf/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}${sampleQuery}`
         : `/api/pdf/${encodeURIComponent(filename)}${sampleQuery}`;
 
+      // Append cache buster to guarantee mobile Safari & mobile Chrome always fetch the latest binary
+      pdfEndpoint += (pdfEndpoint.includes("?") ? "&" : "?") + cacheBuster;
+
       const loadingTask = pdfjsLib.getDocument({
         url: pdfEndpoint,
-        httpHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+        httpHeaders: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
         cMapUrl: "/cmaps/",
         cMapPacked: true,
         standardFontDataUrl: "/standard_fonts/",
