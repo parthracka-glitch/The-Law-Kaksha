@@ -85,15 +85,19 @@ export function GoogleSignInButton({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [conflictData, setConflictData] = useState<{
+    credential: string;
+    activeDeviceName: string;
+  } | null>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
 
   const googleClientId =
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
     "1161695468-r6iekifqhrg221smt0hou13c0lh7scr3.apps.googleusercontent.com";
 
-  const handleGoogleCallback = useCallback(
-    async (response: GoogleCredentialResponse) => {
-      if (!response || !response.credential) {
+  const executeGoogleAuth = useCallback(
+    async (credentialStr: string, forceSwitch = false) => {
+      if (!credentialStr) {
         const err = "Google did not provide a valid authentication token.";
         setErrorMsg(err);
         if (onError) onError(err);
@@ -102,6 +106,9 @@ export function GoogleSignInButton({
 
       setLoading(true);
       setErrorMsg("");
+      if (!forceSwitch) {
+        setConflictData(null);
+      }
 
       try {
         const currentDeviceId = getOrCreateDeviceId();
@@ -110,12 +117,24 @@ export function GoogleSignInButton({
         const res = await apiRequest<GoogleAuthPayload>("/api/auth/google", {
           method: "POST",
           body: JSON.stringify({
-            credential: response.credential,
+            credential: credentialStr,
             deviceId: currentDeviceId,
             deviceName: currentDeviceName,
             selectedCourse: selectedCourse || "CA Foundation Paper 2: Business Laws",
+            forceSwitchDevice: forceSwitch,
           }),
         });
+
+        if (res && (res.code === "DEVICE_CONFLICT" || (res.data as any)?.conflict)) {
+          setConflictData({
+            credential: credentialStr,
+            activeDeviceName:
+              (res.data as any)?.activeDeviceName || "Another Registered Workstation",
+          });
+          setErrorMsg("");
+          setLoading(false);
+          return;
+        }
 
         if (!res || !res.success) {
           const msg = res?.message || "Google authentication failed. Please try again.";
@@ -173,6 +192,19 @@ export function GoogleSignInButton({
       }
     },
     [onError, onSuccess, router, selectedCourse]
+  );
+
+  const handleGoogleCallback = useCallback(
+    (response: GoogleCredentialResponse) => {
+      if (!response || !response.credential) {
+        const err = "Google did not provide a valid authentication token.";
+        setErrorMsg(err);
+        if (onError) onError(err);
+        return;
+      }
+      executeGoogleAuth(response.credential, false);
+    },
+    [executeGoogleAuth, onError]
   );
 
   const googleCallbackRef = useRef(handleGoogleCallback);
@@ -283,6 +315,38 @@ export function GoogleSignInButton({
         </svg>
         <span>Continue with Google</span>
       </button>
+
+      {conflictData && (
+        <div className="w-full p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs space-y-2.5 animate-in fade-in">
+          <div className="space-y-1">
+            <p className="font-semibold text-amber-950">
+              Active Session on Another Device
+            </p>
+            <p className="text-[11px] text-amber-900 leading-relaxed">
+              This Google account is currently active on:{" "}
+              <span className="font-bold underline">{conflictData.activeDeviceName}</span>. Simultaneous logins are strictly prohibited to protect digital rights.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => executeGoogleAuth(conflictData.credential, true)}
+              className="flex-1 py-2 px-3 rounded-lg bg-[#005A9C] hover:bg-[#004F8A] text-white font-medium text-xs shadow-xs transition flex items-center justify-center gap-1 cursor-pointer disabled:opacity-60"
+            >
+              {loading ? "Transferring..." : "Transfer Session to This Device"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => setConflictData(null)}
+              className="py-1.5 px-3 rounded-lg text-amber-900 hover:bg-amber-100/60 text-xs font-medium transition cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {errorMsg && (
         <p className="text-xs text-rose-600 font-medium text-center animate-in fade-in">

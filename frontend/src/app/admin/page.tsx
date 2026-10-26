@@ -42,6 +42,8 @@ import {
   FileSpreadsheet,
   Settings,
   Tag,
+  RotateCcw,
+  Smartphone,
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
@@ -2631,6 +2633,19 @@ export default function AdminPortalPage() {
                               <td className="py-3.5 px-4">
                                 <p className="text-[#0A192F] font-semibold text-xs">{std.email}</p>
                                 <p className="text-[11px] text-[#475569] font-medium mt-0.5">{std.phone}</p>
+                                {(std as any).activeDeviceName ? (
+                                  <span
+                                    className="inline-flex items-center gap-1 mt-1 text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-medium"
+                                    title={`Locked to: ${(std as any).activeDeviceName}`}
+                                  >
+                                    <Smartphone className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                                    <span className="truncate max-w-[130px]">{(std as any).activeDeviceName}</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                    <span>Unlocked</span>
+                                  </span>
+                                )}
                               </td>
                               <td className="py-3.5 px-4 font-semibold text-[#0A192F] text-xs">
                                 {std.target_exam}
@@ -2706,6 +2721,41 @@ export default function AdminPortalPage() {
                               </td>
                               <td className="py-3.5 px-4 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={async () => {
+                                      if (
+                                        confirm(
+                                          `Reset device session for "${std.name}" (${std.email})?\n\nThis will instantly clear their active device lock without deleting their account or purchased courses, allowing them to sign in on their PC, mobile, or any other device.`
+                                        )
+                                      ) {
+                                        try {
+                                          const res = await adminFetch(`/api/admin/students/${std.id}/reset-device`, {
+                                            method: "POST",
+                                          });
+                                          const data = await res.json();
+                                          if (data.success) {
+                                            showToast(`Device session reset for ${std.name}! They can now log in freely.`);
+                                            // Update local state to reflect unlocked status
+                                            setStudents((prev) =>
+                                              prev.map((s) =>
+                                                s.id === std.id
+                                                  ? { ...s, activeDeviceId: "", activeDeviceName: "" }
+                                                  : s
+                                              )
+                                            );
+                                          } else {
+                                            showToast(data.message || "Failed to reset device session.");
+                                          }
+                                        } catch {
+                                          showToast("Network error resetting device session.");
+                                        }
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-xl bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 hover:border-amber-300 transition-colors cursor-pointer"
+                                    title="Reset Device Session (Unlock for New Device/PC)"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                  </button>
                                   <button
                                     onClick={() => setStudentModal({ open: true, mode: "edit", data: std })}
                                     className="p-1.5 rounded-xl bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] text-[#0A192F] transition-colors cursor-pointer"

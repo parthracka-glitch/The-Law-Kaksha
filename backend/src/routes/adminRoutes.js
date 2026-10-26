@@ -4,6 +4,7 @@
  */
 
 const express = require("express");
+const mongoose = require("mongoose");
 const path = require("path");
 const multer = require("multer");
 const upload = multer({
@@ -620,17 +621,110 @@ router.put("/admin/students/:id", async (req, res) => {
   }
 });
 
+router.post("/admin/students/:id/reset-device", async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Student identifier is required." });
+    }
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+    const filter = {
+      $or: [
+        { id: id },
+        ...(isValidId ? [{ _id: id }] : []),
+        { student_id: id },
+        { email: id.toLowerCase() },
+      ],
+    };
+
+    const updateFields = {
+      activeDeviceId: "",
+      activeDeviceName: "",
+      activeSessionToken: "",
+      lastActiveAt: new Date(0).toISOString(),
+    };
+
+    let targetStudent = null;
+
+    if (isConnected()) {
+      targetStudent = await User.findOneAndUpdate(
+        filter,
+        {
+          $set: updateFields,
+          $inc: { tokenVersion: 1 },
+        },
+        { new: true }
+      ).select("-password_hash");
+
+      if (targetStudent) {
+        Database.table("users").update(targetStudent.id, updateFields);
+      }
+    }
+
+    if (!targetStudent) {
+      const usersTable = Database.table("users");
+      const local = usersTable.findOne(
+        (u) =>
+          u.id === id ||
+          u.student_id === id ||
+          (u.email && u.email.toLowerCase() === id.toLowerCase())
+      );
+      if (local) {
+        usersTable.update(local.id, {
+          ...updateFields,
+          tokenVersion: (local.tokenVersion || 1) + 1,
+        });
+        targetStudent = local;
+      }
+    }
+
+    if (!targetStudent) {
+      return res.status(404).json({ success: false, message: "Student record not found." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Active device session unlocked for ${targetStudent.name || targetStudent.email}. They can now log in freely on PC, mobile, or any authorized browser.`,
+      student: targetStudent,
+    });
+  } catch (err) {
+    console.error("[Admin] Reset student device error:", err);
+    res.status(500).json({ success: false, message: "Error resetting student device." });
+  }
+});
+
 router.delete("/admin/students/:id", async (req, res) => {
   try {
-    const id = req.params.id;
-    if (isConnected()) {
-      await User.deleteOne({ id });
-      Database.table("users").delete(id);
-      return res.status(200).json({ success: true, source: "mongodb_atlas" });
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Student identifier is required." });
     }
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+    const filter = {
+      $or: [
+        { id: id },
+        ...(isValidId ? [{ _id: id }] : []),
+        { student_id: id },
+        { email: id.toLowerCase() },
+      ],
+    };
+
+    if (isConnected()) {
+      const deletedResult = await User.deleteMany(filter);
+      Database.table("users").delete(id);
+      return res.status(200).json({
+        success: true,
+        source: "mongodb_atlas",
+        deletedCount: deletedResult.deletedCount,
+      });
+    }
+
     const success = Database.table("users").delete(id);
     res.status(200).json({ success });
   } catch (err) {
+    console.error("[Admin] Delete student error:", err);
     res.status(500).json({ success: false, message: "Error deleting student." });
   }
 });

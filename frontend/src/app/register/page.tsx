@@ -104,9 +104,19 @@ function RegisterForm() {
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(10,25,47,0.06)] space-y-5">
       {errorMsg && (
-        <div className="p-3 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700 flex items-center gap-2.5 font-medium animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-          <span className="leading-snug">{errorMsg}</span>
+        <div className="p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-medium animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span className="leading-snug">{errorMsg}</span>
+          </div>
+          {errorMsg.toLowerCase().includes("already exists") && (
+            <Link
+              href={`/login?email=${encodeURIComponent(formData.email || "")}`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#005A9C] hover:underline underline-offset-4 shrink-0 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"
+            >
+              <span>Click to Sign In →</span>
+            </Link>
+          )}
         </div>
       )}
 
