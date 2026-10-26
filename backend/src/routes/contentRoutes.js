@@ -185,18 +185,50 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
       const rawName = path.basename(item.fileName || item.pdfUrl || "");
       let cleanFileName = rawName;
       try { cleanFileName = decodeURIComponent(rawName); } catch (_) {}
+
+      const notesDir = path.join(__dirname, "../../../frontend/public/notes");
+      const samplesDir = path.join(__dirname, "../../../frontend/public/samples");
+      const uploadsDir = path.join(__dirname, "../../uploads");
+
       if (cleanFileName) {
-        candidates.push(path.join(__dirname, "../../../frontend/public/notes", cleanFileName));
-        candidates.push(path.join(__dirname, "../../../frontend/public/samples", cleanFileName));
-        candidates.push(path.join(__dirname, "../../uploads", cleanFileName));
+        candidates.push(path.join(notesDir, cleanFileName));
+        candidates.push(path.join(samplesDir, cleanFileName));
+        candidates.push(path.join(uploadsDir, cleanFileName));
         candidates.push(path.join(__dirname, "../../../frontend/public", cleanFileName));
         candidates.push(path.join(__dirname, "../../../free resources", cleanFileName));
       }
-      candidates.push(path.join(__dirname, "../../../frontend/public/notes/sale-of-goods-unit-1.pdf"));
-      candidates.push(path.join(__dirname, "../../../frontend/public/notes/unit-1-general-nature-of-partnership.pdf"));
-      candidates.push(path.join(__dirname, "../../../frontend/public/samples/Question Bank Part 1- Sample Copy.pdf"));
 
-      const existingPath = candidates.find((p) => fs.existsSync(p));
+      let existingPath = candidates.find((p) => fs.existsSync(p));
+
+      // Smart fuzzy & unit-specific resolution if exact filename match didn't hit
+      if (!existingPath && fs.existsSync(notesDir)) {
+        try {
+          const filesOnDisk = fs.readdirSync(notesDir);
+          const normalize = (str) => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const targetNorm = normalize(cleanFileName);
+          const titleNorm = normalize(item.title);
+          const idNorm = normalize(item.id);
+
+          // 1. Direct normalized name match
+          let matched = filesOnDisk.find((f) => normalize(f) === targetNorm);
+
+          // 2. Title / ID keyword match for specific acts & units
+          if (!matched) {
+            matched = filesOnDisk.find((f) => {
+              const fnNorm = normalize(f);
+              if (targetNorm && fnNorm.includes(targetNorm)) return true;
+              if (idNorm && fnNorm.includes(idNorm)) return true;
+              return false;
+            });
+          }
+
+          if (matched) {
+            existingPath = path.join(notesDir, matched);
+          }
+        } catch (scanErr) {
+          console.warn("[ContentFile] Directory scan error:", scanErr);
+        }
+      }
 
       if (existingPath) {
         if (isSampleRequest) {

@@ -2162,7 +2162,7 @@ export default function StudentDashboardPage() {
                     act: "companies",
                     title: "The Companies Act — Corporate Veil & Indoor Management Decision Tree",
                     desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires, and Turquand's Rule indoor management exception diagram.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
                     label: "Open Decision Tree",
                     badge: "Companies Act • Decision Tree",
                     badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
@@ -2171,7 +2171,7 @@ export default function StudentDashboardPage() {
                     act: "soga",
                     title: "The Sale of Goods Act — Section 16 Condition & Warranty Flowchart",
                     desc: "Caveat Emptor baseline rule, Priest v. Last fitness exception tree, merchantable quality, and Section 54 Unpaid Seller Resale rules.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "/notes/SOGA Unit 2.pdf",
                     label: "Open Flowchart",
                     badge: "Sale of Goods • Flowchart",
                     badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
@@ -2180,7 +2180,7 @@ export default function StudentDashboardPage() {
                     act: "contract",
                     title: "The Indian Contract Act — Offer, Acceptance & Consideration Matrix",
                     desc: "Postal communication timeline, Section 25 exceptions (natural love & affection), lawful consideration flowchart, and Chinnaya v. Ramayya privity tree.",
-                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
                     label: "Open Checklist & Tree",
                     badge: "Contract Act • Flowchart",
                     badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
@@ -2189,7 +2189,7 @@ export default function StudentDashboardPage() {
                     act: "llp",
                     title: "The Limited Liability Partnership Act — Incorporation & Partner Flowchart",
                     desc: "Statutory flow diagram for LLP incorporation, DPIN requirements, Section 31 whistleblowing protection, and partner cessation rules.",
-                    url: "/notes/sale-of-goods-unit-2.pdf",
+                    url: "/notes/LDR_Flowchart_Book.pdf",
                     label: "Open Flowchart",
                     badge: "LLP Act • Flowchart",
                     badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
@@ -2198,7 +2198,7 @@ export default function StudentDashboardPage() {
                     act: "llp",
                     title: "The Negotiable Instruments Act — Cheque Bounce & Dishonour Flowchart",
                     desc: "Promissory Note vs Bill vs Cheque matrix, Section 9 Holder in Due Course privileges, and Section 138 cheque bounce statutory timeline flowchart.",
-                    url: "/notes/sale-of-goods-unit-1.pdf",
+                    url: "/notes/Partnership LDR Charts.pdf",
                     label: "Open Flowchart",
                     badge: "NI Act • Flowchart",
                     badgeColor: "bg-cyan-50 text-cyan-800 border-cyan-200"

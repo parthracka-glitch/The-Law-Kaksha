@@ -103,11 +103,32 @@ async function authorizeContentAccess(user, contentItem, options = {}) {
 
   // Normalize course IDs (ca-foundation vs course-ca-foundation)
   const normalizedCourseIds = [courseId];
-  if (courseId === "course-ca-foundation" || courseId === "ca-foundation") {
-    normalizedCourseIds.push("course-ca-foundation", "ca-foundation", "ca-foundation-paper-2", "prod-vol1", "all-access");
+  const cLower = String(courseId || "").toLowerCase();
+  if (cLower.includes("ca") || cLower.includes("foundation")) {
+    normalizedCourseIds.push(
+      "course-ca-foundation",
+      "ca-foundation",
+      "ca-foundation-paper-2",
+      "course-ca-foundation-sub",
+      "ca-foundation-business-laws",
+      "prod-vol1",
+      "book-vol-1",
+      "prod-combo",
+      "all-access"
+    );
   }
-  if (courseId === "course-cseet" || courseId === "cseet") {
-    normalizedCourseIds.push("course-cseet", "cseet", "cseet-business-laws-management", "prod-vol2", "all-access");
+  if (cLower.includes("cs") || cLower.includes("cseet")) {
+    normalizedCourseIds.push(
+      "course-cseet",
+      "cseet",
+      "cseet-business-laws-management",
+      "cseet-business-communication",
+      "course-cseet-sub",
+      "prod-vol2",
+      "book-vol-2",
+      "prod-combo",
+      "all-access"
+    );
   }
 
   const userId = user.id || user._id || user.student_id;

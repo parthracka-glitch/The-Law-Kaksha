@@ -151,96 +151,114 @@ export async function GET(
       }
     }
 
-    const possiblePaths = [
-      path.join(process.cwd(), "public", "notes", safeFilename),
-      path.join(process.cwd(), "public", "samples", safeFilename),
-      path.join(process.cwd(), "frontend", "public", "notes", safeFilename),
-      path.join(process.cwd(), "frontend", "public", "samples", safeFilename),
-      path.join(process.cwd(), "..", "frontend", "public", "notes", safeFilename),
-      path.join(process.cwd(), "..", "frontend", "public", "samples", safeFilename),
-      path.join(process.cwd(), "backend", "uploads", safeFilename),
-      path.join(process.cwd(), "..", "backend", "uploads", safeFilename),
-      path.join(process.cwd(), "free resources", safeFilename),
-      path.join(process.cwd(), "..", "free resources", safeFilename),
-      path.join(process.cwd(), "public", safeFilename),
-      path.join(process.cwd(), "public", "uploads", safeFilename),
-      path.join(process.cwd(), "uploads", safeFilename),
+    const searchDirs = [
+      path.join(process.cwd(), "public", "notes"),
+      path.join(process.cwd(), "public", "samples"),
+      path.join(process.cwd(), "frontend", "public", "notes"),
+      path.join(process.cwd(), "frontend", "public", "samples"),
+      path.join(process.cwd(), "..", "frontend", "public", "notes"),
+      path.join(process.cwd(), "..", "frontend", "public", "samples"),
+      path.join(process.cwd(), "backend", "uploads"),
+      path.join(process.cwd(), "..", "backend", "uploads"),
+      path.join(process.cwd(), "free resources"),
+      path.join(process.cwd(), "..", "free resources"),
+      path.join(process.cwd(), "public"),
+      path.join(process.cwd(), "public", "uploads"),
+      path.join(process.cwd(), "uploads"),
     ];
 
-    // Canonical aliases for specific units
-    if (lowerName.includes("part 1") || lowerName.includes("part1") || lowerName.includes("contract")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "samples", "Question Bank Part 1- Sample Copy.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "samples", "Question Bank Part 1- Sample Copy.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "qbank-part1-sample.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "smart-revision-question-bank-part-1.pdf"));
-    }
-    if (lowerName.includes("part 2") || lowerName.includes("part2")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "samples", "Part 2_Sample Copy.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "samples", "Part 2_Sample Copy.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "qbank-part2-sample.pdf"));
-    }
-    if (lowerName.includes("infographic") || lowerName.includes("infogarphic")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-infographics.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "partnership-infographics.pdf"));
-    }
-    if (lowerName.includes("ldr") && lowerName.includes("chart")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "partnership-ldr-charts.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "partnership-ldr-charts.pdf"));
-    }
-    if (lowerName.includes("paper analysis") || lowerName.includes("september 2026") || lowerName.includes("september-2026")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "september-2026-paper-analysis.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "september-2026-paper-analysis.pdf"));
-    }
-    if (lowerName.includes("smart revision") || (lowerName.includes("question bank") && lowerName.includes("part 1"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "smart-revision-question-bank-part-1.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "smart-revision-question-bank-part-1.pdf"));
-    }
-    if (lowerName.includes("partnership") && (lowerName.includes("practice") || lowerName.includes("question"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "indian-partnership-act-practice-questions.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "indian-partnership-act-practice-questions.pdf"));
-    }
-    if (lowerName.includes("partnership") && (lowerName.includes("unit 1") || lowerName.includes("unit_1") || lowerName.includes("unit-1") || lowerName.includes("general nature"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "unit-1-general-nature-of-partnership.pdf"));
-    }
-    if (lowerName.includes("partnership") && (lowerName.includes("unit 2") || lowerName.includes("unit_2") || lowerName.includes("unit-2") || lowerName.includes("relations of partners"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-2-relations-of-partners.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "unit-2-relations-of-partners.pdf"));
-    }
-    if (lowerName.includes("partnership") && (lowerName.includes("unit 3") || lowerName.includes("unit_3") || lowerName.includes("unit-3") || lowerName.includes("dissolution"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "unit-3-registration-and-dissolution-of-firm.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "unit-3-registration-and-dissolution-of-firm.pdf"));
-    }
-    if ((lowerName.includes("soga") || lowerName.includes("sale-of-goods") || lowerName.includes("sale of goods")) && (lowerName.includes("1") || lowerName.includes("unit 1") || lowerName.includes("unit_1") || lowerName.includes("unit-1"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "sale-of-goods-unit-1.pdf"));
-    }
-    if ((lowerName.includes("soga") || lowerName.includes("sale-of-goods") || lowerName.includes("sale of goods")) && (lowerName.includes("2") || lowerName.includes("unit 2") || lowerName.includes("unit_2") || lowerName.includes("unit-2"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-2.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "sale-of-goods-unit-2.pdf"));
-    }
-    if (lowerName.includes("cseet") && (lowerName.includes("management") || lowerName.includes("mgmt"))) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "cseet-management-full.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "cseet-management-full.pdf"));
-    }
-    if (lowerName.includes("cseet") && lowerName.includes("law")) {
-      possiblePaths.unshift(path.join(process.cwd(), "public", "notes", "cseet-business-law-full.pdf"));
-      possiblePaths.unshift(path.join(process.cwd(), "frontend", "public", "notes", "cseet-business-law-full.pdf"));
+    // 1. Direct exact filename check in all search directories
+    const possiblePaths: string[] = [];
+    for (const d of searchDirs) {
+      possiblePaths.push(path.join(d, safeFilename));
     }
 
+    // 2. Well-known slug aliases to exact physical files
+    const KNOWN_SLUG_MAP: Record<string, string> = {
+      "sale-of-goods-unit-1.pdf": "SOGA Unit 1 .pdf",
+      "sale-of-goods-unit-2.pdf": "SOGA Unit 2.pdf",
+      "sale-of-goods-unit-3.pdf": "SOGA Unit 3.pdf",
+      "sale-of-goods-unit-4.pdf": "SOGA Unit 4.pdf",
+      "the-sale-of-goods-act-1930.pdf": "SOGA Unit 1 .pdf",
+      "the-indian-contract-act-1872.pdf": "Unit 1 - Nature of Contracts.pdf",
+      "the-indian-partnership-act-1932.pdf": "UNIT 1 GENERAL NATURE OF PARTNERSHIP.pdf",
+      "unit-1-general-nature-of-partnership.pdf": "UNIT 1 GENERAL NATURE OF PARTNERSHIP.pdf",
+      "unit-2-relations-of-partners.pdf": "Unit 2 RELATIONS OF PARTNERS.pdf",
+      "unit-3-registration-and-dissolution-of-firm.pdf": "Unit 3 REGISTRATION AND DISSOLUTION OF FIRM.pdf",
+      "the-limited-liability-partnership-act-2008.pdf": "THE LIMITED LIABILITY PARTNERSHIP ACT, 2008.pdf",
+      "the-companies-act-2013.pdf": "Unit 1 - Nature of Contracts.pdf",
+      "cseet-business-management.pdf": "Lesson 7 Introduction to Management (Comprehensive Notes).pdf",
+      "cseet-management-full.pdf": "Lesson 7 Introduction to Management (Comprehensive Notes).pdf",
+      "cseet-business-law-full.pdf": "Lesson 10 Management Knowledge for CS.pdf",
+      "cseet-legal-aptitude.pdf": "Lesson 10 Management Knowledge for CS.pdf",
+      "partnership-ldr-charts.pdf": "Partnership LDR Charts.pdf",
+      "partnership-infographics.pdf": "Partnership Infogarphics.pdf",
+      "indian-partnership-act-practice-questions.pdf": "Indian Partnership Practice Questions_Law Kaksha.pdf",
+      "smart-revision-question-bank-part-1.pdf": "Question Bank_Part1 Final Copy.pdf",
+      "smart-revision-question-bank-part-2.pdf": "Question Bank Part 2_Final Copy.pdf",
+      "qbank-part1-sample.pdf": "Question Bank Part 1- Sample Copy.pdf",
+      "qbank-part2-sample.pdf": "Part 2_Sample Copy.pdf",
+    };
+
+    const mappedTarget = KNOWN_SLUG_MAP[lowerName];
+    if (mappedTarget) {
+      for (const d of searchDirs) {
+        possiblePaths.push(path.join(d, mappedTarget));
+      }
+    }
+
+    // 3. Try to find direct or mapped file
     let filePath = possiblePaths.find((p) => fs.existsSync(p));
 
-    // For free samples: If specific file not found on disk, fallback to an existing sample PDF so browser viewing never fails
+    // 4. Smart fuzzy directory scan if still not resolved
+    if (!filePath) {
+      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const targetNorm = normalize(safeFilename.replace(/\.pdf$/i, ""));
+
+      for (const d of searchDirs) {
+        if (!fs.existsSync(d)) continue;
+        try {
+          const files = fs.readdirSync(d);
+          const match = files.find((f) => {
+            if (!f.toLowerCase().endsWith(".pdf")) return false;
+            const fNorm = normalize(f.replace(/\.pdf$/i, ""));
+            return fNorm === targetNorm || (targetNorm.length > 5 && (fNorm.includes(targetNorm) || targetNorm.includes(fNorm)));
+          });
+          if (match) {
+            filePath = path.join(d, match);
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    // 5. Subject-aware fallbacks for sample requests (ensuring Contract NEVER serves SOGA)
     if (!filePath && isSampleFile) {
-      const fallbackCandidates = [
-        path.join(process.cwd(), "public", "notes", "sale-of-goods-unit-1.pdf"),
-        path.join(process.cwd(), "frontend", "public", "notes", "sale-of-goods-unit-1.pdf"),
-        path.join(process.cwd(), "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
-        path.join(process.cwd(), "frontend", "public", "notes", "unit-1-general-nature-of-partnership.pdf"),
-        path.join(process.cwd(), "public", "samples", "Question Bank Part 1- Sample Copy.pdf"),
-        path.join(process.cwd(), "frontend", "public", "samples", "Question Bank Part 1- Sample Copy.pdf"),
-      ];
-      filePath = fallbackCandidates.find((p) => fs.existsSync(p));
+      const subjectFallbacks: string[] = [];
+      if (lowerName.includes("contract")) {
+        subjectFallbacks.push("Unit 1 - Nature of Contracts.pdf", "Question Bank Part 1- Sample Copy.pdf");
+      } else if (lowerName.includes("soga") || lowerName.includes("sale-of-goods") || lowerName.includes("sale of goods")) {
+        subjectFallbacks.push("SOGA Unit 1 .pdf", "sale-of-goods-unit-1.pdf");
+      } else if (lowerName.includes("partnership")) {
+        subjectFallbacks.push("UNIT 1 GENERAL NATURE OF PARTNERSHIP.pdf", "Partnership LDR Charts.pdf");
+      } else if (lowerName.includes("llp")) {
+        subjectFallbacks.push("THE LIMITED LIABILITY PARTNERSHIP ACT, 2008.pdf", "LDR_Flowchart_Book.pdf");
+      } else if (lowerName.includes("cseet") || lowerName.includes("management")) {
+        subjectFallbacks.push("Lesson 7 Introduction to Management (Comprehensive Notes).pdf");
+      } else {
+        subjectFallbacks.push("Unit 1 - Nature of Contracts.pdf", "Question Bank Part 1- Sample Copy.pdf");
+      }
+
+      for (const fallback of subjectFallbacks) {
+        for (const d of searchDirs) {
+          const testP = path.join(d, fallback);
+          if (fs.existsSync(testP)) {
+            filePath = testP;
+            break;
+          }
+        }
+        if (filePath) break;
+      }
     }
 
     // Fail closed with 404 if file does not exist on disk (no silent leaks of other paid PDFs)
