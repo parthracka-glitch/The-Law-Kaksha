@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   RefreshCw,
+  Lock,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { getApiBaseUrl } from "@/lib/api";
@@ -201,6 +202,8 @@ interface CourseAct {
 interface StudentCoursePayload {
   id?: string;
   title?: string;
+  description?: string;
+  price?: number;
   isEnrolled?: boolean;
   acts?: CourseAct[];
 }
@@ -694,6 +697,76 @@ export function StudentDashboardHome({
     return items;
   }, [activeCourse, completedUnits, isCaUnlocked, isCsUnlocked, studentCourses]);
 
+  const unenrolledCourses = useMemo(() => {
+    const list: Array<{
+      id: string;
+      title: string;
+      description: string;
+      price: number;
+      courseType: "ca" | "cs";
+    }> = [];
+
+    const isCaEnrolled = Boolean(
+      isCaUnlocked ||
+      (Array.isArray(studentCourses) &&
+        studentCourses.some((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          const cTitle = String(c?.title || "").toLowerCase();
+          return (cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation")) && c?.isEnrolled;
+        }))
+    );
+
+    const isCsEnrolled = Boolean(
+      isCsUnlocked ||
+      (Array.isArray(studentCourses) &&
+        studentCourses.some((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          const cTitle = String(c?.title || "").toLowerCase();
+          return (cId.includes("cs") || cTitle.includes("cseet")) && c?.isEnrolled;
+        }))
+    );
+
+    const caDbCourse = Array.isArray(studentCourses)
+      ? studentCourses.find((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          return cId.includes("ca") || cId.includes("foundation");
+        })
+      : undefined;
+
+    const csDbCourse = Array.isArray(studentCourses)
+      ? studentCourses.find((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          return cId.includes("cs") || cId.includes("cseet");
+        })
+      : undefined;
+
+    if (!isCaEnrolled) {
+      list.push({
+        id: caDbCourse?.id || "ca-foundation",
+        title: caDbCourse?.title || "CA Foundation Business Laws",
+        description:
+          caDbCourse?.description ||
+          "Comprehensive CA Foundation Paper 2 Business Laws preparation codex, chapter notes, and examiner traps.",
+        price: Number(caDbCourse?.price ?? promoBanners?.caCard?.price ?? 1),
+        courseType: "ca",
+      });
+    }
+
+    if (!isCsEnrolled) {
+      list.push({
+        id: csDbCourse?.id || "course-cseet",
+        title: csDbCourse?.title || "CSEET Business Laws and Management",
+        description:
+          csDbCourse?.description ||
+          "Comprehensive ICSI CSEET Paper 2 Business Laws & Management preparation codex.",
+        price: Number(csDbCourse?.price ?? promoBanners?.csCard?.price ?? 1),
+        courseType: "cs",
+      });
+    }
+
+    return list;
+  }, [studentCourses, isCaUnlocked, isCsUnlocked, promoBanners]);
+
   const handleContinueLearning = () => {
     const firstCourse = studentCourseList[0];
     if (firstCourse?.pdfUrl) {
@@ -774,181 +847,57 @@ export function StudentDashboardHome({
       </section>
 
       {/* ========================================================================= */}
-      {/* 3B. LIVE ADMIN-CONFIGURED MASTER CODEX PASSES (DYNAMIC STREAM CARDS)      */}
+      {/* 3B. ADVERTISEMENT: CURRICULUM PASS REQUIRED (UNENROLLED COURSES)          */}
       {/* ========================================================================= */}
-      {/* ========================================================================= */}
-      {/* 3B. LIVE ADMIN-CONFIGURED MASTER CODEX PASSES (DYNAMIC STREAM CARDS)      */}
-      {/* ========================================================================= */}
-      {(() => {
-        if (promoBanners?.enabled === false) return null;
+      {unenrolledCourses.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
+              <span>{promoBanners?.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+              Instant DRM Auto-Unlock
+            </span>
+          </div>
 
-        // If the student is enrolled in a course, they should NOT be shown that course's pass
-        const isCurrentStreamUnlocked = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
-        const showStreamCard = !isCurrentStreamUnlocked;
-        // The combo pass bundles CA Foundation + CSEET. If the student has already enrolled in either or both,
-        // do not show the combo pass.
-        const showComboCard = !isCaUnlocked && !isCsUnlocked;
-
-        // If neither the current stream pass nor the combo pass should be shown (e.g. course is already enrolled),
-        // completely hide this promotional passes section.
-        if (!showStreamCard && !showComboCard) return null;
-
-        const leftCard = (activeCourse === "ca" ? promoBanners?.caCard : promoBanners?.csCard) || DEFAULT_PROMO_BANNERS.caCard;
-        const rightCard = promoBanners?.comboCard || DEFAULT_PROMO_BANNERS.comboCard;
-
-        return (
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#6B21A8] uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#9333EA]" />
-                <span>{promoBanners?.sectionTitle || "LAW KAKSHA CODEX PASSES"}</span>
-              </span>
-              <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                Instant DRM Auto-Unlock
-              </span>
-            </div>
-
-            <div className={`grid grid-cols-1 ${showStreamCard && showComboCard ? "md:grid-cols-2" : "max-w-2xl"} gap-4`}>
-              {/* Stream-tailored Pass Card (CA or CSEET) - Only shown if student has NOT enrolled yet */}
-              {showStreamCard && (
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F6EFFD] via-[#F3E8FC] to-[#ECE0F8] border border-[#E9DDF5] p-5 sm:p-6 shadow-2xs flex flex-col justify-between min-h-[190px]">
-                  <div className="absolute top-0 right-6 bg-[#4A0E4E] text-[#FDE68A] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
-                    {leftCard.discountBadge || "67% OFF"}
-                  </div>
-
-                  <div className="space-y-1.5 pr-10">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#7E22CE] bg-[#EDE9FE] px-2 py-0.5 rounded-md inline-block">
-                      {leftCard.streamBadge || (activeCourse === "ca" ? "Paper 2 • 7 Chapters" : "ICSI • 8 Units")}
+          <div className={`grid grid-cols-1 ${unenrolledCourses.length > 1 ? "md:grid-cols-2" : "max-w-2xl"} gap-4`}>
+            {unenrolledCourses.map((c) => (
+              <div
+                key={c.id}
+                className="rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] border border-white/10 p-5 sm:p-6 text-white shadow-md flex flex-col justify-between min-h-[190px] gap-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      <Lock className="w-3 h-3 text-amber-400" />
+                      <span>Curriculum Pass Required</span>
                     </span>
-
-                    <h4 className="text-base sm:text-lg font-black text-[#581C87] leading-snug">
-                      {leftCard.title} <br />
-                      <span className="text-[#9333EA]">{leftCard.subtitle}</span>
-                    </h4>
-
-                    <div className="flex items-baseline gap-2 pt-0.5">
-                      <span className="text-sm sm:text-base font-black text-[#221D1D]">
-                        Price : ₹{leftCard.price}
-                      </span>
-                      {leftCard.originalPrice > 0 && (
-                        <span className="text-xs text-[#77716E] line-through font-mono">
-                          ₹{leftCard.originalPrice}
-                        </span>
-                      )}
-                      {leftCard.saveText && (
-                        <span className="text-[10px] font-bold text-[#059669] bg-[#D1FAE5] px-2 py-0.5 rounded-full">
-                          {leftCard.saveText}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-[11px] text-[#4B5563] font-medium leading-tight">
-                      {leftCard.description}
-                    </p>
-
-                    {Array.isArray(leftCard.features) && leftCard.features.length > 0 && (
-                      <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold text-[#581C87]">
-                        {leftCard.features.map((f: string, i: number) => (
-                          <span key={i} className="bg-white/80 px-2 py-0.5 rounded-md border border-[#E9DDF5]">
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <span className="text-sm font-extrabold text-emerald-400">₹{c.price || 1}</span>
                   </div>
-
-                  <div className="pt-3">
-                    <button
-                      type="button"
-                      onClick={() => onBuyCourse ? onBuyCourse(activeCourse) : onExploreCourse && onExploreCourse(activeCourse === "ca" ? "ca-foundation" : "course-cseet")}
-                      className="px-5 py-2.5 rounded-full bg-[#581C87] hover:bg-[#4A0E4E] text-white text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <span>{leftCard.buttonText || `Get Pass • ₹${leftCard.price}`}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-white !text-white leading-snug">{c.title}</h3>
+                  <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                    {c.description || "Unlock all statutory acts, comprehensive unit codices, LDR charts, and examiner marking traps."}
+                  </p>
                 </div>
-              )}
 
-              {/* All-Access Dual Combo Pass - Only shown if NEITHER course is enrolled yet */}
-              {showComboCard && (
-                <div
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#3B0764] via-[#581C87] to-[#7E22CE] text-white p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[190px] border border-[#9333EA]/30"
-                  style={{ color: "#FFFFFF" }}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onBuyCourse) onBuyCourse(c.courseType);
+                    else onExploreCourse(c.id);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer hover:scale-[1.01]"
                 >
-                  <div className="absolute top-0 right-6 bg-[#F59E0B] text-[#78350F] text-[10px] font-extrabold uppercase px-3 py-1 rounded-b-lg shadow-xs tracking-wider">
-                    {rightCard.discountBadge || "64% OFF"}
-                  </div>
-
-                  <div className="space-y-1.5 pr-10">
-                    <span
-                      className="text-[10px] font-extrabold uppercase tracking-wider text-[#FDE68A] bg-white/15 px-2.5 py-0.5 rounded-md border border-white/20 inline-block"
-                      style={{ color: "#FDE68A" }}
-                    >
-                      {rightCard.streamBadge || "Best Value • All-Access Dual Pass"}
-                    </span>
-
-                    <h4
-                      className="text-base sm:text-lg font-black leading-snug text-white"
-                      style={{ color: "#FFFFFF" }}
-                    >
-                      {rightCard.title} <br />
-                      <span className="text-[#FDE68A]" style={{ color: "#FDE68A" }}>
-                        {rightCard.subtitle}
-                      </span>
-                    </h4>
-
-                    <div className="flex items-baseline gap-2 pt-0.5">
-                      <span className="text-sm sm:text-base font-black text-white" style={{ color: "#FFFFFF" }}>
-                        Price : ₹{rightCard.price}
-                      </span>
-                      {rightCard.originalPrice > 0 && (
-                        <span className="text-xs text-white/60 line-through font-mono" style={{ color: "rgba(255,255,255,0.6)" }}>
-                          ₹{rightCard.originalPrice}
-                        </span>
-                      )}
-                      {rightCard.saveText && (
-                        <span className="text-[10px] font-bold text-[#FDE68A] bg-white/15 px-2 py-0.5 rounded-full border border-white/20" style={{ color: "#FDE68A" }}>
-                          {rightCard.saveText}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-[11px] text-white/90 font-medium leading-tight" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                      {rightCard.description}
-                    </p>
-
-                    {Array.isArray(rightCard.features) && rightCard.features.length > 0 && (
-                      <div className="flex items-center gap-1.5 pt-1 flex-wrap text-[10px] font-bold">
-                        {rightCard.features.map((f: string, i: number) => (
-                          <span
-                            key={i}
-                            className="bg-white/15 px-2 py-0.5 rounded-md border border-white/20 text-white"
-                            style={{ color: "#FFFFFF" }}
-                          >
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-3">
-                    <button
-                      type="button"
-                      onClick={() => onBuyCourse ? onBuyCourse("all-access") : onExploreCourse && onExploreCourse("all-access")}
-                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 text-xs font-black shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <span>{rightCard.buttonText || `Unlock All-Access • ₹${rightCard.price}`}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-amber-950" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        );
-      })()}
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Unlock Full Course • ₹{c.price || 1}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 4. LIVE FAST AUTO-SCROLLING RESOURCE & MASTER PASS MARKETING CAROUSEL      */}

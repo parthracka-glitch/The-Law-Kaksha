@@ -369,42 +369,6 @@ export function StudentCoursesHierarchyTab({
         </div>
       )}
 
-      {/* 2. UNLOCK FULL COURSE CALLOUT CARDS (IF USER DOES NOT OWN BOTH COURSES) */}
-      {courses.some((c) => !c.isEnrolled) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {courses
-            .filter((c) => !c.isEnrolled)
-            .map((c) => (
-              <div
-                key={c.id}
-                className="rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] border border-white/10 p-5 text-white shadow-md flex flex-col justify-between gap-4"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                      <Lock className="w-3 h-3 text-amber-400" />
-                      <span>Curriculum Pass Required</span>
-                    </span>
-                    <span className="text-sm font-extrabold text-emerald-400">₹{c.price || 99}</span>
-                  </div>
-                  <h3 className="text-base font-black text-white">{c.title}</h3>
-                  <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
-                    {c.description || "Unlock all statutory acts, comprehensive unit codices, LDR charts, and examiner marking traps."}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => onBuyCourse?.(c.id) || onExploreMore?.()}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer hover:scale-[1.01]"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Unlock Full Course • ₹{c.price || 99}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-        </div>
-      )}
 
       {/* 3. HEADER SECTION WITH MULTI-COURSE STACK SWITCHER */}
       <div className="bg-white rounded-2xl border border-[#E7ECF7] p-5 sm:p-6 shadow-2xs">
