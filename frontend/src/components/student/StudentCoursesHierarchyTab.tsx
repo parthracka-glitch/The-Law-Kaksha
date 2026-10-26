@@ -701,33 +701,36 @@ export function StudentCoursesHierarchyTab({
                                                   <Eye className="w-3.5 h-3.5" />
                                                   <span>Open Reader</span>
                                                 </button>
-                                              ) : canOpenSample ? (
-                                                <button
-                                                  type="button"
-                                                  onClick={() =>
-                                                    onOpenReader(
-                                                      item.fileUrl || `/api/content/${item.id}/file`,
-                                                      item.title,
-                                                      false,
-                                                      5
-                                                    )
-                                                  }
-                                                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                                >
-                                                  <Eye className="w-3.5 h-3.5" />
-                                                  <span>Read Free Sample</span>
-                                                </button>
                                               ) : (
-                                                <button
-                                                  type="button"
-                                                  onClick={() =>
-                                                    onBuyCourse?.(activeCourse.id) || onExploreMore?.()
-                                                  }
-                                                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                                >
-                                                  <Lock className="w-3.5 h-3.5" />
-                                                  <span>Unlock Course</span>
-                                                </button>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                  {canOpenSample && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() =>
+                                                        onOpenReader(
+                                                          item.fileUrl || `/api/content/${item.id}/file`,
+                                                          item.title,
+                                                          false,
+                                                          5
+                                                        )
+                                                      }
+                                                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                                    >
+                                                      <Eye className="w-3.5 h-3.5" />
+                                                      <span>Read Free Sample</span>
+                                                    </button>
+                                                  )}
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      onBuyCourse?.(activeCourse.id) || onExploreMore?.()
+                                                    }
+                                                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                                  >
+                                                    <Lock className="w-3.5 h-3.5" />
+                                                    <span>Unlock the Resources</span>
+                                                  </button>
+                                                </div>
                                               )}
                                             </div>
                                           </div>
