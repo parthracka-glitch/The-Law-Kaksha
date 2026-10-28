@@ -42,11 +42,64 @@ interface SampleResource {
   courseTag: "ca" | "cseet";
 }
 
-const SAMPLE_RESOURCES: SampleResource[] = [];
+const SAMPLE_RESOURCES: SampleResource[] = [
+  {
+    id: "res-ca-qbank-part1-sample",
+    part: "QUESTION BANK PART 1",
+    badge: "FREE SAMPLE PREVIEW",
+    title: "Smart Revision Question Bank Part 1 (Free Sample Copy)",
+    subtitle: "CA Foundation Paper 2 Smart Revision Question Bank",
+    actName: "Question Bank Part 1",
+    courseTag: "ca",
+    description:
+      "Official free sample preview copy of CA Foundation Smart Revision Question Bank Part 1. Exam-pattern practice questions with RTPs, MTPs & suggested answers.",
+    highlights: [
+      "Official Question Bank Part 1 Sample Preview",
+      "Curriculum: CA Foundation Paper 2 Business Laws",
+      "Examiner-Tested 3-Step ICAI Model Answers",
+      "Instant In-Browser DRM Reading Vault Access",
+    ],
+    pages: "Sample Copy",
+    fileSize: "910 KB",
+    fileName: "Question Bank Part 1- Sample Copy.pdf",
+    pdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
+    downloadUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
+    gradientTheme: "from-[#F0FDF4] via-white to-white",
+    borderTheme: "border-[#BBF7D0] hover:border-[#16A34A]",
+    accentBadge: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]",
+    pillColor: "bg-[#16A34A] text-white",
+  },
+  {
+    id: "res-ca-qbank-part2-sample",
+    part: "QUESTION BANK PART 2",
+    badge: "FREE SAMPLE PREVIEW",
+    title: "Smart Revision Question Bank Part 2 (Free Sample Copy)",
+    subtitle: "CA Foundation Paper 2 Smart Revision Question Bank",
+    actName: "Question Bank Part 2",
+    courseTag: "ca",
+    description:
+      "Official free sample preview copy of CA Foundation Smart Revision Question Bank Part 2. Exam-pattern practice questions with RTPs, MTPs & suggested answers.",
+    highlights: [
+      "Official Question Bank Part 2 Sample Preview",
+      "Curriculum: CA Foundation Paper 2 Business Laws",
+      "Examiner-Tested 3-Step ICAI Model Answers",
+      "Instant In-Browser DRM Reading Vault Access",
+    ],
+    pages: "Sample Copy",
+    fileSize: "5.5 MB",
+    fileName: "Part 2_Sample Copy.pdf",
+    pdfUrl: "/samples/Part 2_Sample Copy.pdf",
+    downloadUrl: "/samples/Part 2_Sample Copy.pdf",
+    gradientTheme: "from-[#EFF6FF] via-white to-white",
+    borderTheme: "border-[#BFDBFE] hover:border-[#005A9C]",
+    accentBadge: "bg-[#EFF6FF] text-[#005A9C] border-[#BFDBFE]",
+    pillColor: "bg-[#005A9C] text-white",
+  },
+];
 
 export function FreeResourceModule() {
   const { addToCart, setIsCartOpen } = useCart();
-  const [resources, setResources] = useState<SampleResource[]>([]);
+  const [resources, setResources] = useState<SampleResource[]>(SAMPLE_RESOURCES);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "ca" | "cseet">("all");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(2);
@@ -164,7 +217,16 @@ export function FreeResourceModule() {
               };
             });
 
-            setResources([...SAMPLE_RESOURCES, ...mappedDynamic]);
+            const seen = new Set<string>();
+            const merged: SampleResource[] = [];
+            for (const item of [...SAMPLE_RESOURCES, ...mappedDynamic]) {
+              const key = (item.fileName || item.id).toLowerCase();
+              if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(item);
+              }
+            }
+            setResources(merged);
           }
         }
       } catch (err) {

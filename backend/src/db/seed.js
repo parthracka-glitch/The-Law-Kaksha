@@ -83,8 +83,8 @@ async function seed() {
       exam_body: "ICAI",
       units_count: 2,
       highlights: [
-        "Both Part 1 & Part 2 Complete Question Banks Included",
-        "Covers Contract Act, SOGA, Partnership Act & LLP Act",
+        "Both Part 1 & Part 2 Complete Final Volumes Included",
+        "Official Smart Revision Question Bank Final Copies",
         "Exam-pattern practice sets with RTPs, MTPs & suggested answers",
         "In-Web DRM Secure Watermarked Reader access with zero downloads",
       ],

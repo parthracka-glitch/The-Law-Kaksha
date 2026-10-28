@@ -445,17 +445,36 @@ export function StudentCoursesHierarchyTab({
               <span>{activeCourse.title}</span>
             </h3>
 
-            <div>
+            <div className="flex items-center gap-2 flex-wrap">
               {activeCourse.isEnrolled ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0]">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
                   <span>Enrolled • Full Access Unlocked</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
-                  <Lock className="w-3.5 h-3.5 text-[#D97706]" />
-                  <span>Sample Preview Mode</span>
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(activeCourse.id === "course-ca-qbank" || activeCourse.id.includes("qbank")) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpenReader(
+                          "/samples/Question Bank Part 1- Sample Copy.pdf",
+                          "Question Bank Part 1 (Free Sample Copy)",
+                          false,
+                          10
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Preview Sample Copy</span>
+                    </button>
+                  )}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+                    <Lock className="w-3.5 h-3.5 text-[#D97706]" />
+                    <span>Sample Preview Mode</span>
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -685,23 +704,32 @@ export function StudentCoursesHierarchyTab({
                                                 </button>
                                               ) : (
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                  {canOpenSample && (
-                                                    <button
-                                                      type="button"
-                                                      onClick={() =>
-                                                        onOpenReader(
-                                                          item.fileUrl || `/api/content/${item.id}/file`,
-                                                          item.title,
-                                                          false,
-                                                          5
-                                                        )
-                                                      }
-                                                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                                    >
-                                                      <Eye className="w-3.5 h-3.5" />
-                                                      <span>Read Free Sample</span>
-                                                    </button>
-                                                  )}
+                                                  {(() => {
+                                                    const isQBankCourse = activeCourse.id === "course-ca-qbank" || activeCourse.id.includes("qbank");
+                                                    const isPart2 = item.title.toLowerCase().includes("part 2") || item.title.toLowerCase().includes("part2");
+                                                    const sampleUrl = isQBankCourse
+                                                      ? (isPart2 ? "/samples/Part 2_Sample Copy.pdf" : "/samples/Question Bank Part 1- Sample Copy.pdf")
+                                                      : (item.fileUrl || `/api/content/${item.id}/file`);
+                                                    const sampleTitle = isQBankCourse
+                                                      ? (isPart2 ? "Question Bank Part 2 (Free Sample Copy)" : "Question Bank Part 1 (Free Sample Copy)")
+                                                      : item.title;
+
+                                                    if (canOpenSample || isQBankCourse) {
+                                                      return (
+                                                        <button
+                                                          type="button"
+                                                          onClick={() =>
+                                                            onOpenReader(sampleUrl, sampleTitle, false, 10)
+                                                          }
+                                                          className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                                        >
+                                                          <Eye className="w-3.5 h-3.5" />
+                                                          <span>Read Free Sample</span>
+                                                        </button>
+                                                      );
+                                                    }
+                                                    return null;
+                                                  })()}
                                                   <button
                                                     type="button"
                                                     onClick={() =>
@@ -710,7 +738,11 @@ export function StudentCoursesHierarchyTab({
                                                     className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
                                                   >
                                                     <Lock className="w-3.5 h-3.5" />
-                                                    <span>Unlock the Resources</span>
+                                                    <span>
+                                                      {activeCourse.id === "course-ca-qbank" || activeCourse.id.includes("qbank")
+                                                        ? "Buy Question Bank @ ₹349"
+                                                        : "Unlock the Resources"}
+                                                    </span>
                                                   </button>
                                                 </div>
                                               )}

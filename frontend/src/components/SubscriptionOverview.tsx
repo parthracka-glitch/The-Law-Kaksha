@@ -163,6 +163,11 @@ export const CSEET_MODULES_LIST = [
   { name: "Lesson 10: Management Knowledge for Company Secretaries", tag: "Full Codex", status: "Live" },
 ];
 
+export const QBANK_MODULES_LIST = [
+  { name: "Question Bank Part 1 (Final Volume)", tag: "Final Copy", status: "Live" },
+  { name: "Question Bank Part 2 (Final Volume)", tag: "Final Copy", status: "Live" },
+];
+
 const FALLBACK_PLANS: SubscriptionPlanItem[] = [];
 
 const planKey = (plan: SubscriptionPlanItem) =>
@@ -665,12 +670,19 @@ export function SubscriptionOverview() {
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
-                  {isCseetPlan(selectedPlanForDetails)
+                  {isQBankPlan(selectedPlanForDetails)
+                    ? "2 Complete Question Bank Volumes"
+                    : isCseetPlan(selectedPlanForDetails)
                     ? "4 Covered Management Modules (ICSI Syllabus)"
-                    : "5 Covered Acts & Smart Question Banks"}
+                    : "4 Covered Statutory Acts (ICAI Syllabus)"}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {(isCseetPlan(selectedPlanForDetails) ? CSEET_MODULES_LIST : CA_FOUNDATION_ACTS_LIST).map((act, i) => (
+                  {(isQBankPlan(selectedPlanForDetails)
+                    ? QBANK_MODULES_LIST
+                    : isCseetPlan(selectedPlanForDetails)
+                    ? CSEET_MODULES_LIST
+                    : CA_FOUNDATION_ACTS_LIST
+                  ).map((act, i) => (
                     <div
                       key={i}
                       className="p-3 rounded-xl bg-[#F0F7FF] border border-[#DBEAFE] flex items-center justify-between text-xs"
@@ -694,7 +706,9 @@ export function SubscriptionOverview() {
                 <span className="text-sm line-through text-[#64748B]">
                   ₹{selectedPlanForDetails.mrp}
                 </span>
-                <span className="text-xs text-[#005A9C] font-semibold">/ 30 Days Access</span>
+                <span className="text-xs text-[#005A9C] font-semibold">
+                  {isQBankPlan(selectedPlanForDetails) ? "/ 180 Days Access" : "/ 30 Days Access"}
+                </span>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <button

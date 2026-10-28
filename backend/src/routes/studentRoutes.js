@@ -147,7 +147,11 @@ router.get("/dashboard", optionalAuth, async (req, res) => {
             if (item.item_id) unlockedSet.add(item.item_id);
             if (item.id) unlockedSet.add(item.id);
             const lower = (item.title || item.item_id || item.id || "").toLowerCase();
-            if (lower.includes("ca") || lower.includes("foundation")) {
+            if (lower.includes("qbank") || lower.includes("question bank")) {
+              unlockedSet.add("course-ca-qbank");
+              unlockedSet.add("sub-ca-qbank");
+              unlockedSet.add("prod-qbank");
+            } else if (lower.includes("ca") || lower.includes("foundation")) {
               unlockedSet.add("course-ca-foundation");
               unlockedSet.add("course-ca-foundation-sub");
               unlockedSet.add("ca-foundation");
@@ -193,7 +197,11 @@ router.get("/dashboard", optionalAuth, async (req, res) => {
             if (item.id) unlockedSet.add(item.id);
             if (item.item_id) unlockedSet.add(item.item_id);
             const lower = (item.title || item.id || item.item_id || "").toLowerCase();
-            if (lower.includes("ca") || lower.includes("foundation")) {
+            if (lower.includes("qbank") || lower.includes("question bank")) {
+              unlockedSet.add("course-ca-qbank");
+              unlockedSet.add("sub-ca-qbank");
+              unlockedSet.add("prod-qbank");
+            } else if (lower.includes("ca") || lower.includes("foundation")) {
               unlockedSet.add("course-ca-foundation");
               unlockedSet.add("course-ca-foundation-sub");
               unlockedSet.add("ca-foundation");
@@ -239,7 +247,11 @@ router.get("/dashboard", optionalAuth, async (req, res) => {
         unlockedSet.add("book-vol-2");
         unlockedSet.add("prod-combo");
       }
-      if (itemTitle.includes("ca foundation") || itemTitle.includes("question bank")) {
+      if (itemTitle.includes("qbank") || itemTitle.includes("question bank")) {
+        unlockedSet.add("course-ca-qbank");
+        unlockedSet.add("sub-ca-qbank");
+        unlockedSet.add("prod-qbank");
+      } else if (itemTitle.includes("ca foundation") || itemTitle.includes("ca-foundation")) {
         unlockedSet.add("course-ca-foundation");
         unlockedSet.add("course-ca-foundation-sub");
         unlockedSet.add("ca-foundation-business-laws");
@@ -1133,38 +1145,53 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
 
           const acts = allActs
             .filter((a) => {
-              const actCourseId = a.courseId || a.course_id || (Array.isArray(a.course_ids) ? a.course_ids[0] : null);
-              if (actCourseId) {
+              const actId = String(a.id || "").toLowerCase();
+              const actTitle = String(a.title || "").toLowerCase();
+              const actCourseId = String(a.courseId || a.course_id || (Array.isArray(a.course_ids) ? a.course_ids[0] : "")).toLowerCase();
+
+              // 1. If Question Bank course, ONLY return Question Bank acts
+              if (isQBankCourse) {
                 return (
-                  courseVariants.includes(actCourseId) ||
-                  courseVariants.includes(String(actCourseId).toLowerCase()) ||
-                  actCourseId.includes(course.id) ||
-                  course.id.includes(actCourseId)
+                  actCourseId === "course-ca-qbank" ||
+                  actCourseId === "ca-qbank" ||
+                  actId === "act-ca-qbank" ||
+                  actId.includes("qbank") ||
+                  actTitle.includes("question bank")
                 );
               }
-              const actKey = `${a.id || ""} ${a.title || ""}`.toLowerCase();
-              if (isQBankCourse && (actKey.includes("qbank") || actKey.includes("question bank"))) {
-                return true;
+
+              // 2. If CA Foundation course, return ONLY CA Foundation statutory acts (NEVER Question Bank acts)
+              if (isCaCourse) {
+                if (actCourseId.includes("qbank") || actId.includes("qbank") || actTitle.includes("question bank")) {
+                  return false;
+                }
+                return (
+                  actCourseId === "course-ca-foundation" ||
+                  actCourseId === "ca-foundation" ||
+                  actCourseId === "ca" ||
+                  actId.includes("contract") ||
+                  actId.includes("soga") ||
+                  actId.includes("partnership") ||
+                  actId.includes("llp") ||
+                  actId.includes("companies") ||
+                  actId.includes("negotiable")
+                );
               }
-              if (isCaCourse && (
-                actKey.includes("contract") ||
-                actKey.includes("soga") ||
-                actKey.includes("partnership") ||
-                actKey.includes("llp") ||
-                actKey.includes("companies") ||
-                actKey.includes("negotiable") ||
-                actKey.includes("ca-")
-              )) {
-                return true;
+
+              // 3. If CSEET course, return ONLY CSEET acts
+              if (isCsCourse) {
+                if (actCourseId.includes("qbank") || actId.includes("qbank") || actTitle.includes("question bank")) {
+                  return false;
+                }
+                return (
+                  actCourseId === "course-cseet" ||
+                  actCourseId === "cseet" ||
+                  actId.includes("cseet") ||
+                  actId.includes("mgmt") ||
+                  actTitle.includes("management")
+                );
               }
-              if (isCsCourse && (
-                actKey.includes("cseet") ||
-                actKey.includes("mgmt") ||
-                actKey.includes("management") ||
-                actKey.includes("communication")
-              )) {
-                return true;
-              }
+
               return false;
             })
             .map((act) => {

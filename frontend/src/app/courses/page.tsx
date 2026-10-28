@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   GraduationCap,
   Clock,
+  FileText,
 } from "lucide-react";
 
 interface Product {
@@ -211,14 +212,17 @@ function CoursesCatalogContent() {
     const courseId = (p.courseId || "").toLowerCase();
     const body = (p.examBody || "").toLowerCase();
 
+    const isQBank = id.includes("qbank") || courseId.includes("qbank") || p.title.toLowerCase().includes("question bank");
+    const isCs = cat.includes("cseet") || id.includes("cseet") || courseId.includes("cseet") || body === "icsi";
+    const isCa = !isQBank && !isCs && (cat.includes("ca") || id.includes("ca") || courseId.includes("ca") || body === "icai");
+
     const matchesCourse =
       selectedCourse === "all" ||
+      (selectedCourse === "course-ca-qbank" && isQBank) ||
+      (selectedCourse === "course-ca-foundation" && isCa) ||
+      (selectedCourse === "course-cseet" && isCs) ||
       p.courseId === selectedCourse ||
-      p.id === selectedCourse ||
-      (selectedCourse === "course-ca-foundation" &&
-        (cat.includes("ca") || id.includes("ca") || courseId.includes("ca") || body === "icai")) ||
-      (selectedCourse === "course-cseet" &&
-        (cat.includes("cseet") || id.includes("cseet") || courseId.includes("cseet") || body === "icsi"));
+      p.id === selectedCourse;
 
     const matchesSearch =
       search.trim() === "" ||
@@ -234,13 +238,17 @@ function CoursesCatalogContent() {
   const filteredFreeResources = freeResources.filter((resource) => {
     const course = String(resource.course || "").toLowerCase();
     const act = String(resource.actName || "").toLowerCase();
+    const title = String(resource.title || "").toLowerCase();
 
-    if (selectedCourse === "course-cseet") {
-      const isCs = course.includes("cseet") || course.includes("cs") || act.includes("cseet");
-      if (!isCs) return false;
+    const isQBankRes = course.includes("qbank") || act.includes("qbank") || title.includes("question bank");
+    const isCsRes = course.includes("cseet") || course.includes("cs") || act.includes("cseet") || title.includes("management");
+
+    if (selectedCourse === "course-ca-qbank") {
+      if (!isQBankRes) return false;
+    } else if (selectedCourse === "course-cseet") {
+      if (!isCsRes) return false;
     } else if (selectedCourse === "course-ca-foundation") {
-      const isCs = course.includes("cseet") || act.includes("cseet");
-      if (isCs) return false;
+      if (isQBankRes || isCsRes) return false;
     }
 
     const query = search.trim().toLowerCase();
@@ -330,6 +338,17 @@ function CoursesCatalogContent() {
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>CA Foundation</span>
+            </button>
+            <button
+              onClick={() => setSelectedCourse("course-ca-qbank")}
+              className={`flex-1 sm:flex-initial shrink-0 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 active:scale-95 ${
+                selectedCourse === "course-ca-qbank"
+                  ? "bg-[#005A9C] text-white font-bold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0A192F]"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Question Bank</span>
             </button>
             <button
               onClick={() => setSelectedCourse("course-cseet")}

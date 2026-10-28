@@ -61,7 +61,7 @@ async function run() {
     mrp: 699,
     accessDays: 180,
     description:
-      "Official CA Foundation Paper 2 Smart Revision Question Bank (Part 1 & Part 2). Comprehensive ICAI exam-oriented questions, RTPs, MTPs & model answers covering Indian Contract Act, Sale of Goods Act, Partnership Act, and LLP Act.",
+      "Official CA Foundation Paper 2 Smart Revision Question Bank (Part 1 & Part 2). Comprehensive ICAI exam-oriented practice questions, RTPs, MTPs & suggested model answers.",
     thumbnail: "/assets/ca-cs-hero-books-sharp.png",
     kind: "extra",
     is_active: true,
@@ -70,8 +70,8 @@ async function run() {
     exam_body: "ICAI",
     units_count: 2,
     highlights: [
-      "Both Part 1 & Part 2 Complete Question Banks Included",
-      "Covers Contract Act, SOGA, Partnership Act & LLP Act",
+      "Both Part 1 & Part 2 Complete Final Volumes Included",
+      "Official Smart Revision Question Bank Final Copies",
       "Exam-pattern practice sets with RTPs, MTPs & suggested answers",
       "Examiner-tested 3-step ICAI model answer frameworks",
       "In-Web DRM Secure Watermarked Reader access with zero downloads",
@@ -86,80 +86,52 @@ async function run() {
     availability: "live",
     order: 1,
     description:
-      "Comprehensive Part 1 and Part 2 Question Banks with exam-pattern practice questions, RTPs, MTPs & model suggested answers.",
+      "Official CA Foundation Smart Revision Question Bank — Complete Volume 1 & Volume 2 Final Copies.",
   };
 
-  // 3. QUESTION BANK UNITS DEFINITION
+  // 3. QUESTION BANK UNITS DEFINITION (ONLY 2 FINAL VOLUMES)
   const qbankUnits = [
     {
       id: "unit-ca-qbank-part1",
       actId: "act-ca-qbank",
-      title: "Smart Revision Question Bank — Part 1 (Contract Act & SOGA)",
+      title: "Question Bank Part 1 (Final Volume)",
       order: 1,
-      summary: "Exam-oriented Question Bank covering Indian Contract Act & Sale of Goods Act with sample preview.",
+      summary: "Official Part 1 Final Volume Question Bank.",
     },
     {
       id: "unit-ca-qbank-part2",
       actId: "act-ca-qbank",
-      title: "Smart Revision Question Bank — Part 2 (Partnership Act & LLP Act)",
+      title: "Question Bank Part 2 (Final Volume)",
       order: 2,
-      summary: "Exam-oriented Question Bank covering Partnership Act & LLP Act with sample preview.",
+      summary: "Official Part 2 Final Volume Question Bank.",
     },
   ];
 
-  // 4. QUESTION BANK CONTENT ITEMS
+  // 4. QUESTION BANK CONTENT ITEMS (ONLY 2 FINAL VOLUME COPIES IN COURSE SECTION)
   const qbankContentItems = [
-    {
-      id: "ci-ca-qbank-part1-sample",
-      unitId: "unit-ca-qbank-part1",
-      type: "practice",
-      title: "Question Bank Part 1 — Free Sample Copy",
-      fileName: "Question Bank Part 1- Sample Copy.pdf",
-      fileSize: getFileSize("Question Bank Part 1- Sample Copy.pdf"),
-      isSample: true,
-      sampleFromPage: 1,
-      sampleToPage: 10,
-      isPublished: true,
-      order: 1,
-      description: "Official free sample preview copy of Smart Revision Question Bank Part 1.",
-    },
     {
       id: "ci-ca-qbank-part1-final",
       unitId: "unit-ca-qbank-part1",
       type: "practice",
-      title: "Question Bank Part 1 — Final Complete Copy",
+      title: "Question Bank Part 1 (Final Copy)",
       fileName: "Question Bank_Part1 Final Copy.pdf",
       fileSize: getFileSize("Question Bank_Part1 Final Copy.pdf"),
       isSample: false,
       isPublished: true,
-      order: 2,
-      description: "Complete final edition of Part 1 Question Bank covering Contract Act & Sale of Goods Act.",
-    },
-    {
-      id: "ci-ca-qbank-part2-sample",
-      unitId: "unit-ca-qbank-part2",
-      type: "practice",
-      title: "Question Bank Part 2 — Free Sample Copy",
-      fileName: "Part 2_Sample Copy.pdf",
-      fileSize: getFileSize("Part 2_Sample Copy.pdf"),
-      isSample: true,
-      sampleFromPage: 1,
-      sampleToPage: 10,
-      isPublished: true,
-      order: 3,
-      description: "Official free sample preview copy of Smart Revision Question Bank Part 2.",
+      order: 1,
+      description: "Complete final volume of Question Bank Part 1.",
     },
     {
       id: "ci-ca-qbank-part2-final",
       unitId: "unit-ca-qbank-part2",
       type: "practice",
-      title: "Question Bank Part 2 — Final Complete Copy",
+      title: "Question Bank Part 2 (Final Copy)",
       fileName: "Question Bank Part 2_Final Copy.pdf",
       fileSize: getFileSize("Question Bank Part 2_Final Copy.pdf"),
       isSample: false,
       isPublished: true,
-      order: 4,
-      description: "Complete final edition of Part 2 Question Bank covering Partnership Act & LLP Act.",
+      order: 2,
+      description: "Complete final volume of Question Bank Part 2.",
     },
   ];
 
@@ -168,8 +140,9 @@ async function run() {
     {
       id: "res-ca-qbank-part1-sample",
       course_id: "course-ca-qbank",
+      courseId: "course-ca-qbank",
       course: "ca-qbank",
-      actName: "Indian Contract Act & SOGA",
+      actName: "Question Bank Part 1",
       chapterNumber: 1,
       title: "Smart Revision Question Bank Part 1 (Free Sample Copy)",
       type: "practice",
@@ -188,8 +161,9 @@ async function run() {
     {
       id: "res-ca-qbank-part2-sample",
       course_id: "course-ca-qbank",
+      courseId: "course-ca-qbank",
       course: "ca-qbank",
-      actName: "Partnership Act & LLP",
+      actName: "Question Bank Part 2",
       chapterNumber: 2,
       title: "Smart Revision Question Bank Part 2 (Free Sample Copy)",
       type: "practice",
@@ -208,15 +182,16 @@ async function run() {
     {
       id: "res-ca-qbank-part1-final",
       course_id: "course-ca-qbank",
+      courseId: "course-ca-qbank",
       course: "ca-qbank",
-      actName: "Smart Revision Question Banks",
+      actName: "Question Bank Part 1",
       chapterNumber: 1,
       title: "Smart Revision Question Bank Part 1 (Final Copy)",
       type: "practice",
       file_or_url: "/notes/Question Bank_Part1 Final Copy.pdf",
       pdfUrl: "/notes/Question Bank_Part1 Final Copy.pdf",
       samplePdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
-      description: "Full final edition of Part 1 Question Bank covering Contract Act & Sale of Goods Act.",
+      description: "Full final edition of Part 1 Question Bank.",
       isSample: false,
       status: "Published",
       display_order: 3,
@@ -228,15 +203,16 @@ async function run() {
     {
       id: "res-ca-qbank-part2-final",
       course_id: "course-ca-qbank",
+      courseId: "course-ca-qbank",
       course: "ca-qbank",
-      actName: "Smart Revision Question Banks",
+      actName: "Question Bank Part 2",
       chapterNumber: 2,
       title: "Smart Revision Question Bank Part 2 (Final Copy)",
       type: "practice",
       file_or_url: "/notes/Question Bank Part 2_Final Copy.pdf",
       pdfUrl: "/notes/Question Bank Part 2_Final Copy.pdf",
       samplePdfUrl: "/samples/Part 2_Sample Copy.pdf",
-      description: "Full final edition of Part 2 Question Bank covering Partnership Act & LLP Act.",
+      description: "Full final edition of Part 2 Question Bank.",
       isSample: false,
       status: "Published",
       display_order: 4,
@@ -260,14 +236,14 @@ async function run() {
     status: "Active",
     pdfUrl: "/samples/Question Bank Part 1- Sample Copy.pdf",
     description:
-      "Comprehensive CA Foundation Paper 2 Smart Revision Question Bank covering Indian Contract Act, Sale of Goods Act, Partnership Act, and LLP Act with ICAI model answers.",
+      "Official CA Foundation Paper 2 Smart Revision Question Bank — Complete Volume 1 & Volume 2 Final Copies with ICAI model answers.",
     units: [
-      "Smart Revision Question Bank — Part 1 (Contract Act & SOGA)",
-      "Smart Revision Question Bank — Part 2 (Partnership Act & LLP Act)",
+      "Question Bank Part 1 (Final Volume)",
+      "Question Bank Part 2 (Final Volume)",
     ],
     highlights: [
-      "Both Part 1 & Part 2 Included (₹349)",
-      "Unit-wise practice questions & ICAI model answers",
+      "Both Part 1 & Part 2 Final Volumes Included (₹349)",
+      "Official exam practice questions & ICAI model answers",
       "Interactive DRM Protected In-Web Reader",
       "RTPs, MTPs & past examination questions solved",
     ],
@@ -292,19 +268,21 @@ async function run() {
     is_active: true,
     is_popular: true,
     features: [
-      "Both Part 1 & Part 2 Question Banks Included",
-      "Covers Contract Act, SOGA, Partnership Act & LLP Act",
+      "Both Part 1 & Part 2 Complete Question Banks Included",
+      "Official Volume 1 & Volume 2 Final Copies",
       "RTPs, MTPs & suggested model answers",
-      "In-Web DRM Watermarked Reader Access",
+      "In-Web DRM Watermarked Reader Access (180 Days)",
     ],
   };
 
-  // Deprecated QBank item IDs that must NOT be in CA Foundation
+  // Deprecated QBank item IDs that must NOT be in CA Foundation or Question Bank course content
   const legacyQBankItemIds = [
     "ci-qbank-part1-final",
     "ci-qbank-part1-sample",
     "ci-qbank-part2-final",
     "ci-qbank-part2-sample",
+    "ci-ca-qbank-part1-sample",
+    "ci-ca-qbank-part2-sample",
     "res-ca-qbank-part1-final",
     "res-ca-qbank-part2-final",
   ];

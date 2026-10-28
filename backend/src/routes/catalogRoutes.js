@@ -120,6 +120,16 @@ function resolveCourseAlias(rawId) {
     return "course-ca-foundation";
   }
   if (
+    clean === "course-ca-qbank" ||
+    clean === "ca-qbank" ||
+    clean === "ca-foundation-qbank" ||
+    clean === "sub-ca-qbank" ||
+    clean === "ca-foundation-smart-revision-question-bank" ||
+    clean === "smart-revision-question-bank"
+  ) {
+    return "course-ca-qbank";
+  }
+  if (
     clean === "course-cseet" ||
     clean === "course-cseet-sub" ||
     clean === "cseet" ||

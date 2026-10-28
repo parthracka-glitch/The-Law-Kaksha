@@ -217,12 +217,16 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             ? 1
             : a.id === "course-cseet"
             ? 2
+            : a.id === "course-ca-qbank"
+            ? 3
             : 99;
         const ordB =
           b.id === "course-ca-foundation" || b.id === "ca-foundation"
             ? 1
             : b.id === "course-cseet"
             ? 2
+            : b.id === "course-ca-qbank"
+            ? 3
             : 99;
         return ordA - ordB;
       });
