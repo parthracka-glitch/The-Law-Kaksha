@@ -39,15 +39,15 @@ export interface SubscriptionPlanItem {
   is_active: boolean;
 }
 
-// 9 Rich Features directly aligned with uploaded codices & ICAI/ICSI curriculum
+// Rich Features directly aligned with uploaded codices & ICAI/ICSI curriculum
 export const CA_FOUNDATION_RICH_FEATURES: PlanFeatureItem[] = [
   {
     title: "Complete ICAI syllabus",
-    subtitle: "All 4 Acts + Smart Question Banks (22 Units)",
+    subtitle: "All 4 Statutory Acts (20 Units)",
   },
   {
     title: "Interactive In-Web DRM Codex",
-    subtitle: "Explore 30 chapter codices with secure single-device access",
+    subtitle: "Explore statutory chapter codices with secure single-device access",
   },
   {
     title: "The Indian Contract Act, 1872",
@@ -58,16 +58,16 @@ export const CA_FOUNDATION_RICH_FEATURES: PlanFeatureItem[] = [
     subtitle: "8 Units: Comprehensive codices, LDR charts & infographics",
   },
   {
-    title: "LLP Act, 2008 & Question Banks",
-    subtitle: "Part 1 & Part 2 comprehensive final editions included",
+    title: "The Limited Liability Partnership Act, 2008",
+    subtitle: "2 Units: Salient features, incorporation & comparison matrices",
   },
   {
     title: "Free Sample Preview Access",
-    subtitle: "Instant sample preview of Question Bank Part 1",
+    subtitle: "Instant sample preview of statutory codices",
   },
   {
-    title: "RTP, MTP & Past Exam Questions",
-    subtitle: "Exam-oriented practice sets with model answer solutions",
+    title: "RTP, MTP & Model Answers",
+    subtitle: "Exam-oriented practice sets with 3-step model solutions",
   },
   {
     title: "Streaks & Reading Progress",
@@ -76,6 +76,37 @@ export const CA_FOUNDATION_RICH_FEATURES: PlanFeatureItem[] = [
   {
     title: "One Dedicated Dashboard",
     subtitle: "Keep your learning, practice and progress together",
+  },
+];
+
+export const QBANK_RICH_FEATURES: PlanFeatureItem[] = [
+  {
+    title: "Complete Question Bank (Part 1 & 2)",
+    subtitle: "Both Part 1 and Part 2 included for comprehensive revision",
+  },
+  {
+    title: "Contract Act & Sale of Goods Act",
+    subtitle: "Part 1: High-yield application questions, RTPs & MTPs",
+  },
+  {
+    title: "Partnership Act & LLP Act",
+    subtitle: "Part 2: Complete past examination questions & suggested answers",
+  },
+  {
+    title: "3-Step ICAI Answer Format",
+    subtitle: "Provision → Application → Conclusion evaluation frameworks",
+  },
+  {
+    title: "Free Sample Preview Access",
+    subtitle: "Instant sample preview of Question Bank Part 1 & Part 2",
+  },
+  {
+    title: "Interactive In-Web DRM Reader",
+    subtitle: "Instant in-browser DRM reading with zero downloads",
+  },
+  {
+    title: "One Dedicated Dashboard",
+    subtitle: "Direct access in your student reading vault",
   },
 ];
 
@@ -123,7 +154,6 @@ export const CA_FOUNDATION_ACTS_LIST = [
   { name: "The Sale of Goods Act, 1930", tag: "4 Units", status: "Live" },
   { name: "The Indian Partnership Act, 1932", tag: "4 Units", status: "Live" },
   { name: "The Limited Liability Partnership Act, 2008", tag: "2 Units", status: "Live" },
-  { name: "Smart Revision Question Banks (Part 1 & 2)", tag: "Final + Samples", status: "Live" },
 ];
 
 export const CSEET_MODULES_LIST = [
@@ -139,17 +169,34 @@ const planKey = (plan: SubscriptionPlanItem) =>
   `${plan.id || ""} ${plan.slug || ""}`.toLowerCase();
 
 const isCseetPlan = (plan: SubscriptionPlanItem) => planKey(plan).includes("cseet");
-const isCaPlan = (plan: SubscriptionPlanItem) => planKey(plan).includes("ca-foundation");
+const isQBankPlan = (plan: SubscriptionPlanItem) =>
+  planKey(plan).includes("qbank") || planKey(plan).includes("question-bank") || planKey(plan).includes("question bank");
+const isCaPlan = (plan: SubscriptionPlanItem) =>
+  !isQBankPlan(plan) && planKey(plan).includes("ca-foundation");
 
 const visiblePlans = (plans: SubscriptionPlanItem[]) =>
   plans
     .filter((plan) => !planKey(plan).includes("combo"))
-    .filter((plan) => isCaPlan(plan) || isCseetPlan(plan))
-    .sort((a, b) => Number(isCseetPlan(a)) - Number(isCseetPlan(b)))
+    .filter((plan) => isCaPlan(plan) || isCseetPlan(plan) || isQBankPlan(plan))
+    .sort((a, b) => {
+      if (isCaPlan(a) && !isCaPlan(b)) return -1;
+      if (!isCaPlan(a) && isCaPlan(b)) return 1;
+      if (isQBankPlan(a) && isCseetPlan(b)) return -1;
+      if (isCseetPlan(a) && isQBankPlan(b)) return 1;
+      return 0;
+    })
     .map((plan) => ({
       ...plan,
-      title: isCseetPlan(plan) ? "CSEET Business Law and Management" : "CA Foundation Business Laws",
-      richFeatures: isCseetPlan(plan) ? CSEET_RICH_FEATURES : CA_FOUNDATION_RICH_FEATURES,
+      title: isQBankPlan(plan)
+        ? "CA Foundation Question Bank (Part 1 & 2)"
+        : isCseetPlan(plan)
+        ? "CSEET Business Law and Management"
+        : "CA Foundation Business Laws",
+      richFeatures: isQBankPlan(plan)
+        ? QBANK_RICH_FEATURES
+        : isCseetPlan(plan)
+        ? CSEET_RICH_FEATURES
+        : CA_FOUNDATION_RICH_FEATURES,
     }));
 
 function getPlanFeatures(plan: SubscriptionPlanItem): PlanFeatureItem[] {
@@ -157,6 +204,9 @@ function getPlanFeatures(plan: SubscriptionPlanItem): PlanFeatureItem[] {
     return plan.richFeatures;
   }
   const key = `${plan.id || ""} ${plan.slug || ""} ${plan.title || ""}`.toLowerCase();
+  if (key.includes("qbank") || key.includes("question-bank")) {
+    return QBANK_RICH_FEATURES;
+  }
   if (key.includes("ca-foundation") || key.includes("foundation")) {
     return CA_FOUNDATION_RICH_FEATURES;
   }

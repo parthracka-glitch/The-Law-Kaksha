@@ -131,7 +131,28 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
   const deviceName = options.deviceName || order.deviceName || "Primary Device";
 
   // 6. Determine Unlocked Courses, Items & Access Duration
-  let primaryCourseId = isCSEET ? "cseet-business-communication" : "ca-foundation-paper-2";
+  const hasQBank = (order.items || []).some((item) => {
+    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
+    return s.includes("qbank") || s.includes("question-bank") || s.includes("question bank");
+  });
+
+  const hasCa = (order.items || []).some((item) => {
+    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
+    if (s.includes("qbank") || s.includes("question-bank") || s.includes("question bank")) return false;
+    return s.includes("ca-foundation") || s.includes("foundation") || s.includes("vol1") || s.includes("codex") || s.includes("paper-2") || s.includes("contract") || s.includes("business-law");
+  }) || (!isCSEET && !hasQBank && (order.items || []).length > 0);
+
+  const hasCs = (order.items || []).some((item) => {
+    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
+    return s.includes("cseet") || s.includes("vol2") || s.includes("communication") || s.includes("management");
+  }) || (isCSEET && !hasQBank && (order.items || []).length > 0);
+
+  let primaryCourseId = hasQBank && !hasCa && !hasCs
+    ? "course-ca-qbank"
+    : (isCSEET || hasCs)
+    ? "cseet-business-communication"
+    : "ca-foundation-paper-2";
+
   let accessDays = 180; // default 6-month validity
 
   const unlockedItemIds = new Set(student?.unlockedItemIds || []);
@@ -140,7 +161,9 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
     const itemId = String(item.id || item.item_id || "").toLowerCase();
     unlockedItemIds.add(itemId);
 
-    if (itemId.includes("cseet")) {
+    if (itemId.includes("qbank") || itemId.includes("question-bank")) {
+      if (!hasCa && !hasCs) primaryCourseId = "course-ca-qbank";
+    } else if (itemId.includes("cseet")) {
       primaryCourseId = "cseet-business-communication";
     } else if (itemId.includes("ca-foundation") || itemId.includes("vol1") || itemId.includes("codex")) {
       primaryCourseId = "ca-foundation-paper-2";
@@ -153,17 +176,15 @@ async function grantEntitlement(orderIdOrRecord, options = {}) {
     accessDays = Number(courseRecord.accessDays);
   }
 
-  const hasCa = (order.items || []).some((item) => {
-    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
-    return s.includes("ca-foundation") || s.includes("foundation") || s.includes("vol1") || s.includes("codex") || s.includes("paper-2") || s.includes("contract") || s.includes("business-law");
-  }) || (!isCSEET && (order.items || []).length > 0);
-
-  const hasCs = (order.items || []).some((item) => {
-    const s = String(item.id || item.item_id || item.title || "").toLowerCase();
-    return s.includes("cseet") || s.includes("vol2") || s.includes("communication") || s.includes("management");
-  }) || (isCSEET && (order.items || []).length > 0);
-
   // Add standard alias IDs for seamless student reader access
+  if (hasQBank) {
+    unlockedItemIds.add("course-ca-qbank");
+    unlockedItemIds.add("ca-foundation-qbank");
+    unlockedItemIds.add("ca-qbank");
+    unlockedItemIds.add("sub-ca-qbank");
+    unlockedItemIds.add("ci-ca-qbank-part1-final");
+    unlockedItemIds.add("ci-ca-qbank-part2-final");
+  }
   if (hasCa) {
     unlockedItemIds.add("ca-foundation-paper-2");
     unlockedItemIds.add("course-ca-foundation-sub");

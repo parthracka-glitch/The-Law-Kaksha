@@ -173,8 +173,23 @@ export function StudentCoursesHierarchyTab({
           } catch {}
         }
 
+        const isQBankPurchased = localUnlocked.some((id) => {
+          const l = String(id || "").toLowerCase();
+          return (
+            l === "course-ca-qbank" ||
+            l === "ca-foundation-qbank" ||
+            l === "ca-qbank" ||
+            l === "sub-ca-qbank" ||
+            l === "prod-qbank" ||
+            l.includes("question-bank") ||
+            l.includes("question bank") ||
+            l.includes("qbank")
+          );
+        });
+
         const isCaPurchased = localUnlocked.some((id) => {
           const l = String(id || "").toLowerCase();
+          if (l.includes("qbank") || l.includes("question-bank") || l.includes("question bank")) return false;
           return l.includes("ca") || l.includes("foundation") || l.includes("paper 2") || l.includes("vol1");
         });
         const isCsPurchased = localUnlocked.some((id) => {
@@ -191,9 +206,12 @@ export function StudentCoursesHierarchyTab({
             const enriched = data.courses.map((c) => {
               const cId = String(c.id || "").toLowerCase();
               const cTitle = String(c.title || "").toLowerCase();
-              const isCa = cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation") || cTitle.includes("foundation");
+              const isQBank = cId === "course-ca-qbank" || cId.includes("qbank") || cTitle.includes("question bank");
+              const isCa = !isQBank && (cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation") || cTitle.includes("foundation"));
               const isCs = cId.includes("cs") || cTitle.includes("cseet");
-              const enrolled = Boolean(c.isEnrolled || (isCa && isCaPurchased) || (isCs && isCsPurchased));
+              const enrolled = isQBank
+                ? Boolean(c.isEnrolled || isQBankPurchased)
+                : Boolean(c.isEnrolled || (isCa && isCaPurchased) || (isCs && isCsPurchased));
               return {
                 ...c,
                 isEnrolled: enrolled,

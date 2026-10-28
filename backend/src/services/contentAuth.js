@@ -101,10 +101,19 @@ async function authorizeContentAccess(user, contentItem, options = {}) {
     courseId = contentItem.course || "course-ca-foundation";
   }
 
-  // Normalize course IDs (ca-foundation vs course-ca-foundation)
+  // Normalize course IDs (ca-foundation vs course-ca-foundation vs course-ca-qbank)
   const normalizedCourseIds = [courseId];
   const cLower = String(courseId || "").toLowerCase();
-  if (cLower.includes("ca") || cLower.includes("foundation")) {
+  if (cLower.includes("qbank") || cLower.includes("question-bank")) {
+    normalizedCourseIds.push(
+      "course-ca-qbank",
+      "ca-foundation-qbank",
+      "ca-qbank",
+      "sub-ca-qbank",
+      "ca-foundation-smart-revision-question-bank",
+      "smart-revision-question-bank"
+    );
+  } else if (cLower.includes("ca") || cLower.includes("foundation")) {
     normalizedCourseIds.push(
       "course-ca-foundation",
       "ca-foundation",

@@ -66,6 +66,29 @@ async function seed() {
       exam_body: "ICSI",
       units_count: 0,
     },
+    {
+      id: "course-ca-qbank",
+      title: "CA Foundation — Smart Revision Question Bank (Part 1 & 2)",
+      slug: "ca-foundation-smart-revision-question-bank",
+      availability: "live",
+      price: 349,
+      mrp: 699,
+      accessDays: 180,
+      description: "Official CA Foundation Paper 2 Smart Revision Question Bank (Part 1 & Part 2). Comprehensive exam-oriented practice questions, RTPs, MTPs & ICAI model suggested answers.",
+      thumbnail: "/assets/ca-cs-hero-books-sharp.png",
+      kind: "extra",
+      is_active: true,
+      order: 3,
+      display_order: 3,
+      exam_body: "ICAI",
+      units_count: 2,
+      highlights: [
+        "Both Part 1 & Part 2 Complete Question Banks Included",
+        "Covers Contract Act, SOGA, Partnership Act & LLP Act",
+        "Exam-pattern practice sets with RTPs, MTPs & suggested answers",
+        "In-Web DRM Secure Watermarked Reader access with zero downloads",
+      ],
+    },
   ];
 
   for (const course of coursesData) {

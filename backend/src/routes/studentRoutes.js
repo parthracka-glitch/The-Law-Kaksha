@@ -1100,12 +1100,19 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
             String(course.slug || "").toLowerCase(),
           ].filter(Boolean);
 
-          const isCaCourse = courseVariants.some((v) => v.includes("ca") || v.includes("foundation"));
-          const isCsCourse = courseVariants.some((v) => v.includes("cs") || v.includes("cseet"));
+          const isQBankCourse = courseVariants.some((v) => v.includes("qbank") || v.includes("question-bank"));
+          const isCaCourse = !isQBankCourse && courseVariants.some((v) => v.includes("ca") || v.includes("foundation"));
+          const isCsCourse = !isQBankCourse && courseVariants.some((v) => v.includes("cs") || v.includes("cseet"));
 
           const isEnrolled =
             activeCourseIds.has("*") ||
             courseVariants.some((v) => activeCourseIds.has(v)) ||
+            (isQBankCourse && (
+              activeCourseIds.has("course-ca-qbank") ||
+              activeCourseIds.has("ca-foundation-qbank") ||
+              activeCourseIds.has("ca-qbank") ||
+              activeCourseIds.has("sub-ca-qbank")
+            )) ||
             (isCaCourse && (
               activeCourseIds.has("ca-foundation") ||
               activeCourseIds.has("course-ca-foundation") ||
@@ -1136,6 +1143,9 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
                 );
               }
               const actKey = `${a.id || ""} ${a.title || ""}`.toLowerCase();
+              if (isQBankCourse && (actKey.includes("qbank") || actKey.includes("question bank"))) {
+                return true;
+              }
               if (isCaCourse && (
                 actKey.includes("contract") ||
                 actKey.includes("soga") ||
@@ -1143,7 +1153,6 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
                 actKey.includes("llp") ||
                 actKey.includes("companies") ||
                 actKey.includes("negotiable") ||
-                actKey.includes("qbank") ||
                 actKey.includes("ca-")
               )) {
                 return true;

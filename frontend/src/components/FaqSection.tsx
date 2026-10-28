@@ -69,11 +69,11 @@ const FAQS_DATA: FaqItem[] = [
     category: "curriculum",
     categoryLabel: "CA Foundation",
     q: "What resources are included for CA Foundation Business Laws?",
-    a: "CA Foundation enrollment gives you complete access to all 4 statutory acts across 22 units: The Indian Contract Act 1872 (10 units), The Sale of Goods Act 1930 (4 units), The Indian Partnership Act 1932 (4 units), and The Limited Liability Partnership Act 2008 (2 units) — plus Smart Revision Question Banks Part 1 & Part 2, LDR Flowcharts, and 70+ solved landmark case studies.",
+    a: "CA Foundation enrollment gives you complete access to all 4 statutory acts across 20 units: The Indian Contract Act 1872 (10 units), The Sale of Goods Act 1930 (4 units), The Indian Partnership Act 1932 (4 units), and The Limited Liability Partnership Act 2008 (2 units) — plus LDR Flowcharts and 70+ solved landmark case studies. The Smart Revision Question Bank (Part 1 & 2) is available as an independent comprehensive exam pass for ₹349.",
     highlights: [
-      "22 Core Chapter Units with Statutory Notes",
-      "Smart Revision Question Banks Part 1 & Part 2",
+      "20 Core Chapter Units across 4 Statutory Acts",
       "LDR Flowcharts & High-Yield Infographics",
+      "Dedicated Question Bank (Part 1 & 2) Available for ₹349",
     ],
     cta: {
       label: "Browse Free Sample Codices",
@@ -109,11 +109,11 @@ const FAQS_DATA: FaqItem[] = [
     category: "curriculum",
     categoryLabel: "Curriculum Streams",
     q: "Which courses are currently live on The Law कक्षा?",
-    a: "Both CA Foundation Paper 2 Business Laws (4 Acts, 22 Units) and CSEET Paper 2 Business Laws & Management (Lessons 7, 8, 9, 10) are live with full codices, free samples, and interactive question banks. You can enroll in either stream individually.",
+    a: "CA Foundation Paper 2 Business Laws (4 Acts, 20 Units), CA Foundation Question Bank Part 1 & 2 (₹349), and CSEET Paper 2 Business Laws & Management (Lessons 7, 8, 9, 10) are live with full codices, free samples, and interactive practice. You can enroll in each course individually.",
     highlights: [
-      "CA Foundation Paper 2 (ICAI New Scheme)",
+      "CA Foundation Paper 2 (ICAI New Scheme • 20 Units)",
+      "CA Foundation Smart Revision Question Bank (Part 1 & 2)",
       "CSEET Paper 2 Part B Management (ICSI)",
-      "Continuous updates reflecting official paper trends",
     ],
     cta: {
       label: "View All Available Courses",

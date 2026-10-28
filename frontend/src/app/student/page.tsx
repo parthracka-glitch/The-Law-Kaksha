@@ -303,6 +303,9 @@ export default function StudentDashboardPage() {
   const isCaUnlocked = useMemo(() => {
     const hasInPurchased = purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
+      if (lower.includes("qbank") || lower.includes("question-bank") || lower.includes("question bank")) {
+        return false;
+      }
       return (
         lower === "course-ca-foundation-sub" ||
         lower === "ca-foundation-sub" ||
@@ -315,8 +318,7 @@ export default function StudentDashboardPage() {
         lower === "prod-combo" ||
         lower === "all-access" ||
         lower.includes("foundation") ||
-        lower.includes("ca-") ||
-        lower.includes("question-bank") ||
+        (lower.startsWith("ca-") && !lower.includes("qbank")) ||
         lower.includes("paper 2") ||
         lower.includes("paper-2") ||
         lower.includes("business laws")
@@ -326,6 +328,22 @@ export default function StudentDashboardPage() {
     const target = String(studentProfile.targetExam || "").toLowerCase();
     return target.includes("ca") || target.includes("foundation") || target.includes("business laws");
   }, [purchasedBooks, studentProfile.targetExam]);
+
+  const isQBankUnlocked = useMemo(() => {
+    return purchasedBooks.some(id => {
+      const lower = (id || "").toLowerCase();
+      return (
+        lower === "course-ca-qbank" ||
+        lower === "ca-foundation-qbank" ||
+        lower === "ca-qbank" ||
+        lower === "sub-ca-qbank" ||
+        lower === "prod-qbank" ||
+        lower.includes("question-bank") ||
+        lower.includes("question bank") ||
+        lower.includes("qbank")
+      );
+    });
+  }, [purchasedBooks]);
 
   const isCsUnlocked = useMemo(() => {
     const hasInPurchased = purchasedBooks.some(id => {
@@ -376,10 +394,28 @@ export default function StudentDashboardPage() {
   }, [isCsUnlocked, isCaUnlocked, activeCourse]);
 
   const handleBuyCourse = (courseType: "ca" | "cs" | string) => {
+    const isQBank =
+      courseType === "qbank" ||
+      courseType === "course-ca-qbank" ||
+      courseType === "ca-foundation-qbank" ||
+      courseType === "ca-qbank" ||
+      courseType === "sub-ca-qbank";
     const isCa = courseType === "ca" || courseType === "ca-foundation" || courseType === "course-ca-foundation-sub";
     const isCs = courseType === "cs" || courseType === "cseet" || courseType === "course-cseet" || courseType === "course-cseet-sub";
     const isCombo = courseType === "all-access" || courseType === "combo" || courseType === "prod-combo";
-    if (isCa) {
+    if (isQBank) {
+      addToCart({
+        id: "course-ca-qbank",
+        title: "CA Foundation Question Bank (Part 1 & 2)",
+        format: "pdf",
+        price: 349,
+        originalPrice: 699,
+        category: "Full Course Subscription",
+        badge: "Part 1 & 2 Included • ₹349",
+      });
+      setIsCartOpen(true);
+      setCheckoutStep("details");
+    } else if (isCa) {
       addToCart({
         id: "course-ca-foundation-sub",
         title: promoBanners.caCard?.title || "CA Foundation Business Laws Master Pass",
@@ -1196,6 +1232,8 @@ export default function StudentDashboardPage() {
                   onOpenPdf={(url, title, subtitle, courseType, isFreeSample) => {
                     const isSample = Boolean(
                       isFreeSample ||
+                      url.includes("Sample") ||
+                      url.includes("sample") ||
                       url.includes("sale-of-goods-unit-1") ||
                       url.includes("sale-of-goods-unit-2") ||
                       url.includes("unit-1-general-nature-of-partnership") ||
@@ -1204,22 +1242,30 @@ export default function StudentDashboardPage() {
                       url.includes("cseet-management") ||
                       url.includes("cseet-business-law")
                     );
+                    const isQBank =
+                      (courseType as string) === "qbank" ||
+                      (courseType as string) === "course-ca-qbank" ||
+                      url.includes("Question Bank") ||
+                      url.includes("question-bank") ||
+                      url.includes("qbank");
                     const stream = courseType || activeCourse;
                     const isUnlocked =
                       isAdminUser ||
                       isSample ||
-                      (stream === "ca"
+                      (isQBank
+                        ? isQBankUnlocked
+                        : stream === "ca"
                         ? isCaUnlocked
                         : stream === "cs"
                         ? isCsUnlocked
                         : isCaUnlocked || isCsUnlocked);
 
                     if (isUnlocked) {
-                      handleOpenPdf(url, title, subtitle || "", true, isSample, undefined, undefined, undefined, stream);
+                      handleOpenPdf(url, title, subtitle || "", true, isSample, undefined, undefined, undefined, stream === "cs" ? "cs" : "ca");
                     } else {
                       setLockedPrompt({
                         open: true,
-                        courseName: stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management",
+                        courseName: isQBank ? "CA Foundation Question Bank (Part 1 & 2)" : (stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management"),
                       });
                     }
                   }}
@@ -1252,6 +1298,7 @@ export default function StudentDashboardPage() {
                   totalUnitsCount={totalUnitsCount}
                   isCaUnlocked={isCaUnlocked}
                   isCsUnlocked={isCsUnlocked}
+                  isQBankUnlocked={isQBankUnlocked}
                   isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
                   onBuyCourse={(courseType) => handleBuyCourse(courseType)}
                   purchasedBooks={purchasedBooks}

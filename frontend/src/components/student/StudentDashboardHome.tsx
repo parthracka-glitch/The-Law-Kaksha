@@ -217,7 +217,7 @@ interface StudentDashboardHomeProps {
   awardXp?: (amount: number, reason: string) => void;
   onOpenStreakLog?: () => void;
   onOpenBadgesModal?: () => void;
-  onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs", isFreeSample?: boolean) => void;
+  onOpenPdf: (url: string, title: string, subtitle?: string, courseType?: "ca" | "cs" | string, isFreeSample?: boolean) => void;
   onExploreCourse: (courseId: string) => void;
   activeCourse?: "ca" | "cs";
   qotdData: QotdData;
@@ -229,8 +229,9 @@ interface StudentDashboardHomeProps {
   totalUnitsCount: number;
   isCaUnlocked?: boolean;
   isCsUnlocked?: boolean;
+  isQBankUnlocked?: boolean;
   isAllAccessUnlocked?: boolean;
-  onBuyCourse?: (courseType: "ca" | "cs" | "all-access") => void;
+  onBuyCourse?: (courseType: "ca" | "cs" | "all-access" | string) => void;
   purchasedBooks?: string[];
   studentCourses?: StudentCoursePayload[];
   completedUnits?: string[];
@@ -266,6 +267,7 @@ export function StudentDashboardHome({
   onSelectQotdOption,
   isCaUnlocked = false,
   isCsUnlocked = false,
+  isQBankUnlocked = false,
   onBuyCourse,
   purchasedBooks = [],
   studentCourses = [],
@@ -320,6 +322,24 @@ export function StudentDashboardHome({
   // Helper to determine if a course / codex / pass is already owned or subscribed to by the student
   const isResourceOwned = useCallback(
     (resource: ShowcaseResourceItem): boolean => {
+      // Question Bank is a standalone purchase and is NOT included in CA Foundation or All-Access pass
+      if (
+        resource.id === "course-ca-qbank" ||
+        resource.id === "prod-qbank" ||
+        resource.id.includes("qbank") ||
+        resource.id.includes("question-bank") ||
+        resource.title?.toLowerCase().includes("question bank")
+      ) {
+        return Boolean(
+          isQBankUnlocked ||
+          purchasedBooks.includes("course-ca-qbank") ||
+          purchasedBooks.includes("ca-foundation-qbank") ||
+          purchasedBooks.includes("ca-qbank") ||
+          purchasedBooks.includes("sub-ca-qbank") ||
+          purchasedBooks.includes("prod-qbank")
+        );
+      }
+
       if (resource.courseType === "all-access" || resource.id === "prod-combo") {
         return Boolean(
           (isCaUnlocked && isCsUnlocked) ||
@@ -396,7 +416,7 @@ export function StudentDashboardHome({
         (resource.cartPayload && purchasedBooks.includes(resource.cartPayload.id))
       );
     },
-    [isCaUnlocked, isCsUnlocked, purchasedBooks]
+    [isCaUnlocked, isCsUnlocked, isQBankUnlocked, purchasedBooks]
   );
 
   // ONLY show live catalog products that the student has NOT subscribed to yet
@@ -559,7 +579,14 @@ export function StudentDashboardHome({
 
       if (courseCategory !== activeCourse) return;
 
-      const isActuallyEnrolled = Boolean(course?.isEnrolled || (courseCategory === "ca" ? isCaUnlocked : isCsUnlocked));
+      const isQBankCourse =
+        courseId === "course-ca-qbank" ||
+        courseId.includes("qbank") ||
+        courseTitle.includes("question bank");
+
+      const isActuallyEnrolled = isQBankCourse
+        ? Boolean(course?.isEnrolled || isQBankUnlocked || purchasedBooks.includes("course-ca-qbank"))
+        : Boolean(course?.isEnrolled || (courseCategory === "ca" ? isCaUnlocked : isCsUnlocked));
       if (!isActuallyEnrolled) return;
 
       (Array.isArray(course?.acts) ? course.acts : []).forEach((act) => {
@@ -695,7 +722,7 @@ export function StudentDashboardHome({
     }
 
     return items;
-  }, [activeCourse, completedUnits, isCaUnlocked, isCsUnlocked, studentCourses]);
+  }, [activeCourse, completedUnits, isCaUnlocked, isCsUnlocked, isQBankUnlocked, purchasedBooks, studentCourses]);
 
   const unenrolledCourses = useMemo(() => {
     const list: Array<{
@@ -712,6 +739,7 @@ export function StudentDashboardHome({
         studentCourses.some((c) => {
           const cId = String(c?.id || "").toLowerCase();
           const cTitle = String(c?.title || "").toLowerCase();
+          if (cId === "course-ca-qbank" || cId.includes("qbank") || cTitle.includes("question bank")) return false;
           return (cId.includes("ca") || cTitle.includes("ca") || cId.includes("foundation")) && c?.isEnrolled;
         }))
     );
@@ -726,9 +754,21 @@ export function StudentDashboardHome({
         }))
     );
 
+    const isQBankEnrolled = Boolean(
+      isQBankUnlocked ||
+      purchasedBooks.includes("course-ca-qbank") ||
+      (Array.isArray(studentCourses) &&
+        studentCourses.some((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          return (cId === "course-ca-qbank" || cId.includes("qbank")) && c?.isEnrolled;
+        }))
+    );
+
     const caDbCourse = Array.isArray(studentCourses)
       ? studentCourses.find((c) => {
           const cId = String(c?.id || "").toLowerCase();
+          const cTitle = String(c?.title || "").toLowerCase();
+          if (cId === "course-ca-qbank" || cId.includes("qbank") || cTitle.includes("question bank")) return false;
           return cId.includes("ca") || cId.includes("foundation");
         })
       : undefined;
@@ -740,6 +780,13 @@ export function StudentDashboardHome({
         })
       : undefined;
 
+    const qbankDbCourse = Array.isArray(studentCourses)
+      ? studentCourses.find((c) => {
+          const cId = String(c?.id || "").toLowerCase();
+          return cId === "course-ca-qbank" || cId.includes("qbank");
+        })
+      : undefined;
+
     if (!isCaEnrolled) {
       list.push({
         id: caDbCourse?.id || "ca-foundation",
@@ -748,6 +795,18 @@ export function StudentDashboardHome({
           caDbCourse?.description ||
           "Comprehensive CA Foundation Paper 2 Business Laws preparation codex, chapter notes, and examiner traps.",
         price: Number(caDbCourse?.price ?? promoBanners?.caCard?.price ?? 1),
+        courseType: "ca",
+      });
+    }
+
+    if (!isQBankEnrolled) {
+      list.push({
+        id: "course-ca-qbank",
+        title: qbankDbCourse?.title || "CA Foundation Question Bank (Part 1 & 2)",
+        description:
+          qbankDbCourse?.description ||
+          "Smart revision exam question bank codex with comprehensive solutions, Part 1 & 2 included.",
+        price: Number(qbankDbCourse?.price ?? 349),
         courseType: "ca",
       });
     }
@@ -765,7 +824,7 @@ export function StudentDashboardHome({
     }
 
     return list;
-  }, [studentCourses, isCaUnlocked, isCsUnlocked, promoBanners]);
+  }, [studentCourses, isCaUnlocked, isCsUnlocked, isQBankUnlocked, purchasedBooks, promoBanners]);
 
   const handleContinueLearning = () => {
     const firstCourse = studentCourseList[0];
@@ -884,7 +943,7 @@ export function StudentDashboardHome({
                 <button
                   type="button"
                   onClick={() => {
-                    if (onBuyCourse) onBuyCourse(c.courseType);
+                    if (onBuyCourse) onBuyCourse(c.id === "course-ca-qbank" ? "course-ca-qbank" : c.courseType);
                     else onExploreCourse(c.id);
                   }}
                   className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer hover:scale-[1.01]"

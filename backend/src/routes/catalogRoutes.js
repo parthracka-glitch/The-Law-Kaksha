@@ -60,7 +60,11 @@ function courseToCatalogItem(course, syllabus = []) {
     description: course.description || "",
     price,
     original_price: mrp > price ? mrp : 0,
-    badge: comingSoon ? "Coming Soon" : `₹${price} / ${course.accessDays || 30} Days`,
+    badge: comingSoon
+      ? "Coming Soon"
+      : String(course.id || "").includes("qbank")
+      ? `Part 1 & 2 Included • ₹${price}`
+      : `₹${price} / ${course.accessDays || 30} Days`,
     category,
     examBody,
     pages_or_duration: unitsCount
@@ -71,9 +75,11 @@ function courseToCatalogItem(course, syllabus = []) {
     cover_image: course.thumbnail || "/assets/ca-cs-hero-books-sharp.png",
     pdfUrl:
       course.pdfUrl ||
-      (String(course.id || "").includes("cseet")
+      (String(course.id || "").includes("qbank") || String(course.id || "").includes("question-bank")
+        ? "/samples/Question Bank Part 1- Sample Copy.pdf"
+        : String(course.id || "").includes("cseet")
         ? "/samples/Lesson 7 Introduction to Management (Comprehensive Notes).pdf"
-        : "/samples/Question Bank Part 1- Sample Copy.pdf"),
+        : "/notes/Unit 1 - Nature of Contracts.pdf"),
     previewPagesLimit: course.previewPagesLimit || 10,
     highlights: Array.isArray(course.highlights) && course.highlights.length > 0
       ? course.highlights
@@ -82,7 +88,7 @@ function courseToCatalogItem(course, syllabus = []) {
           "Act-wise practice questions & exam-pattern case studies",
           "ICAI/ICSI model answer writing techniques",
         ],
-    paymentType: "monthly",
+    paymentType: String(course.id || "").includes("qbank") ? "one-time" : "monthly",
     comingSoon,
     ...(syllabus.length > 0 ? { syllabus } : {}),
   };

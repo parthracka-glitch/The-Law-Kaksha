@@ -44,10 +44,27 @@ const CANONICAL_CATALOG_PRICES = {
   "book-vol-2": 99,
   "prod-combo": 180,
   "all-access": 180,
+  "course-ca-qbank": 349,
+  "ca-foundation-qbank": 349,
+  "ca-qbank": 349,
+  "sub-ca-qbank": 349,
+  "ca-foundation-smart-revision-question-bank": 349,
+  "smart-revision-question-bank": 349,
 };
 
 function resolveCourseAlias(rawId) {
   const clean = String(rawId || "").toLowerCase().trim();
+  if (
+    clean === "course-ca-qbank" ||
+    clean === "ca-foundation-qbank" ||
+    clean === "ca-qbank" ||
+    clean === "sub-ca-qbank" ||
+    clean === "ca-foundation-smart-revision-question-bank" ||
+    clean === "smart-revision-question-bank" ||
+    clean === "qbank"
+  ) {
+    return "course-ca-qbank";
+  }
   if (
     clean === "course-ca-foundation" ||
     clean === "course-ca-foundation-sub" ||

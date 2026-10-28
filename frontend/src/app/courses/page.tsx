@@ -251,16 +251,20 @@ function CoursesCatalogContent() {
   });
 
   const handleOpenPreview = (product: Product) => {
-    const defaultPdf = product.id.includes("cseet") || product.courseId === "course-cseet"
+    const isQBank = product.id.includes("qbank") || product.courseId === "course-ca-qbank";
+    const isCs = product.id.includes("cseet") || product.courseId === "course-cseet";
+    const defaultPdf = isQBank
+      ? "/samples/Question Bank Part 1- Sample Copy.pdf"
+      : isCs
       ? "/samples/Lesson 7 Introduction to Management (Comprehensive Notes).pdf"
-      : "/samples/Question Bank Part 1- Sample Copy.pdf";
+      : "/notes/Unit 1 - Nature of Contracts.pdf";
     const rawPdf = product.pdfUrl || defaultPdf;
     const samplePdfUrl = rawPdf.includes("sample=true") ? rawPdf : `${rawPdf}?sample=true`;
     setPreviewState({
       open: true,
       title: product.title,
       pdfUrl: samplePdfUrl,
-      previewLimit: product.previewPagesLimit || 5,
+      previewLimit: product.previewPagesLimit || 10,
       price: product.price,
       product,
     });

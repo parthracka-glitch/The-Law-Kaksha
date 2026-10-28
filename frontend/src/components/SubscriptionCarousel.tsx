@@ -166,7 +166,7 @@ export function SubscriptionCarousel() {
           subtitle:
             liveCaObj?.description ||
             caSlide?.subtitle ||
-            "Complete 4 Statutory Acts + Smart Question Banks, high-yield visual flowcharts, landmark case laws, and ICAI model answers.",
+            "Complete 4 Statutory Acts, high-yield visual flowcharts, landmark case laws, and ICAI model answers.",
           price: liveCaPrice,
           mrp: liveCaMrp,
           discount: caDiscount,
@@ -176,10 +176,10 @@ export function SubscriptionCarousel() {
           rating: caSlide?.rating || "4.9 / 5.0",
           studentCount: "1,240+ Enrolled",
           features: [
-            "All 4 Statutory Acts + Question Banks (22 Units)",
+            "All 4 Statutory Acts (20 Units)",
             "The Indian Contract Act, 1872 (10 Units)",
             "Sale of Goods & Partnership Acts with LDR Charts",
-            "Smart Revision Question Banks Part 1 & Part 2",
+            "Limited Liability Partnership Act, 2008 (2 Units)",
             "Single-Device Watermarked DRM Security",
           ],
           ctaLink: `/product/${liveCaObj?.slug || "course-ca-foundation"}`,

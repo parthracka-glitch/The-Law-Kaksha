@@ -15,9 +15,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers,
+  ShoppingBag,
 } from "lucide-react";
 import { SecurePdfReader } from "./SecurePdfReader";
 import { apiRequest } from "@/lib/api";
+import { useCart } from "@/context/CartContext";
 
 interface SampleResource {
   id: string;
@@ -43,12 +45,26 @@ interface SampleResource {
 const SAMPLE_RESOURCES: SampleResource[] = [];
 
 export function FreeResourceModule() {
+  const { addToCart, setIsCartOpen } = useCart();
   const [resources, setResources] = useState<SampleResource[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "ca" | "cseet">("all");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(2);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const handleBuyQuestionBank = () => {
+    addToCart({
+      id: "course-ca-qbank",
+      title: "CA Foundation Question Bank (Part 1 & 2)",
+      price: 349,
+      originalPrice: 699,
+      format: "pdf",
+      category: "CA Foundation",
+      badge: "Part 1 & 2 Included • ₹349",
+    });
+    setIsCartOpen(true);
+  };
 
   const [activeReader, setActiveReader] = useState<{
     isOpen: boolean;
@@ -92,9 +108,7 @@ export function FreeResourceModule() {
         }>("/api/resources?sampleOnly=true");
 
         if (isMounted && res.success && Array.isArray(res.data?.resources)) {
-          const dynamicItems = res.data.resources.filter(
-            (r) => !r.id.includes("qb-part1") && !r.id.includes("qb-part2")
-          );
+          const dynamicItems = res.data.resources;
 
           if (dynamicItems.length > 0) {
             const mappedDynamic: SampleResource[] = dynamicItems.map((item, idx) => {
@@ -466,14 +480,25 @@ export function FreeResourceModule() {
                         {/* Action Buttons */}
                         <div className="pt-6 mt-6 border-t border-slate-200/70 space-y-3">
                           {/* Primary CTA: Open Interactive Reader */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenReader(resource)}
-                            className="w-full inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm px-6 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
-                          >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Read Sample In-Browser</span>
-                          </button>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReader(resource)}
+                              className="w-full inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-xs sm:text-sm px-4 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                              <span>Read Sample</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleBuyQuestionBank}
+                              className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs sm:text-sm px-4 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+                            >
+                              <ShoppingBag className="w-4 h-4" />
+                              <span>Buy Full @ ₹349</span>
+                            </button>
+                          </div>
 
                           <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
                             <span className="flex items-center gap-1">
@@ -545,20 +570,21 @@ export function FreeResourceModule() {
               Need The Complete Question Bank?
             </span>
             <h4 className="text-xl sm:text-2xl font-serif font-black text-[#0A192F]">
-              Unlock All 9 Contract Act Units &amp; 70+ Case Studies
+              Complete Smart Revision Question Bank (Part 1 &amp; Part 2)
             </h4>
             <p className="text-xs sm:text-sm text-[#64748B] max-w-xl">
-              Get full access to all CA Foundation Paper 2 questions, exhaustive descriptive models, and timed mock simulators starting at just ₹99.
+              Get unrestricted access to both Part 1 and Part 2 Question Banks covering all 4 Statutory Acts with RTPs, MTPs and examiner-evaluated ICAI model answers for just ₹349.
             </p>
           </div>
 
-          <Link
-            href="/courses"
+          <button
+            type="button"
+            onClick={handleBuyQuestionBank}
             className="inline-flex items-center justify-center gap-2 bg-[#005A9C] hover:bg-[#004F8A] text-white font-bold text-sm px-8 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
           >
-            <span>Unlock Full Question Bank @ ₹99</span>
+            <span>Buy Full Question Bank @ ₹349</span>
             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-          </Link>
+          </button>
         </div>
       </div>
 
