@@ -1327,6 +1327,9 @@ export default function StudentDashboardPage() {
           {(activeTab === "courses" || activeTab === "chapters") && (
             <StudentCoursesHierarchyTab
               initialCourseId={activeCourse === "ca" ? "ca-foundation" : "course-cseet"}
+              studentName={studentName}
+              initials={initials}
+              onOpenProfile={() => setProfileModalOpen(true)}
               onOpenReader={(url, title, isPurchased, previewPagesLimit) => {
                 handleOpenPdf(url, title, "Curriculum Codex", isPurchased, Boolean(previewPagesLimit), previewPagesLimit);
               }}
