@@ -1139,60 +1139,60 @@ export default function StudentDashboardPage() {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
         {/* HEADER BAR (DEEP NAVY BRAND THEME #0F2557) */}
-        <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-4 sm:px-6 py-3 flex items-center justify-between gap-3 shadow-md">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 shadow-md">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/20 transition-colors min-w-[38px] min-h-[38px] flex items-center justify-center cursor-pointer"
+              className="lg:hidden p-2 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/20 transition-colors min-w-[36px] min-h-[36px] sm:min-w-[38px] sm:min-h-[38px] flex items-center justify-center cursor-pointer shrink-0"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold text-white flex items-center gap-2 truncate">
                 <span>{NAV_ITEMS.find((n) => n.id === activeTab)?.label || "Student Dashboard"}</span>
               </h1>
-              <p className="text-[11px] text-[#DCE6FF] leading-none mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-[#DCE6FF] leading-tight mt-0.5 truncate max-w-[150px] xs:max-w-[220px] sm:max-w-none">
                 {activeCourse === "ca" ? "CA Foundation Paper 2: Business Laws" : "CSEET Business Laws and Management"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* If student has subscribed to BOTH streams, provide a smooth dual-stream switch */}
             {isCaUnlocked && isCsUnlocked ? (
-              <div className="inline-flex p-1 rounded-full bg-[#173684]/90 border border-white/15 shadow-xs shrink-0">
+              <div className="inline-flex p-0.5 sm:p-1 rounded-full bg-[#173684]/90 border border-white/15 shadow-xs shrink-0">
                 <button
                   type="button"
                   onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); setSelectedActFilter("all"); }}
-                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
                     activeCourse === "ca" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-300" />
                   <span className="sm:hidden">CA</span>
                   <span className="hidden sm:inline">CA Foundation</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); setSelectedActFilter("all"); }}
-                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
                     activeCourse === "cs" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-300" />
                   <span>CSEET</span>
                 </button>
               </div>
             ) : (
               /* Single course subscriber badge - removes manual locked pills */
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#173684]/80 border border-white/15 text-xs text-white shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#173684]/80 border border-white/15 text-[11px] sm:text-xs text-white shadow-2xs">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                 <span className="font-semibold text-white/95">
                   {activeCourse === "ca" ? "CA Foundation" : "CSEET"}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
+                <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30 hidden xs:inline">
                   Subscribed
                 </span>
               </div>
@@ -1200,7 +1200,7 @@ export default function StudentDashboardPage() {
           </div>
         </header>
 
-        <div key={activeTab} className={`tab-panel-smooth p-4 sm:p-6 pb-24 lg:pb-12 space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
+        <div key={activeTab} className={`tab-panel-smooth p-3 xs:p-4 sm:p-6 pb-24 lg:pb-12 space-y-4 sm:space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
 
           {/* CSEET COMING SOON SHELL ONLY IF NOT SUBSCRIBED */}
           {activeCourse === "cs" && !isCsUnlocked ? (
@@ -2445,33 +2445,33 @@ export default function StudentDashboardPage() {
       {/* 5. GOOGLE FORM IN-PORTAL TEST TAKING MODAL */}
       {activeFormModal?.open && (
         <div className="fixed inset-0 z-50 bg-[#221D1D]/50 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-4xl w-full h-[90vh] shadow-2xl border border-[#E7E4E7] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-4xl w-full h-[90vh] shadow-2xl border border-[#E7E4E7] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="px-5 py-3.5 border-b border-[#E7E4E7] flex items-center justify-between gap-3 bg-[#F7F7F5]">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-[#4B8097]" />
+            <div className="px-3.5 sm:px-5 py-2.5 sm:py-3.5 border-b border-[#E7E4E7] flex items-center justify-between gap-2.5 bg-[#F7F7F5]">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#4B8097]" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-serif font-bold text-[#221D1D] truncate">{activeFormModal.title}</h3>
-                  <div className="flex items-center gap-2 text-[11px] text-[#77716E] mt-0.5">
-                    <span className="font-semibold text-[#4B8097]">{activeFormModal.subject}</span>
+                  <h3 className="text-xs sm:text-sm font-serif font-bold text-[#221D1D] truncate">{activeFormModal.title}</h3>
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-[#77716E] mt-0.5">
+                    <span className="font-semibold text-[#4B8097] truncate">{activeFormModal.subject}</span>
                     <span>•</span>
-                    <span className="flex items-center gap-1 font-mono text-[#4D433F]">
+                    <span className="flex items-center gap-1 font-mono text-[#4D433F] shrink-0">
                       <Clock className="w-3 h-3 text-[#4B8097]" />
-                      {activeFormModal.duration} Mins Timed Mock
+                      {activeFormModal.duration} Mins
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 {activeFormModal.url && (
                   <a
                     href={activeFormModal.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
+                    className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white border border-[#E7E4E7] text-[#221D1D] hover:bg-[#F7F7F5] text-[11px] sm:text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
                   >
                     <span>Full Screen</span>
                     <ExternalLink className="w-3 h-3" />
@@ -2479,10 +2479,10 @@ export default function StudentDashboardPage() {
                 )}
                 <button
                   onClick={() => setActiveFormModal(null)}
-                  className="p-1.5 rounded-xl text-[#77716E] hover:text-[#221D1D] hover:bg-[#E7E4E7] transition-colors cursor-pointer"
+                  className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl text-[#77716E] hover:text-[#221D1D] hover:bg-[#E7E4E7] transition-colors cursor-pointer"
                   title="Close Test"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
@@ -2500,16 +2500,16 @@ export default function StudentDashboardPage() {
                   title={activeFormModal.title}
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-[#77716E] p-6 text-center">
+                <div className="flex flex-col items-center justify-center h-full text-[#77716E] p-4 sm:p-6 text-center">
                   <p className="text-xs font-semibold">Test link is not configured properly.</p>
                 </div>
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-[#E7E4E7] flex items-center justify-between text-xs bg-white">
-              <div className="flex items-center gap-2 text-[#4D433F] font-medium">
-                <Flame className="w-4 h-4 text-[#F7892A]" />
+            <div className="px-3.5 sm:px-5 py-2.5 sm:py-3 border-t border-[#E7E4E7] flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs bg-white">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[#4D433F] font-medium text-[11px] sm:text-xs text-center sm:text-left">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F7892A] shrink-0" />
                 <span>Submit your answers inside Google Form above, then click Finish.</span>
               </div>
               <button
@@ -2517,7 +2517,7 @@ export default function StudentDashboardPage() {
                   setActiveFormModal(null);
                   awardXp(20, `Completed Test Review: ${activeFormModal.title}`);
                 }}
-                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] font-bold text-xs shadow-xs cursor-pointer text-center"
               >
                 Finish &amp; Close Test
               </button>
@@ -2528,25 +2528,25 @@ export default function StudentDashboardPage() {
 
       {/* 6. COURSE PURCHASE & ACCESS CONTROL PROMPT MODAL */}
       {lockedPrompt?.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 border border-[#E7E4E7] relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/60 backdrop-blur-xs p-3 xs:p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 xs:p-6 shadow-2xl space-y-3.5 sm:space-y-5 border border-[#E7E4E7] relative max-h-[92vh] overflow-y-auto">
             <button
               onClick={() => setLockedPrompt(null)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 p-1.5 rounded-full text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
               aria-label="Close modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#F4C5C0] text-[#C35F3B] flex items-center justify-center shrink-0 shadow-xs">
-                <Lock className="w-6 h-6" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#F4C5C0] text-[#C35F3B] flex items-center justify-center shrink-0 shadow-xs">
+                <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#C35F3B]">
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#C35F3B]">
                   Course Enrollment Required
                 </span>
-                <h3 className="text-lg font-serif font-bold text-[#221D1D]">
+                <h3 className="text-base sm:text-lg font-serif font-bold text-[#221D1D]">
                   Unlock {lockedPrompt.courseName}
                 </h3>
               </div>
@@ -2557,12 +2557,12 @@ export default function StudentDashboardPage() {
             </p>
 
             {/* Course Value Props Box */}
-            <div className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-2.5">
+            <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-2 sm:space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#221D1D]">Included with Your Pass:</span>
-                <span className="text-xs font-bold text-[#4B8097]">Launch Special @ ₹99/mo</span>
+                <span className="text-[11px] sm:text-xs font-bold text-[#221D1D]">Included with Your Pass:</span>
+                <span className="text-[11px] sm:text-xs font-bold text-[#4B8097]">Launch Special @ ₹99/mo</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs text-[#4D433F]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 pt-1 text-xs text-[#4D433F]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#4B8097] shrink-0" />
                   <span>Full Codified Notes (All Chapters)</span>
@@ -2592,7 +2592,7 @@ export default function StudentDashboardPage() {
                 <button
                   type="button"
                   disabled
-                  className="w-full py-3.5 rounded-full bg-[#F1F5F9] text-[#94A3B8] text-xs font-bold border border-[#E2E8F0] flex items-center justify-center gap-2 cursor-not-allowed"
+                  className="w-full py-3 sm:py-3.5 rounded-full bg-[#F1F5F9] text-[#94A3B8] text-xs font-bold border border-[#E2E8F0] flex items-center justify-center gap-2 cursor-not-allowed"
                 >
                   <Clock className="w-4 h-4" />
                   <span>CSEET Pass — Coming Soon</span>
@@ -2603,7 +2603,7 @@ export default function StudentDashboardPage() {
                     setLockedPrompt(null);
                     handleBuyCourse(activeCourse);
                   }}
-                  className="w-full py-3.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 sm:py-3.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ShoppingBag className="w-4 h-4 text-[#AED7E9]" />
                   <span>Buy {lockedPrompt.courseName} Pass — ₹99/mo</span>
@@ -2616,29 +2616,30 @@ export default function StudentDashboardPage() {
 
       {/* 7. VERIFIABLE ACADEMIC CERTIFICATE MODAL */}
       {certificateModal?.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto animate-in fade-in">
-          <div className="relative bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-8 shadow-2xl border border-[#E7E4E7] space-y-6 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#221D1D]/70 backdrop-blur-xs p-2.5 sm:p-6 overflow-y-auto animate-in fade-in">
+          <div className="relative bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full p-3.5 xs:p-4 sm:p-8 shadow-2xl border border-[#E7E4E7] space-y-4 sm:space-y-6 my-auto max-h-[94vh] overflow-y-auto">
             {/* Modal Header & Controls */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7] print:hidden">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E7E4E7] print:hidden gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="p-1.5 rounded-lg bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE] shrink-0">
                   <Award className="w-4 h-4" />
                 </span>
-                <div>
-                  <h3 className="text-sm font-bold text-[#221D1D]">Official Certificate Viewer</h3>
-                  <p className="text-[11px] text-[#77716E]">Cryptographically signed credential issued upon 100% course completion</p>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-bold text-[#221D1D] truncate">Official Certificate Viewer</h3>
+                  <p className="text-[10px] sm:text-[11px] text-[#77716E] truncate">Cryptographically signed credential</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                   title="Print or Save as PDF"
                 >
                   <Printer className="w-3.5 h-3.5 text-[#AED7E9]" />
-                  <span>Print / Save as PDF</span>
+                  <span className="hidden xs:inline">Print / Save as PDF</span>
+                  <span className="xs:hidden">Print</span>
                 </button>
                 <button
                   type="button"
@@ -2646,7 +2647,7 @@ export default function StudentDashboardPage() {
                   className="p-1.5 rounded-full text-[#77716E] hover:text-[#221D1D] hover:bg-[#F7F7F5] transition cursor-pointer"
                   aria-label="Close modal"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>

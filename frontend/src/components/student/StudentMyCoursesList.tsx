@@ -113,7 +113,7 @@ export function StudentMyCoursesList({
               placeholder="Search chapters or topics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9.5 pl-9 pr-3 text-xs rounded-xl bg-[#E7EDF8] border border-transparent focus:border-[#3558F0] focus:bg-white text-[#13264F] placeholder-[#6C7893] transition-all outline-hidden shadow-2xs"
+              className="w-full h-8.5 xs:h-9.5 pl-8.5 xs:pl-9 pr-3 text-[11px] xs:text-xs rounded-xl bg-[#E7EDF8] border border-transparent focus:border-[#3558F0] focus:bg-white text-[#13264F] placeholder-[#6C7893] transition-all outline-hidden shadow-2xs"
             />
             <Search className="w-3.5 h-3.5 text-[#6C7893] absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
@@ -122,7 +122,7 @@ export function StudentMyCoursesList({
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
             <button
               onClick={() => setActiveFilter("all")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 xs:px-3 py-1 rounded-full text-[11px] xs:text-xs font-semibold transition-all cursor-pointer ${
                 activeFilter === "all"
                   ? "bg-[#3558F0] text-white shadow-xs"
                   : "bg-[#E4EBF8] text-[#1E3A8A] hover:bg-[#D5E1FA]"
@@ -132,7 +132,7 @@ export function StudentMyCoursesList({
             </button>
             <button
               onClick={() => setActiveFilter("in_progress")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 xs:px-3 py-1 rounded-full text-[11px] xs:text-xs font-semibold transition-all cursor-pointer ${
                 activeFilter === "in_progress"
                   ? "bg-[#3558F0] text-white shadow-xs"
                   : "bg-[#E4EBF8] text-[#1E3A8A] hover:bg-[#D5E1FA]"
@@ -142,7 +142,7 @@ export function StudentMyCoursesList({
             </button>
             <button
               onClick={() => setActiveFilter("completed")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-2.5 xs:px-3 py-1 rounded-full text-[11px] xs:text-xs font-semibold transition-all cursor-pointer ${
                 activeFilter === "completed"
                   ? "bg-[#3558F0] text-white shadow-xs"
                   : "bg-[#E4EBF8] text-[#1E3A8A] hover:bg-[#D5E1FA]"

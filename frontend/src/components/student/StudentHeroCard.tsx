@@ -33,20 +33,20 @@ export function StudentHeroCard({
   }, [studentName]);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#EFF4FE] via-[#E7F0FD] to-[#DDE8FD] border border-[#D0DEF8] p-5 sm:p-7 md:px-8 md:py-6 shadow-[0_4px_20px_rgba(30,58,138,0.05)] text-[#13264F]">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#EFF4FE] via-[#E7F0FD] to-[#DDE8FD] border border-[#D0DEF8] p-4 xs:p-5 sm:p-7 md:px-8 md:py-6 shadow-[0_4px_20px_rgba(30,58,138,0.05)] text-[#13264F]">
       {/* Subtle ambient light glows (hidden on low-spec mobile to save GPU fill-rate) */}
       <div className="hidden sm:block absolute -top-12 -right-12 w-56 h-56 rounded-full bg-blue-300/20 blur-xl pointer-events-none" />
       <div className="hidden sm:block absolute -bottom-10 left-1/4 w-60 h-60 rounded-full bg-indigo-200/25 blur-xl pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         {/* Left Side: Greeting & CTA */}
-        <div className="max-w-md space-y-2.5 sm:space-y-3">
+        <div className="max-w-md space-y-2 sm:space-y-3">
           {/* Headline with Sun Emoji */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl sm:text-2xl md:text-[28px] font-extrabold tracking-tight text-[#111827] leading-tight">
+          <div className="flex items-center gap-1.5 xs:gap-2 flex-wrap">
+            <h2 className="text-lg xs:text-xl sm:text-2xl md:text-[28px] font-extrabold tracking-tight text-[#111827] leading-tight">
               {greeting}, {displayName}!
             </h2>
-            <span className="text-xl sm:text-2xl inline-block select-none animate-pulse" role="img" aria-label="sun">
+            <span className="text-lg xs:text-xl sm:text-2xl inline-block select-none animate-pulse" role="img" aria-label="sun">
               ☀️
             </span>
           </div>
@@ -57,19 +57,19 @@ export function StudentHeroCard({
           </p>
 
           {/* CTA Pill Button */}
-          <div className="pt-2 sm:pt-3">
+          <div className="pt-1.5 sm:pt-3">
             <button
               onClick={onContinueLearning}
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#3558F0] hover:bg-[#2546D8] active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-[0_4px_14px_rgba(53,88,240,0.35)] transition-all cursor-pointer group"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#3558F0] hover:bg-[#2546D8] active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-[0_4px_14px_rgba(53,88,240,0.35)] transition-all cursor-pointer group"
             >
               <span>Continue Learning</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
         </div>
 
         {/* Right Side: Exact Vector Study Illustration Matching Screenshot */}
-        <div className="relative self-center md:self-auto shrink-0 w-full max-w-[340px] sm:max-w-[400px] md:max-w-[440px] lg:max-w-[480px] h-[130px] sm:h-[155px] md:h-[170px] flex items-center justify-center">
+        <div className="relative self-center md:self-auto shrink-0 w-full max-w-[340px] sm:max-w-[400px] md:max-w-[440px] lg:max-w-[480px] h-[115px] xs:h-[130px] sm:h-[155px] md:h-[170px] flex items-center justify-center">
           <svg
             viewBox="0 0 460 170"
             className="w-full h-full select-none"
