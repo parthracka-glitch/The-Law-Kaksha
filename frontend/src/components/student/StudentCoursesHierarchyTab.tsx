@@ -24,11 +24,15 @@ import {
   Landmark,
   Award,
   HelpCircle,
-  FileSpreadsheet,
   Check,
   X,
   ExternalLink,
   ChevronLeft,
+  Zap,
+  Flame,
+  Star,
+  GraduationCap,
+  Compass,
 } from "lucide-react";
 import { getApiBaseUrl, type JsonObject } from "@/lib/api";
 
@@ -120,6 +124,7 @@ export function StudentCoursesHierarchyTab({
   const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId || "");
   const [selectedActId, setSelectedActId] = useState<string | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<MaterialCategory>("all");
+  const [actDetailFilter, setActDetailFilter] = useState<"all" | "ldr" | "notes" | "practice" | "infographic">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<boolean>(true);
@@ -130,7 +135,7 @@ export function StudentCoursesHierarchyTab({
     initialCourseIdRef.current = initialCourseId;
   }, [initialCourseId]);
 
-  // Dynamic greeting based on time of day
+  // Dynamic greeting based on student's local hour
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
@@ -289,10 +294,13 @@ export function StudentCoursesHierarchyTab({
         icon: BookOpen,
         colorBg: "bg-[#EBF3FB]",
         colorText: "text-[#005A9C]",
+        gradientPill: "from-[#005A9C] to-[#0284C7]",
         borderHover: "hover:border-[#005A9C]/40",
         progressColor: "bg-[#005A9C]",
-        badgeCategory: "Business Laws",
+        badgeCategory: "Business Laws • 25-35% Weightage",
         arrowBg: "bg-[#F0F5FA] hover:bg-[#005A9C] text-[#005A9C] hover:text-white",
+        accentRing: "ring-[#005A9C]/20",
+        lightBg: "bg-[#F4F9FD]",
       };
     }
     if (l.includes("partnership") || id.includes("partnership")) {
@@ -300,10 +308,13 @@ export function StudentCoursesHierarchyTab({
         icon: Scale,
         colorBg: "bg-[#EAF6ED]",
         colorText: "text-[#059669]",
+        gradientPill: "from-[#059669] to-[#10B981]",
         borderHover: "hover:border-[#059669]/40",
         progressColor: "bg-[#059669]",
-        badgeCategory: "Business Laws",
+        badgeCategory: "Business Laws • 20-25% Weightage",
         arrowBg: "bg-[#F0F7F2] hover:bg-[#059669] text-[#059669] hover:text-white",
+        accentRing: "ring-[#059669]/20",
+        lightBg: "bg-[#F4FAF6]",
       };
     }
     if (l.includes("sale of goods") || l.includes("soga") || id.includes("soga")) {
@@ -311,10 +322,13 @@ export function StudentCoursesHierarchyTab({
         icon: FileText,
         colorBg: "bg-[#F3EFFB]",
         colorText: "text-[#7C3AED]",
+        gradientPill: "from-[#7C3AED] to-[#8B5CF6]",
         borderHover: "hover:border-[#7C3AED]/40",
         progressColor: "bg-[#7C3AED]",
-        badgeCategory: "Business Laws",
+        badgeCategory: "Business Laws • 20-25% Weightage",
         arrowBg: "bg-[#F6F2FB] hover:bg-[#7C3AED] text-[#7C3AED] hover:text-white",
+        accentRing: "ring-[#7C3AED]/20",
+        lightBg: "bg-[#F9F6FE]",
       };
     }
     if (l.includes("liability") || l.includes("llp") || id.includes("llp")) {
@@ -322,10 +336,13 @@ export function StudentCoursesHierarchyTab({
         icon: Landmark,
         colorBg: "bg-[#E6F7F8]",
         colorText: "text-[#0D9488]",
+        gradientPill: "from-[#0D9488] to-[#14B8A6]",
         borderHover: "hover:border-[#0D9488]/40",
         progressColor: "bg-[#0D9488]",
-        badgeCategory: "Business Laws",
+        badgeCategory: "Business Laws • 10-15% Weightage",
         arrowBg: "bg-[#EBF7F8] hover:bg-[#0D9488] text-[#0D9488] hover:text-white",
+        accentRing: "ring-[#0D9488]/20",
+        lightBg: "bg-[#F2FBFA]",
       };
     }
     if (l.includes("question bank") || id.includes("qbank")) {
@@ -333,20 +350,26 @@ export function StudentCoursesHierarchyTab({
         icon: Award,
         colorBg: "bg-[#FEF6E7]",
         colorText: "text-[#D97706]",
+        gradientPill: "from-[#D97706] to-[#F59E0B]",
         borderHover: "hover:border-[#D97706]/40",
         progressColor: "bg-[#D97706]",
-        badgeCategory: "Question Bank",
+        badgeCategory: "Smart Question Bank • Solved Volumes",
         arrowBg: "bg-[#FFF9EE] hover:bg-[#D97706] text-[#D97706] hover:text-white",
+        accentRing: "ring-[#D97706]/20",
+        lightBg: "bg-[#FFFBF5]",
       };
     }
     return {
       icon: Layers,
       colorBg: "bg-[#EFF6FF]",
       colorText: "text-[#005A9C]",
+      gradientPill: "from-[#005A9C] to-[#0284C7]",
       borderHover: "hover:border-[#005A9C]/40",
       progressColor: "bg-[#005A9C]",
       badgeCategory: "Curriculum Act",
       arrowBg: "bg-[#F0F5FA] hover:bg-[#005A9C] text-[#005A9C] hover:text-white",
+      accentRing: "ring-[#005A9C]/20",
+      lightBg: "bg-[#F8FAFC]",
     };
   };
 
@@ -437,6 +460,48 @@ export function StudentCoursesHierarchyTab({
     return activeCourse.acts.find((a) => a.id === selectedActId) || null;
   }, [selectedActId, activeCourse]);
 
+  // Breakdown of materials inside the selected act
+  const drilledActMaterials = useMemo(() => {
+    if (!currentDrilledAct) {
+      return { ldrList: [], notesUnits: [], practiceList: [], infographicList: [] };
+    }
+    const ldrList: HierarchicalContentItem[] = [];
+    const notesUnits: { unit: HierarchicalUnit; items: HierarchicalContentItem[] }[] = [];
+    const practiceList: HierarchicalContentItem[] = [];
+    const infographicList: HierarchicalContentItem[] = [];
+
+    (currentDrilledAct.units || []).forEach((u) => {
+      const uTitle = (u.title || "").toLowerCase();
+      const isSupplementaryUnit = uTitle.includes("flowchart") || uTitle.includes("supplementary") || uTitle.includes("questions");
+
+      const unitTheoryItems: HierarchicalContentItem[] = [];
+
+      (u.contentItems || []).forEach((ci) => {
+        const type = (ci.contentType || "").toLowerCase();
+        const title = (ci.title || "").toLowerCase();
+        const isLdr = type === "ldr" || type === "flowchart" || title.includes("ldr") || title.includes("flowchart");
+        const isPractice = type === "practice" || type === "pyq" || title.includes("practice") || title.includes("question bank");
+        const isInfo = type === "infographic" || type === "revision" || title.includes("infographic");
+
+        if (isLdr) {
+          ldrList.push(ci);
+        } else if (isPractice) {
+          practiceList.push(ci);
+        } else if (isInfo) {
+          infographicList.push(ci);
+        } else {
+          unitTheoryItems.push(ci);
+        }
+      });
+
+      if (!isSupplementaryUnit || unitTheoryItems.length > 0) {
+        notesUnits.push({ unit: u, items: unitTheoryItems.length > 0 ? unitTheoryItems : u.contentItems });
+      }
+    });
+
+    return { ldrList, notesUnits, practiceList, infographicList };
+  }, [currentDrilledAct]);
+
   if (loading) {
     return (
       <div className="py-20 text-center">
@@ -466,7 +531,7 @@ export function StudentCoursesHierarchyTab({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
               type="text"
-              placeholder="Search your courses..."
+              placeholder="Search your courses, acts, flowcharts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-9 py-2.5 rounded-full border border-[#E2E8F0] bg-white text-xs sm:text-sm font-medium text-[#0A192F] placeholder-[#94A3B8] shadow-2xs focus:outline-hidden focus:ring-2 focus:ring-[#005A9C]/20 focus:border-[#005A9C] transition-all"
@@ -497,7 +562,7 @@ export function StudentCoursesHierarchyTab({
         </div>
       </div>
 
-      {/* 2. HERO BANNER: SOFT BLUE GRADIENT WITH LAW BOOKS & GAVEL (EXACT MATCH TO SCREENSHOT) */}
+      {/* 2. HERO BANNER: SOFT BLUE GRADIENT WITH REAL LAW BOOKS & GAVEL (EXACT MATCH TO SCREENSHOT) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#EBF3FA] via-[#F1F6FD] to-[#E3EEF8] border border-[#D8E5F2] shadow-xs">
         <div className="flex flex-col md:flex-row items-center justify-between p-6 sm:p-8 md:p-10 gap-6">
           {/* LEFT TEXT COLUMN */}
@@ -561,7 +626,7 @@ export function StudentCoursesHierarchyTab({
             )}
           </div>
 
-          {/* RIGHT HERO IMAGE COLUMN (GENERATED REAL LAW BOOKS & GAVEL) */}
+          {/* RIGHT HERO IMAGE COLUMN (REAL PHOTOREALISTIC LAW BOOKS & GAVEL) */}
           <div className="relative w-full md:w-[360px] lg:w-[420px] h-[160px] sm:h-[180px] md:h-[200px] shrink-0 flex items-center justify-center">
             <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-white/60">
               <Image
@@ -578,29 +643,35 @@ export function StudentCoursesHierarchyTab({
         </div>
       </div>
 
-      {/* 3. MATERIAL TYPE SEGREGATION TABS (PRIMARY USER REQUIREMENT) */}
+      {/* 3. MATERIAL TYPE GLOBAL SEGREGATION BAR */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-2.5 sm:p-3 shadow-2xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider px-2 shrink-0 hidden sm:inline">
-            Segregate:
+            Quick Filter:
           </span>
 
           <button
             type="button"
-            onClick={() => setActiveCategoryFilter("all")}
+            onClick={() => {
+              setActiveCategoryFilter("all");
+              setSelectedActId(null);
+            }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-              activeCategoryFilter === "all"
+              activeCategoryFilter === "all" && !selectedActId
                 ? "bg-[#005A9C] text-white shadow-2xs"
                 : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0A192F]"
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>All Materials</span>
+            <span>All Statutory Codices</span>
           </button>
 
           <button
             type="button"
-            onClick={() => setActiveCategoryFilter("ldr")}
+            onClick={() => {
+              setActiveCategoryFilter("ldr");
+              setSelectedActId(null);
+            }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeCategoryFilter === "ldr"
                 ? "bg-[#0284C7] text-white shadow-2xs"
@@ -613,7 +684,10 @@ export function StudentCoursesHierarchyTab({
 
           <button
             type="button"
-            onClick={() => setActiveCategoryFilter("notes")}
+            onClick={() => {
+              setActiveCategoryFilter("notes");
+              setSelectedActId(null);
+            }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeCategoryFilter === "notes"
                 ? "bg-[#005A9C] text-white shadow-2xs"
@@ -626,7 +700,10 @@ export function StudentCoursesHierarchyTab({
 
           <button
             type="button"
-            onClick={() => setActiveCategoryFilter("practice")}
+            onClick={() => {
+              setActiveCategoryFilter("practice");
+              setSelectedActId(null);
+            }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeCategoryFilter === "practice"
                 ? "bg-[#D97706] text-white shadow-2xs"
@@ -640,7 +717,10 @@ export function StudentCoursesHierarchyTab({
           {segregatedStats.infographicCount > 0 && (
             <button
               type="button"
-              onClick={() => setActiveCategoryFilter("infographic")}
+              onClick={() => {
+                setActiveCategoryFilter("infographic");
+                setSelectedActId(null);
+              }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                 activeCategoryFilter === "infographic"
                   ? "bg-[#7C3AED] text-white shadow-2xs"
@@ -654,7 +734,7 @@ export function StudentCoursesHierarchyTab({
         </div>
       </div>
 
-      {/* 4. SEGREGATED FILTERED VIEW (WHEN USER SELECTS LDR, NOTES, OR PRACTICE) */}
+      {/* 4. SEGREGATED FILTERED VIEW ACROSS ALL ACTS */}
       {activeCategoryFilter !== "all" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -707,7 +787,7 @@ export function StudentCoursesHierarchyTab({
 
               if (items.length === 0) {
                 return (
-                  <div className="col-span-2 p-8 text-center bg-white rounded-2xl border border-[#E2E8F0] text-[#64748B]">
+                  <div className="col-span-2 p-8 text-center bg-white rounded-3xl border border-[#E2E8F0] text-[#64748B]">
                     <p className="text-sm font-semibold">No materials found in this category.</p>
                   </div>
                 );
@@ -721,7 +801,7 @@ export function StudentCoursesHierarchyTab({
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl bg-white border border-[#E2E8F0] hover:border-[#005A9C]/40 hover:shadow-sm transition-all flex flex-col justify-between gap-4 group"
+                    className="p-5 rounded-3xl bg-white border border-[#E2E8F0] hover:border-[#005A9C]/40 hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
@@ -750,7 +830,7 @@ export function StudentCoursesHierarchyTab({
                       <button
                         type="button"
                         onClick={() => onToggleBookmark(item)}
-                        className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+                        className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                           bookmarked
                             ? "bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]"
                             : "border-[#E2E8F0] text-[#64748B] hover:text-[#005A9C] hover:bg-[#F0F7FF]"
@@ -802,229 +882,499 @@ export function StudentCoursesHierarchyTab({
         </div>
       )}
 
-      {/* 5. DRILLED-DOWN ACT VIEW (WHEN USER CLICKS AN ACT CARD TO VIEW DETAILS) */}
+      {/* 5. ACT MASTERY STATION: DEEP-DIVE WITH PROPER SEGREGATED BOXES */}
       {selectedActId && currentDrilledAct && activeCategoryFilter === "all" && (
-        <div className="space-y-4 animate-fadeIn">
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-2xs">
-            <div className="flex items-center gap-3">
+        <div className="space-y-6 animate-fadeIn">
+          {/* ACT HEADER & ACT SWITCHER BAR */}
+          <div className="bg-white rounded-3xl border border-[#E2E8F0] p-5 sm:p-6 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedActId(null)}
+                  className="p-2.5 rounded-2xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0A192F] transition-colors cursor-pointer shrink-0"
+                  title="Back to all acts"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold text-[#005A9C] uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#EFF6FF] border border-[#DBEAFE]">
+                      {activeCourse?.title}
+                    </span>
+                    <span className="text-xs text-[#64748B]">Act Mastery Station</span>
+                  </div>
+                  <h3 className="text-lg sm:text-2xl font-serif font-extrabold text-[#0D2144] mt-1">
+                    {currentDrilledAct.title}
+                  </h3>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setSelectedActId(null)}
-                className="p-2 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0A192F] transition-colors cursor-pointer"
-                title="Back to all acts"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[#005A9C] bg-[#EFF6FF] hover:bg-[#DBEAFE] transition-colors self-start sm:self-auto cursor-pointer flex items-center gap-1.5"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <span>View All Acts</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
-              <div>
-                <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">
-                  {activeCourse?.title}
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-[#0A192F]">
-                  {currentDrilledAct.title}
-                </h3>
-              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setSelectedActId(null)}
-              className="text-xs font-bold text-[#005A9C] hover:underline px-2"
-            >
-              Back to Overview
-            </button>
+            {/* QUICK ACT SWITCHER CHIPS */}
+            {activeCourse?.acts && activeCourse.acts.length > 1 && (
+              <div className="pt-2 border-t border-[#F1F5F9] flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span className="text-[11px] font-bold text-[#94A3B8] uppercase shrink-0">Switch Act:</span>
+                {activeCourse.acts.map((a) => {
+                  const isCurrent = a.id === selectedActId;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedActId(a.id);
+                        setActDetailFilter("all");
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                        isCurrent
+                          ? "bg-[#005A9C] text-white shadow-2xs"
+                          : "bg-[#F8FAFC] text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0A192F]"
+                      }`}
+                    >
+                      {a.title.split(",")[0].replace("The ", "")}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* UNITS & MATERIALS UNDER SELECTED ACT */}
-          <div className="space-y-3">
-            {(!currentDrilledAct.units || currentDrilledAct.units.length === 0) ? (
-              <div className="p-8 text-center bg-white rounded-2xl border border-[#E2E8F0] text-[#64748B]">
-                <p className="text-sm font-semibold">Curriculum units for this statutory act are being uploaded.</p>
+          {/* ACT DETAILS FILTER PILLS */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button
+              type="button"
+              onClick={() => setActDetailFilter("all")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                actDetailFilter === "all" ? "bg-[#0A192F] text-white shadow-2xs" : "bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC]"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>All Segregated Boxes</span>
+            </button>
+
+            {drilledActMaterials.ldrList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActDetailFilter("ldr")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  actDetailFilter === "ldr" ? "bg-[#0284C7] text-white shadow-2xs" : "bg-white text-[#0284C7] border border-[#BAE6FD] hover:bg-[#E0F2FE]/40"
+                }`}
+              >
+                <Workflow className="w-3.5 h-3.5" />
+                <span>⚡ LDR Flowcharts ({drilledActMaterials.ldrList.length})</span>
+              </button>
+            )}
+
+            {drilledActMaterials.notesUnits.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActDetailFilter("notes")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  actDetailFilter === "notes" ? "bg-[#005A9C] text-white shadow-2xs" : "bg-white text-[#005A9C] border border-[#BFDBFE] hover:bg-[#EFF6FF]"
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>📑 Chapter Notes ({drilledActMaterials.notesUnits.length} Units)</span>
+              </button>
+            )}
+
+            {drilledActMaterials.practiceList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActDetailFilter("practice")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  actDetailFilter === "practice" ? "bg-[#D97706] text-white shadow-2xs" : "bg-white text-[#D97706] border border-[#FDE68A] hover:bg-[#FEF3C7]/50"
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>📝 Practice Vault ({drilledActMaterials.practiceList.length})</span>
+              </button>
+            )}
+
+            {drilledActMaterials.infographicList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActDetailFilter("infographic")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  actDetailFilter === "infographic" ? "bg-[#7C3AED] text-white shadow-2xs" : "bg-white text-[#7C3AED] border border-[#E9D5FF] hover:bg-[#F3E8FF]/50"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>🎨 Infographics ({drilledActMaterials.infographicList.length})</span>
+              </button>
+            )}
+          </div>
+
+          {/* ========================================================================= */}
+          {/* BOX 1: ⚡ THE LDR FLOWCHART VAULT (PROPER HIGH-ENERGY BOX)                  */}
+          {/* ========================================================================= */}
+          {(actDetailFilter === "all" || actDetailFilter === "ldr") && drilledActMaterials.ldrList.length > 0 && (
+            <div className="rounded-3xl bg-gradient-to-br from-[#E0F2FE]/70 via-[#F0F9FF] to-white border-2 border-[#7DD3FC] p-6 sm:p-7 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Workflow className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0284C7] text-white">
+                        ⚡ Quick Visual Revision
+                      </span>
+                      <span className="text-xs text-[#0369A1] font-semibold">High-Yield Flowcharts</span>
+                    </div>
+                    <h4 className="text-lg sm:text-xl font-bold text-[#0F172A] mt-0.5">
+                      Last Day Revision (LDR) Flowchart Codex
+                    </h4>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-[#0284C7] bg-white px-3 py-1.5 rounded-xl border border-[#BAE6FD] self-start sm:self-auto">
+                  {drilledActMaterials.ldrList.length} Flowchart Book Available
+                </span>
               </div>
-            ) : (
-              currentDrilledAct.units.map((unit) => {
-                const isUnitExpanded = expandedUnits[unit.id] !== false; // Default expanded
-                const isUnitCompleted = completedUnits.includes(unit.id);
 
-                return (
-                  <div
-                    key={unit.id}
-                    className="rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-2xs"
-                  >
-                    {/* UNIT HEADER */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {drilledActMaterials.ldrList.map((item) => {
+                  const bookmarked = isBookmarked(item.id);
+                  const canOpen = Boolean(activeCourse?.isEnrolled);
+
+                  return (
                     <div
-                      onClick={() => toggleUnit(unit.id)}
-                      className="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+                      key={item.id}
+                      className="bg-white rounded-2xl border border-[#BAE6FD] p-5 hover:border-[#0284C7] hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleUnitComplete(unit.id);
-                          }}
-                          className="text-[#64748B] hover:text-[#005A9C] transition-colors cursor-pointer shrink-0"
-                          title={isUnitCompleted ? "Mark as Incomplete" : "Mark as Completed"}
-                        >
-                          {isUnitCompleted ? (
-                            <CheckCircle2 className="w-5 h-5 text-[#047857]" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-[#CBD5E1]" />
-                          )}
-                        </button>
-
-                        <div className="min-w-0">
-                          <h4 className="text-sm sm:text-base font-bold text-[#0A192F] truncate">
-                            {unit.title}
-                          </h4>
-                          <p className="text-xs text-[#64748B]">
-                            {unit.contentItems?.length || 0} Content Material(s)
-                          </p>
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
+                            Visual Mindmap
+                          </span>
+                          <span className="text-xs font-mono text-[#64748B]">Complete Act Codex</span>
                         </div>
+                        <h5 className="text-base font-bold text-[#0F172A] group-hover:text-[#0284C7] transition-colors">
+                          {item.title}
+                        </h5>
+                        <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                          Condensed visual node trees mapping out statutory sections, precedents, and flowchart paths for rapid recall before exams.
+                        </p>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs font-semibold text-[#005A9C]">
-                          {isUnitExpanded ? "Hide" : "View"}
-                        </span>
-                        {isUnitExpanded ? (
-                          <ChevronDown className="w-4 h-4 text-[#005A9C]" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-[#64748B]" />
+                      <div className="flex items-center justify-between pt-3 border-t border-[#F0F9FF]">
+                        <button
+                          type="button"
+                          onClick={() => onToggleBookmark(item)}
+                          className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                            bookmarked ? "bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]" : "border-[#E2E8F0] text-[#64748B] hover:text-[#0284C7]"
+                          }`}
+                          title="Bookmark Flowchart"
+                        >
+                          <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (canOpen) {
+                              onOpenReader(item.fileUrl || `/api/content/${item.id}/file`, item.title, true);
+                            } else {
+                              onOpenReader(item.fileUrl || `/api/content/${item.id}/file`, item.title, false, 10);
+                            }
+                          }}
+                          className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:from-[#0369A1] hover:to-[#075985] text-white shadow-xs cursor-pointer flex items-center gap-2 transition-all hover:scale-[1.02]"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>{canOpen ? "Launch LDR Flowchart Reader" : "Preview Free LDR Sample"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* BOX 2: 📑 UNIT-BY-UNIT CHAPTER CODEX (PROPER BENTO GRID TILES)             */}
+          {/* ========================================================================= */}
+          {(actDetailFilter === "all" || actDetailFilter === "notes") && drilledActMaterials.notesUnits.length > 0 && (
+            <div className="rounded-3xl bg-white border border-[#E2E8F0] p-6 sm:p-7 shadow-2xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] text-[#005A9C] flex items-center justify-center shrink-0">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#005A9C]">
+                      📑 Curriculum Chapters &amp; Units
+                    </span>
+                    <h4 className="text-lg sm:text-xl font-bold text-[#0F172A]">
+                      Substantive Theory Codices
+                    </h4>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-[#64748B]">
+                  {drilledActMaterials.notesUnits.length} Statutory Units
+                </span>
+              </div>
+
+              {/* GRID OF UNIT BOXES (NO LONGER BORING TEXT ACCORDIONS!) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {drilledActMaterials.notesUnits.map(({ unit, items }, idx) => {
+                  const isCompleted = completedUnits.includes(unit.id);
+                  const firstItem = items[0];
+
+                  return (
+                    <div
+                      key={unit.id}
+                      className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 group ${
+                        isCompleted
+                          ? "bg-[#F0FDF4] border-[#BBF7D0]"
+                          : "bg-[#F8FAFC] border-[#E2E8F0] hover:border-[#005A9C]/40 hover:bg-white hover:shadow-sm"
+                      }`}
+                    >
+                      <div>
+                        {/* UNIT NUMBER PILL & COMPLETION CHECKBOX */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                              isCompleted ? "bg-[#DCFCE7] text-[#15803D]" : "bg-[#EFF6FF] text-[#005A9C]"
+                            }`}
+                          >
+                            UNIT {String(idx + 1).padStart(2, "0")}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => onToggleUnitComplete(unit.id)}
+                            className="flex items-center gap-1 text-[11px] font-semibold text-[#64748B] hover:text-[#005A9C] cursor-pointer"
+                            title={isCompleted ? "Completed! Click to undo" : "Mark as finished"}
+                          >
+                            {isCompleted ? (
+                              <CheckCircle2 className="w-5 h-5 text-[#15803D]" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-[#CBD5E1]" />
+                            )}
+                          </button>
+                        </div>
+
+                        <h5 className="text-sm font-bold text-[#0F172A] group-hover:text-[#005A9C] transition-colors line-clamp-2">
+                          {unit.title.replace(/^Unit \d+:\s*/i, "")}
+                        </h5>
+
+                        <p className="text-[11px] text-[#64748B] mt-1 line-clamp-2">
+                          Complete statutory commentary, case examples, and section analysis.
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
+                        {firstItem && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const canOpen = Boolean(activeCourse?.isEnrolled);
+                              onOpenReader(
+                                firstItem.fileUrl || `/api/content/${firstItem.id}/file`,
+                                firstItem.title,
+                                canOpen,
+                                canOpen ? undefined : 5
+                              );
+                            }}
+                            className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-[#005A9C] hover:bg-[#004080] text-white flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Read Unit Notes</span>
+                          </button>
                         )}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                    {/* CONTENT ITEMS UNDER UNIT */}
-                    {isUnitExpanded && (
-                      <div className="border-t border-[#F1F5F9] p-3 sm:p-4 bg-[#F8FAFC] space-y-2.5">
-                        {(!unit.contentItems || unit.contentItems.length === 0) ? (
-                          <p className="text-xs text-[#64748B] italic py-1">
-                            Study material for this unit is being rendered.
-                          </p>
-                        ) : (
-                          unit.contentItems.map((item) => {
-                            const badge = getContentTypeBadge(item.contentType);
-                            const bookmarked = isBookmarked(item.id);
-                            const canOpenFull = Boolean(activeCourse?.isEnrolled);
-                            const canOpenSample = Boolean(item.isFreeSample);
-
-                            return (
-                              <div
-                                key={item.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#005A9C]/40 transition-all hover:shadow-xs"
-                              >
-                                <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                  <div className="p-2 rounded-lg bg-[#EFF6FF] text-[#005A9C] shrink-0 mt-0.5 sm:mt-0">
-                                    <badge.icon className="w-4 h-4" />
-                                  </div>
-
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${badge.bg}`}>
-                                        {badge.label}
-                                      </span>
-
-                                      {item.isFreeSample && (
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0]">
-                                          Free Sample
-                                        </span>
-                                      )}
-
-                                      {!canOpenFull && !item.isFreeSample && (
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                                          <Lock className="w-2.5 h-2.5" />
-                                          <span>Pass Required</span>
-                                        </span>
-                                      )}
-
-                                      {item.pages && (
-                                        <span className="text-[11px] text-[#64748B]">
-                                          {item.pages}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <p className="text-xs sm:text-sm font-bold text-[#0A192F] mt-1">
-                                      {item.title}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => onToggleBookmark(item)}
-                                    className={`p-2 rounded-lg border transition-colors cursor-pointer ${
-                                      bookmarked
-                                        ? "bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]"
-                                        : "border-[#E2E8F0] text-[#64748B] hover:text-[#005A9C] hover:bg-[#F0F7FF]"
-                                    }`}
-                                    title={bookmarked ? "Remove Bookmark" : "Bookmark this item"}
-                                  >
-                                    <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
-                                  </button>
-
-                                  {canOpenFull ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => onOpenReader(item.fileUrl || `/api/content/${item.id}/file`, item.title, true)}
-                                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#005A9C] hover:bg-[#004080] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                      <span>Open Reader</span>
-                                    </button>
-                                  ) : (
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      {(() => {
-                                        const isQBankCourse = activeCourse?.id === "course-ca-qbank" || activeCourse?.id.includes("qbank");
-                                        const isPart2 = item.title.toLowerCase().includes("part 2") || item.title.toLowerCase().includes("part2");
-                                        const sampleUrl = isQBankCourse
-                                          ? (isPart2 ? "/samples/Part 2_Sample Copy.pdf" : "/samples/Question Bank Part 1- Sample Copy.pdf")
-                                          : (item.fileUrl || `/api/content/${item.id}/file`);
-                                        const sampleTitle = isQBankCourse
-                                          ? (isPart2 ? "Question Bank Part 2 (Free Sample Copy)" : "Question Bank Part 1 (Free Sample Copy)")
-                                          : item.title;
-
-                                        if (canOpenSample || isQBankCourse) {
-                                          return (
-                                            <button
-                                              type="button"
-                                              onClick={() => onOpenReader(sampleUrl, sampleTitle, false, 10)}
-                                              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#047857] hover:bg-[#065F46] text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                            >
-                                              <Eye className="w-3.5 h-3.5" />
-                                              <span>Read Sample</span>
-                                            </button>
-                                          );
-                                        }
-                                        return null;
-                                      })()}
-                                      <button
-                                        type="button"
-                                        onClick={() => onBuyCourse?.(activeCourse?.id || "") || onExploreMore?.()}
-                                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                      >
-                                        <Lock className="w-3.5 h-3.5" />
-                                        <span>Unlock</span>
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
+          {/* ========================================================================= */}
+          {/* BOX 3: 📝 PRACTICE QUESTIONS & SOLVED RTP/MTP (PROPER GOLD BOX)            */}
+          {/* ========================================================================= */}
+          {(actDetailFilter === "all" || actDetailFilter === "practice") && drilledActMaterials.practiceList.length > 0 && (
+            <div className="rounded-3xl bg-gradient-to-br from-[#FEF3C7]/60 via-[#FFFBEB] to-white border border-[#FCD34D] p-6 sm:p-7 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#D97706] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <HelpCircle className="w-6 h-6" />
                   </div>
-                );
-              })
-            )}
-          </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#B45309]">
+                      📝 Exam Question Vault
+                    </span>
+                    <h4 className="text-lg sm:text-xl font-bold text-[#0F172A]">
+                      Practice Questions &amp; RTP/MTP Model Answers
+                    </h4>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-[#B45309] bg-white px-3 py-1.5 rounded-xl border border-[#FDE68A] self-start sm:self-auto">
+                  {drilledActMaterials.practiceList.length} Question Sets
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {drilledActMaterials.practiceList.map((item) => {
+                  const bookmarked = isBookmarked(item.id);
+                  const canOpen = Boolean(activeCourse?.isEnrolled);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-2xl border border-[#FDE68A] p-5 hover:border-[#D97706] hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+                            Solved ICAI Papers
+                          </span>
+                          <span className="text-xs font-mono text-[#64748B]">Model Answers</span>
+                        </div>
+                        <h5 className="text-base font-bold text-[#0F172A] group-hover:text-[#D97706] transition-colors">
+                          {item.title}
+                        </h5>
+                        <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                          Comprehensive problem-based scenarios with step-marking schemes, examiner comments, and model answers.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-[#FEF3C7]">
+                        <button
+                          type="button"
+                          onClick={() => onToggleBookmark(item)}
+                          className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                            bookmarked ? "bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]" : "border-[#E2E8F0] text-[#64748B] hover:text-[#D97706]"
+                          }`}
+                          title="Bookmark Question Set"
+                        >
+                          <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onOpenReader(
+                              item.fileUrl || `/api/content/${item.id}/file`,
+                              item.title,
+                              canOpen,
+                              canOpen ? undefined : 5
+                            );
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-[#D97706] hover:bg-[#B45309] text-white shadow-xs cursor-pointer flex items-center gap-1.5 transition-all hover:scale-[1.02]"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{canOpen ? "Open Question Codex" : "Preview Questions"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* BOX 4: 🎨 INFOGRAPHICS & LANDMARK PRECEDENTS (PROPER PURPLE BOX)           */}
+          {/* ========================================================================= */}
+          {(actDetailFilter === "all" || actDetailFilter === "infographic") && drilledActMaterials.infographicList.length > 0 && (
+            <div className="rounded-3xl bg-gradient-to-br from-[#F3E8FF]/60 via-[#FAF5FF] to-white border border-[#D8B4FE] p-6 sm:p-7 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#6B21A8]">
+                      ⚖️ Visual Precedent Maps
+                    </span>
+                    <h4 className="text-lg sm:text-xl font-bold text-[#0F172A]">
+                      Landmark Judicial Cases &amp; Infographics
+                    </h4>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-[#6B21A8] bg-white px-3 py-1.5 rounded-xl border border-[#E9D5FF] self-start sm:self-auto">
+                  {drilledActMaterials.infographicList.length} Infographics
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {drilledActMaterials.infographicList.map((item) => {
+                  const bookmarked = isBookmarked(item.id);
+                  const canOpen = Boolean(activeCourse?.isEnrolled);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-2xl border border-[#E9D5FF] p-5 hover:border-[#7C3AED] hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#F3E8FF] text-[#6B21A8] border border-[#E9D5FF]">
+                            Visual Diagram
+                          </span>
+                          <span className="text-xs font-mono text-[#64748B]">Case Laws</span>
+                        </div>
+                        <h5 className="text-base font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition-colors">
+                          {item.title}
+                        </h5>
+                        <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                          High-clarity visual infographics dissecting case facts, judicial reasoning, and core principles.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-[#F3E8FF]">
+                        <button
+                          type="button"
+                          onClick={() => onToggleBookmark(item)}
+                          className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                            bookmarked ? "bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]" : "border-[#E2E8F0] text-[#64748B] hover:text-[#7C3AED]"
+                          }`}
+                          title="Bookmark Infographic"
+                        >
+                          <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-current" : ""}`} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onOpenReader(
+                              item.fileUrl || `/api/content/${item.id}/file`,
+                              item.title,
+                              canOpen,
+                              canOpen ? undefined : 5
+                            );
+                          }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-xs cursor-pointer flex items-center gap-1.5 transition-all hover:scale-[1.02]"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{canOpen ? "View Infographic" : "Preview Infographic"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 6. ENROLLED COURSES 2-COLUMN GRID (EXACT MATCH TO REFERENCE SCREENSHOT) */}
+      {/* 6. ENROLLED COURSES 2-COLUMN GRID (WITH RICH TACTILE BENTO BOXES ON EACH CARD!) */}
       {!selectedActId && activeCategoryFilter === "all" && (
         <div className="space-y-4">
           {/* SECTION HEADER (EXACT MATCH TO SCREENSHOT) */}
@@ -1069,16 +1419,26 @@ export function StudentCoursesHierarchyTab({
                 let ldrInAct = 0;
                 let notesInAct = 0;
                 let practiceInAct = 0;
+                let infoInAct = 0;
+                let ldrItem: HierarchicalContentItem | null = null;
+                let firstNoteItem: HierarchicalContentItem | null = null;
+                let practiceItem: HierarchicalContentItem | null = null;
+
                 units.forEach((u) => {
                   (u.contentItems || []).forEach((ci) => {
                     const t = (ci.contentType || "").toLowerCase();
                     const tit = (ci.title || "").toLowerCase();
                     if (t === "ldr" || t === "flowchart" || tit.includes("ldr") || tit.includes("flowchart")) {
                       ldrInAct++;
+                      if (!ldrItem) ldrItem = ci;
                     } else if (t === "practice" || t === "pyq" || tit.includes("practice") || tit.includes("question bank")) {
                       practiceInAct++;
+                      if (!practiceItem) practiceItem = ci;
+                    } else if (t === "infographic" || t === "revision" || tit.includes("infographic")) {
+                      infoInAct++;
                     } else {
                       notesInAct++;
+                      if (!firstNoteItem) firstNoteItem = ci;
                     }
                   });
                 });
@@ -1086,13 +1446,14 @@ export function StudentCoursesHierarchyTab({
                 return (
                   <div
                     key={act.id}
-                    onClick={() => setSelectedActId(act.id)}
-                    className={`rounded-2xl sm:rounded-3xl bg-white border border-[#EAEFF5] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-5 group ${meta.borderHover}`}
+                    className={`rounded-3xl bg-white border border-[#EAEFF5] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between gap-5 group ${meta.borderHover}`}
                   >
-                    {/* TOP ROW: ICON CIRCLE + TITLE & SUBTITLE + ARROW BUTTON (EXACT SCREENSHOT LAYOUT) */}
+                    {/* TOP ROW: ICON CIRCLE + TITLE & SUBTITLE + ARROW BUTTON */}
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        {/* THEMED PASTEL ICON CIRCLE */}
+                      <div
+                        className="flex items-center gap-3.5 min-w-0 cursor-pointer"
+                        onClick={() => setSelectedActId(act.id)}
+                      >
                         <div
                           className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${meta.colorBg} ${meta.colorText}`}
                         >
@@ -1109,39 +1470,119 @@ export function StudentCoursesHierarchyTab({
                         </div>
                       </div>
 
-                      {/* CIRCULAR ARROW BUTTON (EXACT MATCH TO SCREENSHOT) */}
+                      {/* ARROW BUTTON TO DRILL DOWN */}
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedActId(act.id);
-                        }}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${meta.arrowBg}`}
-                        aria-label="View Act"
+                        onClick={() => setSelectedActId(act.id)}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${meta.arrowBg}`}
+                        aria-label="View Act Details"
                       >
                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                       </button>
                     </div>
 
-                    {/* MIDDLE ROW: SEGREGATED DIRECT ACCESS PILLS */}
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
-                      {ldrInAct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
-                          <Workflow className="w-3 h-3" />
-                          <span>{ldrInAct} LDR Book</span>
-                        </span>
+                    {/* MIDDLE ROW: PROPER INTERACTIVE SEGREGATION BOXES INSIDE THE CARD! */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {/* MINI-BOX 1: LDR FLOWCHART */}
+                      {ldrInAct > 0 ? (
+                        <div
+                          onClick={() => {
+                            if (ldrItem) {
+                              onOpenReader(ldrItem.fileUrl || `/api/content/${ldrItem.id}/file`, ldrItem.title, Boolean(activeCourse?.isEnrolled));
+                            } else {
+                              setSelectedActId(act.id);
+                              setActDetailFilter("ldr");
+                            }
+                          }}
+                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#E0F2FE]/70 to-[#BAE6FD]/30 border border-[#BAE6FD] hover:border-[#0284C7] hover:shadow-2xs transition-all cursor-pointer group/box"
+                        >
+                          <div className="flex items-center gap-1.5 text-[#0284C7] mb-1">
+                            <Workflow className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                            <span className="text-[11px] font-bold">LDR Flowchart</span>
+                          </div>
+                          <p className="text-[10px] text-[#0369A1] font-semibold line-clamp-1">
+                            ⚡ Quick Mindmap Book
+                          </p>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => setSelectedActId(act.id)}
+                          className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition-all cursor-pointer"
+                        >
+                          <div className="flex items-center gap-1.5 text-[#64748B] mb-1">
+                            <Layers className="w-3.5 h-3.5 shrink-0" />
+                            <span className="text-[11px] font-bold">Curriculum Units</span>
+                          </div>
+                          <p className="text-[10px] text-[#64748B] font-semibold">
+                            {totalUnits} Units Enrolled
+                          </p>
+                        </div>
                       )}
-                      {notesInAct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#EFF6FF] text-[#005A9C] border border-[#DBEAFE]">
-                          <FileText className="w-3 h-3" />
-                          <span>{notesInAct} Notes</span>
-                        </span>
-                      )}
+
+                      {/* MINI-BOX 2: STUDY NOTES */}
+                      <div
+                        onClick={() => {
+                          setSelectedActId(act.id);
+                          setActDetailFilter("notes");
+                        }}
+                        className="p-2.5 rounded-xl bg-gradient-to-br from-[#EFF6FF]/70 to-[#DBEAFE]/30 border border-[#DBEAFE] hover:border-[#005A9C] hover:shadow-2xs transition-all cursor-pointer group/box"
+                      >
+                        <div className="flex items-center gap-1.5 text-[#005A9C] mb-1">
+                          <FileText className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                          <span className="text-[11px] font-bold">Study Notes</span>
+                        </div>
+                        <p className="text-[10px] text-[#005A9C] font-semibold">
+                          📑 {notesInAct || totalUnits} Chapter Codices
+                        </p>
+                      </div>
+
+                      {/* MINI-BOX 3: PRACTICE VAULT */}
                       {practiceInAct > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
-                          <HelpCircle className="w-3 h-3" />
-                          <span>Practice Qs</span>
-                        </span>
+                        <div
+                          onClick={() => {
+                            if (practiceItem) {
+                              onOpenReader(practiceItem.fileUrl || `/api/content/${practiceItem.id}/file`, practiceItem.title, Boolean(activeCourse?.isEnrolled));
+                            } else {
+                              setSelectedActId(act.id);
+                              setActDetailFilter("practice");
+                            }
+                          }}
+                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#FEF3C7]/70 to-[#FDE68A]/30 border border-[#FDE68A] hover:border-[#D97706] hover:shadow-2xs transition-all cursor-pointer group/box"
+                        >
+                          <div className="flex items-center gap-1.5 text-[#D97706] mb-1">
+                            <HelpCircle className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                            <span className="text-[11px] font-bold">Practice Qs</span>
+                          </div>
+                          <p className="text-[10px] text-[#92400E] font-semibold line-clamp-1">
+                            📝 Solved RTP/MTP
+                          </p>
+                        </div>
+                      )}
+
+                      {/* MINI-BOX 4: INFOGRAPHICS OR QUICK ACTION */}
+                      {infoInAct > 0 ? (
+                        <div
+                          onClick={() => {
+                            setSelectedActId(act.id);
+                            setActDetailFilter("infographic");
+                          }}
+                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#F3E8FF]/70 to-[#E9D5FF]/30 border border-[#E9D5FF] hover:border-[#7C3AED] hover:shadow-2xs transition-all cursor-pointer group/box"
+                        >
+                          <div className="flex items-center gap-1.5 text-[#7C3AED] mb-1">
+                            <Sparkles className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                            <span className="text-[11px] font-bold">Infographics</span>
+                          </div>
+                          <p className="text-[10px] text-[#6B21A8] font-semibold line-clamp-1">
+                            ⚖️ Visual Precedents
+                          </p>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => setSelectedActId(act.id)}
+                          className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#005A9C] hover:bg-[#EFF6FF] transition-all cursor-pointer flex items-center justify-center text-xs font-bold text-[#005A9C]"
+                        >
+                          <span>Explore All Boxes →</span>
+                        </div>
                       )}
                     </div>
 
@@ -1149,7 +1590,7 @@ export function StudentCoursesHierarchyTab({
                     <div className="space-y-2 pt-1 border-t border-[#F8FAFC]">
                       <div className="flex items-center justify-between text-xs text-[#64748B] font-medium">
                         <span>
-                          {completedInAct} / {totalUnits} Units
+                          {completedInAct} / {totalUnits} Units Completed
                         </span>
                         <span className="font-semibold text-[#0A192F]">{percent}%</span>
                       </div>
@@ -1165,8 +1606,8 @@ export function StudentCoursesHierarchyTab({
                 );
               })}
 
-              {/* INSPIRATIONAL MOTIVATIONAL CARD (EXACT MATCH TO BOTTOM RIGHT OF REFERENCE SCREENSHOT) */}
-              <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#F5F8FC] via-[#F8FAFD] to-[#EDF4FA] border border-[#E2EAF2] p-6 sm:p-7 shadow-2xs flex flex-col justify-between gap-4 relative overflow-hidden group">
+              {/* INSPIRATIONAL MOTIVATIONAL CARD (EXACT MATCH TO REFERENCE SCREENSHOT) */}
+              <div className="rounded-3xl bg-gradient-to-br from-[#F5F8FC] via-[#F8FAFD] to-[#EDF4FA] border border-[#E2EAF2] p-6 sm:p-7 shadow-2xs flex flex-col justify-between gap-4 relative overflow-hidden group">
                 <div className="space-y-1.5 z-10 max-w-[240px]">
                   <p className="text-xs text-[#64748B] font-serif italic">
                     Consistency
@@ -1179,7 +1620,7 @@ export function StudentCoursesHierarchyTab({
                   <div className="w-10 h-0.5 bg-[#005A9C]/40 rounded-full mt-2" />
                 </div>
 
-                {/* DECORATIVE SCALES OF JUSTICE & LAUREL LEAF ILLUSTRATION (MATCHING SCREENSHOT) */}
+                {/* DECORATIVE SCALES OF JUSTICE & LAUREL LEAVES ILLUSTRATION */}
                 <div className="absolute right-3 bottom-2 sm:right-5 sm:bottom-4 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
                   <svg
                     width="140"
@@ -1189,7 +1630,6 @@ export function StudentCoursesHierarchyTab({
                     xmlns="http://www.w3.org/2000/svg"
                     className="text-[#005A9C]"
                   >
-                    {/* Scales of Justice Beam & Central Column */}
                     <path
                       d="M70 15V105M70 15L25 35M70 15L115 35"
                       stroke="currentColor"
@@ -1198,8 +1638,6 @@ export function StudentCoursesHierarchyTab({
                     />
                     <circle cx="70" cy="12" r="4" fill="currentColor" />
                     <rect x="52" y="103" width="36" height="5" rx="2" fill="currentColor" />
-
-                    {/* Left Scale Pan */}
                     <path
                       d="M10 50C10 50 25 65 40 50"
                       stroke="currentColor"
@@ -1208,8 +1646,6 @@ export function StudentCoursesHierarchyTab({
                     />
                     <line x1="25" y1="35" x2="10" y2="50" stroke="currentColor" strokeWidth="1.5" />
                     <line x1="25" y1="35" x2="40" y2="50" stroke="currentColor" strokeWidth="1.5" />
-
-                    {/* Right Scale Pan */}
                     <path
                       d="M100 50C100 50 115 65 130 50"
                       stroke="currentColor"
@@ -1218,8 +1654,6 @@ export function StudentCoursesHierarchyTab({
                     />
                     <line x1="115" y1="35" x2="100" y2="50" stroke="currentColor" strokeWidth="1.5" />
                     <line x1="115" y1="35" x2="130" y2="50" stroke="currentColor" strokeWidth="1.5" />
-
-                    {/* Subtle Laurel Leaves */}
                     <path
                       d="M125 90C128 85 132 82 135 78M130 96C133 93 136 90 138 86"
                       stroke="currentColor"
