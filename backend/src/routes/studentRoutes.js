@@ -1224,11 +1224,18 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
                     contentItems,
                   };
                 });
+              const isActComingSoon =
+                Boolean(act.isComingSoon || act.availability === "coming_soon") ||
+                (act.title || "").toLowerCase().includes("companies") ||
+                (act.title || "").toLowerCase().includes("negotiable") ||
+                (act.id || "").toLowerCase().includes("companies") ||
+                (act.id || "").toLowerCase().includes("negotiable");
+
               return {
                 id: act.id,
                 title: act.title,
                 order: act.order,
-                isComingSoon: Boolean(act.isComingSoon || act.availability === "coming_soon"),
+                isComingSoon: isActComingSoon,
                 units,
               };
             });
@@ -1411,11 +1418,18 @@ router.get("/my-courses", optionalAuth, async (req, res) => {
                   contentItems,
                 };
               });
+            const isActComingSoon =
+              Boolean(act.isComingSoon || act.availability === "coming_soon") ||
+              (act.title || "").toLowerCase().includes("companies") ||
+              (act.title || "").toLowerCase().includes("negotiable") ||
+              (act.id || "").toLowerCase().includes("companies") ||
+              (act.id || "").toLowerCase().includes("negotiable");
+
             return {
               id: act.id,
               title: act.title,
               order: act.order,
-              isComingSoon: Boolean(act.isComingSoon || act.availability === "coming_soon"),
+              isComingSoon: isActComingSoon,
               units,
             };
           });

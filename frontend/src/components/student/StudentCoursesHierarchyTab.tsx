@@ -123,6 +123,7 @@ export function StudentCoursesHierarchyTab({
   const [courses, setCourses] = useState<HierarchicalCourse[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId || "");
   const [selectedActId, setSelectedActId] = useState<string | null>(null);
+  const [comingSoonModalAct, setComingSoonModalAct] = useState<HierarchicalAct | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<MaterialCategory>("all");
   const [actDetailFilter, setActDetailFilter] = useState<"all" | "ldr" | "notes" | "practice" | "infographic">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -289,6 +290,30 @@ export function StudentCoursesHierarchyTab({
     const l = (act.title || "").toLowerCase();
     const id = (act.id || "").toLowerCase();
 
+    const isActComingSoon = Boolean(
+      act.isComingSoon ||
+      l.includes("companies") ||
+      l.includes("negotiable") ||
+      id.includes("companies") ||
+      id.includes("negotiable")
+    );
+
+    if (isActComingSoon) {
+      return {
+        icon: Clock,
+        colorBg: "bg-[#FFF7ED]",
+        colorText: "text-[#D97706]",
+        gradientPill: "from-[#F59E0B] to-[#EA580C]",
+        borderHover: "hover:border-[#F59E0B]/50",
+        progressColor: "bg-[#F59E0B]",
+        badgeCategory: "Curriculum Act • Coming Soon",
+        arrowBg: "bg-[#FEF3C7] text-[#B45309]",
+        accentRing: "ring-[#F59E0B]/20",
+        lightBg: "bg-[#FFFBF5]",
+        isComingSoon: true,
+      };
+    }
+
     if (l.includes("contract") || id.includes("contract")) {
       return {
         icon: BookOpen,
@@ -370,6 +395,7 @@ export function StudentCoursesHierarchyTab({
       arrowBg: "bg-[#F0F5FA] hover:bg-[#005A9C] text-[#005A9C] hover:text-white",
       accentRing: "ring-[#005A9C]/20",
       lightBg: "bg-[#F8FAFC]",
+      isComingSoon: false,
     };
   };
 
@@ -403,6 +429,15 @@ export function StudentCoursesHierarchyTab({
     const allInfographicItems: { act: HierarchicalAct; item: HierarchicalContentItem }[] = [];
 
     (activeCourse?.acts || []).forEach((act) => {
+      const isComingSoon = Boolean(
+        act.isComingSoon ||
+        (act.title || "").toLowerCase().includes("companies") ||
+        (act.title || "").toLowerCase().includes("negotiable") ||
+        (act.id || "").toLowerCase().includes("companies") ||
+        (act.id || "").toLowerCase().includes("negotiable")
+      );
+      if (isComingSoon) return;
+
       (act.units || []).forEach((u) => {
         (u.contentItems || []).forEach((ci) => {
           const type = (ci.contentType || "").toLowerCase();
@@ -926,21 +961,40 @@ export function StudentCoursesHierarchyTab({
                 <span className="text-[11px] font-bold text-[#94A3B8] uppercase shrink-0">Switch Act:</span>
                 {activeCourse.acts.map((a) => {
                   const isCurrent = a.id === selectedActId;
+                  const isSoon = Boolean(
+                    a.isComingSoon ||
+                    (a.title || "").toLowerCase().includes("companies") ||
+                    (a.title || "").toLowerCase().includes("negotiable") ||
+                    (a.id || "").toLowerCase().includes("companies") ||
+                    (a.id || "").toLowerCase().includes("negotiable")
+                  );
                   return (
                     <button
                       key={a.id}
                       type="button"
                       onClick={() => {
-                        setSelectedActId(a.id);
-                        setActDetailFilter("all");
+                        if (isSoon) {
+                          setComingSoonModalAct(a);
+                        } else {
+                          setSelectedActId(a.id);
+                          setActDetailFilter("all");
+                        }
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                         isCurrent
                           ? "bg-[#005A9C] text-white shadow-2xs"
+                          : isSoon
+                          ? "bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] hover:bg-[#FEF3C7]"
                           : "bg-[#F8FAFC] text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0A192F]"
                       }`}
                     >
-                      {a.title.split(",")[0].replace("The ", "")}
+                      {isSoon && <Clock className="w-3 h-3 text-[#D97706]" />}
+                      <span>{a.title.split(",")[0].replace("The ", "")}</span>
+                      {isSoon && (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-[#FEF3C7] text-[#92400E] font-extrabold">
+                          Soon
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -1013,6 +1067,42 @@ export function StudentCoursesHierarchyTab({
               </button>
             )}
           </div>
+
+          {/* COMING SOON BANNER FOR DRILLED ACT */}
+          {Boolean(
+            currentDrilledAct.isComingSoon ||
+            (currentDrilledAct.title || "").toLowerCase().includes("companies") ||
+            (currentDrilledAct.title || "").toLowerCase().includes("negotiable") ||
+            (currentDrilledAct.id || "").toLowerCase().includes("companies") ||
+            (currentDrilledAct.id || "").toLowerCase().includes("negotiable")
+          ) && (
+            <div className="rounded-3xl bg-gradient-to-br from-[#FFFBEB] via-[#FEF3C7]/40 to-white border-2 border-[#FDE68A] p-7 sm:p-8 text-center space-y-4 shadow-xs">
+              <div className="w-16 h-16 rounded-3xl bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center justify-center mx-auto shadow-xs">
+                <Clock className="w-8 h-8 animate-pulse" />
+              </div>
+              <div className="max-w-md mx-auto space-y-1.5">
+                <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+                  Act In Editorial Compilation
+                </span>
+                <h4 className="text-xl sm:text-2xl font-serif font-extrabold text-[#0D2144] pt-1">
+                  {currentDrilledAct.title} is Coming Soon!
+                </h4>
+                <p className="text-xs sm:text-sm text-[#78350F] leading-relaxed">
+                  Our faculty is compiling section-by-section breakdown codices, color-coded LDR flowcharts, and solved exam question vaults for this statutory act. It will unlock automatically on your student portal upon release!
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedActId(null)}
+                  className="px-5 py-2.5 rounded-2xl bg-[#0D2144] hover:bg-[#005A9C] text-white text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer inline-flex items-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Return to Active Course Acts</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ========================================================================= */}
           {/* BOX 1: ⚡ THE LDR FLOWCHART VAULT (PROPER HIGH-ENERGY BOX)                  */}
@@ -1446,13 +1536,23 @@ export function StudentCoursesHierarchyTab({
                 return (
                   <div
                     key={act.id}
-                    className={`rounded-3xl bg-white border border-[#EAEFF5] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between gap-5 group ${meta.borderHover}`}
+                    className={`rounded-3xl bg-white border border-[#EAEFF5] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between gap-5 group ${
+                      meta.isComingSoon
+                        ? "border-[#FDE68A] bg-gradient-to-b from-white via-[#FFFDF7] to-[#FFFBEB]/40"
+                        : meta.borderHover
+                    }`}
                   >
-                    {/* TOP ROW: ICON CIRCLE + TITLE & SUBTITLE + ARROW BUTTON */}
+                    {/* TOP ROW: ICON CIRCLE + TITLE & SUBTITLE + ARROW BUTTON OR COMING SOON BADGE */}
                     <div className="flex items-start justify-between gap-3">
                       <div
                         className="flex items-center gap-3.5 min-w-0 cursor-pointer"
-                        onClick={() => setSelectedActId(act.id)}
+                        onClick={() => {
+                          if (meta.isComingSoon) {
+                            setComingSoonModalAct(act);
+                          } else {
+                            setSelectedActId(act.id);
+                          }
+                        }}
                       >
                         <div
                           className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${meta.colorBg} ${meta.colorText}`}
@@ -1465,143 +1565,215 @@ export function StudentCoursesHierarchyTab({
                             {act.title}
                           </h4>
                           <p className="text-xs text-[#64748B] mt-0.5">
-                            {totalUnits} Units • {meta.badgeCategory}
+                            {meta.isComingSoon
+                              ? `${totalUnits || 2} Units • ICAI In Preparation`
+                              : `${totalUnits} Units • ${meta.badgeCategory}`}
                           </p>
                         </div>
                       </div>
 
-                      {/* ARROW BUTTON TO DRILL DOWN */}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedActId(act.id)}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${meta.arrowBg}`}
-                        aria-label="View Act Details"
-                      >
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                      </button>
+                      {/* ARROW BUTTON OR COMING SOON BADGE */}
+                      {meta.isComingSoon ? (
+                        <button
+                          type="button"
+                          onClick={() => setComingSoonModalAct(act)}
+                          className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] flex items-center gap-1.5 shadow-2xs shrink-0 hover:bg-[#FDE68A] transition-colors cursor-pointer"
+                          title="Click for details"
+                        >
+                          <Clock className="w-3.5 h-3.5 text-[#D97706] animate-pulse" />
+                          <span>Coming Soon</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedActId(act.id)}
+                          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${meta.arrowBg}`}
+                          aria-label="View Act Details"
+                        >
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                        </button>
+                      )}
                     </div>
 
                     {/* MIDDLE ROW: PROPER INTERACTIVE SEGREGATION BOXES INSIDE THE CARD! */}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      {/* MINI-BOX 1: LDR FLOWCHART */}
-                      {ldrInAct > 0 ? (
-                        <div
-                          onClick={() => {
-                            if (ldrItem) {
-                              onOpenReader(ldrItem.fileUrl || `/api/content/${ldrItem.id}/file`, ldrItem.title, Boolean(activeCourse?.isEnrolled));
-                            } else {
-                              setSelectedActId(act.id);
-                              setActDetailFilter("ldr");
-                            }
-                          }}
-                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#E0F2FE]/70 to-[#BAE6FD]/30 border border-[#BAE6FD] hover:border-[#0284C7] hover:shadow-2xs transition-all cursor-pointer group/box"
-                        >
-                          <div className="flex items-center gap-1.5 text-[#0284C7] mb-1">
-                            <Workflow className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
-                            <span className="text-[11px] font-bold">LDR Flowchart</span>
+                    {meta.isComingSoon ? (
+                      <div className="space-y-2 pt-1">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div
+                            onClick={() => setComingSoonModalAct(act)}
+                            className="p-2.5 rounded-xl bg-gradient-to-br from-[#FEF3C7]/60 to-[#FDE68A]/20 border border-[#FDE68A] cursor-pointer hover:border-[#D97706] transition-all group/box"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#B45309] mb-1">
+                              <Clock className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                              <span className="text-[11px] font-bold">Curriculum Units</span>
+                            </div>
+                            <p className="text-[10px] text-[#92400E] font-semibold">
+                              ⏳ {totalUnits || 2} Units Enrolled
+                            </p>
                           </div>
-                          <p className="text-[10px] text-[#0369A1] font-semibold line-clamp-1">
-                            ⚡ Quick Mindmap Book
-                          </p>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => setSelectedActId(act.id)}
-                          className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition-all cursor-pointer"
-                        >
-                          <div className="flex items-center gap-1.5 text-[#64748B] mb-1">
-                            <Layers className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-[11px] font-bold">Curriculum Units</span>
-                          </div>
-                          <p className="text-[10px] text-[#64748B] font-semibold">
-                            {totalUnits} Units Enrolled
-                          </p>
-                        </div>
-                      )}
 
-                      {/* MINI-BOX 2: STUDY NOTES */}
-                      <div
-                        onClick={() => {
-                          setSelectedActId(act.id);
-                          setActDetailFilter("notes");
-                        }}
-                        className="p-2.5 rounded-xl bg-gradient-to-br from-[#EFF6FF]/70 to-[#DBEAFE]/30 border border-[#DBEAFE] hover:border-[#005A9C] hover:shadow-2xs transition-all cursor-pointer group/box"
-                      >
-                        <div className="flex items-center gap-1.5 text-[#005A9C] mb-1">
-                          <FileText className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
-                          <span className="text-[11px] font-bold">Study Notes</span>
+                          <div
+                            onClick={() => setComingSoonModalAct(act)}
+                            className="p-2.5 rounded-xl bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7]/40 border border-[#FDE68A] cursor-pointer hover:border-[#D97706] transition-all group/box"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#D97706] mb-1">
+                              <Sparkles className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                              <span className="text-[11px] font-bold">Study Notes</span>
+                            </div>
+                            <p className="text-[10px] text-[#92400E] font-semibold">
+                              📑 Uploading Soon
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-[#005A9C] font-semibold">
-                          📑 {notesInAct || totalUnits} Chapter Codices
-                        </p>
+
+                        <div
+                          onClick={() => setComingSoonModalAct(act)}
+                          className="p-2.5 rounded-xl bg-[#FFFBEB] border border-dashed border-[#FCD34D] hover:bg-[#FEF3C7]/60 hover:border-[#F59E0B] transition-all cursor-pointer flex items-center justify-center gap-2 text-xs font-bold text-[#B45309]"
+                        >
+                          <Clock className="w-3.5 h-3.5 text-[#D97706]" />
+                          <span>Full Statutory Notes &amp; Flowcharts Coming Soon →</span>
+                        </div>
                       </div>
-
-                      {/* MINI-BOX 3: PRACTICE VAULT */}
-                      {practiceInAct > 0 && (
-                        <div
-                          onClick={() => {
-                            if (practiceItem) {
-                              onOpenReader(practiceItem.fileUrl || `/api/content/${practiceItem.id}/file`, practiceItem.title, Boolean(activeCourse?.isEnrolled));
-                            } else {
-                              setSelectedActId(act.id);
-                              setActDetailFilter("practice");
-                            }
-                          }}
-                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#FEF3C7]/70 to-[#FDE68A]/30 border border-[#FDE68A] hover:border-[#D97706] hover:shadow-2xs transition-all cursor-pointer group/box"
-                        >
-                          <div className="flex items-center gap-1.5 text-[#D97706] mb-1">
-                            <HelpCircle className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
-                            <span className="text-[11px] font-bold">Practice Qs</span>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        {/* MINI-BOX 1: LDR FLOWCHART */}
+                        {ldrInAct > 0 ? (
+                          <div
+                            onClick={() => {
+                              if (ldrItem) {
+                                onOpenReader(ldrItem.fileUrl || `/api/content/${ldrItem.id}/file`, ldrItem.title, Boolean(activeCourse?.isEnrolled));
+                              } else {
+                                setSelectedActId(act.id);
+                                setActDetailFilter("ldr");
+                              }
+                            }}
+                            className="p-2.5 rounded-xl bg-gradient-to-br from-[#E0F2FE]/70 to-[#BAE6FD]/30 border border-[#BAE6FD] hover:border-[#0284C7] hover:shadow-2xs transition-all cursor-pointer group/box"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#0284C7] mb-1">
+                              <Workflow className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                              <span className="text-[11px] font-bold">LDR Flowchart</span>
+                            </div>
+                            <p className="text-[10px] text-[#0369A1] font-semibold line-clamp-1">
+                              ⚡ Quick Mindmap Book
+                            </p>
                           </div>
-                          <p className="text-[10px] text-[#92400E] font-semibold line-clamp-1">
-                            📝 Solved RTP/MTP
-                          </p>
-                        </div>
-                      )}
+                        ) : (
+                          <div
+                            onClick={() => setSelectedActId(act.id)}
+                            className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition-all cursor-pointer"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#64748B] mb-1">
+                              <Layers className="w-3.5 h-3.5 shrink-0" />
+                              <span className="text-[11px] font-bold">Curriculum Units</span>
+                            </div>
+                            <p className="text-[10px] text-[#64748B] font-semibold">
+                              {totalUnits} Units Enrolled
+                            </p>
+                          </div>
+                        )}
 
-                      {/* MINI-BOX 4: INFOGRAPHICS OR QUICK ACTION */}
-                      {infoInAct > 0 ? (
+                        {/* MINI-BOX 2: STUDY NOTES */}
                         <div
                           onClick={() => {
                             setSelectedActId(act.id);
-                            setActDetailFilter("infographic");
+                            setActDetailFilter("notes");
                           }}
-                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#F3E8FF]/70 to-[#E9D5FF]/30 border border-[#E9D5FF] hover:border-[#7C3AED] hover:shadow-2xs transition-all cursor-pointer group/box"
+                          className="p-2.5 rounded-xl bg-gradient-to-br from-[#EFF6FF]/70 to-[#DBEAFE]/30 border border-[#DBEAFE] hover:border-[#005A9C] hover:shadow-2xs transition-all cursor-pointer group/box"
                         >
-                          <div className="flex items-center gap-1.5 text-[#7C3AED] mb-1">
-                            <Sparkles className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
-                            <span className="text-[11px] font-bold">Infographics</span>
+                          <div className="flex items-center gap-1.5 text-[#005A9C] mb-1">
+                            <FileText className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                            <span className="text-[11px] font-bold">Study Notes</span>
                           </div>
-                          <p className="text-[10px] text-[#6B21A8] font-semibold line-clamp-1">
-                            ⚖️ Visual Precedents
+                          <p className="text-[10px] text-[#005A9C] font-semibold">
+                            📑 {notesInAct || totalUnits} Chapter Codices
                           </p>
                         </div>
-                      ) : (
-                        <div
-                          onClick={() => setSelectedActId(act.id)}
-                          className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#005A9C] hover:bg-[#EFF6FF] transition-all cursor-pointer flex items-center justify-center text-xs font-bold text-[#005A9C]"
-                        >
-                          <span>Explore All Boxes →</span>
+
+                        {/* MINI-BOX 3: PRACTICE VAULT */}
+                        {practiceInAct > 0 && (
+                          <div
+                            onClick={() => {
+                              if (practiceItem) {
+                                onOpenReader(practiceItem.fileUrl || `/api/content/${practiceItem.id}/file`, practiceItem.title, Boolean(activeCourse?.isEnrolled));
+                              } else {
+                                setSelectedActId(act.id);
+                                setActDetailFilter("practice");
+                              }
+                            }}
+                            className="p-2.5 rounded-xl bg-gradient-to-br from-[#FEF3C7]/70 to-[#FDE68A]/30 border border-[#FDE68A] hover:border-[#D97706] hover:shadow-2xs transition-all cursor-pointer group/box"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#D97706] mb-1">
+                              <HelpCircle className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                              <span className="text-[11px] font-bold">Practice Qs</span>
+                            </div>
+                            <p className="text-[10px] text-[#92400E] font-semibold line-clamp-1">
+                              📝 Solved RTP/MTP
+                            </p>
+                          </div>
+                        )}
+
+                        {/* MINI-BOX 4: INFOGRAPHICS OR QUICK ACTION */}
+                        {infoInAct > 0 ? (
+                          <div
+                            onClick={() => {
+                              setSelectedActId(act.id);
+                              setActDetailFilter("infographic");
+                            }}
+                            className="p-2.5 rounded-xl bg-gradient-to-br from-[#F3E8FF]/70 to-[#E9D5FF]/30 border border-[#E9D5FF] hover:border-[#7C3AED] hover:shadow-2xs transition-all cursor-pointer group/box"
+                          >
+                            <div className="flex items-center gap-1.5 text-[#7C3AED] mb-1">
+                              <Sparkles className="w-3.5 h-3.5 shrink-0 group-hover/box:scale-110 transition-transform" />
+                              <span className="text-[11px] font-bold">Infographics</span>
+                            </div>
+                            <p className="text-[10px] text-[#6B21A8] font-semibold line-clamp-1">
+                              ⚖️ Visual Precedents
+                            </p>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => setSelectedActId(act.id)}
+                            className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#005A9C] hover:bg-[#EFF6FF] transition-all cursor-pointer flex items-center justify-center text-xs font-bold text-[#005A9C]"
+                          >
+                            <span>Explore All Boxes →</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* BOTTOM ROW: PROGRESS INFO & PROGRESS BAR */}
+                    {meta.isComingSoon ? (
+                      <div className="space-y-2 pt-1 border-t border-[#F8FAFC]">
+                        <div className="flex items-center justify-between text-xs text-[#64748B] font-medium">
+                          <span className="flex items-center gap-1.5 font-bold text-[#B45309]">
+                            <Clock className="w-3.5 h-3.5 text-[#D97706]" />
+                            Editorial Compilation Underway
+                          </span>
+                          <span className="font-extrabold text-[#D97706] bg-[#FEF3C7] px-2.5 py-0.5 rounded-md text-[10px] border border-[#FDE68A]">
+                            COMING SOON
+                          </span>
                         </div>
-                      )}
-                    </div>
 
-                    {/* BOTTOM ROW: PROGRESS INFO & PROGRESS BAR (EXACT SCREENSHOT LAYOUT) */}
-                    <div className="space-y-2 pt-1 border-t border-[#F8FAFC]">
-                      <div className="flex items-center justify-between text-xs text-[#64748B] font-medium">
-                        <span>
-                          {completedInAct} / {totalUnits} Units Completed
-                        </span>
-                        <span className="font-semibold text-[#0A192F]">{percent}%</span>
+                        <div className="w-full h-1.5 rounded-full bg-[#FEF3C7] overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#F59E0B] to-[#EA580C] w-2/5 animate-pulse" />
+                        </div>
                       </div>
+                    ) : (
+                      <div className="space-y-2 pt-1 border-t border-[#F8FAFC]">
+                        <div className="flex items-center justify-between text-xs text-[#64748B] font-medium">
+                          <span>
+                            {completedInAct} / {totalUnits} Units Completed
+                          </span>
+                          <span className="font-semibold text-[#0A192F]">{percent}%</span>
+                        </div>
 
-                      <div className="w-full h-1.5 rounded-full bg-[#EEF2F6] overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${meta.progressColor}`}
-                          style={{ width: `${percent}%` }}
-                        />
+                        <div className="w-full h-1.5 rounded-full bg-[#EEF2F6] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${meta.progressColor}`}
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -1672,6 +1844,64 @@ export function StudentCoursesHierarchyTab({
               </div>
             </div>
           )}
+        </div>
+      )}
+      {/* COMING SOON MODAL */}
+      {comingSoonModalAct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#E2E8F0] shadow-2xl overflow-hidden p-6 sm:p-7 space-y-5 animate-scaleUp">
+            <div className="flex items-start justify-between gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#FFF7ED] text-[#EA580C] border border-[#FED7AA] flex items-center justify-center shrink-0 shadow-2xs">
+                <Clock className="w-7 h-7" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setComingSoonModalAct(null)}
+                className="w-9 h-9 rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+                  Coming Soon
+                </span>
+                <span className="text-xs text-[#64748B] font-medium">
+                  ICAI 2024 New Scheme
+                </span>
+              </div>
+              <h3 className="text-xl font-serif font-extrabold text-[#0D2144]">
+                {comingSoonModalAct.title}
+              </h3>
+              <p className="text-sm text-[#475569] leading-relaxed pt-1">
+                This statutory codex is currently in editorial compilation by our expert faculty.
+                Detailed Chapter Codices, LDR Flowcharts, and Solved RTP/MTP question vaults will be automatically unlocked on your dashboard upon release!
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-[#92400E]">
+                <Sparkles className="w-4 h-4 text-[#D97706] shrink-0" />
+                <span>What's being prepared for this Act:</span>
+              </div>
+              <ul className="text-[#78350F] space-y-1 pl-6 list-disc text-[11px] font-medium">
+                <li>Complete ICAI Study Material section-by-section breakdown</li>
+                <li>Color-coded LDR mindmaps &amp; flowchart codices</li>
+                <li>Past exam questions &amp; model answers with statutory analysis</li>
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setComingSoonModalAct(null)}
+              className="w-full py-3 rounded-2xl text-xs sm:text-sm font-bold bg-[#0D2144] hover:bg-[#005A9C] text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Check className="w-4 h-4" />
+              <span>Got It • Keep Me Notified</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
