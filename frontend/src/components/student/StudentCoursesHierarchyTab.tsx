@@ -795,7 +795,7 @@ export function StudentCoursesHierarchyTab({
               {activeCategoryFilter === "infographic" && (
                 <>
                   <Sparkles className="w-4 h-4 text-[#7C3AED]" />
-                  <span>Visual Infographics &amp; Concept Precedents</span>
+                  <span>Visual Infographics &amp; Concept Maps</span>
                 </>
               )}
             </h3>
@@ -1388,11 +1388,8 @@ export function StudentCoursesHierarchyTab({
                     <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <span className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider text-[#6B21A8]">
-                      ⚖️ Visual Precedent Maps
-                    </span>
                     <h4 className="text-base sm:text-xl font-bold text-[#0F172A]">
-                      Landmark Judicial Cases &amp; Infographics
+                      Infographics &amp; Visual Notes
                     </h4>
                   </div>
                 </div>
@@ -1726,7 +1723,7 @@ export function StudentCoursesHierarchyTab({
                               <span className="text-[10px] sm:text-[11px] font-bold line-clamp-1">Infographics</span>
                             </div>
                             <p className="text-[9.5px] sm:text-[10px] text-[#6B21A8] font-semibold line-clamp-1">
-                              ⚖️ Visual Precedents
+                              🎨 Visual Summaries
                             </p>
                           </div>
                         ) : (

@@ -41,8 +41,8 @@ export function AdminSettingsTab({
 }) {
   const [settings, setSettings] = useState<SiteSettingsData>({
     site_title: "The Law Kaksha",
-    support_email: "support@thelawkaksha.com",
-    contact_email: "support@thelawkaksha.com",
+    support_email: "lawkaksha@gmail.com",
+    contact_email: "lawkaksha@gmail.com",
     domain: "https://thelawkaksha.com",
     watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
     contact_phone: "",
@@ -126,7 +126,7 @@ export function AdminSettingsTab({
                 type="email"
                 value={settings.support_email || settings.contact_email || ""}
                 onChange={(e) => setSettings({ ...settings, support_email: e.target.value, contact_email: e.target.value })}
-                placeholder="support@thelawkaksha.com"
+                placeholder="lawkaksha@gmail.com"
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#AED7E9]"
               />
             </div>

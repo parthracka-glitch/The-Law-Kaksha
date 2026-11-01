@@ -244,7 +244,7 @@ async function seedMongo() {
         key: "site_details",
         value: {
           whatsapp_number: "", // Empty by default; button hidden if empty
-          support_email: "support@thelawkaksha.com",
+          support_email: "lawkaksha@gmail.com",
           domain: "https://thelawkaksha.com",
           watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
         },
@@ -258,7 +258,7 @@ async function seedMongo() {
         value: {
           brand: "The Law Kaksha",
           tagline: "Premier Visual Learning Space for CA Foundation & CSEET Law Aspirants.",
-          contact_email: "support@thelawkaksha.com",
+          contact_email: "lawkaksha@gmail.com",
           contact_phone: "",
           address: "Mumbai, Maharashtra, India",
           copyright: "© 2026 The Law Kaksha. All rights reserved.",

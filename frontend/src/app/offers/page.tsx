@@ -184,7 +184,7 @@ export default function OffersPage() {
         {/* Security / Terms Notice */}
         <div className="mt-16 p-6 rounded-3xl bg-white border border-[#DBEAFE] text-center max-w-2xl mx-auto shadow-xs">
           <p className="text-xs text-[#64748B] leading-relaxed">
-            Coupons are validated directly on our secure server during checkout. Only one promo code can be redeemed per transaction. For bulk institutional passes, contact <span className="font-semibold text-[#0A192F]">grievance@thelawkaksha.com</span>.
+            Coupons are validated directly on our secure server during checkout. Only one promo code can be redeemed per transaction. For bulk institutional passes, contact <span className="font-semibold text-[#0A192F]">lawkaksha@gmail.com</span>.
           </p>
         </div>
       </main>

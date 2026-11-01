@@ -44,6 +44,9 @@ import {
   Tag,
   RotateCcw,
   Smartphone,
+  GraduationCap,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
@@ -209,7 +212,41 @@ const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [];
 
 const INITIAL_STUDENTS: StudentRecord[] = [];
 
-const INITIAL_CASES: CaseStudyItem[] = [];
+const INITIAL_CASES: CaseStudyItem[] = [
+  {
+    id: "case-w1-1",
+    day: "Monster Monday",
+    badge: "ICAI FAVORITE",
+    subject: "The Indian Contract Act, 1872",
+    title: "Minor's Misrepresentation of Age & Specific Relief",
+    scenario: "A, a minor aged 17, fraudulently represented himself to be 21 years old and borrowed ₹50,000 from M, executing a mortgage deed over his ancestral property. Can M enforce the mortgage deed or recover the money under Section 68 or Section 33 of the Specific Relief Act?",
+    modelAnswer: "1. Legal Provision: Under Mohori Bibee v. Dharmodas Ghose (1903), an agreement made by a minor is void ab initio. The rule of estoppel does not apply against a minor under Indian contract law.\n2. Application: Minor cannot be held personally liable to repay the loan, and mortgage deed is void.\n3. Relief: Under Section 33 of Specific Relief Act, 1963, the court may compel restitution if the money/property is traceable and justice requires it. M cannot enforce the mortgage.",
+    precedent: "Mohori Bibee v. Dharmodas Ghose (1903) 30 IA 114; Leslie Ltd. v. Sheill (1914)",
+    marks: "6/6 Marks",
+  },
+  {
+    id: "case-w1-2",
+    day: "Midweek Law Madness",
+    badge: "HIGH DIFFICULTY",
+    subject: "The Sale of Goods Act, 1930",
+    title: "Sale by Description & Latent Defects in Sample",
+    scenario: "Mr. Ramesh purchased 500 bags of basmati rice by sample and description from M/s Agro Mills. Upon delivery, the rice visually matched the sample but contained an undetectable chemical preservative rendering it unfit for human consumption. Agro Mills pleads caveat emptor. Advise Ramesh.",
+    modelAnswer: "1. Legal Provision: Under Section 15, 16(2) and Section 17 of Sale of Goods Act, 1930, goods sold by sample and description must correspond to both and must be merchantable.\n2. Exception to Caveat Emptor: Caveat emptor does not apply where goods suffer from latent defects not discoverable upon ordinary inspection (Drummond v. Van Ingen).\n3. Conclusion: Ramesh has the legal right to reject the entire consignment and claim full refund with incidental damages.",
+    precedent: "Drummond v. Van Ingen (1887); Priest v. Last (1903)",
+    marks: "6/6 Marks",
+  },
+  {
+    id: "case-w1-3",
+    day: "Final Boss Friday",
+    badge: "ICAI EXAM DRILL",
+    subject: "The Companies Act, 2013",
+    title: "Lifting the Corporate Veil — Tax Evasion & Sham Company",
+    scenario: "Sir Dinshaw, a wealthy investor, formed four private investment companies wholly owned by him and transferred high-yield dividend securities into them. The companies carried on no business; dividends received were immediately returned to Sir Dinshaw as pretended interest-free loans. Can tax authorities disregard the corporate veil?",
+    modelAnswer: "1. Legal Principle: A registered company is a separate legal person (Salomon v. Salomon & Co Ltd). However, courts will pierce or lift the corporate veil when corporate personality is used for tax evasion or fraudulent devices.\n2. Landmark Ruling: In Re Sir Dinshaw Maneckjee Petit (1927), it was ruled that where an entity is merely an agent or sham to evade tax, the veil will be disregarded.\n3. Conclusion: Income Tax Authorities are legally entitled to pierce the veil and assess the dividend income directly in Dinshaw's hands.",
+    precedent: "In Re Dinshaw Maneckjee Petit AIR 1927 Bom 371; Salomon v. Salomon (1897)",
+    marks: "6/6 Marks",
+  },
+];
 
 const INITIAL_MCQ_TESTS: GoogleFormTestItem[] = [
   {
@@ -277,7 +314,9 @@ export default function AdminPortalPage() {
     | "qotd"
     | "exam_countdown_qotd"
     | "promo_banners"
-    | "broadcast";
+    | "broadcast"
+    | "student_cases"
+    | "website_quiz";
   const [activeTab, _setActiveTab] = useState<TabType>("overview");
   const [, startTabTransition] = useTransition();
 
@@ -789,17 +828,20 @@ export default function AdminPortalPage() {
     );
   }
 
-  const MATERIALS_TABS: TabType[] = ["books_and_notes", "cases", "mcq", "qotd"];
+  const STUDENT_DASHBOARD_TABS: TabType[] = ["cases", "student_cases", "promo_banners"];
+  const MATERIALS_TABS: TabType[] = ["books_and_notes", "mcq", "exam_countdown_qotd", "qotd"];
   const SALES_TABS: TabType[] = ["orders", "subscriptions", "coupons", "payments", "expenses"];
-  const WEBSITE_TABS: TabType[] = ["broadcast", "carousel", "promo_banners", "settings", "offers"];
+  const WEBSITE_TABS: TabType[] = ["broadcast", "carousel", "website_quiz", "settings", "offers"];
 
-  type HubId = "overview" | "students" | "materials" | "sales" | "website";
+  type HubId = "overview" | "students" | "student_dashboard" | "materials" | "sales" | "website";
 
   const activeHub: HubId =
     activeTab === "overview"
       ? "overview"
       : activeTab === "students"
       ? "students"
+      : STUDENT_DASHBOARD_TABS.includes(activeTab)
+      ? "student_dashboard"
       : MATERIALS_TABS.includes(activeTab)
       ? "materials"
       : SALES_TABS.includes(activeTab)
@@ -824,6 +866,14 @@ export default function AdminPortalPage() {
       defaultTab: "students" as TabType,
     },
     {
+      id: "student_dashboard" as HubId,
+      label: "Student Dashboard",
+      description: "Weekly case studies & passes",
+      icon: GraduationCap,
+      badge: cases.length,
+      defaultTab: "cases" as TabType,
+    },
+    {
       id: "materials" as HubId,
       label: "Study Materials",
       description: "Notes, tests & live classes",
@@ -842,7 +892,7 @@ export default function AdminPortalPage() {
     {
       id: "website" as HubId,
       label: "Website & Branding",
-      description: "Broadcast bar, hero & passes",
+      description: "Hero, quiz & broadcast",
       icon: Settings,
       badge: announcement.enabled ? "LIVE" : undefined,
       defaultTab: "broadcast" as TabType,
@@ -858,9 +908,13 @@ export default function AdminPortalPage() {
       title: "Students Directory",
       subtitle: "View registered students, instant search, and 1-click DRM permissions.",
     },
+    student_dashboard: {
+      title: "Student Dashboard Management",
+      subtitle: "Manage the 3 weekly case studies showcased on the student dashboard homepage, model answers, and student passes.",
+    },
     materials: {
       title: "Study Materials & Courseware",
-      subtitle: "Manage digital codices, chapter notes, live batches, case studies, and tests.",
+      subtitle: "Manage digital codices, chapter notes, live batches, and tests.",
     },
     sales: {
       title: "Orders, Passes & Revenue",
@@ -868,7 +922,7 @@ export default function AdminPortalPage() {
     },
     website: {
       title: "Website & Brand Customization",
-      subtitle: "Live broadcast announcement bar, homepage hero carousel, and student dashboard settings.",
+      subtitle: "Live broadcast announcement bar, homepage hero carousel, and live website quiz questions.",
     },
   };
 
@@ -919,7 +973,9 @@ export default function AdminPortalPage() {
                 key={nav.id}
                 type="button"
                 onClick={() => {
-                  if (nav.id === "materials") {
+                  if (nav.id === "student_dashboard") {
+                    setActiveTab((prev) => (STUDENT_DASHBOARD_TABS.includes(prev) ? prev : nav.defaultTab));
+                  } else if (nav.id === "materials") {
                     setActiveTab((prev) => (MATERIALS_TABS.includes(prev) ? prev : nav.defaultTab));
                   } else if (nav.id === "sales") {
                     setActiveTab((prev) => (SALES_TABS.includes(prev) ? prev : nav.defaultTab));
@@ -1017,6 +1073,39 @@ export default function AdminPortalPage() {
 
         {/* TAB WORKSPACES */}
         <div className="p-3 sm:p-6 space-y-6 max-w-6xl">
+
+          {/* SUB-NAV PILLS FOR STUDENT DASHBOARD */}
+          {activeHub === "student_dashboard" && (
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
+              <button
+                type="button"
+                onClick={() => setActiveTab("cases")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "cases" || activeTab === "student_cases"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5 text-[#005A9C]" />
+                <span>Weekly Case Studies (3 of the Week)</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1]">
+                  {cases.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("promo_banners")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "promo_banners"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
+                <span>Student Codex Passes</span>
+              </button>
+            </div>
+          )}
 
           {/* SUB-NAV PILLS FOR STUDY MATERIALS */}
           {activeHub === "materials" && (
@@ -1184,6 +1273,18 @@ export default function AdminPortalPage() {
               >
                 <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Homepage Hero Carousel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("website_quiz")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "website_quiz"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
+                <span>Website Quiz Questions</span>
               </button>
               <button
                 type="button"
@@ -2793,72 +2894,190 @@ export default function AdminPortalPage() {
             );
           })()}
 
-          {/* TAB 5: WEEKLY CASES */}
-          {activeTab === "cases" && (
+          {/* TAB 5: WEEKLY CASES (STUDENT DASHBOARD HUB) */}
+          {(activeTab === "cases" || activeTab === "student_cases") && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* HEADER BANNER WITH STUDENT DASHBOARD SYNC INFO */}
+              <div className="bg-gradient-to-r from-[#EFF6FF] via-[#F8FAFC] to-white p-5 rounded-3xl border border-[#BFDBFE] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-serif font-bold text-[#221D1D]">Weekly Case Studies</h2>
-                  <p className="text-xs text-[#4D433F] mt-0.5">Manage weekly practice cases, scenarios, and model answers.</p>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#005A9C] text-white">
+                      STUDENT DASHBOARD LIVE
+                    </span>
+                    <span className="text-xs text-[#005A9C] font-bold">
+                      Top 3 Cases Showcased On Student Dashboard Home
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-bold text-[#0A192F] mt-1">
+                    Student Dashboard Case Studies Manager
+                  </h2>
+                  <p className="text-xs text-[#475569] mt-0.5 max-w-2xl">
+                    The first 3 case studies below are actively showcased with full scenarios and model answers on every student&apos;s main dashboard page. Add, edit, delete, or use Move Up/Down to update which 3 cases are featured each week.
+                  </p>
                 </div>
                 <button
-                  onClick={() => setCaseModal({ open: true, mode: "add", data: { day: "Monster Monday", badge: "High Difficulty", subject: "Indian Contract Act, 1872", marks: "6/6 Marks" } })}
-                  className="px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  onClick={() =>
+                    setCaseModal({
+                      open: true,
+                      mode: "add",
+                      data: {
+                        day: "Monster Monday",
+                        badge: "ICAI FAVORITE",
+                        subject: "The Indian Contract Act, 1872",
+                        marks: "6/6 Marks",
+                        scenario: "",
+                        modelAnswer: "",
+                        precedent: "",
+                      },
+                    })
+                  }
+                  className="px-4 py-2.5 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer shrink-0 transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Case Study</span>
+                  <span>Add New Case Study</span>
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {cases.map((cs) => (
-                  <div key={cs.id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#4B8097] uppercase">{cs.day}</span>
-                        <span className="text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] px-2 py-0.5 rounded-full border border-[#F4C5C0]">{cs.badge}</span>
-                      </div>
-                      <div>
-                        <span className="text-[11px] text-[#77716E] block">{cs.subject}</span>
-                        <h3 className="text-sm font-bold text-[#221D1D] leading-snug">{cs.title}</h3>
-                      </div>
-                      <p className="text-xs text-[#4D433F] italic bg-[#F7F7F5] p-3 rounded-2xl border border-[#E7E4E7] line-clamp-3">
-                        &ldquo;{cs.scenario}&rdquo;
-                      </p>
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097] block mb-0.5">Model Solution</span>
-                        <p className="text-xs text-[#77716E] line-clamp-3">{cs.modelAnswer}</p>
-                      </div>
-                    </div>
+              {cases.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-[#CBD5E1] p-12 text-center max-w-md mx-auto space-y-3">
+                  <Flame className="w-10 h-10 text-amber-500 mx-auto" />
+                  <h3 className="text-sm font-bold text-[#0A192F]">No Case Studies in Database</h3>
+                  <p className="text-xs text-[#64748B]">Click &ldquo;Add New Case Study&rdquo; to create weekly cases for students.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {cases.map((cs, idx) => {
+                    const isTopThree = idx < 3;
+                    return (
+                      <div
+                        key={cs.id || idx}
+                        className={`bg-white rounded-3xl border shadow-sm p-5 flex flex-col justify-between transition-all relative ${
+                          isTopThree ? "border-[#93C5FD] ring-2 ring-[#005A9C]/10" : "border-[#E2E8F0] hover:border-[#CBD5E1]"
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          {/* Live Showcase Indicator Badge */}
+                          <div className="flex items-center justify-between gap-1">
+                            <span
+                              className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                isTopThree
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold"
+                                  : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                              }`}
+                            >
+                              {isTopThree ? `⭐️ Case #${idx + 1} of the Week` : `📋 Reserve #${idx + 1}`}
+                            </span>
+                            <span className="text-[10px] font-bold bg-[#FEF3C7] text-[#B45309] px-2 py-0.5 rounded-full border border-[#FDE68A]">
+                              {cs.badge || cs.marks || "6 Marks"}
+                            </span>
+                          </div>
 
-                    <div className="pt-3 mt-4 border-t border-[#E7E4E7] flex items-center justify-between">
-                      <span className="text-[10px] text-[#77716E] truncate max-w-[150px]">{cs.precedent}</span>
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })} className="p-1.5 rounded-xl bg-white border border-[#E7E4E7] hover:bg-[#F7F7F5] text-[#221D1D]" title="Edit Case">
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (confirm(`Delete case scenario ${cs.title}?`)) {
-                              const next = cases.filter((c) => c.id !== cs.id);
-                              setCases(next);
-                              localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
-                              try {
-                                await adminFetch(`/api/admin/cases/${cs.id}`, { method: "DELETE" });
-                              } catch {}
-                              showToast("Case deleted.");
-                            }
-                          }}
-                          className="p-1.5 rounded-xl bg-white border border-[#F4C5C0] hover:bg-[#F4C5C0]/30 text-[#C35F3B]"
-                          title="Delete Case"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          <div className="flex items-center justify-between gap-1 pt-1">
+                            <span className="text-xs font-bold text-[#005A9C] uppercase tracking-wide">{cs.day}</span>
+                            <span className="text-[10px] text-[#64748B] font-mono">{cs.marks || "6/6 Marks"}</span>
+                          </div>
+
+                          <div>
+                            <span className="text-[11px] text-[#64748B] font-semibold block">{cs.subject}</span>
+                            <h3 className="text-sm font-bold text-[#0A192F] leading-snug mt-0.5">{cs.title}</h3>
+                          </div>
+
+                          <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] italic line-clamp-3">
+                            &ldquo;{cs.scenario}&rdquo;
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C] block mb-0.5">
+                              Model Answer (4-Step):
+                            </span>
+                            <p className="text-xs text-[#475569] line-clamp-3 leading-relaxed whitespace-pre-line">
+                              {cs.modelAnswer}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 mt-4 border-t border-[#F1F5F9] space-y-2.5">
+                          {cs.precedent && (
+                            <p className="text-[10px] text-[#64748B] truncate font-mono">
+                              ⚖️ {cs.precedent}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between gap-1.5">
+                            {/* Reorder Buttons to easily swap top 3 */}
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  if (idx === 0) return;
+                                  const updated = [...cases];
+                                  const temp = updated[idx];
+                                  updated[idx] = updated[idx - 1];
+                                  updated[idx - 1] = temp;
+                                  setCases(updated);
+                                  localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(updated));
+                                  showToast(`Moved "${cs.title}" to #${idx}`);
+                                }}
+                                className="p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Up (Prioritize for this week)"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === cases.length - 1}
+                                onClick={() => {
+                                  if (idx === cases.length - 1) return;
+                                  const updated = [...cases];
+                                  const temp = updated[idx];
+                                  updated[idx] = updated[idx + 1];
+                                  updated[idx + 1] = temp;
+                                  setCases(updated);
+                                  localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(updated));
+                                  showToast(`Moved "${cs.title}" to #${idx + 2}`);
+                                }}
+                                className="p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setCaseModal({ open: true, mode: "edit", data: cs })}
+                                className="px-2.5 py-1.5 rounded-xl bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                title="Edit Case Study"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-[#005A9C]" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm(`Delete case scenario "${cs.title}"?`)) {
+                                    const next = cases.filter((c) => c.id !== cs.id);
+                                    setCases(next);
+                                    localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                                    try {
+                                      await adminFetch(`/api/admin/cases/${cs.id}`, { method: "DELETE" });
+                                    } catch {}
+                                    showToast("Case deleted.");
+                                  }
+                                }}
+                                className="p-1.5 rounded-xl bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer"
+                                title="Delete Case"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -3125,6 +3344,36 @@ export default function AdminPortalPage() {
           {/* MODULE B4: CAROUSEL SLIDES EDITOR */}
           {activeTab === "carousel" && (
             <AdminCarouselTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* WEBSITE QUIZ QUESTIONS (LIVELY UPDATED ON MAIN WEBSITE) */}
+          {activeTab === "website_quiz" && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-[#EFF6FF] via-[#F8FAFC] to-white p-5 rounded-3xl border border-[#BFDBFE] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      LIVE HOMEPAGE FEED
+                    </span>
+                    <span className="text-xs text-[#005A9C] font-bold">
+                      Main Website • Daily High-Yield MCQ Challenge
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-bold text-[#0A192F] mt-1">
+                    Website Quiz Questions Manager
+                  </h2>
+                  <p className="text-xs text-[#475569] mt-0.5">
+                    Add, edit, or delete questions. Click &ldquo;Save MCQ Challenge&rdquo; to lively update the questions shown on the main website immediately.
+                  </p>
+                </div>
+              </div>
+
+              <AdminExamCountdownAndQOTDTab
+                adminFetch={adminFetch}
+                showToast={showToast}
+                initialSection="mcq"
+              />
+            </div>
           )}
 
           {/* MODULE B6: EXPENSES TRACKER & P&L */}
@@ -4100,7 +4349,7 @@ export default function AdminPortalPage() {
                     showToast("Case study saved!");
                   } catch {}
                 }}
-                className="px-5 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold shadow-xs cursor-pointer transition-all"
               >
                 Save Case Study
               </button>

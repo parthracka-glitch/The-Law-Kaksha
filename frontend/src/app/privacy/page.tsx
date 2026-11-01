@@ -82,7 +82,7 @@ export default function PrivacyPage() {
               </p>
               <div className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-1 text-xs">
                 <p><strong>Designation:</strong> Data Protection &amp; Grievance Redressal Officer</p>
-                <p><strong>Email:</strong> grievance@thelawkaksha.com / support@thelawkaksha.com</p>
+                <p><strong>Email:</strong> lawkaksha@gmail.com</p>
                 <p><strong>Statutory Turnaround:</strong> Maximum 30 calendar days</p>
               </div>
             </div>

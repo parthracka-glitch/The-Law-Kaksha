@@ -70,7 +70,7 @@ export default function RefundPage() {
                 For any payment verification issues or refund requests under our guarantee, write to:
               </p>
               <div className="p-4 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] space-y-1 text-xs">
-                <p><strong>Email:</strong> support@thelawkaksha.com</p>
+                <p><strong>Email:</strong> lawkaksha@gmail.com</p>
                 <p><strong>Subject Format:</strong> REFUND REQUEST - [Your Student Roll ID / Order ID]</p>
                 <p><strong>Support Window:</strong> Monday – Saturday (10:00 AM – 7:00 PM IST)</p>
               </div>
@@ -79,7 +79,7 @@ export default function RefundPage() {
 
           <div className="pt-6 border-t border-[#E7E4E7] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#77716E]">
             <p className="font-serif font-bold text-[#221D1D]">The Law कक्षा • Academic Support</p>
-            <p>support@thelawkaksha.com</p>
+            <p>lawkaksha@gmail.com</p>
           </div>
 
         </div>

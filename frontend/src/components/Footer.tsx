@@ -53,7 +53,7 @@ export function Footer() {
               <br />
               <strong>Grievance Officer:</strong> Academic Compliance Team
               <br />
-              <strong>Email:</strong> grievance@thelawkaksha.com / support@thelawkaksha.com
+              <strong>Email:</strong> lawkaksha@gmail.com
               <br />
               <strong>Resolution Turnaround:</strong> Maximum 30 calendar days as mandated by statutory guidelines.
             </p>
@@ -116,7 +116,7 @@ export function Footer() {
           <div>
             <h4 className="font-bold text-[#0A192F] mb-1">3. Support Desk</h4>
             <p>
-              For subscription assistance or payment confirmation questions, please contact our academic team at <strong>support@thelawkaksha.com</strong> or WhatsApp our helpline.
+              For subscription assistance or payment confirmation questions, please contact our academic team at <strong>lawkaksha@gmail.com</strong> or WhatsApp our helpline.
             </p>
           </div>
         </div>
@@ -164,7 +164,7 @@ export function Footer() {
             </p>
 
             <div className="pt-1 text-[11px] text-[#94A3B8] space-y-0.5 font-semibold">
-              <p>Academic Desk: <span className="text-white">support@thelawkaksha.com</span></p>
+              <p>Academic Desk: <span className="text-white">lawkaksha@gmail.com</span></p>
               <p>Launch Subscription: <span className="text-[#D4AF37] font-bold">₹99/month</span></p>
             </div>
           </div>

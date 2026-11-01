@@ -1338,6 +1338,8 @@ export default function StudentDashboardPage() {
                   completedUnits={completedUnits}
                   catalogProducts={catalogProducts}
                   promoBanners={promoBanners}
+                  weeklyCases={liveCases}
+                  hasCourseAccess={Boolean(hasActiveCourseAccess || isCaUnlocked || isCsUnlocked || isAdminUser)}
                 />
               </div>
 

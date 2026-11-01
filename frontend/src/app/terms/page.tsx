@@ -72,7 +72,7 @@ export default function TermsPage() {
 
           <div className="pt-6 border-t border-[#E7E4E7] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#77716E]">
             <p className="font-serif font-bold text-[#221D1D]">The Law कक्षा • Learn • Practice • Excel</p>
-            <p>Academic Desk: support@thelawkaksha.com</p>
+            <p>Academic Desk: lawkaksha@gmail.com</p>
           </div>
 
         </div>

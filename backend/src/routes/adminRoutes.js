@@ -2867,8 +2867,8 @@ router.delete("/admin/content-items/:id", async (req, res) => {
 router.get("/admin/settings", async (req, res) => {
   try {
     let siteDetails = {
-      support_email: "support@thelawkaksha.com",
-      contact_email: "support@thelawkaksha.com",
+      support_email: "lawkaksha@gmail.com",
+      contact_email: "lawkaksha@gmail.com",
       domain: "https://thelawkaksha.com",
       watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
       whatsapp_number: "", // Clean by default; UI hides button when empty
@@ -2897,8 +2897,8 @@ router.put("/admin/settings", async (req, res) => {
   try {
     const payload = req.body || {};
     const siteDetails = {
-      support_email: payload.support_email || payload.contact_email || "support@thelawkaksha.com",
-      contact_email: payload.contact_email || payload.support_email || "support@thelawkaksha.com",
+      support_email: payload.support_email || payload.contact_email || "lawkaksha@gmail.com",
+      contact_email: payload.contact_email || payload.support_email || "lawkaksha@gmail.com",
       domain: payload.domain || "https://thelawkaksha.com",
       watermark_text: payload.watermark_text || "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
       whatsapp_number: payload.whatsapp_number !== undefined ? payload.whatsapp_number.trim() : "",

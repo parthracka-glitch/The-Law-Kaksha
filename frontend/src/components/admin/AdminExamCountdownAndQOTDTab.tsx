@@ -199,11 +199,19 @@ const DEFAULT_MCQS: MCQScenarioItem[] = [
 export function AdminExamCountdownAndQOTDTab({
   adminFetch,
   showToast,
+  initialSection = "exams",
 }: {
   adminFetch: (url: string, init?: RequestInit) => Promise<Response>;
   showToast: (msg: string) => void;
+  initialSection?: "exams" | "mcq";
 }) {
-  const [activeSection, setActiveSection] = useState<"exams" | "mcq">("exams");
+  const [activeSection, setActiveSection] = useState<"exams" | "mcq">(initialSection);
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+    }
+  }, [initialSection]);
   const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 

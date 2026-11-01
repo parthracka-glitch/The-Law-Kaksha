@@ -88,10 +88,10 @@ export default function ContactPage() {
                   <div>
                     <div className="text-[#64748B] text-xs">Official Email Support</div>
                     <a
-                      href="mailto:support@thelawkaksha.com"
+                      href="mailto:lawkaksha@gmail.com"
                       className="font-semibold text-[#005A9C] hover:underline transition-colors mt-0.5 block"
                     >
-                      support@thelawkaksha.com
+                      lawkaksha@gmail.com
                     </a>
                   </div>
                 </div>

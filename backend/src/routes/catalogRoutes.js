@@ -1227,7 +1227,7 @@ router.post("/coupons/validate", couponRateLimiter, async (req, res) => {
 router.get("/public/site-settings", async (req, res) => {
   try {
     let siteDetails = {
-      support_email: "support@thelawkaksha.com",
+      support_email: "lawkaksha@gmail.com",
       domain: "https://thelawkaksha.com",
       watermark_text: "THE LAW KAKSHA • PROTECTED STUDY MATERIAL",
       whatsapp_number: "", // Hidden if empty

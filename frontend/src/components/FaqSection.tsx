@@ -97,7 +97,7 @@ const FAQS_DATA: FaqItem[] = [
     category: "curriculum",
     categoryLabel: "Physical Delivery",
     q: "Can I order a physical printed copy of the Question Bank?",
-    a: "Yes. Students who prefer studying from a physical, spiral-bound reference book can order printed copies directly. Contact our academic desk at support@thelawkaksha.com or DM our team on Instagram (@thelawkaksha) with your delivery address for pricing, delivery timeline, and courier tracking.",
+    a: "Yes. Students who prefer studying from a physical, spiral-bound reference book can order printed copies directly. Contact our academic desk at lawkaksha@gmail.com or DM our team on Instagram (@thelawkaksha) with your delivery address for pricing, delivery timeline, and courier tracking.",
     highlights: [
       "High-grade spiral binding with protective frosted cover",
       "Full ICAI model question-answer framework",
@@ -165,7 +165,7 @@ const FAQS_DATA: FaqItem[] = [
     category: "support",
     categoryLabel: "Order Assistance",
     q: "What should I do if my payment succeeds but access isn't unlocked?",
-    a: "Payment activations are automated and instant. In the rare case of a bank network delay, simply refresh your dashboard. If access is still pending, email support@thelawkaksha.com with your registered email and transaction reference; our team resolves student access within 2 hours.",
+    a: "Payment activations are automated and instant. In the rare case of a bank network delay, simply refresh your dashboard. If access is still pending, email lawkaksha@gmail.com with your registered email and transaction reference; our team resolves student access within 2 hours.",
     highlights: [
       "Automated instant order fulfillment",
       "2-hour student priority resolution",
@@ -503,11 +503,11 @@ export function FaqSection() {
 
           <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-center">
             <a
-              href="mailto:support@thelawkaksha.com?subject=FAQ%20Inquiry%20from%20Website"
+              href="mailto:lawkaksha@gmail.com?subject=FAQ%20Inquiry%20from%20Website"
               className="px-4 py-2.5 rounded-xl bg-[#005A9C] hover:bg-[#004880] text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-2 active:scale-95 cursor-pointer"
             >
               <Mail className="w-3.5 h-3.5" />
-              <span>Email: support@thelawkaksha.com</span>
+              <span>Email: lawkaksha@gmail.com</span>
             </a>
 
             <Link

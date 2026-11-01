@@ -17,6 +17,10 @@ import {
   ShoppingBag,
   RefreshCw,
   Lock,
+  Flame,
+  Scale,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { getApiBaseUrl } from "@/lib/api";
@@ -237,7 +241,59 @@ interface StudentDashboardHomeProps {
   completedUnits?: string[];
   catalogProducts?: CatalogProduct[];
   promoBanners?: PromoBannersSetting;
+  weeklyCases?: WeeklyCaseHomeItem[];
+  hasCourseAccess?: boolean;
 }
+
+export interface WeeklyCaseHomeItem {
+  id?: string;
+  _id?: string;
+  day?: string;
+  badge?: string;
+  badgeColor?: string;
+  subject?: string;
+  title?: string;
+  scenario?: string;
+  modelAnswer?: string;
+  precedent?: string;
+  marks?: string;
+}
+
+export const DEFAULT_3_WEEKLY_CASES: WeeklyCaseHomeItem[] = [
+  {
+    id: "case-w1-1",
+    day: "Monster Monday",
+    badge: "ICAI FAVORITE",
+    subject: "The Indian Contract Act, 1872",
+    title: "Minor's Misrepresentation of Age & Specific Relief",
+    scenario: "A, a minor aged 17, fraudulently represented himself to be 21 years old and borrowed ₹50,000 from M, executing a mortgage deed over his ancestral property. Can M enforce the mortgage deed or recover the money under Section 68 or Section 33 of the Specific Relief Act?",
+    modelAnswer: "1. Legal Provision: Under Mohori Bibee v. Dharmodas Ghose (1903), an agreement made by a minor is void ab initio. The rule of estoppel does not apply against a minor under Indian contract law.\n2. Application: Minor cannot be held personally liable to repay the loan, and mortgage deed is void.\n3. Relief: Under Section 33 of Specific Relief Act, 1963, the court may compel restitution if the money/property is traceable and justice requires it. M cannot enforce the mortgage.",
+    precedent: "Mohori Bibee v. Dharmodas Ghose (1903) 30 IA 114; Leslie Ltd. v. Sheill (1914)",
+    marks: "6 Marks",
+  },
+  {
+    id: "case-w1-2",
+    day: "Midweek Law Madness",
+    badge: "HIGH DIFFICULTY",
+    subject: "The Sale of Goods Act, 1930",
+    title: "Sale by Description & Latent Defects in Sample",
+    scenario: "Mr. Ramesh purchased 500 bags of basmati rice by sample and description from M/s Agro Mills. Upon delivery, the rice visually matched the sample but contained an undetectable chemical preservative rendering it unfit for human consumption. Agro Mills pleads caveat emptor. Advise Ramesh.",
+    modelAnswer: "1. Legal Provision: Under Section 15, 16(2) and Section 17 of Sale of Goods Act, 1930, goods sold by sample and description must correspond to both and must be merchantable.\n2. Exception to Caveat Emptor: Caveat emptor does not apply where goods suffer from latent defects not discoverable upon ordinary inspection (Drummond v. Van Ingen).\n3. Conclusion: Ramesh has the legal right to reject the entire consignment and claim full refund with incidental damages.",
+    precedent: "Drummond v. Van Ingen (1887); Priest v. Last (1903)",
+    marks: "6 Marks",
+  },
+  {
+    id: "case-w1-3",
+    day: "Final Boss Friday",
+    badge: "ICAI EXAM DRILL",
+    subject: "The Companies Act, 2013",
+    title: "Lifting the Corporate Veil — Tax Evasion & Sham Company",
+    scenario: "Sir Dinshaw, a wealthy investor, formed four private investment companies wholly owned by him and transferred high-yield dividend securities into them. The companies carried on no business; dividends received were immediately returned to Sir Dinshaw as pretended interest-free loans. Can tax authorities disregard the corporate veil?",
+    modelAnswer: "1. Legal Principle: A registered company is a separate legal person (Salomon v. Salomon & Co Ltd). However, courts will pierce or lift the corporate veil when corporate personality is used for tax evasion or fraudulent devices.\n2. Landmark Ruling: In Re Sir Dinshaw Maneckjee Petit (1927), it was ruled that where an entity is merely an agent or sham to evade tax, the veil will be disregarded.\n3. Conclusion: Income Tax Authorities are legally entitled to pierce the veil and assess the dividend income directly in Dinshaw's hands.",
+    precedent: "In Re Dinshaw Maneckjee Petit AIR 1927 Bom 371; Salomon v. Salomon (1897)",
+    marks: "6 Marks",
+  },
+];
 
 export interface FreeResourceItem {
   id: string;
@@ -274,6 +330,10 @@ export function StudentDashboardHome({
   completedUnits = [],
   catalogProducts = [],
   promoBanners = DEFAULT_PROMO_BANNERS,
+  weeklyCases = [],
+  hasCourseAccess = false,
+  isAllAccessUnlocked = false,
+  awardXp,
 }: StudentDashboardHomeProps) {
   const { addToCart, setIsCartOpen, setCheckoutStep } = useCart();
   const promoCarouselRef = useRef<HTMLDivElement>(null);
@@ -281,6 +341,17 @@ export function StudentDashboardHome({
   const quizSectionRef = useRef<HTMLDivElement>(null);
   const [promoSlideIndex, setPromoSlideIndex] = useState(0);
   const [isReconciling, setIsReconciling] = useState(false);
+  const [openAnswers, setOpenAnswers] = useState<Record<string, boolean>>({});
+  const [practicedCases, setPracticedCases] = useState<string[]>([]);
+
+  const hasAccess = Boolean(hasCourseAccess || isCaUnlocked || isCsUnlocked || isAllAccessUnlocked);
+
+  const displayWeeklyCases = useMemo(() => {
+    if (weeklyCases && weeklyCases.length > 0) {
+      return weeklyCases.slice(0, 3);
+    }
+    return DEFAULT_3_WEEKLY_CASES;
+  }, [weeklyCases]);
 
   const handleReconcileAccess = async () => {
     try {
@@ -1390,6 +1461,174 @@ export function StudentDashboardHome({
           </div>
         )}
       </div>
+
+      {/* ========================================================================= */}
+      {/* 4. CASE STUDIES OF THE WEEK (3 ACTIVE CASES WITH MODEL ANSWERS)            */}
+      {/* ========================================================================= */}
+      <section className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+                <Flame className="w-3 h-3 text-rose-600" />
+                <span>Weekly Academic Feature</span>
+              </span>
+              <span className="text-[11px] font-semibold text-[#6B7280]">
+                3 Cases of the Week • Solved 4-Step Answers
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
+              Case Studies of the Week
+            </h3>
+            <p className="text-xs text-[#64748B] mt-0.5 max-w-2xl">
+              Master the ICAI &amp; ICSI model answer methodology: Provision, Facts Application, Landmark Precedent, and Definitive Conclusion.
+            </p>
+          </div>
+          <span className="text-[11px] font-bold text-[#005A9C] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE] self-start sm:self-auto">
+            Updated Weekly by Academic Faculty
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          {displayWeeklyCases.map((cs, idx) => {
+            const caseId = cs.id || `case-${idx}`;
+            const isAnswerOpen = openAnswers[caseId] !== false; // open by default for enrolled
+            const isPracticed = practicedCases.includes(caseId);
+
+            return (
+              <div
+                key={caseId}
+                className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8F0] shadow-xs p-4 sm:p-5 flex flex-col justify-between gap-3.5 hover:shadow-md transition-all duration-200 group"
+              >
+                <div className="space-y-3">
+                  {/* Top Bar: Day & Badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#005A9C] uppercase tracking-wider flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-[#E11D48]" />
+                      <span>{cs.day || `Case #${idx + 1}`}</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+                      {cs.badge || cs.marks || "6 Marks"}
+                    </span>
+                  </div>
+
+                  {/* Subject & Title */}
+                  <div>
+                    <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">
+                      {cs.subject || "Business Laws"}
+                    </span>
+                    <h4 className="text-sm font-bold text-[#1E293B] leading-snug mt-0.5 group-hover:text-[#005A9C] transition-colors">
+                      {cs.title}
+                    </h4>
+                  </div>
+
+                  {/* Scenario */}
+                  <div className="p-3 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] leading-relaxed italic">
+                    &ldquo;{cs.scenario}&rdquo;
+                  </div>
+
+                  {/* Model Answer */}
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C] flex items-center gap-1">
+                        <Scale className="w-3 h-3 text-[#005A9C]" />
+                        <span>Model Answer (4-Step Structure)</span>
+                      </span>
+                      {hasAccess && (
+                        <button
+                          type="button"
+                          onClick={() => setOpenAnswers((prev) => ({ ...prev, [caseId]: !isAnswerOpen }))}
+                          className="text-[10px] font-bold text-[#64748B] hover:text-[#005A9C] flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <span>{isAnswerOpen ? "Hide" : "Show"}</span>
+                          {isAnswerOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        </button>
+                      )}
+                    </div>
+
+                    {hasAccess ? (
+                      isAnswerOpen && (
+                        <div className="p-3 rounded-xl sm:rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-xs text-[#14532D] space-y-2 animate-in fade-in duration-150">
+                          <p className="whitespace-pre-line leading-relaxed text-[11px] sm:text-xs">
+                            {cs.modelAnswer}
+                          </p>
+                          {cs.precedent && (
+                            <div className="pt-2 border-t border-[#BBF7D0] flex items-start gap-1.5 text-[10.5px] font-medium text-[#166534]">
+                              <span className="font-bold shrink-0">⚖️ Precedent:</span>
+                              <span className="italic">{cs.precedent}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <div className="relative p-3.5 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] overflow-hidden">
+                        <p className="text-xs text-[#64748B] filter blur-[3.5px] select-none pointer-events-none line-clamp-3">
+                          {cs.modelAnswer || "Legal principle applies under statutory authority, where doctrine protects buyers from latent defects and enforces restitution..."}
+                        </p>
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                          <div className="flex items-center gap-1 text-[#DC2626] font-bold text-xs">
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>Enrolled Students Only</span>
+                          </div>
+                          <p className="text-[10px] text-[#64748B]">
+                            Purchase any course pass to unlock weekly model answers.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Practice Action */}
+                <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between gap-2 text-xs">
+                  <span className="text-[10px] text-[#64748B] font-mono truncate max-w-[130px]">
+                    {cs.marks || "6 Marks Question"}
+                  </span>
+
+                  {hasAccess ? (
+                    <button
+                      type="button"
+                      disabled={isPracticed}
+                      onClick={() => {
+                        if (!isPracticed) {
+                          awardXp?.(30, `Practiced Weekly Case: ${cs.title}`);
+                          setPracticedCases((prev) => [...prev, caseId]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isPracticed
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default"
+                          : "bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-2xs active:scale-95"
+                      }`}
+                    >
+                      {isPracticed ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Practiced (+30 XP)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
+                          <span>Practice (+30 XP)</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onBuyCourse?.("ca")}
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:opacity-95 text-white text-[11px] font-bold shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Unlock Pass</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
