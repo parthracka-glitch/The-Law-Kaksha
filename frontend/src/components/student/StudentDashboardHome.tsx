@@ -941,7 +941,195 @@ export function StudentDashboardHome({
       />
 
       {/* ========================================================================= */}
-      {/* 3. MY COURSES SECTION (SEARCH, FILTERS, PROGRESS BARS MATCHING SVG)        */}
+      {/* 3. CASE STUDIES OF THE WEEK (FEATURED ON START OF DASHBOARD)              */}
+      {/* ========================================================================= */}
+      <section className="space-y-4 bg-gradient-to-b from-[#EFF6FF]/60 via-white to-white rounded-2xl sm:rounded-3xl border border-[#BFDBFE]/70 p-4 sm:p-6 shadow-xs relative">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs">
+                <Flame className="w-3 h-3 text-rose-600" />
+                <span>Weekly Academic Feature</span>
+              </span>
+              <span className="text-[11px] font-semibold text-[#64748B]">
+                {displayWeeklyCases.length} {displayWeeklyCases.length === 1 ? "Case" : "Cases"} of the Week • Solved 4-Step Answers
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-[#13264F] tracking-tight mt-1">
+              Case Studies of the Week
+            </h3>
+            <p className="text-xs text-[#5B6B8A] mt-0.5 max-w-2xl leading-relaxed">
+              Master the ICAI &amp; ICSI model answer methodology: Provision, Facts Application, Landmark Precedent, and Definitive Conclusion.
+            </p>
+          </div>
+          <span className="text-[11px] font-bold text-[#005A9C] bg-[#EFF6FF] px-3.5 py-1 rounded-full border border-[#BFDBFE] self-start sm:self-auto shrink-0 shadow-2xs">
+            Updated Weekly by Academic Faculty
+          </span>
+        </div>
+
+        <div
+          className={`grid grid-cols-1 ${
+            displayWeeklyCases.length === 1
+              ? "max-w-2xl mx-auto"
+              : displayWeeklyCases.length === 2
+              ? "md:grid-cols-2"
+              : "md:grid-cols-2 lg:grid-cols-3"
+          } gap-4 sm:gap-5`}
+        >
+          {displayWeeklyCases.map((cs, idx) => {
+            const caseId = cs.id || `case-${idx}`;
+            const isAnswerOpen = openAnswers[caseId] !== false; // open by default for enrolled
+            const isPracticed = practicedCases.includes(caseId);
+
+            return (
+              <div
+                key={caseId}
+                className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8F0] shadow-xs p-4 sm:p-5 flex flex-col justify-between gap-4 hover:shadow-md hover:border-[#BFDBFE] transition-all duration-200 group"
+              >
+                <div className="space-y-3">
+                  {/* Top Bar: Day & Difficulty */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#005A9C] uppercase tracking-wider flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-[#E11D48]" />
+                      <span>{cs.day || `Case #${idx + 1}`}</span>
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] whitespace-nowrap">
+                      {cs.badge || "High Difficulty"}
+                    </span>
+                  </div>
+
+                  {/* Subject & Title */}
+                  <div>
+                    <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">
+                      {cs.subject || "Indian Contract Act, 1872"}
+                    </span>
+                    <h4 className="text-sm sm:text-base font-bold text-[#1E293B] leading-snug mt-0.5 group-hover:text-[#005A9C] transition-colors break-words">
+                      {cs.title}
+                    </h4>
+                  </div>
+
+                  {/* Scenario */}
+                  <div className="p-3 sm:p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] leading-relaxed space-y-1">
+                    <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1">
+                      <BookOpen className="w-3 h-3 text-[#005A9C]" />
+                      <span>Case Scenario:</span>
+                    </div>
+                    <p className="italic text-[#1E293B] break-words">
+                      &ldquo;{cs.scenario || "Case scenario details will be published here by faculty."}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* Model Answer (4-Step Structure) */}
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C] flex items-center gap-1">
+                        <Scale className="w-3 h-3 text-[#005A9C]" />
+                        <span>Model Answer (4-Step Structure)</span>
+                      </span>
+                      {hasAccess && (
+                        <button
+                          type="button"
+                          onClick={() => setOpenAnswers((prev) => ({ ...prev, [caseId]: !isAnswerOpen }))}
+                          className="text-[10px] font-bold text-[#64748B] hover:text-[#005A9C] flex items-center gap-0.5 cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100 transition-colors"
+                        >
+                          <span>{isAnswerOpen ? "Hide" : "Show"}</span>
+                          {isAnswerOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        </button>
+                      )}
+                    </div>
+
+                    {hasAccess ? (
+                      isAnswerOpen && (
+                        <div className="p-3.5 rounded-xl bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border border-[#BBF7D0] text-xs text-[#14532D] space-y-2.5 animate-in fade-in duration-150">
+                          {cs.modelAnswer?.trim() ? (
+                            <div className="whitespace-pre-line leading-relaxed text-[11.5px] sm:text-xs text-[#14532D] break-words">
+                              {cs.modelAnswer}
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-[#15803D] italic py-0.5">
+                              Faculty 4-step model answer solution is currently being prepared for this weekly case study.
+                            </p>
+                          )}
+                          {cs.precedent && (
+                            <div className="pt-2 border-t border-[#BBF7D0] flex items-start gap-1.5 text-[11px] font-medium text-[#166534] bg-white/70 p-2 rounded-lg border border-[#86EFAC]/40">
+                              <span className="font-bold shrink-0 text-[#14532D]">⚖️ Precedent:</span>
+                              <span className="italic break-words">{cs.precedent}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <div className="relative p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] overflow-hidden">
+                        <p className="text-xs text-[#64748B] filter blur-[3.5px] select-none pointer-events-none line-clamp-3">
+                          {cs.modelAnswer || "Legal principle applies under statutory authority, where doctrine protects buyers from latent defects and enforces restitution..."}
+                        </p>
+                        <div className="absolute inset-0 bg-white/85 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                          <div className="flex items-center gap-1 text-[#DC2626] font-bold text-xs">
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>Enrolled Students Only</span>
+                          </div>
+                          <p className="text-[10px] text-[#64748B]">
+                            Purchase any course pass to unlock weekly model answers.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Practice Action */}
+                <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between gap-2">
+                  <span className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] font-bold text-[#475569] whitespace-nowrap">
+                    {cs.marks || "6 Marks Question"}
+                  </span>
+
+                  {hasAccess ? (
+                    <button
+                      type="button"
+                      disabled={isPracticed}
+                      onClick={() => {
+                        if (!isPracticed) {
+                          awardXp?.(30, `Practiced Weekly Case: ${cs.title}`);
+                          setPracticedCases((prev) => [...prev, caseId]);
+                        }
+                      }}
+                      className={`shrink-0 px-3.5 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs ${
+                        isPracticed
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default"
+                          : "bg-[#005A9C] hover:bg-[#004F8A] text-white active:scale-95"
+                      }`}
+                    >
+                      {isPracticed ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Practiced (+30 XP)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
+                          <span>Practice (+30 XP)</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onBuyCourse?.("ca")}
+                      className="shrink-0 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:opacity-95 text-white text-[11px] font-bold shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Unlock Pass</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. MY COURSES SECTION (SEARCH, FILTERS, PROGRESS BARS MATCHING SVG)        */}
       {/* ========================================================================= */}
       <section className="space-y-3.5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -1461,174 +1649,6 @@ export function StudentDashboardHome({
           </div>
         )}
       </div>
-
-      {/* ========================================================================= */}
-      {/* 4. CASE STUDIES OF THE WEEK (3 ACTIVE CASES WITH MODEL ANSWERS)            */}
-      {/* ========================================================================= */}
-      <section className="space-y-4 pt-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
-                <Flame className="w-3 h-3 text-rose-600" />
-                <span>Weekly Academic Feature</span>
-              </span>
-              <span className="text-[11px] font-semibold text-[#6B7280]">
-                3 Cases of the Week • Solved 4-Step Answers
-              </span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-black text-[#1F2937] tracking-tight mt-1">
-              Case Studies of the Week
-            </h3>
-            <p className="text-xs text-[#64748B] mt-0.5 max-w-2xl">
-              Master the ICAI &amp; ICSI model answer methodology: Provision, Facts Application, Landmark Precedent, and Definitive Conclusion.
-            </p>
-          </div>
-          <span className="text-[11px] font-bold text-[#005A9C] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE] self-start sm:self-auto">
-            Updated Weekly by Academic Faculty
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          {displayWeeklyCases.map((cs, idx) => {
-            const caseId = cs.id || `case-${idx}`;
-            const isAnswerOpen = openAnswers[caseId] !== false; // open by default for enrolled
-            const isPracticed = practicedCases.includes(caseId);
-
-            return (
-              <div
-                key={caseId}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8F0] shadow-xs p-4 sm:p-5 flex flex-col justify-between gap-3.5 hover:shadow-md transition-all duration-200 group"
-              >
-                <div className="space-y-3">
-                  {/* Top Bar: Day & Badge */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-[#005A9C] uppercase tracking-wider flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5 text-[#E11D48]" />
-                      <span>{cs.day || `Case #${idx + 1}`}</span>
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
-                      {cs.badge || cs.marks || "6 Marks"}
-                    </span>
-                  </div>
-
-                  {/* Subject & Title */}
-                  <div>
-                    <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">
-                      {cs.subject || "Business Laws"}
-                    </span>
-                    <h4 className="text-sm font-bold text-[#1E293B] leading-snug mt-0.5 group-hover:text-[#005A9C] transition-colors">
-                      {cs.title}
-                    </h4>
-                  </div>
-
-                  {/* Scenario */}
-                  <div className="p-3 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] leading-relaxed italic">
-                    &ldquo;{cs.scenario}&rdquo;
-                  </div>
-
-                  {/* Model Answer */}
-                  <div>
-                    <div className="flex items-center justify-between gap-1 mb-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C] flex items-center gap-1">
-                        <Scale className="w-3 h-3 text-[#005A9C]" />
-                        <span>Model Answer (4-Step Structure)</span>
-                      </span>
-                      {hasAccess && (
-                        <button
-                          type="button"
-                          onClick={() => setOpenAnswers((prev) => ({ ...prev, [caseId]: !isAnswerOpen }))}
-                          className="text-[10px] font-bold text-[#64748B] hover:text-[#005A9C] flex items-center gap-0.5 cursor-pointer"
-                        >
-                          <span>{isAnswerOpen ? "Hide" : "Show"}</span>
-                          {isAnswerOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                        </button>
-                      )}
-                    </div>
-
-                    {hasAccess ? (
-                      isAnswerOpen && (
-                        <div className="p-3 rounded-xl sm:rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-xs text-[#14532D] space-y-2 animate-in fade-in duration-150">
-                          <p className="whitespace-pre-line leading-relaxed text-[11px] sm:text-xs">
-                            {cs.modelAnswer}
-                          </p>
-                          {cs.precedent && (
-                            <div className="pt-2 border-t border-[#BBF7D0] flex items-start gap-1.5 text-[10.5px] font-medium text-[#166534]">
-                              <span className="font-bold shrink-0">⚖️ Precedent:</span>
-                              <span className="italic">{cs.precedent}</span>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    ) : (
-                      <div className="relative p-3.5 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] overflow-hidden">
-                        <p className="text-xs text-[#64748B] filter blur-[3.5px] select-none pointer-events-none line-clamp-3">
-                          {cs.modelAnswer || "Legal principle applies under statutory authority, where doctrine protects buyers from latent defects and enforces restitution..."}
-                        </p>
-                        <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 p-3 text-center">
-                          <div className="flex items-center gap-1 text-[#DC2626] font-bold text-xs">
-                            <Lock className="w-3.5 h-3.5" />
-                            <span>Enrolled Students Only</span>
-                          </div>
-                          <p className="text-[10px] text-[#64748B]">
-                            Purchase any course pass to unlock weekly model answers.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Bottom Practice Action */}
-                <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between gap-2 text-xs">
-                  <span className="text-[10px] text-[#64748B] font-mono truncate max-w-[130px]">
-                    {cs.marks || "6 Marks Question"}
-                  </span>
-
-                  {hasAccess ? (
-                    <button
-                      type="button"
-                      disabled={isPracticed}
-                      onClick={() => {
-                        if (!isPracticed) {
-                          awardXp?.(30, `Practiced Weekly Case: ${cs.title}`);
-                          setPracticedCases((prev) => [...prev, caseId]);
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isPracticed
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default"
-                          : "bg-[#005A9C] hover:bg-[#004F8A] text-white shadow-2xs active:scale-95"
-                      }`}
-                    >
-                      {isPracticed ? (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Practiced (+30 XP)</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
-                          <span>Practice (+30 XP)</span>
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onBuyCourse?.("ca")}
-                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:opacity-95 text-white text-[11px] font-bold shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
-                    >
-                      <Lock className="w-3 h-3" />
-                      <span>Unlock Pass</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
     </div>
   );
 }
