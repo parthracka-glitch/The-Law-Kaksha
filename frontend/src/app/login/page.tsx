@@ -232,13 +232,36 @@ function LoginContent() {
             ...user,
             hasPurchasedCourse: hasPurchased,
           };
+
+          const rawUnlocked = (studentObj as any).unlockedItemIds;
+          const enrolledList = (studentObj as any).enrolled_books;
+          const unlockedItems: string[] = [];
+          if (Array.isArray(rawUnlocked)) unlockedItems.push(...rawUnlocked);
+          if (Array.isArray(enrolledList)) {
+            enrolledList.forEach((book: string) => {
+              unlockedItems.push(book);
+              const lower = (book || "").toLowerCase();
+              if (lower.includes("ca") || lower.includes("foundation") || lower.includes("business law") || lower.includes("vol 1") || lower.includes("volume 1")) {
+                unlockedItems.push("course-ca-foundation", "course-ca-foundation-sub", "ca-foundation", "ca-foundation-paper-2", "ca-foundation-business-laws", "prod-vol1", "book-vol-1");
+              }
+              if (lower.includes("cs") || lower.includes("cseet") || lower.includes("vol 2") || lower.includes("volume 2")) {
+                unlockedItems.push("course-cseet", "course-cseet-sub", "cseet", "cseet-business-law", "cseet-business-communication", "prod-vol2", "book-vol-2");
+              }
+            });
+          }
+          if (hasPurchased && unlockedItems.length === 0) {
+            unlockedItems.push("course-ca-foundation", "course-ca-foundation-sub", "ca-foundation", "ca-foundation-paper-2", "ca-foundation-business-laws", "prod-vol1", "book-vol-1");
+          }
+          const finalUnlocked = Array.from(new Set(unlockedItems));
+          (studentObj as any).unlockedItemIds = finalUnlocked;
+
           localStorage.setItem("lawkaksha_student_session", JSON.stringify(studentObj));
           localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentObj));
           localStorage.setItem("lawkaksha_student_user", JSON.stringify(studentObj));
-          if (!hasPurchased) {
+          if (!hasPurchased && finalUnlocked.length === 0) {
             localStorage.removeItem("lawkaksha_purchased_books");
-          } else if (Array.isArray((studentObj as any).unlockedItemIds) && (studentObj as any).unlockedItemIds.length > 0) {
-            localStorage.setItem("lawkaksha_purchased_books", JSON.stringify((studentObj as any).unlockedItemIds));
+          } else {
+            localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(finalUnlocked));
           }
           if (token) {
             localStorage.setItem("lawkaksha_token", token);

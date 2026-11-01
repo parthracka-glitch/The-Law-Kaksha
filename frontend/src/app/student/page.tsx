@@ -710,6 +710,69 @@ export default function StudentDashboardPage() {
         if (Array.isArray(authenticatedUser.unlockedItemIds)) {
           initialUnlocked.push(...authenticatedUser.unlockedItemIds);
         }
+        if (Array.isArray(authenticatedUser.enrolled_books)) {
+          authenticatedUser.enrolled_books.forEach((book: string) => {
+            initialUnlocked.push(book);
+            const lower = (book || "").toLowerCase();
+            if (
+              lower.includes("ca") ||
+              lower.includes("foundation") ||
+              lower.includes("business law") ||
+              lower.includes("vol 1") ||
+              lower.includes("volume 1")
+            ) {
+              initialUnlocked.push(
+                "course-ca-foundation",
+                "course-ca-foundation-sub",
+                "ca-foundation",
+                "ca-foundation-paper-2",
+                "ca-foundation-business-laws",
+                "prod-vol1",
+                "book-vol-1"
+              );
+            }
+            if (
+              lower.includes("cs") ||
+              lower.includes("cseet") ||
+              lower.includes("vol 2") ||
+              lower.includes("volume 2")
+            ) {
+              initialUnlocked.push(
+                "course-cseet",
+                "course-cseet-sub",
+                "cseet",
+                "cseet-business-law",
+                "cseet-business-communication",
+                "prod-vol2",
+                "book-vol-2"
+              );
+            }
+          });
+        }
+        if (authenticatedUser.hasPurchasedCourse && initialUnlocked.length === 0) {
+          const target = String(authenticatedUser.targetExam || "").toLowerCase();
+          if (target.includes("cs") || target.includes("cseet")) {
+            initialUnlocked.push(
+              "course-cseet",
+              "course-cseet-sub",
+              "cseet",
+              "cseet-business-law",
+              "cseet-business-communication",
+              "prod-vol2",
+              "book-vol-2"
+            );
+          } else {
+            initialUnlocked.push(
+              "course-ca-foundation",
+              "course-ca-foundation-sub",
+              "ca-foundation",
+              "ca-foundation-paper-2",
+              "ca-foundation-business-laws",
+              "prod-vol1",
+              "book-vol-1"
+            );
+          }
+        }
       } else if (isAdmin && adminSession) {
         try {
           const adm = JSON.parse(adminSession);
@@ -739,7 +802,11 @@ export default function StudentDashboardPage() {
       }
 
       if (initialUnlocked.length > 0) {
-        setPurchasedBooks((prev) => Array.from(new Set([...prev, ...initialUnlocked])));
+        const uniqueUnlocked = Array.from(new Set(initialUnlocked));
+        setPurchasedBooks((prev) => Array.from(new Set([...prev, ...uniqueUnlocked])));
+        try {
+          localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(uniqueUnlocked));
+        } catch {}
       }
 
       // Listen for instant purchase unlocks from CartDrawer
@@ -910,10 +977,43 @@ export default function StudentDashboardPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.success) {
+          let currentLocalBooksCount = 0;
+          try {
+            const pb = localStorage.getItem("lawkaksha_purchased_books");
+            if (pb) {
+              const arr = JSON.parse(pb);
+              if (Array.isArray(arr)) currentLocalBooksCount = arr.length;
+            }
+          } catch {}
+
+          let currentLocalPurchased = false;
+          try {
+            const sess =
+              localStorage.getItem("lawkaksha_student_session") ||
+              localStorage.getItem("lawkaksha_active_student");
+            if (sess) {
+              const parsed = JSON.parse(sess);
+              if (
+                parsed.role === "admin" ||
+                parsed.hasPurchasedCourse === true ||
+                (Array.isArray(parsed.unlockedItemIds) && parsed.unlockedItemIds.length > 0) ||
+                (Array.isArray(parsed.enrolled_books) && parsed.enrolled_books.length > 0)
+              ) {
+                currentLocalPurchased = true;
+              }
+            }
+          } catch {}
+
           const hasServerAccess = Boolean(
             isAdminUser ||
             data.hasActiveSubscription ||
-            (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0)
+            data.hasPurchasedCourse ||
+            (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0) ||
+            (Array.isArray(data.student?.enrolled_books) && data.student.enrolled_books.length > 0) ||
+            data.student?.hasPurchasedCourse === true ||
+            data.student?.has_active_purchase === true ||
+            currentLocalPurchased ||
+            currentLocalBooksCount > 0
           );
           if (!isAdminUser && !hasServerAccess) {
             setIsAuthorized(false);
@@ -922,7 +1022,13 @@ export default function StudentDashboardPage() {
           }
 
           if (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0) {
-            setPurchasedBooks((prev) => Array.from(new Set([...prev, ...data.unlockedItemIds])));
+            setPurchasedBooks((prev) => {
+              const merged = Array.from(new Set([...prev, ...data.unlockedItemIds]));
+              try {
+                localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(merged));
+              } catch {}
+              return merged;
+            });
           }
           if (Array.isArray(data.availableProducts) && data.availableProducts.length > 0) {
             setAvailableProducts(data.availableProducts);

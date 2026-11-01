@@ -76,6 +76,122 @@ async function checkUserHasPurchasedCourse(user, activeSub) {
   return false;
 }
 
+// Helper to compute unlocked course & book IDs based on user record and enrollments
+function computeUserUnlockedItemIds(user, hasPurchasedCourse) {
+  const unlocked = new Set(Array.isArray(user?.unlockedItemIds) ? user.unlockedItemIds : []);
+
+  if (Array.isArray(user?.enrolled_books)) {
+    user.enrolled_books.forEach((book) => {
+      unlocked.add(book);
+      const lower = String(book).toLowerCase();
+      if (lower.includes("qbank") || lower.includes("question bank")) {
+        unlocked.add("course-ca-qbank");
+        unlocked.add("sub-ca-qbank");
+        unlocked.add("prod-qbank");
+      }
+      if (
+        lower.includes("ca") ||
+        lower.includes("foundation") ||
+        lower.includes("business law") ||
+        lower.includes("vol 1") ||
+        lower.includes("volume 1") ||
+        lower.includes("paper 2") ||
+        lower.includes("paper-2")
+      ) {
+        unlocked.add("course-ca-foundation");
+        unlocked.add("course-ca-foundation-sub");
+        unlocked.add("ca-foundation");
+        unlocked.add("ca-foundation-paper-2");
+        unlocked.add("ca-foundation-business-laws");
+        unlocked.add("prod-vol1");
+        unlocked.add("book-vol-1");
+      }
+      if (
+        lower.includes("cs") ||
+        lower.includes("cseet") ||
+        lower.includes("vol 2") ||
+        lower.includes("volume 2")
+      ) {
+        unlocked.add("course-cseet");
+        unlocked.add("course-cseet-sub");
+        unlocked.add("cseet");
+        unlocked.add("cseet-business-law");
+        unlocked.add("cseet-business-communication");
+        unlocked.add("cseet-management");
+        unlocked.add("prod-vol2");
+        unlocked.add("book-vol-2");
+      }
+      if (
+        lower.includes("*") ||
+        lower.includes("combo") ||
+        lower.includes("master") ||
+        lower.includes("all-access")
+      ) {
+        unlocked.add("course-ca-foundation");
+        unlocked.add("course-ca-foundation-sub");
+        unlocked.add("ca-foundation");
+        unlocked.add("ca-foundation-paper-2");
+        unlocked.add("ca-foundation-business-laws");
+        unlocked.add("prod-vol1");
+        unlocked.add("book-vol-1");
+        unlocked.add("course-cseet");
+        unlocked.add("course-cseet-sub");
+        unlocked.add("cseet");
+        unlocked.add("cseet-business-law");
+        unlocked.add("cseet-business-communication");
+        unlocked.add("cseet-management");
+        unlocked.add("prod-vol2");
+        unlocked.add("book-vol-2");
+        unlocked.add("prod-combo");
+        unlocked.add("all-access");
+      }
+    });
+  }
+
+  if (hasPurchasedCourse && unlocked.size === 0) {
+    const target = String(user?.target_exam || user?.targetExam || "").toLowerCase();
+    if (target.includes("cs") || target.includes("cseet")) {
+      unlocked.add("course-cseet");
+      unlocked.add("course-cseet-sub");
+      unlocked.add("cseet");
+      unlocked.add("cseet-business-law");
+      unlocked.add("cseet-business-communication");
+      unlocked.add("prod-vol2");
+      unlocked.add("book-vol-2");
+    } else {
+      unlocked.add("course-ca-foundation");
+      unlocked.add("course-ca-foundation-sub");
+      unlocked.add("ca-foundation");
+      unlocked.add("ca-foundation-paper-2");
+      unlocked.add("ca-foundation-business-laws");
+      unlocked.add("prod-vol1");
+      unlocked.add("book-vol-1");
+    }
+  }
+
+  if (user?.role === "admin") {
+    unlocked.add("course-ca-foundation");
+    unlocked.add("course-ca-foundation-sub");
+    unlocked.add("ca-foundation");
+    unlocked.add("ca-foundation-paper-2");
+    unlocked.add("ca-foundation-business-laws");
+    unlocked.add("prod-vol1");
+    unlocked.add("book-vol-1");
+    unlocked.add("course-cseet");
+    unlocked.add("course-cseet-sub");
+    unlocked.add("cseet");
+    unlocked.add("cseet-business-law");
+    unlocked.add("cseet-business-communication");
+    unlocked.add("prod-vol2");
+    unlocked.add("book-vol-2");
+    unlocked.add("prod-combo");
+    unlocked.add("course-ca-qbank");
+    unlocked.add("all-access");
+  }
+
+  return Array.from(unlocked);
+}
+
 // Generate unique student roll ID
 function generateStudentId(exam = "") {
   const isCSEET = String(exam).toLowerCase().includes("cseet");
@@ -378,6 +494,7 @@ router.post("/login", async (req, res) => {
     const rawUser = user.toObject ? user.toObject() : user;
     const { password_hash, ...safeUser } = rawUser;
     safeUser.hasPurchasedCourse = Boolean(hasPurchasedCourse);
+    safeUser.unlockedItemIds = computeUserUnlockedItemIds(user, hasPurchasedCourse);
 
     return res.status(200).json({
       success: true,
@@ -539,7 +656,12 @@ router.get("/me", requireAuth, async (req, res) => {
     }
 
     const hasPurchasedCourse = await checkUserHasPurchasedCourse(req.user, activeSub);
-    const safeUser = { ...req.user, hasPurchasedCourse: Boolean(hasPurchasedCourse) };
+    const unlockedItemIds = computeUserUnlockedItemIds(req.user, hasPurchasedCourse);
+    const safeUser = {
+      ...req.user,
+      hasPurchasedCourse: Boolean(hasPurchasedCourse),
+      unlockedItemIds,
+    };
 
     return res.status(200).json({
       success: true,
@@ -913,6 +1035,7 @@ router.post("/google", async (req, res) => {
     const rawUser = user.toObject ? user.toObject() : user;
     const { password_hash, ...safeUser } = rawUser;
     safeUser.hasPurchasedCourse = Boolean(hasPurchasedCourse);
+    safeUser.unlockedItemIds = computeUserUnlockedItemIds(user, hasPurchasedCourse);
 
     return res.status(200).json({
       success: true,

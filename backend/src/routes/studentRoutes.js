@@ -37,6 +37,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
   try {
     let email = req.user?.email ? String(req.user.email).toLowerCase().trim() : null;
     let studentId = req.user?.student_id ? String(req.user.student_id).trim() : null;
+    const userId = req.user?.id || req.user?._id;
 
     // Admin override or client query fallback
     if (req.query.email) email = String(req.query.email).toLowerCase().trim();
@@ -54,19 +55,22 @@ router.get("/dashboard", requireAuth, async (req, res) => {
 
     if (isConnected()) {
       // 1. Find student
-      if (email || studentId) {
+      if (email || studentId || userId) {
         student = await User.findOne({
           $or: [
-            ...(email ? [{ email }] : []),
+            ...(email ? [{ email }, { boundGmail: email }] : []),
             ...(studentId ? [{ student_id: studentId }, { id: studentId }] : []),
+            ...(userId && mongoose.isValidObjectId(userId) ? [{ _id: userId }, { id: userId }] : (userId ? [{ id: userId }] : [])),
           ],
         }).select("-password_hash").lean();
 
         // 2. Find student's active subscriptions
         subscriptions = await Subscription.find({
           $or: [
-            ...(email ? [{ email }] : []),
-            ...(studentId ? [{ studentRoll: studentId }] : []),
+            ...(email ? [{ email }, { userEmail: email }] : []),
+            ...(studentId ? [{ studentRoll: studentId }, { studentId }] : []),
+            ...(student?.id ? [{ userId: student.id }] : []),
+            ...(userId ? [{ userId }] : []),
           ],
           accessStatus: "Active",
         }).lean();
@@ -90,12 +94,20 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       // Local fallback
       const usersTable = Database.table("users");
       const subsTable = Database.table("subscriptions");
-      if (email || studentId) {
+      if (email || studentId || userId) {
         student = usersTable.findOne(
-          (u) => (email && u.email === email) || (studentId && (u.student_id === studentId || u.id === studentId))
+          (u) =>
+            (email && (u.email === email || u.boundGmail === email)) ||
+            (studentId && (u.student_id === studentId || u.id === studentId)) ||
+            (userId && (u.id === userId || u._id === userId))
         );
         subscriptions = subsTable.find(
-          (s) => ((email && s.email === email) || (studentId && s.studentRoll === studentId)) && s.accessStatus === "Active"
+          (s) =>
+            ((email && (s.email === email || s.userEmail === email)) ||
+              (studentId && (s.studentRoll === studentId || s.studentId === studentId)) ||
+              (student?.id && s.userId === student.id) ||
+              (userId && s.userId === userId)) &&
+            s.accessStatus === "Active"
         );
       }
       products = Database.table("products").find();
@@ -108,9 +120,121 @@ router.get("/dashboard", requireAuth, async (req, res) => {
     // Determine unlocked item IDs
     const unlockedSet = new Set();
 
-    // From student record
-    if (student?.unlockedItemIds) {
+    // From student record unlockedItemIds
+    if (student?.unlockedItemIds && Array.isArray(student.unlockedItemIds)) {
       student.unlockedItemIds.forEach((id) => unlockedSet.add(id));
+    }
+
+    // From student record enrolled_books
+    if (student?.enrolled_books && Array.isArray(student.enrolled_books)) {
+      student.enrolled_books.forEach((book) => {
+        unlockedSet.add(book);
+        const lower = String(book).toLowerCase();
+        if (lower.includes("qbank") || lower.includes("question bank")) {
+          unlockedSet.add("course-ca-qbank");
+          unlockedSet.add("sub-ca-qbank");
+          unlockedSet.add("prod-qbank");
+        }
+        if (
+          lower.includes("ca") ||
+          lower.includes("foundation") ||
+          lower.includes("business law") ||
+          lower.includes("vol 1") ||
+          lower.includes("volume 1") ||
+          lower.includes("paper 2") ||
+          lower.includes("paper-2")
+        ) {
+          unlockedSet.add("course-ca-foundation");
+          unlockedSet.add("course-ca-foundation-sub");
+          unlockedSet.add("ca-foundation");
+          unlockedSet.add("ca-foundation-paper-2");
+          unlockedSet.add("ca-foundation-business-laws");
+          unlockedSet.add("prod-vol1");
+          unlockedSet.add("book-vol-1");
+        }
+        if (
+          lower.includes("cs") ||
+          lower.includes("cseet") ||
+          lower.includes("vol 2") ||
+          lower.includes("volume 2")
+        ) {
+          unlockedSet.add("course-cseet");
+          unlockedSet.add("course-cseet-sub");
+          unlockedSet.add("cseet");
+          unlockedSet.add("cseet-business-law");
+          unlockedSet.add("cseet-business-communication");
+          unlockedSet.add("cseet-management");
+          unlockedSet.add("prod-vol2");
+          unlockedSet.add("book-vol-2");
+        }
+        if (
+          lower.includes("*") ||
+          lower.includes("combo") ||
+          lower.includes("master") ||
+          lower.includes("all-access")
+        ) {
+          unlockedSet.add("course-ca-foundation");
+          unlockedSet.add("course-ca-foundation-sub");
+          unlockedSet.add("ca-foundation");
+          unlockedSet.add("ca-foundation-paper-2");
+          unlockedSet.add("ca-foundation-business-laws");
+          unlockedSet.add("prod-vol1");
+          unlockedSet.add("book-vol-1");
+          unlockedSet.add("course-cseet");
+          unlockedSet.add("course-cseet-sub");
+          unlockedSet.add("cseet");
+          unlockedSet.add("cseet-business-law");
+          unlockedSet.add("cseet-business-communication");
+          unlockedSet.add("cseet-management");
+          unlockedSet.add("prod-vol2");
+          unlockedSet.add("book-vol-2");
+          unlockedSet.add("prod-combo");
+          unlockedSet.add("all-access");
+        }
+      });
+    }
+
+    // If marked as hasPurchasedCourse or has_active_purchase
+    if (student?.hasPurchasedCourse || student?.has_active_purchase) {
+      const target = String(student.target_exam || student.targetExam || "").toLowerCase();
+      if (target.includes("cs") || target.includes("cseet")) {
+        unlockedSet.add("course-cseet");
+        unlockedSet.add("course-cseet-sub");
+        unlockedSet.add("cseet");
+        unlockedSet.add("cseet-business-law");
+        unlockedSet.add("cseet-business-communication");
+        unlockedSet.add("prod-vol2");
+        unlockedSet.add("book-vol-2");
+      } else {
+        unlockedSet.add("course-ca-foundation");
+        unlockedSet.add("course-ca-foundation-sub");
+        unlockedSet.add("ca-foundation");
+        unlockedSet.add("ca-foundation-paper-2");
+        unlockedSet.add("ca-foundation-business-laws");
+        unlockedSet.add("prod-vol1");
+        unlockedSet.add("book-vol-1");
+      }
+    }
+
+    // Admin accounts unlock everything
+    if (student?.role === "admin" || req.user?.role === "admin") {
+      unlockedSet.add("course-ca-foundation");
+      unlockedSet.add("course-ca-foundation-sub");
+      unlockedSet.add("ca-foundation");
+      unlockedSet.add("ca-foundation-paper-2");
+      unlockedSet.add("ca-foundation-business-laws");
+      unlockedSet.add("prod-vol1");
+      unlockedSet.add("book-vol-1");
+      unlockedSet.add("course-cseet");
+      unlockedSet.add("course-cseet-sub");
+      unlockedSet.add("cseet");
+      unlockedSet.add("cseet-business-law");
+      unlockedSet.add("cseet-business-communication");
+      unlockedSet.add("prod-vol2");
+      unlockedSet.add("book-vol-2");
+      unlockedSet.add("prod-combo");
+      unlockedSet.add("course-ca-qbank");
+      unlockedSet.add("all-access");
     }
 
     // From active entitlements and paid orders
@@ -272,12 +396,29 @@ router.get("/dashboard", requireAuth, async (req, res) => {
 
     const finalUnlockedIds = Array.from(unlockedSet);
 
+    const isEnrolledOrPurchased = Boolean(
+      student?.role === "admin" ||
+      req.user?.role === "admin" ||
+      subscriptions.length > 0 ||
+      finalUnlockedIds.length > 0 ||
+      (Array.isArray(student?.enrolled_books) && student.enrolled_books.length > 0) ||
+      student?.hasPurchasedCourse === true ||
+      student?.has_active_purchase === true
+    );
+
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
-      student: student || null,
-      hasActiveSubscription: subscriptions.length > 0 || finalUnlockedIds.length > 0,
-      hasPurchasedCourse: subscriptions.length > 0 || finalUnlockedIds.length > 0,
+      student: student
+        ? {
+            ...student,
+            enrolled_books: student.enrolled_books || [],
+            unlockedItemIds: finalUnlockedIds,
+            hasPurchasedCourse: isEnrolledOrPurchased,
+          }
+        : null,
+      hasActiveSubscription: isEnrolledOrPurchased,
+      hasPurchasedCourse: isEnrolledOrPurchased,
       unlockedItemIds: finalUnlockedIds,
       subscriptions,
       availableProducts: products.map(serializeProduct),
