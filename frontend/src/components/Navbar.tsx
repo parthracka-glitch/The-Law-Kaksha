@@ -31,6 +31,7 @@ export function Navbar() {
     email?: string;
     avatarInitials: string;
     role?: string;
+    hasPurchasedCourse?: boolean;
   } | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [catalogItems, setCatalogItems] = useState<NavbarCatalogItem[]>(DEFAULT_NAVBAR_ITEMS);
@@ -94,11 +95,33 @@ export function Navbar() {
                   .toUpperCase()
                   .slice(0, 2) ||
                 "LK";
+
+              // Verify whether student account has an active course enrollment/purchase
+              let hasPurchased = Boolean(
+                parsed.role === "admin" ||
+                parsed.hasPurchasedCourse === true ||
+                (Array.isArray(parsed.unlockedItemIds) && parsed.unlockedItemIds.length > 0) ||
+                (Array.isArray(parsed.enrolled_books) && parsed.enrolled_books.length > 0)
+              );
+
+              if (!hasPurchased) {
+                try {
+                  const pb = localStorage.getItem("lawkaksha_purchased_books");
+                  if (pb) {
+                    const arr = JSON.parse(pb);
+                    if (Array.isArray(arr) && arr.length > 0) {
+                      hasPurchased = true;
+                    }
+                  }
+                } catch {}
+              }
+
               setActiveStudent({
                 name: parsed.name,
                 email: parsed.email || "",
                 avatarInitials: initials,
                 role: "student",
+                hasPurchasedCourse: hasPurchased,
               });
               return;
             }
@@ -443,15 +466,26 @@ export function Navbar() {
             {/* AUTH BUTTONS: LOG IN (when logged out) VS VISIT STUDENT DASHBOARD & PROFILE (when logged in) */}
             {activeStudent ? (
               <div className="flex items-center gap-2">
-                {/* 1-Click Student Dashboard Button */}
-                <Link
-                  href="/student"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-[0.97]"
-                  title="Student Dashboard"
-                >
-                  <GraduationCap className="w-4 h-4 text-white" />
-                  <span>Student Dashboard</span>
-                </Link>
+                {/* 1-Click Student Dashboard Button: Only visible if registered/purchased for the course */}
+                {activeStudent.hasPurchasedCourse ? (
+                  <Link
+                    href="/student"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-[0.97]"
+                    title="Student Dashboard"
+                  >
+                    <GraduationCap className="w-4 h-4 text-white" />
+                    <span>Student Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/courses"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs sm:text-sm font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap active:scale-[0.97]"
+                    title="Explore Courses to Enroll"
+                  >
+                    <BookOpen className="w-4 h-4 text-white" />
+                    <span>Explore Courses</span>
+                  </Link>
+                )}
 
                 {/* Simplified User Profile Button */}
                 <div className="relative" ref={profileDropdownRef}>
@@ -490,7 +524,7 @@ export function Navbar() {
                               {activeStudent.email || "Verified Account"}
                             </p>
                             <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
-                              🎓 Enrolled Student
+                              {activeStudent.hasPurchasedCourse ? "🎓 Enrolled Student" : "👤 Registered Account"}
                             </span>
                           </div>
                         </div>
@@ -498,14 +532,25 @@ export function Navbar() {
 
                       {/* Direct Quick-Access Navigation */}
                       <div className="space-y-0.5">
-                        <Link
-                          href="/student"
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors active:scale-[0.98]"
-                        >
-                          <LayoutDashboard className="w-4 h-4 text-[#005A9C]" />
-                          <span>Student Dashboard</span>
-                        </Link>
+                        {activeStudent.hasPurchasedCourse ? (
+                          <Link
+                            href="/student"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#0A192F] hover:bg-[#F0F7FF] hover:text-[#005A9C] transition-colors active:scale-[0.98]"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-[#005A9C]" />
+                            <span>Student Dashboard</span>
+                          </Link>
+                        ) : (
+                          <Link
+                            href="/courses"
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#005A9C] hover:bg-[#F0F7FF] transition-colors active:scale-[0.98]"
+                          >
+                            <GraduationCap className="w-4 h-4 text-[#005A9C]" />
+                            <span>Enroll in Course</span>
+                          </Link>
+                        )}
 
                         <Link
                           href="/courses"
@@ -733,19 +778,30 @@ export function Navbar() {
                           {activeStudent.email || "Verified Account"}
                         </p>
                         <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white text-[#005A9C] border border-[#DBEAFE]">
-                          🎓 Enrolled Student
+                          {activeStudent.hasPurchasedCourse ? "🎓 Enrolled Student" : "👤 Registered Account"}
                         </span>
                       </div>
                     </div>
 
-                    <Link
-                      href="/student"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px] active:scale-[0.98]"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-white" />
-                      <span>Student Dashboard</span>
-                    </Link>
+                    {activeStudent.hasPurchasedCourse ? (
+                      <Link
+                        href="/student"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px] active:scale-[0.98]"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-white" />
+                        <span>Student Dashboard</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/courses"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#005A9C] text-white text-sm font-bold shadow-xs hover:bg-[#004F8A] transition min-h-[44px] active:scale-[0.98]"
+                      >
+                        <BookOpen className="w-4 h-4 text-white" />
+                        <span>Explore Courses &amp; Enroll</span>
+                      </Link>
+                    )}
 
                     <button
                       onClick={() => {

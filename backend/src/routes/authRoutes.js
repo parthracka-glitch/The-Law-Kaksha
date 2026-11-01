@@ -11,6 +11,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const Order = require("../models/Order");
+const Entitlement = require("../models/Entitlement");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { requireAuth, JWT_SECRET } = require("../middleware/authMiddleware");
@@ -27,25 +28,46 @@ async function checkUserHasPurchasedCourse(user, activeSub) {
 
   try {
     if (isConnected()) {
-      const paidOrder = await Order.findOne({
-        $or: [
-          ...(user.id ? [{ user_id: user.id }] : []),
-          ...(user.email ? [{ "personal_details.email": user.email.toLowerCase().trim() }, { userEmail: user.email.toLowerCase().trim() }] : []),
-          ...(user.student_id ? [{ studentId: user.student_id }] : []),
-        ],
-        status: { $in: ["paid", "COMPLETED"] },
-      }).lean();
-      if (paidOrder) return true;
+      const [paidOrder, activeEnt] = await Promise.all([
+        Order.findOne({
+          $or: [
+            ...(user.id ? [{ user_id: user.id }] : []),
+            ...(user.email ? [{ "personal_details.email": user.email.toLowerCase().trim() }, { userEmail: user.email.toLowerCase().trim() }] : []),
+            ...(user.student_id ? [{ studentId: user.student_id }] : []),
+          ],
+          status: { $in: ["paid", "COMPLETED"] },
+        }).lean(),
+        Entitlement.findOne({
+          $or: [
+            ...(user.id ? [{ user_id: user.id }] : []),
+            ...(user.email ? [{ user_email: user.email.toLowerCase().trim() }] : []),
+            ...(user.student_id ? [{ student_id: user.student_id }] : []),
+          ],
+          status: "active",
+        }).lean(),
+      ]);
+      if (paidOrder || activeEnt) return true;
     } else {
       const ordersTable = Database.table("orders");
       const paidOrder = ordersTable.findOne(
         (o) =>
           (o.user_id === user.id ||
             o.userEmail === user.email ||
+            o.customer_email === user.email ||
             o.personal_details?.email === user.email) &&
           (o.status === "paid" || o.status === "COMPLETED")
       );
       if (paidOrder) return true;
+
+      const entsTable = Database.table("entitlements");
+      const activeEnt = entsTable.findOne(
+        (e) =>
+          ((user.id && e.user_id === user.id) ||
+            (user.email && e.user_email === user.email) ||
+            (user.student_id && e.student_id === user.student_id)) &&
+          e.status === "active"
+      );
+      if (activeEnt) return true;
     }
   } catch (err) {
     console.error("[checkUserHasPurchasedCourse] Error:", err.message);
@@ -353,7 +375,9 @@ router.post("/login", async (req, res) => {
     }
 
     const hasPurchasedCourse = await checkUserHasPurchasedCourse(user, activeSub);
-    const { password_hash, ...safeUser } = user;
+    const rawUser = user.toObject ? user.toObject() : user;
+    const { password_hash, ...safeUser } = rawUser;
+    safeUser.hasPurchasedCourse = Boolean(hasPurchasedCourse);
 
     return res.status(200).json({
       success: true,
@@ -364,7 +388,7 @@ router.post("/login", async (req, res) => {
         user: safeUser,
         role: user.role,
         subscription: activeSub || null,
-        hasPurchasedCourse,
+        hasPurchasedCourse: Boolean(hasPurchasedCourse),
         activeDeviceId: incomingDeviceId,
       },
     });
@@ -514,10 +538,14 @@ router.get("/me", requireAuth, async (req, res) => {
       );
     }
 
+    const hasPurchasedCourse = await checkUserHasPurchasedCourse(req.user, activeSub);
+    const safeUser = { ...req.user, hasPurchasedCourse: Boolean(hasPurchasedCourse) };
+
     return res.status(200).json({
       success: true,
-      user: req.user,
+      user: safeUser,
       subscription: activeSub || null,
+      hasPurchasedCourse: Boolean(hasPurchasedCourse),
     });
   } catch (err) {
     console.error("[Auth] Me error:", err);
@@ -884,6 +912,7 @@ router.post("/google", async (req, res) => {
     const hasPurchasedCourse = await checkUserHasPurchasedCourse(user, activeSub);
     const rawUser = user.toObject ? user.toObject() : user;
     const { password_hash, ...safeUser } = rawUser;
+    safeUser.hasPurchasedCourse = Boolean(hasPurchasedCourse);
 
     return res.status(200).json({
       success: true,
@@ -894,7 +923,7 @@ router.post("/google", async (req, res) => {
         user: safeUser,
         role: user.role,
         subscription: activeSub || null,
-        hasPurchasedCourse,
+        hasPurchasedCourse: Boolean(hasPurchasedCourse),
         activeDeviceId: incomingDeviceId,
       },
     });

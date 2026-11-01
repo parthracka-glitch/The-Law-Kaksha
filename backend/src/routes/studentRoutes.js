@@ -33,7 +33,7 @@ const router = express.Router();
  * Supports authenticated student sessions, admin inspection, and query param fallbacks.
  * Ownership: Returns student's profile & courses. Admins can view any student.
  */
-router.get("/dashboard", optionalAuth, async (req, res) => {
+router.get("/dashboard", requireAuth, async (req, res) => {
   try {
     let email = req.user?.email ? String(req.user.email).toLowerCase().trim() : null;
     let studentId = req.user?.student_id ? String(req.user.student_id).trim() : null;
@@ -277,6 +277,7 @@ router.get("/dashboard", optionalAuth, async (req, res) => {
       source: isConnected() ? "mongodb_atlas" : "local_cache",
       student: student || null,
       hasActiveSubscription: subscriptions.length > 0 || finalUnlockedIds.length > 0,
+      hasPurchasedCourse: subscriptions.length > 0 || finalUnlockedIds.length > 0,
       unlockedItemIds: finalUnlockedIds,
       subscriptions,
       availableProducts: products.map(serializeProduct),
@@ -972,7 +973,7 @@ router.get("/check-enrollment", async (req, res) => {
  * Returns the student's enrolled courses with hierarchical Course -> Act -> Unit -> ContentItem.
  * Coming-soon acts are flagged with isComingSoon: true so they can be badged and locked in the UI.
  */
-router.get("/my-courses", optionalAuth, async (req, res) => {
+router.get("/my-courses", requireAuth, async (req, res) => {
   try {
     let userId = req.user?.id || req.user?._id || req.user?.student_id || null;
     let email = req.user?.email ? String(req.user.email).toLowerCase().trim() : "";

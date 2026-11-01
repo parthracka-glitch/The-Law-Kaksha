@@ -301,7 +301,8 @@ export default function StudentDashboardPage() {
 
   // Purchase-Based Access Control: reflects whether active course stream has been subscribed to
   const isCaUnlocked = useMemo(() => {
-    const hasInPurchased = purchasedBooks.some(id => {
+    if (isAdminUser) return true;
+    return purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       if (lower.includes("qbank") || lower.includes("question-bank") || lower.includes("question bank")) {
         return false;
@@ -324,12 +325,10 @@ export default function StudentDashboardPage() {
         lower.includes("business laws")
       );
     });
-    if (hasInPurchased) return true;
-    const target = String(studentProfile.targetExam || "").toLowerCase();
-    return target.includes("ca") || target.includes("foundation") || target.includes("business laws");
-  }, [purchasedBooks, studentProfile.targetExam]);
+  }, [purchasedBooks, isAdminUser]);
 
   const isQBankUnlocked = useMemo(() => {
+    if (isAdminUser) return true;
     return purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
@@ -343,10 +342,11 @@ export default function StudentDashboardPage() {
         lower.includes("qbank")
       );
     });
-  }, [purchasedBooks]);
+  }, [purchasedBooks, isAdminUser]);
 
   const isCsUnlocked = useMemo(() => {
-    const hasInPurchased = purchasedBooks.some(id => {
+    if (isAdminUser) return true;
+    return purchasedBooks.some(id => {
       const lower = (id || "").toLowerCase();
       return (
         lower === "course-cseet-sub" ||
@@ -365,10 +365,7 @@ export default function StudentDashboardPage() {
         lower.includes("management")
       );
     });
-    if (hasInPurchased) return true;
-    const target = String(studentProfile.targetExam || "").toLowerCase();
-    return target.includes("cs") || target.includes("cseet");
-  }, [purchasedBooks, studentProfile.targetExam]);
+  }, [purchasedBooks, isAdminUser]);
 
   const hasActiveCourseAccess = activeCourse === "ca" ? isCaUnlocked : isCsUnlocked;
   const activeCourseName = activeCourse === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management";
@@ -662,6 +659,30 @@ export default function StudentDashboardPage() {
         return;
       }
 
+      // Course Access Gate: Student Dashboard is strictly reserved for users registered/enrolled for a course
+      const localHasPurchased = Boolean(
+        isAdmin ||
+        authenticatedUser?.hasPurchasedCourse === true ||
+        (Array.isArray(authenticatedUser?.unlockedItemIds) && authenticatedUser.unlockedItemIds.length > 0) ||
+        (Array.isArray(authenticatedUser?.enrolled_books) && authenticatedUser.enrolled_books.length > 0)
+      );
+
+      let localBooksCount = 0;
+      try {
+        const pb = localStorage.getItem("lawkaksha_purchased_books");
+        if (pb) {
+          const arr = JSON.parse(pb);
+          if (Array.isArray(arr)) localBooksCount = arr.length;
+        }
+      } catch {}
+
+      if (!isAdmin && !localHasPurchased && localBooksCount === 0) {
+        setIsAuthorized(false);
+        setIsCheckingAuth(false);
+        window.location.replace("/courses?enroll=required");
+        return;
+      }
+
       setIsAuthorized(true);
       setIsCheckingAuth(false);
       if (isAdmin) setIsAdminUser(true);
@@ -889,6 +910,17 @@ export default function StudentDashboardPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.success) {
+          const hasServerAccess = Boolean(
+            isAdminUser ||
+            data.hasActiveSubscription ||
+            (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0)
+          );
+          if (!isAdminUser && !hasServerAccess) {
+            setIsAuthorized(false);
+            window.location.replace("/courses?enroll=required");
+            return;
+          }
+
           if (Array.isArray(data.unlockedItemIds) && data.unlockedItemIds.length > 0) {
             setPurchasedBooks((prev) => Array.from(new Set([...prev, ...data.unlockedItemIds])));
           }

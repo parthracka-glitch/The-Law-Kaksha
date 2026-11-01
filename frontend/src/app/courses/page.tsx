@@ -300,6 +300,19 @@ function CoursesCatalogContent() {
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full space-y-10">
+        {/* Enrollment Required Alert (Shown when an unenrolled account attempts to access /student) */}
+        {searchParams.get("enroll") === "required" && (
+          <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+            <GraduationCap className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+            <div className="flex-1 text-xs sm:text-sm">
+              <p className="font-bold text-amber-950">Course Enrollment Required</p>
+              <p className="text-amber-800 mt-0.5">
+                The Student Dashboard is reserved for students enrolled in a course. Please purchase a course pass below to unlock your student dashboard, question banks, and notes.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 1. Header & Hero Banner */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#005A9C] text-xs font-semibold mb-1 shadow-2xs">

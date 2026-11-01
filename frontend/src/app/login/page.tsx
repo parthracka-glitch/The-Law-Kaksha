@@ -223,9 +223,23 @@ function LoginContent() {
           }
 
           localStorage.removeItem("lawkaksha_admin_session");
-          localStorage.setItem("lawkaksha_student_session", JSON.stringify(user));
-          localStorage.setItem("lawkaksha_active_student", JSON.stringify(user));
-          localStorage.setItem("lawkaksha_student_user", JSON.stringify(user));
+          const hasPurchased = Boolean(
+            innerData?.hasPurchasedCourse ??
+            respData?.hasPurchasedCourse ??
+            (user as Record<string, unknown>)?.hasPurchasedCourse
+          );
+          const studentObj = {
+            ...user,
+            hasPurchasedCourse: hasPurchased,
+          };
+          localStorage.setItem("lawkaksha_student_session", JSON.stringify(studentObj));
+          localStorage.setItem("lawkaksha_active_student", JSON.stringify(studentObj));
+          localStorage.setItem("lawkaksha_student_user", JSON.stringify(studentObj));
+          if (!hasPurchased) {
+            localStorage.removeItem("lawkaksha_purchased_books");
+          } else if (Array.isArray((studentObj as any).unlockedItemIds) && (studentObj as any).unlockedItemIds.length > 0) {
+            localStorage.setItem("lawkaksha_purchased_books", JSON.stringify((studentObj as any).unlockedItemIds));
+          }
           if (token) {
             localStorage.setItem("lawkaksha_token", token);
             localStorage.setItem("lawkaksha_student_token", token);
