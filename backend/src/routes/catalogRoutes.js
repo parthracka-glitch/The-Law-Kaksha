@@ -151,6 +151,7 @@ router.get("/public/site-data", async (req, res) => {
     let examSettings = [];
     let qotd = null;
     let mcqPool = null;
+    let cases = [];
 
     if (isConnected()) {
       products = await Product.find({ status: "Active" }).sort({ createdAt: -1 }).lean();
@@ -160,11 +161,19 @@ router.get("/public/site-data", async (req, res) => {
       if (qotdDoc) qotd = qotdDoc.value;
       const mcqDoc = await SiteSetting.findOne({ key: "mcq_pool" }).lean();
       if (mcqDoc) mcqPool = mcqDoc.value;
+      try {
+        const WeeklyCase = require("../models/WeeklyCase");
+        cases = await WeeklyCase.find().sort({ createdAt: 1 }).lean();
+      } catch (_) {}
     } else {
       products = Database.table("products").find((p) => p.status === "Active");
       if (!products || products.length === 0) {
         products = DEFAULT_COURSES;
       }
+      try {
+        const casesTable = Database.table("weekly_cases");
+        cases = casesTable ? casesTable.find() : [];
+      } catch (_) {}
     }
 
     const filteredProducts = products.filter((p) => !isRemovedProduct(p));
@@ -176,9 +185,27 @@ router.get("/public/site-data", async (req, res) => {
       examSettings,
       qotd,
       mcqPool,
+      cases,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching site data." });
+  }
+});
+
+// GET /api/public/weekly-cases — Live weekly academic cases direct from Atlas
+router.get("/public/weekly-cases", async (req, res) => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  try {
+    if (isConnected()) {
+      const WeeklyCase = require("../models/WeeklyCase");
+      const cases = await WeeklyCase.find().sort({ createdAt: 1 }).lean();
+      return res.status(200).json({ success: true, source: "mongodb_atlas", cases: cases || [] });
+    }
+    const casesTable = Database.table("weekly_cases");
+    const cases = casesTable ? casesTable.find() : [];
+    res.status(200).json({ success: true, source: "local_cache", cases: cases || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching weekly cases." });
   }
 });
 

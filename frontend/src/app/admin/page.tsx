@@ -3059,6 +3059,7 @@ export default function AdminPortalPage() {
                                     const next = cases.filter((c) => c.id !== cs.id);
                                     setCases(next);
                                     localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                                    window.dispatchEvent(new Event("storage"));
                                     try {
                                       await adminFetch(`/api/admin/cases/${cs.id}`, { method: "DELETE" });
                                     } catch {}
@@ -4339,6 +4340,7 @@ export default function AdminPortalPage() {
                   const next = isAdd ? [...cases, payload] : cases.map((c) => (c.id === payload.id ? payload : c));
                   setCases(next);
                   localStorage.setItem("lawkaksha_admin_cases", JSON.stringify(next));
+                  window.dispatchEvent(new Event("storage"));
                   setCaseModal({ open: false, mode: "add", data: {} });
                   try {
                     await adminFetch(`/api/admin/cases${!isAdd ? "/" + payload.id : ""}`, {

@@ -1036,7 +1036,7 @@ export default function StudentDashboardPage() {
           if (Array.isArray(data.resources) && data.resources.length > 0) {
             setLiveResources(data.resources);
           }
-          if (Array.isArray(data.cases) && data.cases.length > 0) {
+          if (Array.isArray(data.cases)) {
             setLiveCases(data.cases);
           }
           if (Array.isArray(data.mcqTests) && data.mcqTests.length > 0) {
@@ -1100,6 +1100,34 @@ export default function StudentDashboardPage() {
       } catch {}
     }
     loadCatalog();
+  }, [API_URL]);
+
+  // Real-time synchronization of weekly academic case studies direct from database
+  useEffect(() => {
+    async function syncWeeklyCases() {
+      try {
+        const res = await fetch(`${API_URL}/api/public/weekly-cases`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.cases) && data.cases.length > 0) {
+          setLiveCases(data.cases);
+        }
+      } catch {}
+    }
+
+    syncWeeklyCases();
+
+    // Re-sync when student returns to tab or admin updates case studies
+    const handleReSync = () => {
+      syncWeeklyCases();
+    };
+    window.addEventListener("focus", handleReSync);
+    window.addEventListener("storage", handleReSync);
+
+    return () => {
+      window.removeEventListener("focus", handleReSync);
+      window.removeEventListener("storage", handleReSync);
+    };
   }, [API_URL]);
 
   const handleLogout = async () => {
