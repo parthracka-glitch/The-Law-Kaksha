@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Sparkles,
   Save,
+  RotateCcw,
 } from "lucide-react";
 
 export interface ExamTargetItem {
@@ -94,105 +95,241 @@ const DEFAULT_EXAMS: ExamTargetItem[] = [
 const DEFAULT_MCQS: MCQScenarioItem[] = [
   {
     id: "mcq-1",
-    subject: "Sale of Goods Act, 1930",
-    statutoryRef: "Section 16(1) • Caveat Emptor Exception",
+    subject: "Indian Contract Act, 1872",
+    statutoryRef: "Section 2(d) & Privity • Stranger to Consideration",
     question:
-      "A buyer purchased a hot water bottle from a chemist. Upon first usage, it burst and scalded the buyer's wife. Buyer did not state any special purpose. Can the buyer claim damages under Section 16(1)?",
+      "Ramesh promised to pay his daughter Priya a monthly allowance if she transferred her warehouse to her brother Suresh. Priya transferred the warehouse. Later, Ramesh refused to pay Priya, arguing Suresh furnished no consideration. Can Priya enforce the promise against Ramesh?",
     options: [
       {
-        text: "No, because the doctrine of Caveat Emptor strictly applies to all sales without express warranties.",
-        isCorrect: false,
-        pct: 18,
-      },
-      {
-        text: "Yes, implied condition of fitness applies by implication since the good has only one obvious normal purpose.",
-        isCorrect: true,
-        pct: 72,
-      },
-      {
-        text: "No, because the chemist gave no express written warranty card.",
-        isCorrect: false,
-        pct: 6,
-      },
-      {
-        text: "Yes, but only under the general law of torts, not under Sale of Goods Act.",
-        isCorrect: false,
-        pct: 4,
-      },
-    ],
-    explanationTitle: "Rule in Priest v. Last (1903)",
-    explanation:
-      "Where goods are capable of only one normal use (like a hot water bottle), the purpose for which they are required is communicated by implication. Relying on seller's skill/judgment triggers Section 16(1) implied condition as to fitness.",
-    keyDistinction:
-      "ICAI Tip: Don't forget to quote Priest v. Last along with Section 16(1) to secure full 6/6 marks.",
-  },
-  {
-    id: "mcq-2",
-    subject: "Indian Partnership Act, 1932",
-    statutoryRef: "Section 28 • Holding Out",
-    question:
-      "Rajesh retired from M/s Apex Traders without giving public notice in the Official Gazette. Creditor Amit lends ₹5,00,000 believing Rajesh is still an active partner. Is Rajesh liable to Amit?",
-    options: [
-      {
-        text: "No, retirement automatically extinguishes all partner liabilities from the date of resignation.",
-        isCorrect: false,
-        pct: 12,
-      },
-      {
-        text: "Yes, doctrine of holding out makes him liable until public notice is published in the Official Gazette and vernacular paper.",
-        isCorrect: true,
-        pct: 81,
-      },
-      {
-        text: "Only if he signed the loan promissory note personally.",
-        isCorrect: false,
-        pct: 4,
-      },
-      {
-        text: "Only to the extent of his remaining unwithdrawn capital in the firm.",
-        isCorrect: false,
-        pct: 3,
-      },
-    ],
-    explanationTitle: "Doctrine of Holding Out (§28 & §32)",
-    explanation:
-      "Under Section 28 & 32(3) of Indian Partnership Act, an outgoing partner continues to be liable to third parties for firm acts unless public notice of retirement is duly published.",
-    keyDistinction:
-      "Notice requirement does not apply to a dormant/sleeping partner not known to the third party.",
-  },
-  {
-    id: "mcq-3",
-    subject: "Companies Act, 2013",
-    statutoryRef: "Section 8 • Non-Profit Entities",
-    question:
-      "Can a Section 8 Non-Profit Company declare and pay dividends to its members from accumulated surplus profits?",
-    options: [
-      {
-        text: "Yes, up to 10% per annum with prior Central Government approval.",
+        text: "No, because consideration must strictly proceed directly from the promisee herself under general English common law.",
         isCorrect: false,
         pct: 14,
       },
       {
-        text: "No, Section 8(1)(c) explicitly prohibits payment of any dividend to its members.",
+        text: "Yes, under Section 2(d) of the Indian Contract Act, consideration may move from the promisee or any other person (Chinnaya v. Ramayya).",
         isCorrect: true,
-        pct: 79,
+        pct: 78,
       },
       {
-        text: "Yes, by passing a unanimous special resolution at an Extraordinary General Meeting (EGM).",
+        text: "No, because family arrangements require registration under Section 17 of the Registration Act to be enforceable.",
         isCorrect: false,
         pct: 5,
       },
       {
-        text: "Yes, upon conversion into a private limited company within 3 years.",
+        text: "Yes, but only under the law of torts as an action for promissory restitution.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "Rule in Chinnaya v. Ramayya (1882) & Section 2(d)",
+    explanation:
+      "Under Section 2(d) of the Indian Contract Act, 1872, consideration can move from 'the promisee or any other person'. In India, a stranger to consideration can sue, provided there is privity of contract between the litigating parties.",
+    keyDistinction:
+      "ICAI Tip: Clearly distinguish 'Stranger to Consideration' (valid in India) from 'Stranger to Contract' (cannot sue unless an exception like trust applies).",
+  },
+  {
+    id: "mcq-2",
+    subject: "Companies Act, 2013",
+    statutoryRef: "Section 2(85) • Small Company Criteria",
+    question:
+      "Zenith FinTech Pvt. Ltd. has a paid-up share capital of ₹3.50 Crore and turnover of ₹32 Crore as per its latest audited profit and loss statement. It is a 100% wholly-owned subsidiary of Global Capital Ltd. Does Zenith FinTech Pvt. Ltd. qualify as a 'Small Company'?",
+    options: [
+      {
+        text: "Yes, because its paid-up capital does not exceed ₹4 Crore and turnover does not exceed ₹40 Crore.",
+        isCorrect: false,
+        pct: 22,
+      },
+      {
+        text: "No, because the proviso to Section 2(85) explicitly excludes any holding or subsidiary company from being classified as a Small Company.",
+        isCorrect: true,
+        pct: 72,
+      },
+      {
+        text: "Yes, provided its holding company passes an ordinary resolution giving explicit consent.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "No, because the statutory turnover cap for a Small Company is strictly ₹20 Crore under the original 2013 Act.",
         isCorrect: false,
         pct: 2,
       },
     ],
-    explanationTitle: "Section 8(1)(c) Statutory Prohibition",
+    explanationTitle: "Section 2(85) Proviso — Statutory Exclusions",
     explanation:
-      "Section 8 companies must apply their profits in promoting their objects (commerce, art, science, sports, education, research, charity) and are strictly prohibited from paying dividends to members.",
+      "Under Section 2(85) of Companies Act, 2013 (as amended), paid-up capital must not exceed ₹4 Crore and turnover must not exceed ₹40 Crore. However, the proviso states that nothing in this clause applies to: (A) a holding company or a subsidiary company; (B) a Section 8 company; or (C) a company governed by any special Act.",
     keyDistinction:
-      "Violation of Section 8 terms can lead to license revocation and fine up to ₹1 Crore for the company.",
+      "ICAI Exam Trap: Never stop after checking the ₹4 Crore / ₹40 Crore numerical thresholds — always verify whether the company is a holding or subsidiary entity under the proviso!",
+  },
+  {
+    id: "mcq-3",
+    subject: "Sale of Goods Act, 1930",
+    statutoryRef: "Section 27 Proviso • Sale by Mercantile Agent",
+    question:
+      "Akash delivered his car to Tarun, a licensed automobile dealer, with strict instructions not to sell the car below ₹8,00,000 without prior written consent. Tarun dishonestly sold and delivered the car to Rohan for ₹6,50,000, who bought it in good faith without knowing of the price restriction. Can Akash recover the car from Rohan?",
+    options: [
+      {
+        text: "Yes, under 'Nemo dat quod non habet' (Section 27), the agent had no legal authority to sell below the mandated reserve price.",
+        isCorrect: false,
+        pct: 19,
+      },
+      {
+        text: "No, Rohan acquires a valid title under Section 27 proviso because Tarun was in possession as a mercantile agent with owner consent and Rohan bought in good faith.",
+        isCorrect: true,
+        pct: 75,
+      },
+      {
+        text: "Yes, because selling below the minimum price renders the sale void ab initio for lack of free consent.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "No, but only if Akash recovers the remaining ₹1,50,000 price deficit directly from the Motor Vehicles Tribunal.",
+        isCorrect: false,
+        pct: 2,
+      },
+    ],
+    explanationTitle: "Section 27 Proviso & Rule in Folkes v. King (1923)",
+    explanation:
+      "Under the proviso to Section 27 of Sale of Goods Act, 1930, where a mercantile agent is in possession of goods with owner consent, any sale made by him in the ordinary course of business is valid, provided the buyer acts in good faith and without notice of lack of authority.",
+    keyDistinction:
+      "ICAI Landmark Precedent: Folkes v. King. Even if the agent breached instructions regarding the minimum selling price, the innocent bona fide buyer's title is protected.",
+  },
+  {
+    id: "mcq-4",
+    subject: "Indian Partnership Act, 1932",
+    statutoryRef: "Section 30 • Minor Admitted to Partnership Benefits",
+    question:
+      "Karan was admitted to the benefits of a partnership firm on 1st January 2023 when he was 16 years old. Karan attained majority on 15th March 2025. He did not give any public notice within six months of attaining majority. What is Karan's legal status and liability under Section 30?",
+    options: [
+      {
+        text: "He is automatically treated as having severed all ties with the firm upon expiry of six months.",
+        isCorrect: false,
+        pct: 14,
+      },
+      {
+        text: "He automatically becomes a full partner under Section 30(5), and becomes personally liable for all firm acts retrospectively from 1st January 2023.",
+        isCorrect: true,
+        pct: 75,
+      },
+      {
+        text: "He becomes a partner, but his personal liability only commences from the date he attained majority (15th March 2025).",
+        isCorrect: false,
+        pct: 8,
+      },
+      {
+        text: "His liability remains strictly limited to his capital share because he never signed the original partnership deed.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "Section 30(5) & Section 30(7) — Retrospective Personal Liability",
+    explanation:
+      "Under Section 30(5) of the Indian Partnership Act, 1932, a minor who fails to give public notice within 6 months of attaining majority automatically becomes a partner. Under Section 30(7)(a), his personal liability extends retrospectively to all acts of the firm done since he was first admitted to benefits.",
+    keyDistinction:
+      "Critical ICAI Point: Retrospective personal liability goes all the way back to the date he was admitted to benefits, NOT just from the date he became an adult!",
+  },
+  {
+    id: "mcq-5",
+    subject: "Limited Liability Partnership Act, 2008",
+    statutoryRef: "Section 6 & Section 7 • Minimum Partners & Reduced Membership",
+    question:
+      "Apex Logistics LLP had only two partners, Aman and Bharat. Bharat met with an untimely demise on 1st January 2026. Aman continued to carry on the business of the LLP as sole member until 1st November 2026 (10 months). What is Aman's personal liability for obligations contracted in September 2026?",
+    options: [
+      {
+        text: "Aman enjoys perpetual limited liability because an LLP is an incorporated body corporate distinct from its partners.",
+        isCorrect: false,
+        pct: 17,
+      },
+      {
+        text: "Aman is personally liable for all debts and obligations incurred after 1st July 2026 (the expiry of 6 months) under Section 6(2).",
+        isCorrect: true,
+        pct: 76,
+      },
+      {
+        text: "Aman's liability is capped at ₹5,00,000 as per the LLP (Amendment) Act 2021 penalty matrix.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "The LLP's incorporation certificate became void ab initio on the date Bharat passed away.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "Section 6(2) of Limited Liability Partnership Act, 2008",
+    explanation:
+      "Under Section 6(2) of the LLP Act, 2008, if an LLP carries on business with less than two partners for more than six months, the sole remaining partner with knowledge is personally liable for all obligations incurred during that period after the six months have elapsed.",
+    keyDistinction:
+      "ICAI Exam Alert: The first 6 months are a grace period to induct a second partner without personal liability; unlimited personal liability only attaches to debts contracted AFTER the 6-month grace period.",
+  },
+  {
+    id: "mcq-6",
+    subject: "Negotiable Instruments Act, 1881",
+    statutoryRef: "Section 130 • Cheque Crossed 'Not Negotiable'",
+    question:
+      "Vikas drew a bearer cheque crossed generally with the words 'Not Negotiable'. The cheque was stolen by a peon, who delivered it for valuable consideration to Harish. Harish accepted it in good faith without any suspicion. Can Harish enforce payment against Vikas as a Holder in Due Course?",
+    options: [
+      {
+        text: "Yes, because Harish took the instrument for value, in good faith, and before maturity without notice of defect (Section 9).",
+        isCorrect: false,
+        pct: 23,
+      },
+      {
+        text: "No, under Section 130, a transferee of a cheque crossed 'Not Negotiable' cannot acquire a better title than that which the transferor had.",
+        isCorrect: true,
+        pct: 72,
+      },
+      {
+        text: "Yes, because the words 'Not Negotiable' do not prevent the instrument from remaining negotiable under Section 13.",
+        isCorrect: false,
+        pct: 3,
+      },
+      {
+        text: "No, because any cheque crossed 'Not Negotiable' is entirely non-transferable and void in the hands of any third party.",
+        isCorrect: false,
+        pct: 2,
+      },
+    ],
+    explanationTitle: "Section 130 & Rule in Wilson & Meeson v. Pickering (1946)",
+    explanation:
+      "Under Section 130 of the Negotiable Instruments Act, 1881, a person taking a cheque crossed generally or specially bearing the words 'not negotiable' shall not have and shall not be capable of giving a better title to the cheque than that which the person from whom he took it had. Since the peon was a thief with defective title, Harish gets no better title regardless of good faith or consideration.",
+    keyDistinction:
+      "ICAI Key Distinction: The cheque remains transferable, but negotiability (the quality of passing better title to a Holder in Due Course free from defects) is destroyed.",
+  },
+  {
+    id: "mcq-7",
+    subject: "Indian Regulatory Framework",
+    statutoryRef: "Chapter 1 • Sources & Precedence of Law",
+    question:
+      "Under the Constitution of India and Indian Judicial Architecture, the law declared by the Supreme Court is binding on all courts within the territory of India under which Article?",
+    options: [
+      {
+        text: "Article 226",
+        isCorrect: false,
+        pct: 10,
+      },
+      {
+        text: "Article 141 (Doctrine of Stare Decisis)",
+        isCorrect: true,
+        pct: 78,
+      },
+      {
+        text: "Article 32",
+        isCorrect: false,
+        pct: 8,
+      },
+      {
+        text: "Article 300A",
+        isCorrect: false,
+        pct: 4,
+      },
+    ],
+    explanationTitle: "Article 141 of the Constitution of India",
+    explanation:
+      "Article 141 provides that the law declared by the Supreme Court shall be binding on all courts within the territory of India. This establishes the doctrine of precedent (Stare Decisis) in Indian jurisprudence.",
+    keyDistinction:
+      "Decisions of a High Court are binding on all subordinate courts in that State, but have only persuasive value for other High Courts.",
   },
 ];
 
@@ -257,7 +394,16 @@ export function AdminExamCountdownAndQOTDTab({
         if (resMcqs.ok) {
           const dataMcqs = (await resMcqs.json()) as McqPoolResponse;
           if (Array.isArray(dataMcqs.mcqPool) && dataMcqs.mcqPool.length > 0) {
-            setMcqList(dataMcqs.mcqPool as MCQScenarioItem[]);
+            const hasLegacy = dataMcqs.mcqPool.some(
+              (m) =>
+                m.question?.includes("hot water bottle") ||
+                m.statutoryRef?.includes("Caveat Emptor Exception")
+            );
+            if (!hasLegacy) {
+              setMcqList(dataMcqs.mcqPool as MCQScenarioItem[]);
+            } else {
+              setMcqList(DEFAULT_MCQS);
+            }
           }
         }
       } catch {
@@ -268,6 +414,19 @@ export function AdminExamCountdownAndQOTDTab({
     }
     loadData();
   }, [adminFetch]);
+
+  // Reset to Recommended CA Exam Bank
+  const handleResetToCAMCQs = () => {
+    if (
+      confirm(
+        "Reset question bank to the recommended CA Foundation syllabus bank (7 High-Yield ICAI Questions)?"
+      )
+    ) {
+      setMcqList(DEFAULT_MCQS);
+      setActiveMcqIdx(0);
+      showToast("Loaded CA Foundation Question Bank! Click 'Save MCQ Challenge' to publish.");
+    }
+  };
 
   // Save all exams
   const handleSaveExams = async () => {
@@ -675,18 +834,32 @@ export function AdminExamCountdownAndQOTDTab({
           {/* Left Column: Question Pool Navigator */}
           <div className="lg:col-span-4 space-y-4">
             <div className="bg-white rounded-3xl border border-[#E7E4E7] shadow-sm p-5 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[#E7E4E7]">
-                <h3 className="text-sm font-serif font-bold text-[#221D1D]">
-                  Daily Question Bank ({mcqList.length})
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleAddMCQ}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Question</span>
-                </button>
+              <div className="flex items-center justify-between pb-2 border-b border-[#E7E4E7] gap-2">
+                <div>
+                  <h3 className="text-sm font-serif font-bold text-[#221D1D]">
+                    Daily Question Bank ({mcqList.length})
+                  </h3>
+                  <span className="text-[10px] text-emerald-700 font-semibold">CA Foundation &amp; CSEET</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleResetToCAMCQs}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] text-[11px] font-bold border border-[#BFDBFE] transition-all cursor-pointer"
+                    title="Load CA Foundation syllabus question bank"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>CA Bank</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddMCQ}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-[11px] font-bold transition-all shadow-xs cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add</span>
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">

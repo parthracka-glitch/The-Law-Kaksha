@@ -106,105 +106,105 @@ interface MCQScenario {
 const MCQ_POOL: MCQScenario[] = [
   {
     id: "mcq-1",
-    subject: "Sale of Goods Act, 1930",
-    statutoryRef: "Section 16(1) • Caveat Emptor Exception",
+    subject: "Indian Contract Act, 1872",
+    statutoryRef: "Section 2(d) & Privity • Stranger to Consideration",
     question:
-      "A buyer purchased a hot water bottle from a chemist. Upon first usage, it burst and scalded the buyer's wife. Buyer did not state any special purpose. Can the buyer claim damages under Section 16(1)?",
+      "Ramesh promised to pay his daughter Priya a monthly allowance if she transferred her warehouse to her brother Suresh. Priya transferred the warehouse. Later, Ramesh refused to pay Priya, arguing Suresh furnished no consideration. Can Priya enforce the promise against Ramesh?",
     options: [
       {
-        text: "No, because the doctrine of Caveat Emptor strictly applies to all sales without express warranties.",
-        isCorrect: false,
-        pct: 18,
-      },
-      {
-        text: "Yes, implied condition of fitness applies by implication since the good has only one obvious normal purpose.",
-        isCorrect: true,
-        pct: 72,
-      },
-      {
-        text: "No, because the chemist gave no express written warranty card.",
-        isCorrect: false,
-        pct: 6,
-      },
-      {
-        text: "Yes, but only under the general law of torts, not under Sale of Goods Act.",
-        isCorrect: false,
-        pct: 4,
-      },
-    ],
-    explanationTitle: "Rule in Priest v. Last (1903)",
-    explanation:
-      "Where goods are capable of only one normal use (like a hot water bottle), the purpose for which they are required is communicated by implication. Relying on seller's skill/judgment triggers Section 16(1) implied condition as to fitness.",
-    keyDistinction:
-      "ICAI Tip: Don't forget to quote Priest v. Last along with Section 16(1) to secure full 6/6 marks.",
-  },
-  {
-    id: "mcq-2",
-    subject: "Indian Partnership Act, 1932",
-    statutoryRef: "Section 28 • Holding Out",
-    question:
-      "Rajesh retired from M/s Apex Traders without giving public notice in the Official Gazette. Creditor Amit lends ₹5,00,000 believing Rajesh is still an active partner. Is Rajesh liable to Amit?",
-    options: [
-      {
-        text: "No, retirement automatically extinguishes all partner liabilities from the date of resignation.",
-        isCorrect: false,
-        pct: 12,
-      },
-      {
-        text: "Yes, doctrine of holding out makes him liable until public notice is published in the Official Gazette and vernacular paper.",
-        isCorrect: true,
-        pct: 81,
-      },
-      {
-        text: "Only if he signed the loan promissory note personally.",
-        isCorrect: false,
-        pct: 4,
-      },
-      {
-        text: "Only to the extent of his remaining unwithdrawn capital in the firm.",
-        isCorrect: false,
-        pct: 3,
-      },
-    ],
-    explanationTitle: "Doctrine of Holding Out (§28 & §32)",
-    explanation:
-      "Under Section 28 & 32(3) of Indian Partnership Act, an outgoing partner continues to be liable to third parties for firm acts unless public notice of retirement is duly published.",
-    keyDistinction:
-      "Notice requirement does not apply to a dormant/sleeping partner not known to the third party.",
-  },
-  {
-    id: "mcq-3",
-    subject: "Companies Act, 2013",
-    statutoryRef: "Section 8 • Non-Profit Entities",
-    question:
-      "Can a Section 8 Non-Profit Company declare and pay dividends to its members from accumulated surplus profits?",
-    options: [
-      {
-        text: "Yes, up to 10% per annum with prior Central Government approval.",
+        text: "No, because consideration must strictly proceed directly from the promisee herself under general English common law.",
         isCorrect: false,
         pct: 14,
       },
       {
-        text: "No, Section 8(1)(c) explicitly prohibits payment of any dividend to its members.",
+        text: "Yes, under Section 2(d) of the Indian Contract Act, consideration may move from the promisee or any other person (Chinnaya v. Ramayya).",
         isCorrect: true,
-        pct: 79,
+        pct: 78,
       },
       {
-        text: "Yes, by passing a unanimous special resolution at an Extraordinary General Meeting (EGM).",
+        text: "No, because family arrangements require registration under Section 17 of the Registration Act to be enforceable.",
         isCorrect: false,
         pct: 5,
       },
       {
-        text: "Yes, upon conversion into a private limited company within 3 years.",
+        text: "Yes, but only under the law of torts as an action for promissory restitution.",
+        isCorrect: false,
+        pct: 3,
+      },
+    ],
+    explanationTitle: "Rule in Chinnaya v. Ramayya (1882) & Section 2(d)",
+    explanation:
+      "Under Section 2(d) of the Indian Contract Act, 1872, consideration can move from 'the promisee or any other person'. In India, a stranger to consideration can sue, provided there is privity of contract between the litigating parties.",
+    keyDistinction:
+      "ICAI Tip: Clearly distinguish 'Stranger to Consideration' (valid in India) from 'Stranger to Contract' (cannot sue unless an exception like trust applies).",
+  },
+  {
+    id: "mcq-2",
+    subject: "Companies Act, 2013",
+    statutoryRef: "Section 2(85) • Small Company Criteria",
+    question:
+      "Zenith FinTech Pvt. Ltd. has a paid-up share capital of ₹3.50 Crore and turnover of ₹32 Crore as per its latest audited profit and loss statement. It is a 100% wholly-owned subsidiary of Global Capital Ltd. Does Zenith FinTech Pvt. Ltd. qualify as a 'Small Company'?",
+    options: [
+      {
+        text: "Yes, because its paid-up capital does not exceed ₹4 Crore and turnover does not exceed ₹40 Crore.",
+        isCorrect: false,
+        pct: 22,
+      },
+      {
+        text: "No, because the proviso to Section 2(85) explicitly excludes any holding or subsidiary company from being classified as a Small Company.",
+        isCorrect: true,
+        pct: 72,
+      },
+      {
+        text: "Yes, provided its holding company passes an ordinary resolution giving explicit consent.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "No, because the statutory turnover cap for a Small Company is strictly ₹20 Crore under the original 2013 Act.",
         isCorrect: false,
         pct: 2,
       },
     ],
-    explanationTitle: "Section 8(1)(c) Statutory Prohibition",
+    explanationTitle: "Section 2(85) Proviso — Statutory Exclusions",
     explanation:
-      "Section 8 companies must apply their profits in promoting their objects (commerce, art, science, sports, education, research, charity) and are strictly prohibited from paying dividends to members.",
+      "Under Section 2(85) of Companies Act, 2013 (as amended), paid-up capital must not exceed ₹4 Crore and turnover must not exceed ₹40 Crore. However, the proviso states that nothing in this clause applies to: (A) a holding company or a subsidiary company; (B) a Section 8 company; or (C) a company governed by any special Act.",
     keyDistinction:
-      "Violation of Section 8 terms can lead to license revocation and fine up to ₹1 Crore for the company.",
+      "ICAI Exam Trap: Never stop after checking the ₹4 Crore / ₹40 Crore numerical thresholds — always verify whether the company is a holding or subsidiary entity under the proviso!",
+  },
+  {
+    id: "mcq-3",
+    subject: "Sale of Goods Act, 1930",
+    statutoryRef: "Section 27 Proviso • Sale by Mercantile Agent",
+    question:
+      "Akash delivered his car to Tarun, a licensed automobile dealer, with strict instructions not to sell the car below ₹8,00,000 without prior written consent. Tarun dishonestly sold and delivered the car to Rohan for ₹6,50,000, who bought it in good faith without knowing of the price restriction. Can Akash recover the car from Rohan?",
+    options: [
+      {
+        text: "Yes, under 'Nemo dat quod non habet' (Section 27), the agent had no legal authority to sell below the mandated reserve price.",
+        isCorrect: false,
+        pct: 19,
+      },
+      {
+        text: "No, Rohan acquires a valid title under Section 27 proviso because Tarun was in possession as a mercantile agent with owner consent and Rohan bought in good faith.",
+        isCorrect: true,
+        pct: 75,
+      },
+      {
+        text: "Yes, because selling below the minimum price renders the sale void ab initio for lack of free consent.",
+        isCorrect: false,
+        pct: 4,
+      },
+      {
+        text: "No, but only if Akash recovers the remaining ₹1,50,000 price deficit directly from the Motor Vehicles Tribunal.",
+        isCorrect: false,
+        pct: 2,
+      },
+    ],
+    explanationTitle: "Section 27 Proviso & Rule in Folkes v. King (1923)",
+    explanation:
+      "Under the proviso to Section 27 of Sale of Goods Act, 1930, where a mercantile agent is in possession of goods with owner consent, any sale made by him in the ordinary course of business is valid, provided the buyer acts in good faith and without notice of lack of authority.",
+    keyDistinction:
+      "ICAI Landmark Precedent: Folkes v. King. Even if the agent breached instructions regarding the minimum selling price, the innocent bona fide buyer's title is protected.",
   },
   {
     id: "mcq-4",
@@ -386,7 +386,16 @@ export function ExamCountdownsAndQOTD() {
             }
           }
           if (Array.isArray(data.mcqPool) && data.mcqPool.length > 0) {
-            setMcqList(data.mcqPool);
+            const hasLegacy = data.mcqPool.some(
+              (m) =>
+                m.question?.includes("hot water bottle") ||
+                m.statutoryRef?.includes("Caveat Emptor Exception")
+            );
+            if (!hasLegacy) {
+              setMcqList(data.mcqPool);
+            } else {
+              setMcqList(MCQ_POOL);
+            }
           } else if (data.qotd && data.qotd.question) {
             const correctIndex = data.qotd.correctOption ?? 0;
             const formattedLiveQotd: MCQScenario = {
