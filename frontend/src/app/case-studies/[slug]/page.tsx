@@ -73,6 +73,30 @@ const FALLBACK_DETAILS: Record<string, CaseStudyDetail> = {
       "Debentures held by a majority shareholder maintain priority over unsecured third-party claims.",
     ],
   },
+  "carlill-v-carbolic-smoke-ball-co": {
+    id: "cs-carlill",
+    slug: "carlill-v-carbolic-smoke-ball-co",
+    title: "Carlill v. Carbolic Smoke Ball Co. [1893] 1 QB 256",
+    subject: "The Indian Contract Act, 1872",
+    summary:
+      "Landmark Court of Appeal decision establishing that an offer made to the public at large (General Offer) can be accepted through performance of conditions without prior notification.",
+    badge: "LANDMARK PRECEDENT",
+    marks: "6 Marks Case Problem",
+    precedent: "Court of Appeal [1893] 1 QB 256",
+    facts:
+      "The Carbolic Smoke Ball Co. advertised that it would pay £100 reward to anyone who contracted influenza after using their ball according to printed instructions. To show their sincerity, they deposited £1,000 in the Alliance Bank. Mrs. Carlill used the ball as directed but contracted influenza. The company refused payment, arguing the advertisement was a mere marketing puff.",
+    issue:
+      "Whether an advertisement addressed to the world constitutes a binding offer and whether acceptance requires express notification before performance.",
+    ruling:
+      "The Court of Appeal held that the advertisement was a binding General Offer. Deposit of £1,000 proved sincerity and intention to create legal relations. Under the law of contracts (Section 8 of Indian Contract Act), performance of the conditions of an offer constitutes valid acceptance without advance communication.",
+    model_answer:
+      "1. STATUTORY PROVISION:\nSection 8 of the Indian Contract Act, 1872 provides that performance of the conditions of a proposal constitutes acceptance of the proposal.\n\n2. GENERAL OFFER DOCTRINE:\nAn offer made to the public at large (General Offer) can be accepted by any person who performs the stipulated conditions with knowledge of the offer (Carlill v. Carbolic Smoke Ball Co.).\n\n3. CONCLUSION:\nMrs. Carlill performed all terms as prescribed; a completed contract came into existence, and the company was legally bound to pay the £100 reward.",
+    key_takeaways: [
+      "A general offer made to the world can be accepted by any member of the public.",
+      "Performance of conditions is sufficient acceptance without advance notice (Section 8).",
+      "Depositing funds in a bank proves intention to create legal relations (not a mere puff).",
+    ],
+  },
 };
 
 export default function CaseStudyDetailPage() {
@@ -87,9 +111,44 @@ export default function CaseStudyDetailPage() {
     let isMounted = true;
     async function loadData() {
       try {
-        const res = await apiRequest<CaseStudyDetail>(`/api/case-studies/${slug}`);
+        const res = await apiRequest<{ caseStudy?: CaseStudyDetail; data?: CaseStudyDetail } & CaseStudyDetail>(
+          `/api/case-studies/${slug}`
+        );
         if (res.success && res.data) {
-          if (isMounted) setCaseData(res.data);
+          const raw = res.data;
+          const found =
+            raw.caseStudy ||
+            raw.data ||
+            (raw.title ? (raw as CaseStudyDetail) : null);
+
+          if (found && isMounted) {
+            setCaseData((prev) => ({
+              ...prev,
+              ...found,
+              id: found.id || prev.id || slug,
+              slug: found.slug || prev.slug || slug,
+              title: found.title || prev.title,
+              subject:
+                found.subject ||
+                (found as unknown as { act_name?: string }).act_name ||
+                prev.subject,
+              summary: found.summary || prev.summary,
+              badge: found.badge || prev.badge,
+              marks: found.marks || prev.marks,
+              precedent: found.precedent || prev.precedent,
+              facts: found.facts || prev.facts,
+              issue: found.issue || prev.issue,
+              ruling: found.ruling || prev.ruling,
+              model_answer:
+                found.model_answer ||
+                (found as unknown as { content?: string }).content ||
+                prev.model_answer,
+              key_takeaways:
+                Array.isArray(found.key_takeaways) && found.key_takeaways.length > 0
+                  ? found.key_takeaways
+                  : prev.key_takeaways,
+            }));
+          }
         }
       } catch {
         // Fallback remains

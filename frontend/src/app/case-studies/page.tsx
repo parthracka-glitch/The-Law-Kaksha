@@ -24,10 +24,44 @@ interface CaseStudyItem {
   created_at?: string;
 }
 
-const FALLBACK_CASES: CaseStudyItem[] = [];
+const FALLBACK_CASES: CaseStudyItem[] = [
+  {
+    id: "cs-mohoribibee",
+    slug: "mohoribibee-v-dharmodas-ghose",
+    title: "Mohoribibee v. Dharmodas Ghose (1903) 30 IA 114",
+    subject: "The Indian Contract Act, 1872",
+    summary:
+      "Landmark Privy Council ruling establishing that an agreement entered into by a minor is void ab initio under Section 11, and no restitution can be claimed.",
+    badge: "ICAI FAVORITE",
+    marks: "6 Marks Model Case",
+    precedent: "Privy Council (1903) 30 IA 114 : ILR 30 Cal 539",
+  },
+  {
+    id: "cs-salomon",
+    slug: "salomon-v-salomon-co-ltd",
+    title: "Salomon v. Salomon & Co. Ltd [1897] AC 22",
+    subject: "The Companies Act, 2013",
+    summary:
+      "The foundational English House of Lords decision establishing that an incorporated company has a legal personality distinct from its members and shareholders.",
+    badge: "FOUNDATIONAL",
+    marks: "5 Marks Theory Question",
+    precedent: "House of Lords [1897] AC 22",
+  },
+  {
+    id: "cs-carlill",
+    slug: "carlill-v-carbolic-smoke-ball-co",
+    title: "Carlill v. Carbolic Smoke Ball Co. [1893] 1 QB 256",
+    subject: "The Indian Contract Act, 1872",
+    summary:
+      "Landmark Court of Appeal decision establishing that an offer made to the public at large (General Offer) can be accepted through performance of conditions without prior notification.",
+    badge: "LANDMARK PRECEDENT",
+    marks: "6 Marks Case Problem",
+    precedent: "Court of Appeal [1893] 1 QB 256",
+  },
+];
 
 export default function CaseStudiesDirectoryPage() {
-  const [cases, setCases] = useState<CaseStudyItem[]>([]);
+  const [cases, setCases] = useState<CaseStudyItem[]>(FALLBACK_CASES);
   const [search, setSearch] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [, setLoading] = useState(false);
@@ -45,13 +79,13 @@ export default function CaseStudiesDirectoryPage() {
               (res.data as { caseStudies?: CaseStudyItem[]; cases?: CaseStudyItem[] }).cases ||
               [];
           if (isMounted) {
-            setCases(list);
+            setCases(list.length > 0 ? list : FALLBACK_CASES);
           }
         } else if (isMounted) {
-          setCases([]);
+          setCases(FALLBACK_CASES);
         }
       } catch {
-        if (isMounted) setCases([]);
+        if (isMounted) setCases(FALLBACK_CASES);
       } finally {
         if (isMounted) setLoading(false);
       }

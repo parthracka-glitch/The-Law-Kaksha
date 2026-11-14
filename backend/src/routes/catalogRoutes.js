@@ -1108,21 +1108,30 @@ router.get("/case-studies", async (req, res) => {
 router.get("/case-studies/:slug", async (req, res) => {
   try {
     const slug = req.params.slug;
-    const caseStudiesTable = Database.table("case_studies");
-    let caseStudy = caseStudiesTable.findOne((c) => (c.slug === slug || c.id === slug) && c.is_published !== false);
+    let caseStudy = null;
 
-    if (!caseStudy && isConnected()) {
+    if (isConnected()) {
       try {
         const CaseStudy = require("../models/CaseStudy");
-        caseStudy = await CaseStudy.findOne({ $or: [{ slug }, { id: slug }], is_published: true }).lean();
+        caseStudy = await CaseStudy.findOne({
+          $or: [{ slug }, { id: slug }],
+          is_published: true,
+        }).lean();
       } catch (_) {}
+    }
+
+    if (!caseStudy) {
+      const caseStudiesTable = Database.table("case_studies");
+      caseStudy = caseStudiesTable.findOne(
+        (c) => (c.slug === slug || c.id === slug) && c.is_published !== false
+      );
     }
 
     if (!caseStudy) {
       return res.status(404).json({ success: false, message: "Case study not found" });
     }
 
-    res.status(200).json({ success: true, caseStudy });
+    res.status(200).json({ success: true, caseStudy, data: caseStudy });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching case study: " + err.message });
   }
