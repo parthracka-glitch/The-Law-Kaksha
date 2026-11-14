@@ -126,18 +126,18 @@ export function StudentCaseStudyHeroCarousel({
   }, []);
 
   return (
-    <div className="space-y-2.5">
-      {/* Top Greeting & Student Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-[#111827] tracking-tight">
+    <div className="space-y-2">
+      {/* 1. Compact Top Greeting & Quick Continue Learning Link */}
+      <div className="flex items-center justify-between gap-2 px-0.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <h2 className="text-sm sm:text-base font-extrabold text-[#111827] tracking-tight truncate">
             {greeting}, {displayName}!
           </h2>
-          <span className="text-base sm:text-lg select-none animate-pulse" role="img" aria-label="sun">
+          <span className="text-sm select-none" role="img" aria-label="sun">
             ☀️
           </span>
-          <span className="text-xs text-[#5B6B8A] hidden md:inline">
-            • 3 Solved Weekly Case Studies with 4-Step Answers
+          <span className="text-[11px] text-[#64748B] hidden md:inline truncate">
+            • 3 Weekly Solved Case Studies
           </span>
         </div>
 
@@ -145,268 +145,155 @@ export function StudentCaseStudyHeroCarousel({
           <button
             type="button"
             onClick={onContinueLearning}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#3558F0] hover:bg-[#2546D8] active:scale-95 text-white text-xs font-semibold shadow-[0_2px_10px_rgba(53,88,240,0.3)] transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#3558F0] hover:bg-[#2546D8] active:scale-95 text-white text-[11px] font-semibold shadow-2xs transition-all cursor-pointer shrink-0"
           >
-            <span>Continue Learning</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Continue</span>
+            <ArrowRight className="w-3 h-3" />
           </button>
         )}
       </div>
 
-      {/* Main Hero Card Matching Image 1 Design (Static, Manual Navigation, Mobile/Tablet/Desktop Optimized) */}
-      <div className="relative bg-white rounded-2xl xs:rounded-3xl sm:rounded-[32px] border-2 border-[#BFDBFE] p-3.5 xs:p-5 sm:p-7 md:p-8 shadow-[0_10px_35px_rgba(59,130,246,0.08)] flex flex-col justify-between gap-3.5 sm:gap-5 transition-all duration-300 overflow-hidden group/hero">
-        {/* ========================================================================= */}
-        {/* 1. TOP PILLS: CASE # OF THE WEEK + DIFFICULTY BADGE + NEXT BUTTON         */}
-        {/* ========================================================================= */}
-        <div className="flex items-center justify-between gap-1.5 xs:gap-2 flex-wrap pt-0.5">
-          {/* Case # Pill (Matching Image 1) */}
-          <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-full text-[10.5px] xs:text-xs font-black uppercase tracking-wider bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] shadow-2xs">
-            <span role="img" aria-label="star" className="text-amber-500">
-              ⭐
+      {/* 2. Main Ultra-Compact Case Study Hero Card (Image 1 Design, Max ~200px Height) */}
+      <div className="relative bg-white rounded-2xl sm:rounded-3xl border-2 border-[#BFDBFE] p-3 sm:p-4 md:p-4.5 shadow-[0_4px_20px_rgba(59,130,246,0.06)] flex flex-col gap-2.5 transition-all duration-200 overflow-hidden">
+        {/* Row 1: Unified Badges Bar (Case #, Day, Difficulty, Marks) */}
+        <div className="flex items-center justify-between gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+              <span role="img" aria-label="star" className="text-amber-500">
+                ⭐
+              </span>
+              <span>CASE #{currentIndex + 1}</span>
             </span>
-            <span>
-              CASE #{currentIndex + 1} OF {totalCases}
-            </span>
-          </span>
 
-          {/* Difficulty Pill & Forward Button */}
-          <div className="flex items-center gap-1.5 xs:gap-2">
-            <span className="inline-flex items-center px-2.5 sm:px-3.5 py-1 rounded-full text-[10.5px] xs:text-xs font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] shadow-2xs">
+            <span className="text-xs sm:text-sm font-black text-[#005A9C] uppercase tracking-wide flex items-center gap-1">
+              <Flame className="w-3.5 h-3.5 text-[#E11D48]" />
+              <span>{currentCase.day || `Case #${currentIndex + 1}`}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
               {currentCase.badge || "High Difficulty"}
             </span>
-
-            {/* Top Quick Next / Forward Button */}
-            {totalCases > 1 && (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[10.5px] xs:text-xs font-bold text-[#005A9C] bg-[#EFF6FF] hover:bg-[#005A9C] hover:text-white border border-[#BFDBFE] transition-all cursor-pointer shadow-2xs active:scale-95 touch-manipulation"
-                title="View Next Case Study"
-              >
-                <span>Next Case</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            )}
+            <span className="text-[11px] font-mono font-semibold text-[#64748B]">
+              {currentCase.marks || "6/6 Marks"}
+            </span>
           </div>
         </div>
 
-        {/* ========================================================================= */}
-        {/* 2. DAY HEADER & MARKS ALLOTMENT                                           */}
-        {/* ========================================================================= */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-          <span className="text-sm sm:text-base font-black text-[#005A9C] uppercase tracking-wider flex items-center gap-1.5">
-            <Flame className="w-4 h-4 text-[#E11D48]" />
-            <span>{currentCase.day || `Case #${currentIndex + 1}`}</span>
-          </span>
-          <span className="text-xs sm:text-sm font-mono font-semibold text-[#64748B]">
-            {currentCase.marks || "6/6 Marks"}
-          </span>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 3. STATUTORY SUBJECT & CASE TITLE                                         */}
-        {/* ========================================================================= */}
-        <div className="space-y-1">
-          <span className="text-xs sm:text-sm font-semibold text-[#64748B] block tracking-wide">
+        {/* Row 2: Statutory Eyebrow & Title */}
+        <div className="space-y-0.5">
+          <span className="text-[11px] sm:text-xs font-semibold text-[#64748B] block truncate">
             {currentCase.subject || "Indian Contract Act, 1872"}
           </span>
-          <h3 className="text-base sm:text-xl md:text-2xl font-extrabold text-[#0F172A] leading-snug tracking-tight break-words [overflow-wrap:anywhere]">
+          <h3 className="text-sm sm:text-base font-extrabold text-[#0F172A] leading-snug truncate">
             {currentCase.title}
           </h3>
         </div>
 
-        {/* ========================================================================= */}
-        {/* 4. SCENARIO BUBBLE (MATCHING IMAGE 1 EXACT LOOK)                         */}
-        {/* ========================================================================= */}
-        <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs space-y-1.5">
-          <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
-            <span>Case Scenario:</span>
-          </div>
-          <p className="text-xs sm:text-sm text-[#334155] italic leading-relaxed break-words [overflow-wrap:anywhere]">
-            &ldquo;{currentCase.scenario}&rdquo;
-          </p>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 5. MODEL ANSWER (4-STEP STRUCTURE) VIEW & EXPANDER                        */}
-        {/* ========================================================================= */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-black uppercase tracking-wider text-[#005A9C] flex items-center gap-1.5">
-              <Scale className="w-3.5 h-3.5 text-[#005A9C]" />
-              <span>MODEL ANSWER (4-STEP):</span>
+        {/* Row 3: Compact Scenario Preview Box (Clickable, Clamped to 2 lines) */}
+        <div
+          onClick={() => setSolutionModalOpen(true)}
+          className="p-2 sm:p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs hover:bg-[#F1F5F9] transition-colors cursor-pointer group"
+          title="Click to view full factual scenario and 4-step answer"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs sm:text-[12.5px] text-[#334155] italic leading-relaxed line-clamp-2 break-words [overflow-wrap:anywhere]">
+              &ldquo;{currentCase.scenario}&rdquo;
+            </p>
+            <span className="text-[10px] font-bold text-[#005A9C] shrink-0 group-hover:underline flex items-center gap-0.5 pt-0.5">
+              <span>Read</span>
+              <ArrowRight className="w-2.5 h-2.5" />
             </span>
-
-            {hasAccess && (
-              <button
-                type="button"
-                onClick={() => setOpenAnswers((prev) => ({ ...prev, [caseId]: !isAnswerOpen }))}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#64748B] hover:text-[#005A9C] px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer touch-manipulation"
-              >
-                <span>{isAnswerOpen ? "Hide Solution" : "Show 4-Step Solution"}</span>
-                {isAnswerOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
-            )}
           </div>
-
-          {hasAccess ? (
-            isAnswerOpen && (
-              <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border border-[#BBF7D0] text-xs sm:text-[13px] text-[#14532D] space-y-2.5 leading-relaxed shadow-xs animate-in fade-in duration-200">
-                {/* Solution Subheader: Label + Pop-up Modal Reader Trigger */}
-                <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[#BBF7D0]/70">
-                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                    <Scale className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>ICAI / ICSI 4-Step Structure</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSolutionModalOpen(true)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-white/90 hover:bg-white px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs transition-all cursor-pointer active:scale-95 touch-manipulation"
-                    title="View entire answer in full-screen reader dialog"
-                  >
-                    <Maximize2 className="w-3 h-3 text-emerald-700" />
-                    <span>Full View</span>
-                  </button>
-                </div>
-
-                {/* Bounded Scrollable Container: Prevents tall cards & endless page scrolling */}
-                <div className="max-h-44 sm:max-h-56 overflow-y-auto pr-1.5 space-y-2.5 [scrollbar-width:thin] [scrollbar-color:#86EFAC_transparent]">
-                  {currentCase.modelAnswer?.trim() ? (
-                    <p className="whitespace-pre-line leading-relaxed text-[#14532D] font-normal break-words [overflow-wrap:anywhere]">
-                      {currentCase.modelAnswer}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-[#15803D] italic">
-                      Faculty model answer is currently being prepared for this weekly case study.
-                    </p>
-                  )}
-
-                  {currentCase.precedent && (
-                    <div className="pt-2 border-t border-[#BBF7D0] flex flex-col xs:flex-row xs:items-start gap-1 xs:gap-2 text-xs font-medium text-[#166534] bg-white/85 p-2 sm:p-2.5 rounded-xl border border-[#86EFAC]/50">
-                      <span className="font-bold shrink-0 text-[#14532D]">⚖️ Landmark Precedent:</span>
-                      <span className="italic break-words [overflow-wrap:anywhere]">{currentCase.precedent}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          ) : (
-            <div className="relative p-3.5 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] overflow-hidden">
-              <p className="text-xs text-[#64748B] filter blur-[3.5px] select-none pointer-events-none line-clamp-3">
-                {currentCase.modelAnswer ||
-                  "Legal principle applies under statutory authority, where doctrine protects buyers from latent defects..."}
-              </p>
-              <div className="absolute inset-0 bg-white/85 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2 p-3 text-center">
-                <div className="flex items-center gap-1.5 text-[#DC2626] font-bold text-xs sm:text-sm">
-                  <Lock className="w-4 h-4" />
-                  <span>Enrolled Students Only</span>
-                </div>
-                <p className="text-xs text-[#64748B] max-w-sm">
-                  Purchase a course pass to unlock weekly model answers and grading rubrics.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* ========================================================================= */}
-        {/* 6. BOTTOM NAVIGATION (PREVIOUS / FORWARD) & PRACTICE BUTTON              */}
-        {/* ========================================================================= */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Navigation Controls: Prev, Dots, Next/Forward Button */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+        {/* Row 4: Consolidated Bottom Controls (Prev/Next on left, Solution + Practice on right) */}
+        <div className="pt-2 border-t border-slate-100 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-2">
+          {/* Left Navigation: Prev / Next buttons */}
+          <div className="flex items-center justify-between xs:justify-start gap-1.5 w-full xs:w-auto">
             {totalCases > 1 && (
-              <div className="flex items-center gap-1.5 xs:gap-2 flex-1 sm:flex-initial justify-between sm:justify-start">
-                {/* Previous Button */}
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 rounded-xl sm:rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1 shadow-2xs hover:border-[#BFDBFE] transition-all cursor-pointer active:scale-95 touch-manipulation min-h-[38px]"
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold inline-flex items-center gap-0.5 shadow-2xs transition-all cursor-pointer active:scale-95 touch-manipulation min-h-[34px]"
                   aria-label="Previous Case"
+                  title="Previous Case"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Prev</span>
                 </button>
 
-                {/* Slide Indicator Dots */}
-                <div className="flex items-center gap-1.5 px-1 shrink-0">
-                  {activeCases.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleGoTo(idx)}
-                      className="p-1 cursor-pointer flex items-center justify-center touch-manipulation"
-                      aria-label={`Go to case ${idx + 1}`}
-                      title={`Go to Case #${idx + 1}`}
-                    >
-                      <span
-                        className={`h-2 rounded-full transition-all duration-300 block ${
-                          currentIndex === idx
-                            ? "w-5 xs:w-6 bg-[#005A9C]"
-                            : "w-2 bg-slate-300 hover:bg-slate-400"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <span className="text-[11px] font-semibold text-slate-500 px-1.5 shrink-0">
+                  {currentIndex + 1} of {totalCases}
+                </span>
 
-                {/* Forward / Next Button */}
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2 rounded-xl sm:rounded-2xl border border-[#005A9C] bg-[#EBF5FF] hover:bg-[#005A9C] text-[#005A9C] hover:text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1 shadow-2xs transition-all cursor-pointer active:scale-95 touch-manipulation min-h-[38px]"
+                  className="px-2.5 py-1.5 rounded-lg border border-[#005A9C] bg-[#EBF5FF] hover:bg-[#005A9C] text-[#005A9C] hover:text-white text-xs font-bold inline-flex items-center gap-0.5 shadow-2xs transition-all cursor-pointer active:scale-95 touch-manipulation min-h-[34px]"
                   aria-label="Next Case"
+                  title="Next Case"
                 >
-                  <span>Next Case</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
-
-            <span className="text-[11px] font-semibold text-slate-500 pl-1 shrink-0 hidden sm:inline">
-              Case {currentIndex + 1} of {totalCases}
-            </span>
           </div>
 
-          {/* Right Action: Practice (+30 XP) */}
-          <div className="w-full sm:w-auto">
+          {/* Right Actions: 4-Step Solution Popup & Practice (+30 XP) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full xs:w-auto justify-end">
             {hasAccess ? (
-              <button
-                type="button"
-                disabled={isPracticed}
-                onClick={() => {
-                  if (!isPracticed) {
-                    awardXp?.(30, `Practiced Weekly Case: ${currentCase.title}`);
-                    setPracticedCases((prev) => [...prev, caseId]);
-                  }
-                }}
-                className={`w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95 touch-manipulation min-h-[42px] ${
-                  isPracticed
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default"
-                    : "bg-[#005A9C] hover:bg-[#004F8A] text-white"
-                }`}
-              >
-                {isPracticed ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Practiced (+30 XP)</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                    <span>Practice (+30 XP)</span>
-                  </>
-                )}
-              </button>
+              <>
+                {/* 4-Step Model Answer Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setSolutionModalOpen(true)}
+                  className="flex-1 xs:flex-initial px-3 py-1.5 rounded-xl border border-emerald-300 bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#065F46] text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs touch-manipulation min-h-[34px]"
+                >
+                  <Scale className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>4-Step Solution</span>
+                </button>
+
+                {/* Practice Button */}
+                <button
+                  type="button"
+                  disabled={isPracticed}
+                  onClick={() => {
+                    if (!isPracticed) {
+                      awardXp?.(30, `Practiced Weekly Case: ${currentCase.title}`);
+                      setPracticedCases((prev) => [...prev, caseId]);
+                    }
+                  }}
+                  className={`flex-1 xs:flex-initial px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 touch-manipulation min-h-[34px] ${
+                    isPracticed
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default"
+                      : "bg-[#005A9C] hover:bg-[#004F8A] text-white"
+                  }`}
+                >
+                  {isPracticed ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Practiced</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                      <span>Practice (+30 XP)</span>
+                    </>
+                  )}
+                </button>
+              </>
             ) : (
               <button
                 type="button"
                 onClick={() => onBuyCourse?.("ca")}
-                className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 touch-manipulation min-h-[42px]"
+                className="w-full xs:w-auto px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:opacity-95 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 touch-manipulation min-h-[34px]"
               >
-                <Lock className="w-4 h-4" />
-                <span>Unlock Full Solution Pass</span>
+                <Lock className="w-3.5 h-3.5" />
+                <span>Unlock Solution Pass</span>
               </button>
             )}
           </div>
