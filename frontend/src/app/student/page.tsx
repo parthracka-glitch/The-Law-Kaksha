@@ -476,9 +476,9 @@ export default function StudentDashboardPage() {
             completedUnits,
             lastRead,
           }),
-        }).catch(() => {});
+        }).catch(() => { });
       }
-    } catch {}
+    } catch { }
     setTimeout(() => setXpToast(null), 4000);
   };
 
@@ -500,8 +500,8 @@ export default function StudentDashboardPage() {
       const token =
         typeof window !== "undefined"
           ? localStorage.getItem("lawkaksha_student_token") ||
-            localStorage.getItem("lawkaksha_token") ||
-            localStorage.getItem("token")
+          localStorage.getItem("lawkaksha_token") ||
+          localStorage.getItem("token")
           : null;
       fetch(`${API_URL}/api/student/toggle-unit-complete`, {
         method: "POST",
@@ -510,8 +510,8 @@ export default function StudentDashboardPage() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ unitId, completed: !isDone }),
-      }).catch(() => {});
-    } catch {}
+      }).catch(() => { });
+    } catch { }
   };
 
   // Toggle Bookmark item with API sync
@@ -521,8 +521,8 @@ export default function StudentDashboardPage() {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("lawkaksha_student_token") ||
-          localStorage.getItem("lawkaksha_token") ||
-          localStorage.getItem("token")
+        localStorage.getItem("lawkaksha_token") ||
+        localStorage.getItem("token")
         : null;
 
     if (isBookmarked) {
@@ -534,8 +534,8 @@ export default function StudentDashboardPage() {
         fetch(`${API_URL}/api/student/bookmarks/${itemId}`, {
           method: "DELETE",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     } else {
       const newItem: StudentBookmarkItem = {
         id: itemId,
@@ -556,8 +556,8 @@ export default function StudentDashboardPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(newItem),
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     }
   };
 
@@ -604,7 +604,7 @@ export default function StudentDashboardPage() {
     setLastRead(newLastRead);
     try {
       localStorage.setItem("lawkaksha_last_read", JSON.stringify(newLastRead));
-    } catch {}
+    } catch { }
     setPdfViewer({
       open: true,
       url,
@@ -631,9 +631,9 @@ export default function StudentDashboardPage() {
 
       let authenticatedUser: AuthUser | null = null;
       if (studentSession) {
-        try { authenticatedUser = JSON.parse(studentSession); } catch {}
+        try { authenticatedUser = JSON.parse(studentSession); } catch { }
       } else if (studentUser) {
-        try { authenticatedUser = JSON.parse(studentUser); } catch {}
+        try { authenticatedUser = JSON.parse(studentUser); } catch { }
       }
 
       let isAdmin = false;
@@ -643,7 +643,7 @@ export default function StudentDashboardPage() {
           if (adm && adm.role === "admin") {
             isAdmin = true;
           }
-        } catch {}
+        } catch { }
       }
 
       const hasValidStudent = Boolean(
@@ -674,7 +674,7 @@ export default function StudentDashboardPage() {
           const arr = JSON.parse(pb);
           if (Array.isArray(arr)) localBooksCount = arr.length;
         }
-      } catch {}
+      } catch { }
 
       if (!isAdmin && !localHasPurchased && localBooksCount === 0) {
         setIsAuthorized(false);
@@ -778,7 +778,7 @@ export default function StudentDashboardPage() {
           const adm = JSON.parse(adminSession);
           if (adm?.name) setStudentName(adm.name);
           setStudentProfile((prev) => ({ ...prev, ...adm }));
-        } catch {}
+        } catch { }
       }
 
       const activeStudent = localStorage.getItem("lawkaksha_active_student");
@@ -788,7 +788,7 @@ export default function StudentDashboardPage() {
           if (Array.isArray(act.unlockedItemIds)) {
             initialUnlocked.push(...act.unlockedItemIds);
           }
-        } catch {}
+        } catch { }
       }
 
       const purchasedBooksStorage = localStorage.getItem("lawkaksha_purchased_books");
@@ -798,7 +798,7 @@ export default function StudentDashboardPage() {
           if (Array.isArray(pb)) {
             initialUnlocked.push(...pb);
           }
-        } catch {}
+        } catch { }
       }
 
       if (initialUnlocked.length > 0) {
@@ -806,7 +806,7 @@ export default function StudentDashboardPage() {
         setPurchasedBooks((prev) => Array.from(new Set([...prev, ...uniqueUnlocked])));
         try {
           localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(uniqueUnlocked));
-        } catch {}
+        } catch { }
       }
 
       // Listen for instant purchase unlocks from CartDrawer
@@ -835,7 +835,7 @@ export default function StudentDashboardPage() {
             if (newlyUnlocked.length > 0) {
               setPurchasedBooks((prev) => Array.from(new Set([...prev, ...newlyUnlocked])));
             }
-          } catch {}
+          } catch { }
         }
       };
 
@@ -887,20 +887,20 @@ export default function StudentDashboardPage() {
         if (storedProducts) {
           try {
             setAvailableProducts(JSON.parse(storedProducts));
-          } catch {}
+          } catch { }
         }
         const storedResources = localStorage.getItem("lawkaksha_admin_resources");
         if (storedResources) {
           try {
             setLiveResources(JSON.parse(storedResources));
-          } catch {}
+          } catch { }
         }
 
         const storedPromo = localStorage.getItem("lawkaksha_admin_promo_banners");
         if (storedPromo) {
           try {
             setPromoBanners(JSON.parse(storedPromo));
-          } catch {}
+          } catch { }
         }
       } catch {
         setStreak(0);
@@ -916,16 +916,16 @@ export default function StudentDashboardPage() {
             setPromoBanners(d.promoBanners);
             try {
               localStorage.setItem("lawkaksha_admin_promo_banners", JSON.stringify(d.promoBanners));
-            } catch {}
+            } catch { }
           }
         })
-        .catch(() => {});
+        .catch(() => { });
 
       const handleResourcesUpdated = () => {
         try {
           const stored = localStorage.getItem("lawkaksha_admin_resources");
           if (stored) setLiveResources(JSON.parse(stored));
-        } catch {}
+        } catch { }
       };
       window.addEventListener("lawkaksha_resources_updated", handleResourcesUpdated);
 
@@ -937,7 +937,7 @@ export default function StudentDashboardPage() {
           try {
             const stored = localStorage.getItem("lawkaksha_admin_promo_banners");
             if (stored) setPromoBanners(JSON.parse(stored));
-          } catch {}
+          } catch { }
         }
       };
       window.addEventListener("lawkaksha_promo_updated", handlePromoUpdated);
@@ -984,7 +984,7 @@ export default function StudentDashboardPage() {
               const arr = JSON.parse(pb);
               if (Array.isArray(arr)) currentLocalBooksCount = arr.length;
             }
-          } catch {}
+          } catch { }
 
           let currentLocalPurchased = false;
           try {
@@ -1002,7 +1002,7 @@ export default function StudentDashboardPage() {
                 currentLocalPurchased = true;
               }
             }
-          } catch {}
+          } catch { }
 
           const hasServerAccess = Boolean(
             isAdminUser ||
@@ -1026,7 +1026,7 @@ export default function StudentDashboardPage() {
               const merged = Array.from(new Set([...prev, ...data.unlockedItemIds]));
               try {
                 localStorage.setItem("lawkaksha_purchased_books", JSON.stringify(merged));
-              } catch {}
+              } catch { }
               return merged;
             });
           }
@@ -1071,7 +1071,7 @@ export default function StudentDashboardPage() {
             setStudentCourses(mappedCourses);
           }
         }
-      } catch {}
+      } catch { }
 
       // Fallback fetch resources endpoint
       try {
@@ -1082,7 +1082,7 @@ export default function StudentDashboardPage() {
             setLiveResources(rData.resources);
           }
         }
-      } catch {}
+      } catch { }
     }
     syncAtlasData();
   }, [studentProfile.email, studentProfile.student_id, API_URL]);
@@ -1097,7 +1097,7 @@ export default function StudentDashboardPage() {
         if (data.success && Array.isArray(data.products)) {
           setCatalogProducts(data.products);
         }
-      } catch {}
+      } catch { }
     }
     loadCatalog();
   }, [API_URL]);
@@ -1112,7 +1112,7 @@ export default function StudentDashboardPage() {
         if (data.success && Array.isArray(data.cases) && data.cases.length > 0) {
           setLiveCases(data.cases);
         }
-      } catch {}
+      } catch { }
     }
 
     syncWeeklyCases();
@@ -1128,7 +1128,7 @@ export default function StudentDashboardPage() {
             setLiveCases(parsed);
           }
         }
-      } catch {}
+      } catch { }
     };
     window.addEventListener("focus", handleReSync);
     window.addEventListener("storage", handleReSync);
@@ -1158,7 +1158,7 @@ export default function StudentDashboardPage() {
             body: JSON.stringify({ deviceId: devId }),
           }).catch(() => null);
         }
-      } catch {}
+      } catch { }
 
       localStorage.removeItem("lawkaksha_student_session");
       localStorage.removeItem("lawkaksha_active_student");
@@ -1179,7 +1179,7 @@ export default function StudentDashboardPage() {
       }
       if (e.key === "PrintScreen") {
         e.preventDefault();
-        try { navigator.clipboard.writeText(""); } catch {}
+        try { navigator.clipboard.writeText(""); } catch { }
       }
     };
     const handleCopy = (e: ClipboardEvent) => e.preventDefault();
@@ -1317,13 +1317,13 @@ export default function StudentDashboardPage() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 min-w-0 overflow-auto">
-        {/* HEADER BAR (DEEP NAVY BRAND THEME #0F2557) */}
-        <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 shadow-md">
+        {/* HEADER BAR (DEEP NAVY BRAND THEME #0F2557) - MOBILE SAFE-AREA TOP */}
+        <header className="sticky top-0 z-20 bg-[#0F2557] text-white border-b border-[#1E3A8A] px-3 sm:px-6 py-2.5 sm:py-3 pt-[max(0.625rem,env(safe-area-inset-top))] flex items-center justify-between gap-2 sm:gap-3 shadow-md">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/20 transition-colors min-w-[36px] min-h-[36px] sm:min-w-[38px] sm:min-h-[38px] flex items-center justify-center cursor-pointer shrink-0"
+              className="lg:hidden p-2 rounded-xl bg-white/10 border border-white/15 text-white hover:bg-white/20 transition-colors min-w-[36px] min-h-[36px] sm:min-w-[38px] sm:min-h-[38px] flex items-center justify-center cursor-pointer shrink-0 touch-manipulation"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
@@ -1345,9 +1345,8 @@ export default function StudentDashboardPage() {
                 <button
                   type="button"
                   onClick={() => { setActiveCourse("ca"); setSelectedChapterId("ca-ch4"); setSelectedActFilter("all"); }}
-                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
-                    activeCourse === "ca" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
-                  }`}
+                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${activeCourse === "ca" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
+                    }`}
                 >
                   <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-300" />
                   <span className="sm:hidden">CA</span>
@@ -1356,9 +1355,8 @@ export default function StudentDashboardPage() {
                 <button
                   type="button"
                   onClick={() => { setActiveCourse("cs"); setSelectedChapterId("cs-u7"); setSelectedActFilter("all"); }}
-                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
-                    activeCourse === "cs" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
-                  }`}
+                  className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${activeCourse === "cs" ? "bg-[#3558F0] text-white font-bold shadow-xs" : "text-white/70 hover:text-white"
+                    }`}
                 >
                   <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-300" />
                   <span>CSEET</span>
@@ -1379,7 +1377,7 @@ export default function StudentDashboardPage() {
           </div>
         </header>
 
-        <div key={activeTab} className={`tab-panel-smooth p-3 xs:p-4 sm:p-6 pb-24 lg:pb-12 space-y-4 sm:space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
+        <div key={activeTab} className={`tab-panel-smooth p-2.5 xs:p-3.5 sm:p-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,1rem))] lg:pb-12 space-y-4 sm:space-y-6 ${activeTab === "home" ? "w-full max-w-[1600px] mx-auto" : "max-w-6xl"}`}>
 
           {/* CSEET COMING SOON SHELL ONLY IF NOT SUBSCRIBED */}
           {activeCourse === "cs" && !isCsUnlocked ? (
@@ -1392,598 +1390,287 @@ export default function StudentDashboardPage() {
           ) : (
             <>
 
-          {/* ========================================================================= */}
-          {/* TAB 1: DASHBOARD HOME (3-COLUMN TUTEDUDE EDTECH SUITE AS REQUESTED)        */}
-          {/* ========================================================================= */}
-          {activeTab === "home" && (
-            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-              {/* CENTER COLUMN: PROMO BANNERS, ENROLLED COURSES CAROUSEL & RECOMMENDED */}
-              <div className="flex-1 min-w-0 space-y-6 w-full">
-                <StudentDashboardHome
-                  studentName={studentName}
-                  streak={streak}
-                  longestStreak={longestStreak}
-                  lawXp={lawXp}
-                  levelInfo={levelInfo}
-                  awardXp={awardXp}
-                  onOpenStreakLog={() => setStreakModalOpen(true)}
-                  onOpenBadgesModal={() => setBadgesModalOpen(true)}
-                  onOpenPdf={(url, title, subtitle, courseType, isFreeSample) => {
-                    const isSample = Boolean(
-                      isFreeSample ||
-                      url.includes("Sample") ||
-                      url.includes("sample") ||
-                      url.includes("sale-of-goods-unit-1") ||
-                      url.includes("sale-of-goods-unit-2") ||
-                      url.includes("unit-1-general-nature-of-partnership") ||
-                      url.includes("unit-2-relations-of-partners") ||
-                      url.includes("unit-3-registration-and-dissolution") ||
-                      url.includes("cseet-management") ||
-                      url.includes("cseet-business-law")
-                    );
-                    const isQBank =
-                      (courseType as string) === "qbank" ||
-                      (courseType as string) === "course-ca-qbank" ||
-                      url.includes("Question Bank") ||
-                      url.includes("question-bank") ||
-                      url.includes("qbank");
-                    const stream = courseType || activeCourse;
-                    const isUnlocked =
-                      isAdminUser ||
-                      isSample ||
-                      (isQBank
-                        ? isQBankUnlocked
-                        : stream === "ca"
-                        ? isCaUnlocked
-                        : stream === "cs"
-                        ? isCsUnlocked
-                        : isCaUnlocked || isCsUnlocked);
+              {/* ========================================================================= */}
+              {/* TAB 1: DASHBOARD HOME (3-COLUMN TUTEDUDE EDTECH SUITE AS REQUESTED)        */}
+              {/* ========================================================================= */}
+              {activeTab === "home" && (
+                <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+                  {/* CENTER COLUMN: PROMO BANNERS, ENROLLED COURSES CAROUSEL & RECOMMENDED */}
+                  <div className="flex-1 min-w-0 space-y-6 w-full">
+                    <StudentDashboardHome
+                      studentName={studentName}
+                      streak={streak}
+                      longestStreak={longestStreak}
+                      lawXp={lawXp}
+                      levelInfo={levelInfo}
+                      awardXp={awardXp}
+                      onOpenStreakLog={() => setStreakModalOpen(true)}
+                      onOpenBadgesModal={() => setBadgesModalOpen(true)}
+                      onOpenPdf={(url, title, subtitle, courseType, isFreeSample) => {
+                        const isSample = Boolean(
+                          isFreeSample ||
+                          url.includes("Sample") ||
+                          url.includes("sample") ||
+                          url.includes("sale-of-goods-unit-1") ||
+                          url.includes("sale-of-goods-unit-2") ||
+                          url.includes("unit-1-general-nature-of-partnership") ||
+                          url.includes("unit-2-relations-of-partners") ||
+                          url.includes("unit-3-registration-and-dissolution") ||
+                          url.includes("cseet-management") ||
+                          url.includes("cseet-business-law")
+                        );
+                        const isQBank =
+                          (courseType as string) === "qbank" ||
+                          (courseType as string) === "course-ca-qbank" ||
+                          url.includes("Question Bank") ||
+                          url.includes("question-bank") ||
+                          url.includes("qbank");
+                        const stream = courseType || activeCourse;
+                        const isUnlocked =
+                          isAdminUser ||
+                          isSample ||
+                          (isQBank
+                            ? isQBankUnlocked
+                            : stream === "ca"
+                              ? isCaUnlocked
+                              : stream === "cs"
+                                ? isCsUnlocked
+                                : isCaUnlocked || isCsUnlocked);
 
-                    if (isUnlocked) {
-                      handleOpenPdf(url, title, subtitle || "", true, isSample, undefined, undefined, undefined, stream === "cs" ? "cs" : "ca");
-                    } else {
-                      setLockedPrompt({
-                        open: true,
-                        courseName: isQBank ? "CA Foundation Question Bank (Part 1 & 2)" : (stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management"),
-                      });
-                    }
-                  }}
-                  activeCourse={activeCourse}
-                  onExploreCourse={(courseId) => {
-                    if (courseId === "all-access") {
-                      handleBuyCourse(activeCourse);
-                    } else if (courseId.includes("ca")) {
-                      setActiveCourse("ca");
-                      setActiveTab("courses");
-                    } else {
-                      setActiveCourse("cs");
-                      setActiveTab("courses");
-                    }
-                  }}
-                  qotdData={DAILY_QOTD_DATA}
-                  qotdSelected={qotdSelected}
-                  qotdSubmitted={qotdSubmitted}
-                  onSelectQotdOption={(idx) => {
-                    setQotdSelected(idx);
-                    setQotdSubmitted(true);
-                    if (idx === DAILY_QOTD_DATA.correctIndex) {
-                      awardXp(DAILY_QOTD_DATA.xpReward, "QOTD Answered Correctly! 🎉");
-                    } else {
-                      awardXp(5, "QOTD Attempted (+5 XP)");
-                    }
-                  }}
-                  onSubmitQotd={() => {}}
-                  completedUnitsCount={completedCount}
-                  totalUnitsCount={totalUnitsCount}
-                  isCaUnlocked={isCaUnlocked}
-                  isCsUnlocked={isCsUnlocked}
-                  isQBankUnlocked={isQBankUnlocked}
-                  isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
-                  onBuyCourse={(courseType) => handleBuyCourse(courseType)}
-                  purchasedBooks={purchasedBooks}
-                  studentCourses={studentCourses}
-                  completedUnits={completedUnits}
-                  catalogProducts={catalogProducts}
-                  promoBanners={promoBanners}
-                  weeklyCases={liveCases}
-                  hasCourseAccess={Boolean(hasActiveCourseAccess || isCaUnlocked || isCsUnlocked || isAdminUser)}
-                />
-              </div>
-
-              {/* RIGHT COLUMN: STREAK CARDS, INTERACTIVE CALENDAR & LIVE LEADERBOARD */}
-              <div className="w-full lg:w-[310px] xl:w-[330px] 2xl:w-[350px] shrink-0 max-w-md mx-auto lg:mx-0">
-                <StudentRightSidebar
-                  streak={streak}
-                  longestStreak={longestStreak}
-                  studentName={studentName}
-                  studyHours={Math.round(lawXp / 25)}
-                  userRank={0}
-                  onOpenStreakLog={() => setStreakModalOpen(true)}
-                  recentActivities={recentActivities}
-                />
-              </div>
-            </div>
-          )}
-
-          {(activeTab === "courses" || activeTab === "chapters") && (
-            <StudentCoursesHierarchyTab
-              initialCourseId={activeCourse === "ca" ? "ca-foundation" : "course-cseet"}
-              studentName={studentName}
-              initials={initials}
-              onOpenProfile={() => setProfileModalOpen(true)}
-              onOpenReader={(url, title, isPurchased, previewPagesLimit) => {
-                handleOpenPdf(url, title, "Curriculum Codex", isPurchased, Boolean(previewPagesLimit), previewPagesLimit);
-              }}
-              completedUnits={completedUnits}
-              onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
-              bookmarks={bookmarksList}
-              onToggleBookmark={(item) => handleToggleBookmark(item)}
-              onExploreMore={() => router.push("/courses")}
-              onBuyCourse={(courseId) => handleBuyCourse(courseId)}
-            />
-          )}
-
-          {activeTab === "bookmarks" && (
-            <StudentBookmarksTab
-              bookmarks={bookmarksList}
-              onOpenReader={(url, title) => handleOpenPdf(url, title, "Bookmarked Resource", true)}
-              onRemoveBookmark={(id) => handleToggleBookmark({ id })}
-              onExploreCourses={() => setActiveTab("courses")}
-            />
-          )}
-
-          {(activeTab === "progress" || activeTab === "mastery") && (
-            <StudentProgressTab
-              totalUnitsCompleted={completedUnits.length}
-              streakDays={streak}
-              lawXp={lawXp}
-              completedUnits={completedUnits}
-              onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
-              onOpenStreakCalendar={() => setStreakModalOpen(true)}
-            />
-          )}
-
-          {activeTab === "support" && (
-            <StudentHelpSupportTab />
-          )}
-
-          {activeTab === "profile" && (
-            <div className="bg-white rounded-2xl border border-[#E7ECF7] p-6 shadow-2xs space-y-4">
-              <h2 className="text-xl font-bold text-[#0F2557]">Candidate Profile</h2>
-              <p className="text-sm text-[#64748B]">Manage your academic credentials, enrolled streams, and session settings.</p>
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-[#0F2557] text-white text-xs font-bold hover:bg-[#1E3A8A] transition-colors cursor-pointer"
-              >
-                Open Full Profile Settings
-              </button>
-            </div>
-          )}
-
-          {/* Legacy Chapters View */}
-          {false && activeTab === "chapters" && (
-            <div className="space-y-5 text-[#221D1D] select-none font-sans">
-              {/* 1. TOP HEADER & SEARCH BAR */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-[#1F2937] tracking-tight">
-                    Chapter Notes
-                  </h2>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    Statutory codices, precedent case laws &amp; chapter-wise unit notes.
-                  </p>
-                </div>
-
-                {/* Instant Act & Topic Search */}
-                <div className="relative w-full sm:w-80">
-                  <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search acts, sections, topics..."
-                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-[#E7E4E7] text-xs text-[#1F2937] focus:outline-none focus:border-[#7E22CE] shadow-2xs transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] p-1 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* 2. COMPACT MASTER CODEX READER BANNER (MINIMAL & HIGH-IMPACT) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {(activeCourse === "ca" ? CA_FOUNDATION_BOOKS : CSEET_BOOKS).map((book) => {
-                  const isBookUnlocked =
-                    isAdminUser ||
-                    purchasedBooks.includes(book.id) ||
-                    purchasedBooks.includes("all-access") ||
-                    purchasedBooks.includes("course-ca-foundation-sub") ||
-                    purchasedBooks.includes("course-cseet-sub") ||
-                    purchasedBooks.includes("ca-foundation-business-laws") ||
-                    purchasedBooks.includes("ca-foundation");
-
-                  return (
-                    <div
-                      key={book.id}
-                      className="bg-white rounded-2xl border border-[#EDE9FE] bg-gradient-to-r from-[#FAF5FF]/70 via-white to-white p-3.5 sm:p-4 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-3 group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* Book Thumbnail */}
-                        <div className="relative w-12 h-16 sm:w-14 sm:h-20 shrink-0 rounded-xl overflow-hidden shadow-xs border border-[#DDD6FE] bg-white group-hover:scale-105 transition-transform duration-300">
-                          <Image
-                            src={book.coverImage}
-                            alt={book.title}
-                            fill
-                            className="object-contain p-1"
-                            sizes="60px"
-                          />
-                        </div>
-
-                        {/* Text info */}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
-                              {book.badge}
-                            </span>
-                            {isBookUnlocked ? (
-                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                <span>Unlocked</span>
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
-                                <Lock className="w-3 h-3 text-amber-600" />
-                                <span>Pass Required</span>
-                              </span>
-                            )}
-                            <span className="text-[10px] text-[#9CA3AF] font-medium hidden xs:inline">
-                              {book.totalPages}
-                            </span>
-                          </div>
-
-                          <h3 className="text-xs sm:text-sm font-black text-[#1F2937] leading-snug truncate">
-                            {book.title}
-                          </h3>
-                          <p className="text-[11px] text-[#6B7280] truncate">
-                            {book.subtitle}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Primary Open / Unlock CTA Button */}
-                      <div className="shrink-0">
-                        {isBookUnlocked ? (
-                          <button
-                            onClick={() => handleOpenPdf(book.pdfUrl, book.title, book.subtitle)}
-                            className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                          >
-                            <BookOpen className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Open Codex</span>
-                            <span className="sm:hidden">Read</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleBuyCourse(activeCourse)}
-                            className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                          >
-                            <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                            <span>Unlock • ₹99</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* 3. QUICK ACT FILTER PILLS (EASY ONE-TAP NAVIGATION) */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
-                <button
-                  onClick={() => setSelectedActFilter("all")}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                    selectedActFilter === "all"
-                      ? "bg-[#7E22CE] text-white shadow-2xs"
-                      : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
-                  }`}
-                >
-                  All Chapters ({chaptersList.length})
-                </button>
-                {chaptersList.map((ch) => (
-                  <button
-                    key={ch.id}
-                    onClick={() => setSelectedActFilter(selectedActFilter === ch.id ? "all" : ch.id)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                      selectedActFilter === ch.id
-                        ? "bg-[#7E22CE] text-white font-bold shadow-2xs"
-                        : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
-                    }`}
-                  >
-                    <span>{ch.code}:</span>
-                    <span className="max-w-[140px] truncate">{ch.name.replace("The ", "").replace(", 1872", "").replace(", 1930", "").replace(", 1932", "").replace(", 2008", "").replace(", 2013", "").replace(", 1881", "")}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* 4. STREAMLINED CHAPTER DIRECTORY CARDS */}
-              <div className="space-y-3.5">
-                {filteredChapters.map((ch) => {
-                  const completedInChapter = (ch.units || []).filter((u) =>
-                    completedUnits.includes(`${ch.id}-u${u.unitNumber}`)
-                  ).length;
-                  const totalInChapter = ch.units?.length || 1;
-
-                  return (
-                    <div
-                      key={ch.id}
-                      className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:border-[#DDD6FE] transition-all space-y-3"
-                    >
-                      {/* Chapter Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F3F4F6] pb-2.5">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE] shrink-0">
-                            {ch.code}
-                          </span>
-                          <h3 className="text-sm sm:text-base font-bold text-[#1F2937] leading-snug truncate">
-                            {ch.name}
-                          </h3>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                            {ch.weightage}
-                          </span>
-                          <span className="text-[11px] text-[#6B7280] font-medium">
-                            {completedInChapter}/{totalInChapter} Units Done
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Brief Description */}
-                      <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 sm:line-clamp-1">
-                        {ch.description}
-                      </p>
-
-                      {/* Units List */}
-                      {ch.units && ch.units.length > 0 && (
-                        <div className="space-y-2 pt-1">
-                          {ch.units.map((unit) => {
-                            const unitId = `${ch.id}-u${unit.unitNumber}`;
-                            const isCompleted = completedUnits.includes(unitId);
-                            const isBookmarked = bookmarkedUnits.includes(unitId);
-                            const isAccessible = hasActiveCourseAccess || unit.isSample;
-
-                            return (
-                              <div
-                                key={unit.unitNumber}
-                                className="p-3 rounded-xl bg-[#FAF5FF]/30 hover:bg-[#F3E8FF]/40 border border-[#EDE9FE] flex items-center justify-between gap-3 transition-colors group/unit"
-                              >
-                                {/* Left: Completion checkbox + Title + pages */}
-                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleUnitCompleted(unitId, unit.title)}
-                                    title={isCompleted ? "Mark Incomplete" : "Mark as Completed"}
-                                    className="cursor-pointer text-[#9CA3AF] hover:text-[#7E22CE] transition-colors shrink-0"
-                                  >
-                                    {isCompleted ? (
-                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-100" />
-                                    ) : (
-                                      <Square className="w-4 h-4 text-[#D1D5DB]" />
-                                    )}
-                                  </button>
-
-                                  <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                    <span className="text-xs font-semibold text-[#1F2937] truncate">
-                                      {unit.title}
-                                    </span>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-[10px] text-[#6B7280] truncate">
-                                        • {unit.pages}
-                                      </span>
-                                      {unit.isSample && (
-                                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
-                                          Free Sample
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Right: Bookmark + Read Action */}
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <button
-                                    onClick={() => toggleBookmark(unitId)}
-                                    title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
-                                    className={`p-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
-                                      isBookmarked
-                                        ? "text-amber-500 bg-amber-50"
-                                        : "text-[#9CA3AF] hover:text-[#1F2937]"
-                                    }`}
-                                  >
-                                    <Bookmark className="w-3.5 h-3.5" />
-                                  </button>
-
-                                  {isAccessible ? (
-                                    <button
-                                      onClick={() => handleOpenPdf(unit.pdfUrl, ch.name, unit.title, unit.isSample)}
-                                      className="px-3.5 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                                    >
-                                      <BookOpen className="w-3 h-3" />
-                                      <span>Read Note</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                                      className="px-3.5 py-1.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                                    >
-                                      <Lock className="w-3 h-3 text-[#AED7E9]" />
-                                      <span>Unlock</span>
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Full Act Curriculum Package: LDR Charts, Infographics, Practice Questions & Question Bank */}
-                      {ch.supplementaryResources && ch.supplementaryResources.length > 0 && (
-                        <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-[#FAF5FF] to-[#F5F3FF] border border-[#DDD6FE] space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#7E22CE] flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5 text-[#7E22CE]" />
-                              Complete Act Package: LDR, Infographics &amp; Practice Questions
-                            </span>
-                            <span className="text-[10px] text-[#6B7280] font-medium">Included in Codex</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {ch.supplementaryResources.map((res, rIdx) => {
-                              const isResourceSample = res.isSample || isCaUnlocked || isAdminUser;
-                              return (
-                                <div
-                                  key={res.id || rIdx}
-                                  className="p-2.5 rounded-xl border border-[#E9D5FF] bg-white hover:border-[#7E22CE] hover:shadow-xs transition-all flex items-center justify-between gap-2"
-                                >
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <span
-                                        className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
-                                          res.type === "flowchart" || res.type === "ldr"
-                                            ? "bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]"
-                                            : res.type === "infographic"
-                                            ? "bg-amber-50 text-amber-800 border border-amber-200"
-                                            : res.type === "practice" || res.type === "qbank"
-                                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                                            : "bg-blue-50 text-blue-800 border border-blue-200"
-                                        }`}
-                                      >
-                                        {res.type === "ldr"
-                                          ? "LDR Flowchart"
-                                          : res.type === "infographic"
-                                          ? "Infographics"
-                                          : res.type === "qbank"
-                                          ? "Question Bank"
-                                          : res.type === "practice"
-                                          ? "Practice"
-                                          : "Resource"}
-                                      </span>
-                                      {res.isSample && (
-                                        <span className="text-[8px] font-bold text-amber-700 bg-amber-50 px-1 rounded border border-amber-200">
-                                          Free
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="text-xs font-bold text-[#1F2937] truncate mt-1">
-                                      {res.title}
-                                    </p>
-                                    <p className="text-[10px] text-[#6B7280] truncate">
-                                      {res.description || res.pages || "Comprehensive Material"}
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => handleOpenPdf(res.pdfUrl, ch.name, res.title, isResourceSample)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
-                                  >
-                                    <BookOpen className="w-3 h-3" />
-                                    <span>Read</span>
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* 5. ADDITIONAL CODICES / SUPPLEMENTARY MATERIALS (MINIMAL & NEAT) */}
-              {availableProducts.length > 0 && (
-                <div className="space-y-3 pt-4 border-t border-[#E7E4E7]">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#7E22CE]" />
-                      <h3 className="text-sm sm:text-base font-bold text-[#1F2937]">
-                        Additional Codices &amp; Materials ({availableProducts.length})
-                      </h3>
-                    </div>
-                    <span className="text-[11px] text-[#6B7280]">In-Web DRM Encrypted</span>
+                        if (isUnlocked) {
+                          handleOpenPdf(url, title, subtitle || "", true, isSample, undefined, undefined, undefined, stream === "cs" ? "cs" : "ca");
+                        } else {
+                          setLockedPrompt({
+                            open: true,
+                            courseName: isQBank ? "CA Foundation Question Bank (Part 1 & 2)" : (stream === "ca" ? "CA Foundation Business Laws" : "CSEET Business Laws and Management"),
+                          });
+                        }
+                      }}
+                      activeCourse={activeCourse}
+                      onExploreCourse={(courseId) => {
+                        if (courseId === "all-access") {
+                          handleBuyCourse(activeCourse);
+                        } else if (courseId.includes("ca")) {
+                          setActiveCourse("ca");
+                          setActiveTab("courses");
+                        } else {
+                          setActiveCourse("cs");
+                          setActiveTab("courses");
+                        }
+                      }}
+                      qotdData={DAILY_QOTD_DATA}
+                      qotdSelected={qotdSelected}
+                      qotdSubmitted={qotdSubmitted}
+                      onSelectQotdOption={(idx) => {
+                        setQotdSelected(idx);
+                        setQotdSubmitted(true);
+                        if (idx === DAILY_QOTD_DATA.correctIndex) {
+                          awardXp(DAILY_QOTD_DATA.xpReward, "QOTD Answered Correctly! 🎉");
+                        } else {
+                          awardXp(5, "QOTD Attempted (+5 XP)");
+                        }
+                      }}
+                      onSubmitQotd={() => { }}
+                      completedUnitsCount={completedCount}
+                      totalUnitsCount={totalUnitsCount}
+                      isCaUnlocked={isCaUnlocked}
+                      isCsUnlocked={isCsUnlocked}
+                      isQBankUnlocked={isQBankUnlocked}
+                      isAllAccessUnlocked={isCaUnlocked && isCsUnlocked}
+                      onBuyCourse={(courseType) => handleBuyCourse(courseType)}
+                      purchasedBooks={purchasedBooks}
+                      studentCourses={studentCourses}
+                      completedUnits={completedUnits}
+                      catalogProducts={catalogProducts}
+                      promoBanners={promoBanners}
+                      weeklyCases={liveCases}
+                      hasCourseAccess={Boolean(hasActiveCourseAccess || isCaUnlocked || isCsUnlocked || isAdminUser)}
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                    {availableProducts.map((prod) => {
-                      const isProdUnlocked =
-                        isAdminUser ||
-                        purchasedBooks.includes(prod.id) ||
-                        Boolean(prod._id && purchasedBooks.includes(prod._id)) ||
-                        (prod.courseId === "course-ca-foundation" && isCaUnlocked) ||
-                        (prod.courseId === "course-cseet" && isCsUnlocked) ||
-                        (prod.category?.includes("CA") && isCaUnlocked) ||
-                        (prod.category?.includes("CS") && isCsUnlocked);
+                  {/* RIGHT COLUMN: STREAK CARDS, INTERACTIVE CALENDAR & LIVE LEADERBOARD */}
+                  <div className="w-full lg:w-[310px] xl:w-[330px] 2xl:w-[350px] shrink-0 max-w-md mx-auto lg:mx-0">
+                    <StudentRightSidebar
+                      streak={streak}
+                      longestStreak={longestStreak}
+                      studentName={studentName}
+                      studyHours={Math.round(lawXp / 25)}
+                      userRank={0}
+                      onOpenStreakLog={() => setStreakModalOpen(true)}
+                      recentActivities={recentActivities}
+                    />
+                  </div>
+                </div>
+              )}
 
-                      const previewLimit = Number(prod.previewPagesLimit) || 5;
-                      const pdfPath = prod.pdfUrl || `/api/pdf/${prod.slug || prod.id}.pdf`;
+              {(activeTab === "courses" || activeTab === "chapters") && (
+                <StudentCoursesHierarchyTab
+                  initialCourseId={activeCourse === "ca" ? "ca-foundation" : "course-cseet"}
+                  studentName={studentName}
+                  initials={initials}
+                  onOpenProfile={() => setProfileModalOpen(true)}
+                  onOpenReader={(url, title, isPurchased, previewPagesLimit) => {
+                    handleOpenPdf(url, title, "Curriculum Codex", isPurchased, Boolean(previewPagesLimit), previewPagesLimit);
+                  }}
+                  completedUnits={completedUnits}
+                  onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
+                  bookmarks={bookmarksList}
+                  onToggleBookmark={(item) => handleToggleBookmark(item)}
+                  onExploreMore={() => router.push("/courses")}
+                  onBuyCourse={(courseId) => handleBuyCourse(courseId)}
+                />
+              )}
+
+              {activeTab === "bookmarks" && (
+                <StudentBookmarksTab
+                  bookmarks={bookmarksList}
+                  onOpenReader={(url, title) => handleOpenPdf(url, title, "Bookmarked Resource", true)}
+                  onRemoveBookmark={(id) => handleToggleBookmark({ id })}
+                  onExploreCourses={() => setActiveTab("courses")}
+                />
+              )}
+
+              {(activeTab === "progress" || activeTab === "mastery") && (
+                <StudentProgressTab
+                  totalUnitsCompleted={completedUnits.length}
+                  streakDays={streak}
+                  lawXp={lawXp}
+                  completedUnits={completedUnits}
+                  onToggleUnitComplete={(unitId) => toggleUnitCompleted(unitId, unitId)}
+                  onOpenStreakCalendar={() => setStreakModalOpen(true)}
+                />
+              )}
+
+              {activeTab === "support" && (
+                <StudentHelpSupportTab />
+              )}
+
+              {activeTab === "profile" && (
+                <div className="bg-white rounded-2xl border border-[#E7ECF7] p-6 shadow-2xs space-y-4">
+                  <h2 className="text-xl font-bold text-[#0F2557]">Candidate Profile</h2>
+                  <p className="text-sm text-[#64748B]">Manage your academic credentials, enrolled streams, and session settings.</p>
+                  <button
+                    onClick={() => setProfileModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-[#0F2557] text-white text-xs font-bold hover:bg-[#1E3A8A] transition-colors cursor-pointer"
+                  >
+                    Open Full Profile Settings
+                  </button>
+                </div>
+              )}
+
+              {/* Legacy Chapters View */}
+              {false && activeTab === "chapters" && (
+                <div className="space-y-5 text-[#221D1D] select-none font-sans">
+                  {/* 1. TOP HEADER & SEARCH BAR */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4E7]">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black text-[#1F2937] tracking-tight">
+                        Chapter Notes
+                      </h2>
+                      <p className="text-xs text-[#6B7280] mt-0.5">
+                        Statutory codices, precedent case laws &amp; chapter-wise unit notes.
+                      </p>
+                    </div>
+
+                    {/* Instant Act & Topic Search */}
+                    <div className="relative w-full sm:w-80">
+                      <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search acts, sections, topics..."
+                        className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-[#E7E4E7] text-xs text-[#1F2937] focus:outline-none focus:border-[#7E22CE] shadow-2xs transition-all"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] p-1 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 2. COMPACT MASTER CODEX READER BANNER (MINIMAL & HIGH-IMPACT) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {(activeCourse === "ca" ? CA_FOUNDATION_BOOKS : CSEET_BOOKS).map((book) => {
+                      const isBookUnlocked =
+                        isAdminUser ||
+                        purchasedBooks.includes(book.id) ||
+                        purchasedBooks.includes("all-access") ||
+                        purchasedBooks.includes("course-ca-foundation-sub") ||
+                        purchasedBooks.includes("course-cseet-sub") ||
+                        purchasedBooks.includes("ca-foundation-business-laws") ||
+                        purchasedBooks.includes("ca-foundation");
 
                       return (
                         <div
-                          key={prod.id || prod._id}
-                          className="bg-white rounded-2xl border border-[#E7E4E7] p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-2.5"
+                          key={book.id}
+                          className="bg-white rounded-2xl border border-[#EDE9FE] bg-gradient-to-r from-[#FAF5FF]/70 via-white to-white p-3.5 sm:p-4 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-3 group"
                         >
-                          <div>
-                            <div className="flex items-center justify-between gap-1 mb-1">
-                              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
-                                {prod.category || "Codex"}
-                              </span>
-                              <span className="text-xs font-bold text-[#1F2937]">
-                                ₹{prod.price || 99}
-                              </span>
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Book Thumbnail */}
+                            <div className="relative w-12 h-16 sm:w-14 sm:h-20 shrink-0 rounded-xl overflow-hidden shadow-xs border border-[#DDD6FE] bg-white group-hover:scale-105 transition-transform duration-300">
+                              <Image
+                                src={book.coverImage}
+                                alt={book.title}
+                                fill
+                                className="object-contain p-1"
+                                sizes="60px"
+                              />
                             </div>
-                            <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] leading-snug line-clamp-1">
-                              {prod.title}
-                            </h4>
-                            <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5">
-                              {prod.subtitle || prod.pages || "Comprehensive student study notes"}
-                            </p>
+
+                            {/* Text info */}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE]">
+                                  {book.badge}
+                                </span>
+                                {isBookUnlocked ? (
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>Unlocked</span>
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                    <Lock className="w-3 h-3 text-amber-600" />
+                                    <span>Pass Required</span>
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-[#9CA3AF] font-medium hidden xs:inline">
+                                  {book.totalPages}
+                                </span>
+                              </div>
+
+                              <h3 className="text-xs sm:text-sm font-black text-[#1F2937] leading-snug truncate">
+                                {book.title}
+                              </h3>
+                              <p className="text-[11px] text-[#6B7280] truncate">
+                                {book.subtitle}
+                              </p>
+                            </div>
                           </div>
 
-                          <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
-                            <span className="text-[10px] text-[#9CA3AF]">
-                              {prod.pages || `${previewLimit} pgs`}
-                            </span>
-                            {isProdUnlocked ? (
+                          {/* Primary Open / Unlock CTA Button */}
+                          <div className="shrink-0">
+                            {isBookUnlocked ? (
                               <button
-                                onClick={() => handleOpenPdf(pdfPath, prod.title, prod.subtitle || "Full Edition", true)}
-                                className="px-3 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                onClick={() => handleOpenPdf(book.pdfUrl, book.title, book.subtitle)}
+                                className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                               >
-                                <BookOpen className="w-3 h-3" />
-                                <span>Read</span>
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Open Codex</span>
+                                <span className="sm:hidden">Read</span>
                               </button>
                             ) : (
                               <button
-                                onClick={() => {
-                                  addToCart({
-                                    id: prod.id,
-                                    title: prod.title,
-                                    price: prod.price || 99,
-                                    originalPrice: prod.originalPrice || 299,
-                                    format: "pdf",
-                                    category: prod.category || "Digital Codex",
-                                    badge: prod.badge || `₹${prod.price || 99}`,
-                                  });
-                                  setIsCartOpen(true);
-                                  setCheckoutStep("details");
-                                }}
-                                className="px-3 py-1.5 rounded-lg bg-[#221D1D] hover:bg-[#383130] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                onClick={() => handleBuyCourse(activeCourse)}
+                                className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                               >
-                                <ShoppingBag className="w-3 h-3 text-[#AED7E9]" />
-                                <span>Unlock (₹{prod.price || 99})</span>
+                                <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                                <span>Unlock • ₹99</span>
                               </button>
                             )}
                           </div>
@@ -1991,506 +1678,812 @@ export default function StudentDashboardPage() {
                       );
                     })}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* ========================================================================= */}
-          {/* TAB 3: SYLLABUS MASTERY RADAR (CHECKLIST & PROGRESS %)                   */}
-          {/* ========================================================================= */}
-          {false && activeTab === "mastery" && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="space-y-1.5 text-center sm:text-left">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Curriculum Progress</span>
-                  <h2 className="text-2xl font-serif font-bold text-[#221D1D]">
-                    {activeCourse === "ca" ? "CA Foundation Law Mastery" : "CSEET Business Laws and Management Mastery"}
-                  </h2>
-                  <div className="pt-2">
+                  {/* 3. QUICK ACT FILTER PILLS (EASY ONE-TAP NAVIGATION) */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
                     <button
-                      type="button"
-                      onClick={() => setStreakModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      onClick={() => setSelectedActFilter("all")}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${selectedActFilter === "all"
+                          ? "bg-[#7E22CE] text-white shadow-2xs"
+                          : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
+                        }`}
                     >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Study Streak Calendar</span>
+                      All Chapters ({chaptersList.length})
                     </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 shrink-0 bg-[#F7F7F5] p-4 rounded-2xl border border-[#E7E4E7]">
-                  <div className="relative w-16 h-16 flex items-center justify-center">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        className="text-[#E7E4E7]"
-                        strokeWidth="3.5"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className="text-[#AED7E9]"
-                        strokeDasharray={`${masteryPercent}, 100`}
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <span className="absolute font-black text-sm text-[#221D1D]">{masteryPercent}%</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-[#221D1D]">{completedCount} of {totalUnitsCount} Units</p>
-                    <p className="text-[10.5px] text-[#77716E]">Completed &amp; Verified</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ACT-BY-ACT CHECKLIST */}
-              <div className="space-y-3">
-                {chaptersList.map((ch, idx) => {
-                  const chUnitIds = ch.units?.map((u) => `${ch.id}-u${u.unitNumber}`) || [`${ch.id}-u1`];
-                  const chCompletedCount = chUnitIds.filter((id) => completedUnits.includes(id)).length;
-                  const chPercent = Math.round((chCompletedCount / chUnitIds.length) * 100);
-
-                  return (
-                    <div key={ch.id} className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] font-bold text-xs flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-serif font-bold text-[#221D1D]">{ch.name}</h4>
-                            <p className="text-[11px] text-[#77716E]">{ch.code} • Weightage: {ch.weightage}</p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-1 rounded-full border border-[#AED7E9]">
-                          {chPercent}% Complete
-                        </span>
-                      </div>
-
-                      {/* 3 Milestones per Chapter */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-[#E7E4E7]">
-                        <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
-                          <span className="flex items-center gap-1.5">
-                            <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
-                            <span>Notes Read</span>
-                          </span>
-                          {chCompletedCount > 0 ? (
-                            <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
-                          ) : (
-                            <span className="text-[10px] text-[#77716E]">Pending</span>
-                          )}
-                        </div>
-
-                        <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
-                          <span className="flex items-center gap-1.5">
-                            <Flame className="w-3.5 h-3.5 text-[#C35F3B]" />
-                            <span>Case Precedent</span>
-                          </span>
-                          <span className="text-[10px] text-[#4B8097] font-bold">Practiced</span>
-                        </div>
-
-                        <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
-                          <span className="flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-[#F7892A]" />
-                            <span>{ch.mcqCount} MCQs</span>
-                          </span>
-                          <span className="text-[10px] text-[#4B8097] font-bold">Cleared (90%)</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 4: CASE STUDIES (WEEKLY HIGH-YIELD DRILLS)                            */}
-          {/* ========================================================================= */}
-          {activeTab === "cases" && (
-            <div className="space-y-6">
-              <div className="max-w-xl">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Weekly Feature</span>
-                <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-1">High-Yield Case Studies</h2>
-                <p className="text-sm text-[#4D433F] mt-1">Master the 4-step answer structure: Monster Monday, Midweek Law Madness &amp; Final Boss Friday.</p>
-              </div>
-              {(liveCases && liveCases.length > 0) ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {liveCases.map((cs) => (
-                  <div key={cs.id || cs._id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#4B8097] uppercase tracking-wide">{cs.day}</span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0]">{cs.badge || "Live Case"}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-[#77716E] block mb-1">{cs.subject}</span>
-                      <h3 className="text-sm font-serif font-bold text-[#221D1D] leading-snug">{cs.title}</h3>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-xs text-[#4D433F] leading-relaxed italic flex-1">&ldquo;{cs.scenario}&rdquo;</div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097] block mb-1">Model Answer</span>
-                      {hasActiveCourseAccess ? (
-                        <p className="text-xs text-[#77716E] leading-relaxed">{cs.modelAnswer}</p>
-                      ) : (
-                        <div className="relative p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] overflow-hidden">
-                          <p className="text-xs text-[#77716E] filter blur-[3px] select-none pointer-events-none line-clamp-3">
-                            {cs.modelAnswer}
-                          </p>
-                          <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center gap-1.5 p-2 text-center">
-                            <Lock className="w-3.5 h-3.5 text-[#C35F3B]" />
-                            <span className="text-[11px] font-bold text-[#221D1D]">Enrolled Students Only</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-between text-[11px]">
-                      <span className="font-mono text-[#77716E]">{cs.precedent || "Direct Statutory Analysis"}</span>
-                      {hasActiveCourseAccess ? (
-                        <button
-                          onClick={() => awardXp(30, `Practiced Case: ${cs.title}`)}
-                          className="text-[#4B8097] font-bold hover:underline cursor-pointer"
-                        >
-                          6/6 Marks (+30 XP)
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                          className="text-[#C35F3B] font-bold hover:underline cursor-pointer flex items-center gap-1"
-                        >
-                          <Lock className="w-3 h-3" />
-                          <span>Unlock Case Drill</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              ) : (
-                <div className="bg-white rounded-3xl border border-[#E7E4E7] p-12 text-center text-[#64748B] max-w-lg mx-auto">
-                  <BookOpen className="w-12 h-12 text-[#94A3B8] mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-[#0A192F]">No Weekly Case Studies</h3>
-                  <p className="text-xs text-[#64748B] mt-1">There are currently no active weekly case problems published.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 5: GOOGLE FORM MCQ TESTS & MOCK DRILLS                                 */}
-          {/* ========================================================================= */}
-          {activeTab === "mcqtest" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Live Examination Desk</span>
-                  <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-0.5">Google Form MCQ Tests &amp; Mock Drills</h2>
-                  <p className="text-xs text-[#4D433F] mt-1 max-w-xl">
-                    Solve official examination standard chapter quizzes and timed mock tests directly inside the portal with instant feedback and score submissions.
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F7892A]/15 border border-[#F7892A]/40 text-[#221D1D] text-xs font-bold self-start sm:self-auto">
-                  <Sparkles className="w-3.5 h-3.5 text-[#F7892A] fill-[#F7892A]" />
-                  <span>Earn +50 LawXP per Test Completed</span>
-                </div>
-              </div>
-
-              {/* TESTS GRID */}
-              {(() => {
-                const filteredTests = liveMcqTests.filter(
-                  (t) => t.course === activeCourse || t.course === "both" || !t.course
-                );
-
-                if (filteredTests.length === 0) {
-                  return (
-                    <div className="bg-white rounded-3xl border border-[#E7E4E7] p-12 text-center space-y-3 shadow-xs">
-                      <div className="w-12 h-12 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center mx-auto">
-                        <Sparkles className="w-6 h-6" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#221D1D]">No Tests Scheduled For This Stream Yet</h3>
-                      <p className="text-xs text-[#77716E] max-w-sm mx-auto">
-                        New weekly mock drills are uploaded regularly by academic administrators.
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {filteredTests.map((test) => (
-                      <div
-                        key={test.id}
-                        className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-6 flex flex-col justify-between hover:shadow-md transition-all space-y-4"
+                    {chaptersList.map((ch) => (
+                      <button
+                        key={ch.id}
+                        onClick={() => setSelectedActFilter(selectedActFilter === ch.id ? "all" : ch.id)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${selectedActFilter === ch.id
+                            ? "bg-[#7E22CE] text-white font-bold shadow-2xs"
+                            : "bg-white text-[#4B5563] hover:text-[#1F2937] border border-[#E7E4E7] hover:border-[#7E22CE]"
+                          }`}
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
-                              {test.subject}
-                            </span>
-                            <span className="text-[10.5px] font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9] flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Ready
-                            </span>
-                          </div>
-
-                          <h3 className="text-base font-serif font-bold text-[#221D1D] leading-snug">
-                            {test.title}
-                          </h3>
-
-                          {/* Chips */}
-                          <div className="flex items-center gap-2 flex-wrap text-xs">
-                            <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
-                              📝 {test.questionCount || 30} Questions
-                            </span>
-                            <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F] flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
-                              <span>{test.duration || 30} Mins</span>
-                            </span>
-                            <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
-                              🎯 {test.totalMarks || 30} Marks
-                            </span>
-                          </div>
-
-                          {test.instructions && (
-                            <p className="text-xs text-[#77716E] bg-[#F7F7F5] p-3 rounded-2xl border border-[#E7E4E7] leading-relaxed">
-                              {test.instructions}
-                            </p>
-                          )}
-
-                          <div className="flex items-center gap-2 text-[11px] font-semibold text-[#4D433F] pt-1">
-                            <Flame className="w-3.5 h-3.5 text-[#F7892A]" />
-                            <span>👥 {test.peerAttempts || 89}+ students completed this mock test</span>
-                          </div>
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3">
-                          {hasActiveCourseAccess ? (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setActiveFormModal({
-                                    open: true,
-                                    url: test.formUrl,
-                                    title: test.title,
-                                    subject: test.subject,
-                                    duration: test.duration || 30,
-                                  });
-                                  awardXp(50, `Started Google Form Mock Drill: ${test.title} 🏆`);
-                                }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs transition-all cursor-pointer"
-                              >
-                                <Sparkles className="w-4 h-4" />
-                                <span>Take Test (In-Portal)</span>
-                              </button>
-
-                              {test.formUrl && (
-                                <a
-                                  href={test.formUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => awardXp(50, `Launched Form Test: ${test.title}`)}
-                                  className="p-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#4D433F] hover:text-[#221D1D] transition-colors border border-[#E7E4E7]"
-                                  title="Open Google Form in separate tab"
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </a>
-                              )}
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
-                            >
-                              <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                              <span>Unlock Course to Take Test</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                        <span>{ch.code}:</span>
+                        <span className="max-w-[140px] truncate">{ch.name.replace("The ", "").replace(", 1872", "").replace(", 1930", "").replace(", 1932", "").replace(", 2008", "").replace(", 2013", "").replace(", 1881", "")}</span>
+                      </button>
                     ))}
                   </div>
-                );
-              })()}
-            </div>
-          )}
 
-          {/* ========================================================================= */}
-          {/* TAB 6: LAST DAY REVISION (LDR FLOWCHARTS & SUMMARY MATRIX)                 */}
-          {/* ========================================================================= */}
-          {activeTab === "ldr" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5FF] text-[#7E22CE] text-xs font-bold border border-[#DDD6FE] mb-2">
-                    <Workflow className="w-3.5 h-3.5 text-[#9333EA]" />
-                    <span>Visual Revision Decision Trees</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D] tracking-tight">
-                    Exam Revision Flowcharts &amp; Quick Notes
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#4D433F] mt-1 max-w-2xl leading-relaxed">
-                    High-speed visual recall flowcharts, statutory mind maps, and decision trees curated for the final 36 hours before your law exam (Protected DRM In-Web View).
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4F8] text-[#1E3A4B] text-xs font-semibold border border-[#C4E1EC] self-start sm:self-auto shrink-0 shadow-2xs">
-                  <ShieldCheck className="w-4 h-4 text-[#2B5B70]" />
-                  <span>DRM Protected</span>
-                </div>
-              </div>
+                  {/* 4. STREAMLINED CHAPTER DIRECTORY CARDS */}
+                  <div className="space-y-3.5">
+                    {filteredChapters.map((ch) => {
+                      const completedInChapter = (ch.units || []).filter((u) =>
+                        completedUnits.includes(`${ch.id}-u${u.unitNumber}`)
+                      ).length;
+                      const totalInChapter = ch.units?.length || 1;
 
-              {/* Subject Filter Pills */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  { id: "all", label: "All Flowcharts" },
-                  { id: "partnership", label: "Partnership Act" },
-                  { id: "companies", label: "Companies Act" },
-                  { id: "soga", label: "Sale of Goods" },
-                  { id: "contract", label: "Contract Act" },
-                  { id: "llp", label: "LLP & NI Act" },
-                  { id: "trends", label: "Exam Trends & PYQ" },
-                ].map((pill) => (
-                  <button
-                    key={pill.id}
-                    type="button"
-                    onClick={() => setLdrFilter(pill.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                      ldrFilter === pill.id
-                        ? "bg-[#221D1D] text-white shadow-xs font-bold"
-                        : "bg-white border border-[#E7E4E7] text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
-                    }`}
-                  >
-                    {pill.label}
-                  </button>
-                ))}
-              </div>
+                      return (
+                        <div
+                          key={ch.id}
+                          className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-5 shadow-xs hover:border-[#DDD6FE] transition-all space-y-3"
+                        >
+                          {/* Chapter Header */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F3F4F6] pb-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#F3E8FF] text-[#7E22CE] border border-[#DDD6FE] shrink-0">
+                                {ch.code}
+                              </span>
+                              <h3 className="text-sm sm:text-base font-bold text-[#1F2937] leading-snug truncate">
+                                {ch.name}
+                              </h3>
+                            </div>
 
-              {/* Flowchart Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {[
-                  {
-                    act: "partnership",
-                    title: "Indian Partnership Act — Section 6 True Test & Agency Flowchart",
-                    desc: "High-speed visual recall flowcharts covering Section 4 essentials, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights (Sec 30), and Section 69 Non-Registration disabilities.",
-                    url: "/notes/partnership-ldr-charts.pdf",
-                    label: "Open Flowcharts",
-                    badge: "Partnership Act • Flowchart",
-                    badgeColor: "bg-[#FAF5FF] text-[#7E22CE] border-[#DDD6FE]"
-                  },
-                  {
-                    act: "partnership",
-                    title: "Indian Partnership Act — Visual Infographics & Dissolution Tree",
-                    desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures under Sections 39-44.",
-                    url: "/notes/partnership-infographics.pdf",
-                    label: "Open Infographics",
-                    badge: "Partnership Act • Infographics",
-                    badgeColor: "bg-amber-50 text-amber-800 border-amber-200"
-                  },
-                  {
-                    act: "companies",
-                    title: "The Companies Act — Corporate Veil & Indoor Management Decision Tree",
-                    desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires, and Turquand's Rule indoor management exception diagram.",
-                    url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
-                    label: "Open Decision Tree",
-                    badge: "Companies Act • Decision Tree",
-                    badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
-                  },
-                  {
-                    act: "soga",
-                    title: "The Sale of Goods Act — Section 16 Condition & Warranty Flowchart",
-                    desc: "Caveat Emptor baseline rule, Priest v. Last fitness exception tree, merchantable quality, and Section 54 Unpaid Seller Resale rules.",
-                    url: "/notes/SOGA Unit 2.pdf",
-                    label: "Open Flowchart",
-                    badge: "Sale of Goods • Flowchart",
-                    badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
-                  },
-                  {
-                    act: "contract",
-                    title: "The Indian Contract Act — Offer, Acceptance & Consideration Matrix",
-                    desc: "Postal communication timeline, Section 25 exceptions (natural love & affection), lawful consideration flowchart, and Chinnaya v. Ramayya privity tree.",
-                    url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
-                    label: "Open Checklist & Tree",
-                    badge: "Contract Act • Flowchart",
-                    badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
-                  },
-                  {
-                    act: "llp",
-                    title: "The Limited Liability Partnership Act — Incorporation & Partner Flowchart",
-                    desc: "Statutory flow diagram for LLP incorporation, DPIN requirements, Section 31 whistleblowing protection, and partner cessation rules.",
-                    url: "/notes/LDR_Flowchart_Book.pdf",
-                    label: "Open Flowchart",
-                    badge: "LLP Act • Flowchart",
-                    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  },
-                  {
-                    act: "llp",
-                    title: "The Negotiable Instruments Act — Cheque Bounce & Dishonour Flowchart",
-                    desc: "Promissory Note vs Bill vs Cheque matrix, Section 9 Holder in Due Course privileges, and Section 138 cheque bounce statutory timeline flowchart.",
-                    url: "/notes/Partnership LDR Charts.pdf",
-                    label: "Open Flowchart",
-                    badge: "NI Act • Flowchart",
-                    badgeColor: "bg-cyan-50 text-cyan-800 border-cyan-200"
-                  },
-                  {
-                    act: "trends",
-                    title: "Smart Revision Question Bank — High-Yield Decision Charts",
-                    desc: "Fact-pattern to statutory provision identifier charts. Step-by-step problem solving framework for ICAI examination questions.",
-                    url: "/notes/smart-revision-question-bank-part-1.pdf",
-                    label: "Open Case Maps",
-                    badge: "Case Maps • Step Marking",
-                    badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
-                  },
-                  {
-                    act: "trends",
-                    title: "September 2026 Examination Trend Blueprint & Marking Scheme",
-                    desc: "In-depth chapter weightage trends, recurring question patterns, and 1.5-day revision timetable allocation for Paper 2.",
-                    url: "/notes/september-2026-paper-analysis.pdf",
-                    label: "Open Exam Blueprint",
-                    badge: "PYQ Trend Blueprint",
-                    badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
-                  },
-                ]
-                  .filter((item) => ldrFilter === "all" || item.act === ldrFilter)
-                  .map((item, idx) => (
-                    <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${item.badgeColor}`}>{item.badge}</div>
-                          <div className="flex items-center gap-1 text-[10px] text-[#77716E] font-medium">
-                            <Lock className="w-3 h-3 text-[#4B8097]" />
-                            <span>DRM Protected</span>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                {ch.weightage}
+                              </span>
+                              <span className="text-[11px] text-[#6B7280] font-medium">
+                                {completedInChapter}/{totalInChapter} Units Done
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Brief Description */}
+                          <p className="text-xs text-[#6B7280] leading-relaxed line-clamp-2 sm:line-clamp-1">
+                            {ch.description}
+                          </p>
+
+                          {/* Units List */}
+                          {ch.units && ch.units.length > 0 && (
+                            <div className="space-y-2 pt-1">
+                              {ch.units.map((unit) => {
+                                const unitId = `${ch.id}-u${unit.unitNumber}`;
+                                const isCompleted = completedUnits.includes(unitId);
+                                const isBookmarked = bookmarkedUnits.includes(unitId);
+                                const isAccessible = hasActiveCourseAccess || unit.isSample;
+
+                                return (
+                                  <div
+                                    key={unit.unitNumber}
+                                    className="p-3 rounded-xl bg-[#FAF5FF]/30 hover:bg-[#F3E8FF]/40 border border-[#EDE9FE] flex items-center justify-between gap-3 transition-colors group/unit"
+                                  >
+                                    {/* Left: Completion checkbox + Title + pages */}
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleUnitCompleted(unitId, unit.title)}
+                                        title={isCompleted ? "Mark Incomplete" : "Mark as Completed"}
+                                        className="cursor-pointer text-[#9CA3AF] hover:text-[#7E22CE] transition-colors shrink-0"
+                                      >
+                                        {isCompleted ? (
+                                          <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+                                        ) : (
+                                          <Square className="w-4 h-4 text-[#D1D5DB]" />
+                                        )}
+                                      </button>
+
+                                      <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                        <span className="text-xs font-semibold text-[#1F2937] truncate">
+                                          {unit.title}
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-[10px] text-[#6B7280] truncate">
+                                            • {unit.pages}
+                                          </span>
+                                          {unit.isSample && (
+                                            <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                                              Free Sample
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Right: Bookmark + Read Action */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        onClick={() => toggleBookmark(unitId)}
+                                        title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
+                                        className={`p-1.5 rounded-lg text-xs cursor-pointer transition-colors ${isBookmarked
+                                            ? "text-amber-500 bg-amber-50"
+                                            : "text-[#9CA3AF] hover:text-[#1F2937]"
+                                          }`}
+                                      >
+                                        <Bookmark className="w-3.5 h-3.5" />
+                                      </button>
+
+                                      {isAccessible ? (
+                                        <button
+                                          onClick={() => handleOpenPdf(unit.pdfUrl, ch.name, unit.title, unit.isSample)}
+                                          className="px-3.5 py-1.5 rounded-xl bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        >
+                                          <BookOpen className="w-3 h-3" />
+                                          <span>Read Note</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                                          className="px-3.5 py-1.5 rounded-xl bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                                        >
+                                          <Lock className="w-3 h-3 text-[#AED7E9]" />
+                                          <span>Unlock</span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Full Act Curriculum Package: LDR Charts, Infographics, Practice Questions & Question Bank */}
+                          {ch.supplementaryResources && ch.supplementaryResources.length > 0 && (
+                            <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-[#FAF5FF] to-[#F5F3FF] border border-[#DDD6FE] space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#7E22CE] flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-[#7E22CE]" />
+                                  Complete Act Package: LDR, Infographics &amp; Practice Questions
+                                </span>
+                                <span className="text-[10px] text-[#6B7280] font-medium">Included in Codex</span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {ch.supplementaryResources.map((res, rIdx) => {
+                                  const isResourceSample = res.isSample || isCaUnlocked || isAdminUser;
+                                  return (
+                                    <div
+                                      key={res.id || rIdx}
+                                      className="p-2.5 rounded-xl border border-[#E9D5FF] bg-white hover:border-[#7E22CE] hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <span
+                                            className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${res.type === "flowchart" || res.type === "ldr"
+                                                ? "bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]"
+                                                : res.type === "infographic"
+                                                  ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                                  : res.type === "practice" || res.type === "qbank"
+                                                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                    : "bg-blue-50 text-blue-800 border border-blue-200"
+                                              }`}
+                                          >
+                                            {res.type === "ldr"
+                                              ? "LDR Flowchart"
+                                              : res.type === "infographic"
+                                                ? "Infographics"
+                                                : res.type === "qbank"
+                                                  ? "Question Bank"
+                                                  : res.type === "practice"
+                                                    ? "Practice"
+                                                    : "Resource"}
+                                          </span>
+                                          {res.isSample && (
+                                            <span className="text-[8px] font-bold text-amber-700 bg-amber-50 px-1 rounded border border-amber-200">
+                                              Free
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-xs font-bold text-[#1F2937] truncate mt-1">
+                                          {res.title}
+                                        </p>
+                                        <p className="text-[10px] text-[#6B7280] truncate">
+                                          {res.description || res.pages || "Comprehensive Material"}
+                                        </p>
+                                      </div>
+                                      <button
+                                        onClick={() => handleOpenPdf(res.pdfUrl, ch.name, res.title, isResourceSample)}
+                                        className="px-2.5 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                                      >
+                                        <BookOpen className="w-3 h-3" />
+                                        <span>Read</span>
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <h3 className="text-sm font-serif font-bold text-[#221D1D]">{item.title}</h3>
-                        <p className="text-xs text-[#4D433F] leading-relaxed mt-1">{item.desc}</p>
+                      );
+                    })}
+                  </div>
+
+                  {/* 5. ADDITIONAL CODICES / SUPPLEMENTARY MATERIALS (MINIMAL & NEAT) */}
+                  {availableProducts.length > 0 && (
+                    <div className="space-y-3 pt-4 border-t border-[#E7E4E7]">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-[#7E22CE]" />
+                          <h3 className="text-sm sm:text-base font-bold text-[#1F2937]">
+                            Additional Codices &amp; Materials ({availableProducts.length})
+                          </h3>
+                        </div>
+                        <span className="text-[11px] text-[#6B7280]">In-Web DRM Encrypted</span>
                       </div>
-                      <div className="pt-2">
-                        {hasActiveCourseAccess ? (
-                          <button
-                            onClick={() => handleOpenPdf(item.url, item.title, "LDR Quick Deck")}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>{item.label} (Secure Reader)</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                          >
-                            <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
-                            <span>Unlock LDR Flowchart</span>
-                          </button>
-                        )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {availableProducts.map((prod) => {
+                          const isProdUnlocked =
+                            isAdminUser ||
+                            purchasedBooks.includes(prod.id) ||
+                            Boolean(prod._id && purchasedBooks.includes(prod._id)) ||
+                            (prod.courseId === "course-ca-foundation" && isCaUnlocked) ||
+                            (prod.courseId === "course-cseet" && isCsUnlocked) ||
+                            (prod.category?.includes("CA") && isCaUnlocked) ||
+                            (prod.category?.includes("CS") && isCsUnlocked);
+
+                          const previewLimit = Number(prod.previewPagesLimit) || 5;
+                          const pdfPath = prod.pdfUrl || `/api/pdf/${prod.slug || prod.id}.pdf`;
+
+                          return (
+                            <div
+                              key={prod.id || prod._id}
+                              className="bg-white rounded-2xl border border-[#E7E4E7] p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-2.5"
+                            >
+                              <div>
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#FAF5FF] text-[#7E22CE] border border-[#DDD6FE]">
+                                    {prod.category || "Codex"}
+                                  </span>
+                                  <span className="text-xs font-bold text-[#1F2937]">
+                                    ₹{prod.price || 99}
+                                  </span>
+                                </div>
+                                <h4 className="text-xs sm:text-sm font-bold text-[#1F2937] leading-snug line-clamp-1">
+                                  {prod.title}
+                                </h4>
+                                <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5">
+                                  {prod.subtitle || prod.pages || "Comprehensive student study notes"}
+                                </p>
+                              </div>
+
+                              <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+                                <span className="text-[10px] text-[#9CA3AF]">
+                                  {prod.pages || `${previewLimit} pgs`}
+                                </span>
+                                {isProdUnlocked ? (
+                                  <button
+                                    onClick={() => handleOpenPdf(pdfPath, prod.title, prod.subtitle || "Full Edition", true)}
+                                    className="px-3 py-1.5 rounded-lg bg-[#7E22CE] hover:bg-[#6B21A8] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <BookOpen className="w-3 h-3" />
+                                    <span>Read</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      addToCart({
+                                        id: prod.id,
+                                        title: prod.title,
+                                        price: prod.price || 99,
+                                        originalPrice: prod.originalPrice || 299,
+                                        format: "pdf",
+                                        category: prod.category || "Digital Codex",
+                                        badge: prod.badge || `₹${prod.price || 99}`,
+                                      });
+                                      setIsCartOpen(true);
+                                      setCheckoutStep("details");
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-[#221D1D] hover:bg-[#383130] text-white text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <ShoppingBag className="w-3 h-3 text-[#AED7E9]" />
+                                    <span>Unlock (₹{prod.price || 99})</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  ))}
-              </div>
-            </div>
-          )}
+                  )}
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 3: SYLLABUS MASTERY RADAR (CHECKLIST & PROGRESS %)                   */}
+              {/* ========================================================================= */}
+              {false && activeTab === "mastery" && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-3xl border border-[#E7E4E7] p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="space-y-1.5 text-center sm:text-left">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Curriculum Progress</span>
+                      <h2 className="text-2xl font-serif font-bold text-[#221D1D]">
+                        {activeCourse === "ca" ? "CA Foundation Law Mastery" : "CSEET Business Laws and Management Mastery"}
+                      </h2>
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setStreakModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>Study Streak Calendar</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0 bg-[#F7F7F5] p-4 rounded-2xl border border-[#E7E4E7]">
+                      <div className="relative w-16 h-16 flex items-center justify-center">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                          <path
+                            className="text-[#E7E4E7]"
+                            strokeWidth="3.5"
+                            stroke="currentColor"
+                            fill="none"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                          />
+                          <path
+                            className="text-[#AED7E9]"
+                            strokeDasharray={`${masteryPercent}, 100`}
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            stroke="currentColor"
+                            fill="none"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                          />
+                        </svg>
+                        <span className="absolute font-black text-sm text-[#221D1D]">{masteryPercent}%</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#221D1D]">{completedCount} of {totalUnitsCount} Units</p>
+                        <p className="text-[10.5px] text-[#77716E]">Completed &amp; Verified</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ACT-BY-ACT CHECKLIST */}
+                  <div className="space-y-3">
+                    {chaptersList.map((ch, idx) => {
+                      const chUnitIds = ch.units?.map((u) => `${ch.id}-u${u.unitNumber}`) || [`${ch.id}-u1`];
+                      const chCompletedCount = chUnitIds.filter((id) => completedUnits.includes(id)).length;
+                      const chPercent = Math.round((chCompletedCount / chUnitIds.length) * 100);
+
+                      return (
+                        <div key={ch.id} className="bg-white rounded-3xl border border-[#E7E4E7] p-5 shadow-xs space-y-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] font-bold text-xs flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-serif font-bold text-[#221D1D]">{ch.name}</h4>
+                                <p className="text-[11px] text-[#77716E]">{ch.code} • Weightage: {ch.weightage}</p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-1 rounded-full border border-[#AED7E9]">
+                              {chPercent}% Complete
+                            </span>
+                          </div>
+
+                          {/* 3 Milestones per Chapter */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-[#E7E4E7]">
+                            <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
+                              <span className="flex items-center gap-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-[#4B8097]" />
+                                <span>Notes Read</span>
+                              </span>
+                              {chCompletedCount > 0 ? (
+                                <CheckCircle2 className="w-4 h-4 text-[#4B8097]" />
+                              ) : (
+                                <span className="text-[10px] text-[#77716E]">Pending</span>
+                              )}
+                            </div>
+
+                            <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
+                              <span className="flex items-center gap-1.5">
+                                <Flame className="w-3.5 h-3.5 text-[#C35F3B]" />
+                                <span>Case Precedent</span>
+                              </span>
+                              <span className="text-[10px] text-[#4B8097] font-bold">Practiced</span>
+                            </div>
+
+                            <div className="p-2.5 rounded-2xl bg-[#F7F7F5] flex items-center justify-between text-xs text-[#4D433F]">
+                              <span className="flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5 text-[#F7892A]" />
+                                <span>{ch.mcqCount} MCQs</span>
+                              </span>
+                              <span className="text-[10px] text-[#4B8097] font-bold">Cleared (90%)</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 4: CASE STUDIES (WEEKLY HIGH-YIELD DRILLS)                            */}
+              {/* ========================================================================= */}
+              {activeTab === "cases" && (
+                <div className="space-y-6">
+                  <div className="max-w-xl">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Weekly Feature</span>
+                    <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-1">High-Yield Case Studies</h2>
+                    <p className="text-sm text-[#4D433F] mt-1">Master the 4-step answer structure: Monster Monday, Midweek Law Madness &amp; Final Boss Friday.</p>
+                  </div>
+                  {(liveCases && liveCases.length > 0) ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {liveCases.map((cs) => (
+                        <div key={cs.id || cs._id} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#4B8097] uppercase tracking-wide">{cs.day}</span>
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F4C5C0]/40 text-[#C35F3B] border border-[#F4C5C0]">{cs.badge || "Live Case"}</span>
+                          </div>
+                          <div>
+                            <span className="text-[11px] text-[#77716E] block mb-1">{cs.subject}</span>
+                            <h3 className="text-sm font-serif font-bold text-[#221D1D] leading-snug">{cs.title}</h3>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] text-xs text-[#4D433F] leading-relaxed italic flex-1">&ldquo;{cs.scenario}&rdquo;</div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B8097] block mb-1">Model Answer</span>
+                            {hasActiveCourseAccess ? (
+                              <p className="text-xs text-[#77716E] leading-relaxed">{cs.modelAnswer}</p>
+                            ) : (
+                              <div className="relative p-3 rounded-2xl bg-[#F7F7F5] border border-[#E7E4E7] overflow-hidden">
+                                <p className="text-xs text-[#77716E] filter blur-[3px] select-none pointer-events-none line-clamp-3">
+                                  {cs.modelAnswer}
+                                </p>
+                                <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center gap-1.5 p-2 text-center">
+                                  <Lock className="w-3.5 h-3.5 text-[#C35F3B]" />
+                                  <span className="text-[11px] font-bold text-[#221D1D]">Enrolled Students Only</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="pt-3 border-t border-[#E7E4E7] flex items-center justify-between text-[11px]">
+                            <span className="font-mono text-[#77716E]">{cs.precedent || "Direct Statutory Analysis"}</span>
+                            {hasActiveCourseAccess ? (
+                              <button
+                                onClick={() => awardXp(30, `Practiced Case: ${cs.title}`)}
+                                className="text-[#4B8097] font-bold hover:underline cursor-pointer"
+                              >
+                                6/6 Marks (+30 XP)
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                                className="text-[#C35F3B] font-bold hover:underline cursor-pointer flex items-center gap-1"
+                              >
+                                <Lock className="w-3 h-3" />
+                                <span>Unlock Case Drill</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-3xl border border-[#E7E4E7] p-12 text-center text-[#64748B] max-w-lg mx-auto">
+                      <BookOpen className="w-12 h-12 text-[#94A3B8] mx-auto mb-3" />
+                      <h3 className="text-base font-bold text-[#0A192F]">No Weekly Case Studies</h3>
+                      <p className="text-xs text-[#64748B] mt-1">There are currently no active weekly case problems published.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 5: GOOGLE FORM MCQ TESTS & MOCK DRILLS                                 */}
+              {/* ========================================================================= */}
+              {activeTab === "mcqtest" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#4B8097]">Live Examination Desk</span>
+                      <h2 className="text-2xl font-serif font-bold text-[#221D1D] mt-0.5">Google Form MCQ Tests &amp; Mock Drills</h2>
+                      <p className="text-xs text-[#4D433F] mt-1 max-w-xl">
+                        Solve official examination standard chapter quizzes and timed mock tests directly inside the portal with instant feedback and score submissions.
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F7892A]/15 border border-[#F7892A]/40 text-[#221D1D] text-xs font-bold self-start sm:self-auto">
+                      <Sparkles className="w-3.5 h-3.5 text-[#F7892A] fill-[#F7892A]" />
+                      <span>Earn +50 LawXP per Test Completed</span>
+                    </div>
+                  </div>
+
+                  {/* TESTS GRID */}
+                  {(() => {
+                    const filteredTests = liveMcqTests.filter(
+                      (t) => t.course === activeCourse || t.course === "both" || !t.course
+                    );
+
+                    if (filteredTests.length === 0) {
+                      return (
+                        <div className="bg-white rounded-3xl border border-[#E7E4E7] p-12 text-center space-y-3 shadow-xs">
+                          <div className="w-12 h-12 rounded-2xl bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9] flex items-center justify-center mx-auto">
+                            <Sparkles className="w-6 h-6" />
+                          </div>
+                          <h3 className="text-sm font-bold text-[#221D1D]">No Tests Scheduled For This Stream Yet</h3>
+                          <p className="text-xs text-[#77716E] max-w-sm mx-auto">
+                            New weekly mock drills are uploaded regularly by academic administrators.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {filteredTests.map((test) => (
+                          <div
+                            key={test.id}
+                            className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-6 flex flex-col justify-between hover:shadow-md transition-all space-y-4"
+                          >
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-[#C4E1EC]/60 text-[#221D1D] border border-[#AED7E9]">
+                                  {test.subject}
+                                </span>
+                                <span className="text-[10.5px] font-bold text-[#221D1D] bg-[#AED7E9]/40 px-2.5 py-0.5 rounded-full border border-[#AED7E9] flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3 text-[#4B8097]" /> Ready
+                                </span>
+                              </div>
+
+                              <h3 className="text-base font-serif font-bold text-[#221D1D] leading-snug">
+                                {test.title}
+                              </h3>
+
+                              {/* Chips */}
+                              <div className="flex items-center gap-2 flex-wrap text-xs">
+                                <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
+                                  📝 {test.questionCount || 30} Questions
+                                </span>
+                                <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F] flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5 text-[#4B8097]" />
+                                  <span>{test.duration || 30} Mins</span>
+                                </span>
+                                <span className="px-2.5 py-1 rounded-full bg-[#F7F7F5] border border-[#E7E4E7] font-semibold text-[#4D433F]">
+                                  🎯 {test.totalMarks || 30} Marks
+                                </span>
+                              </div>
+
+                              {test.instructions && (
+                                <p className="text-xs text-[#77716E] bg-[#F7F7F5] p-3 rounded-2xl border border-[#E7E4E7] leading-relaxed">
+                                  {test.instructions}
+                                </p>
+                              )}
+
+                              <div className="flex items-center gap-2 text-[11px] font-semibold text-[#4D433F] pt-1">
+                                <Flame className="w-3.5 h-3.5 text-[#F7892A]" />
+                                <span>👥 {test.peerAttempts || 89}+ students completed this mock test</span>
+                              </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="pt-4 border-t border-[#E7E4E7] flex items-center justify-between gap-3">
+                              {hasActiveCourseAccess ? (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setActiveFormModal({
+                                        open: true,
+                                        url: test.formUrl,
+                                        title: test.title,
+                                        subject: test.subject,
+                                        duration: test.duration || 30,
+                                      });
+                                      awardXp(50, `Started Google Form Mock Drill: ${test.title} 🏆`);
+                                    }}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold shadow-xs transition-all cursor-pointer"
+                                  >
+                                    <Sparkles className="w-4 h-4" />
+                                    <span>Take Test (In-Portal)</span>
+                                  </button>
+
+                                  {test.formUrl && (
+                                    <a
+                                      href={test.formUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => awardXp(50, `Launched Form Test: ${test.title}`)}
+                                      className="p-2.5 rounded-full bg-[#F7F7F5] hover:bg-[#E7E4E7] text-[#4D433F] hover:text-[#221D1D] transition-colors border border-[#E7E4E7]"
+                                      title="Open Google Form in separate tab"
+                                    >
+                                      <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                  )}
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                                >
+                                  <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                                  <span>Unlock Course to Take Test</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 6: LAST DAY REVISION (LDR FLOWCHARTS & SUMMARY MATRIX)                 */}
+              {/* ========================================================================= */}
+              {activeTab === "ldr" && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E7E4E7]">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5FF] text-[#7E22CE] text-xs font-bold border border-[#DDD6FE] mb-2">
+                        <Workflow className="w-3.5 h-3.5 text-[#9333EA]" />
+                        <span>Visual Revision Decision Trees</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#221D1D] tracking-tight">
+                        Exam Revision Flowcharts &amp; Quick Notes
+                      </h2>
+                      <p className="text-xs sm:text-sm text-[#4D433F] mt-1 max-w-2xl leading-relaxed">
+                        High-speed visual recall flowcharts, statutory mind maps, and decision trees curated for the final 36 hours before your law exam (Protected DRM In-Web View).
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4F8] text-[#1E3A4B] text-xs font-semibold border border-[#C4E1EC] self-start sm:self-auto shrink-0 shadow-2xs">
+                      <ShieldCheck className="w-4 h-4 text-[#2B5B70]" />
+                      <span>DRM Protected</span>
+                    </div>
+                  </div>
+
+                  {/* Subject Filter Pills */}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {[
+                      { id: "all", label: "All Flowcharts" },
+                      { id: "partnership", label: "Partnership Act" },
+                      { id: "companies", label: "Companies Act" },
+                      { id: "soga", label: "Sale of Goods" },
+                      { id: "contract", label: "Contract Act" },
+                      { id: "llp", label: "LLP & NI Act" },
+                      { id: "trends", label: "Exam Trends & PYQ" },
+                    ].map((pill) => (
+                      <button
+                        key={pill.id}
+                        type="button"
+                        onClick={() => setLdrFilter(pill.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${ldrFilter === pill.id
+                            ? "bg-[#221D1D] text-white shadow-xs font-bold"
+                            : "bg-white border border-[#E7E4E7] text-[#4D433F] hover:bg-[#F7F7F5] hover:text-[#221D1D]"
+                          }`}
+                      >
+                        {pill.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Flowchart Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {[
+                      {
+                        act: "partnership",
+                        title: "Indian Partnership Act — Section 6 True Test & Agency Flowchart",
+                        desc: "High-speed visual recall flowcharts covering Section 4 essentials, Section 6 True Test (Cox v. Hickman), Section 28 Holding Out, Minor's Rights (Sec 30), and Section 69 Non-Registration disabilities.",
+                        url: "/notes/partnership-ldr-charts.pdf",
+                        label: "Open Flowcharts",
+                        badge: "Partnership Act • Flowchart",
+                        badgeColor: "bg-[#FAF5FF] text-[#7E22CE] border-[#DDD6FE]"
+                      },
+                      {
+                        act: "partnership",
+                        title: "Indian Partnership Act — Visual Infographics & Dissolution Tree",
+                        desc: "Crystal-clear visual infographics illustrating partnership essentials, partner types, mutual agency doctrine, and firm dissolution procedures under Sections 39-44.",
+                        url: "/notes/partnership-infographics.pdf",
+                        label: "Open Infographics",
+                        badge: "Partnership Act • Infographics",
+                        badgeColor: "bg-amber-50 text-amber-800 border-amber-200"
+                      },
+                      {
+                        act: "companies",
+                        title: "The Companies Act — Corporate Veil & Indoor Management Decision Tree",
+                        desc: "Salomon v. Salomon case, exceptions to corporate veil, Doctrine of Ultra Vires, and Turquand's Rule indoor management exception diagram.",
+                        url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
+                        label: "Open Decision Tree",
+                        badge: "Companies Act • Decision Tree",
+                        badgeColor: "bg-[#BFAFE5]/40 text-[#221D1D] border-[#BFAFE5]"
+                      },
+                      {
+                        act: "soga",
+                        title: "The Sale of Goods Act — Section 16 Condition & Warranty Flowchart",
+                        desc: "Caveat Emptor baseline rule, Priest v. Last fitness exception tree, merchantable quality, and Section 54 Unpaid Seller Resale rules.",
+                        url: "/notes/SOGA Unit 2.pdf",
+                        label: "Open Flowchart",
+                        badge: "Sale of Goods • Flowchart",
+                        badgeColor: "bg-[#F7892A]/15 text-[#221D1D] border-[#F7892A]/40"
+                      },
+                      {
+                        act: "contract",
+                        title: "The Indian Contract Act — Offer, Acceptance & Consideration Matrix",
+                        desc: "Postal communication timeline, Section 25 exceptions (natural love & affection), lawful consideration flowchart, and Chinnaya v. Ramayya privity tree.",
+                        url: "/notes/Indian_Contract_Act_LDR_Flowchart Book.pdf",
+                        label: "Open Checklist & Tree",
+                        badge: "Contract Act • Flowchart",
+                        badgeColor: "bg-[#F4C5C0]/40 text-[#C35F3B] border-[#F4C5C0]"
+                      },
+                      {
+                        act: "llp",
+                        title: "The Limited Liability Partnership Act — Incorporation & Partner Flowchart",
+                        desc: "Statutory flow diagram for LLP incorporation, DPIN requirements, Section 31 whistleblowing protection, and partner cessation rules.",
+                        url: "/notes/LDR_Flowchart_Book.pdf",
+                        label: "Open Flowchart",
+                        badge: "LLP Act • Flowchart",
+                        badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      },
+                      {
+                        act: "llp",
+                        title: "The Negotiable Instruments Act — Cheque Bounce & Dishonour Flowchart",
+                        desc: "Promissory Note vs Bill vs Cheque matrix, Section 9 Holder in Due Course privileges, and Section 138 cheque bounce statutory timeline flowchart.",
+                        url: "/notes/Partnership LDR Charts.pdf",
+                        label: "Open Flowchart",
+                        badge: "NI Act • Flowchart",
+                        badgeColor: "bg-cyan-50 text-cyan-800 border-cyan-200"
+                      },
+                      {
+                        act: "trends",
+                        title: "Smart Revision Question Bank — High-Yield Decision Charts",
+                        desc: "Fact-pattern to statutory provision identifier charts. Step-by-step problem solving framework for ICAI examination questions.",
+                        url: "/notes/smart-revision-question-bank-part-1.pdf",
+                        label: "Open Case Maps",
+                        badge: "Case Maps • Step Marking",
+                        badgeColor: "bg-purple-50 text-purple-800 border-purple-200"
+                      },
+                      {
+                        act: "trends",
+                        title: "September 2026 Examination Trend Blueprint & Marking Scheme",
+                        desc: "In-depth chapter weightage trends, recurring question patterns, and 1.5-day revision timetable allocation for Paper 2.",
+                        url: "/notes/september-2026-paper-analysis.pdf",
+                        label: "Open Exam Blueprint",
+                        badge: "PYQ Trend Blueprint",
+                        badgeColor: "bg-blue-50 text-blue-800 border-blue-200"
+                      },
+                    ]
+                      .filter((item) => ldrFilter === "all" || item.act === ldrFilter)
+                      .map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-3xl border border-[#E7E4E7] shadow-xs p-5 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${item.badgeColor}`}>{item.badge}</div>
+                              <div className="flex items-center gap-1 text-[10px] text-[#77716E] font-medium">
+                                <Lock className="w-3 h-3 text-[#4B8097]" />
+                                <span>DRM Protected</span>
+                              </div>
+                            </div>
+                            <h3 className="text-sm font-serif font-bold text-[#221D1D]">{item.title}</h3>
+                            <p className="text-xs text-[#4D433F] leading-relaxed mt-1">{item.desc}</p>
+                          </div>
+                          <div className="pt-2">
+                            {hasActiveCourseAccess ? (
+                              <button
+                                onClick={() => handleOpenPdf(item.url, item.title, "LDR Quick Deck")}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#BFAFE5] hover:bg-[#A08DC9] text-[#221D1D] text-xs font-bold transition-all cursor-pointer shadow-xs"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>{item.label} (Secure Reader)</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setLockedPrompt({ open: true, courseName: activeCourseName })}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#221D1D] hover:bg-[#383130] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                              >
+                                <Lock className="w-3.5 h-3.5 text-[#AED7E9]" />
+                                <span>Unlock LDR Flowchart</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
             </>
           )}
@@ -2498,20 +2491,23 @@ export default function StudentDashboardPage() {
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (MATCHING SVG SPEC: HOME / COURSES / STREAK / PROFILE) */}
+      {/* MOBILE BOTTOM NAVIGATION BAR (MATCHING SVG SPEC: HOME / COURSES / BOOKMARKS / PROGRESS / PROFILE) */}
       <StudentMobileBottomNav
         activeTab={
           activeTab === "home"
             ? "home"
             : activeTab === "courses" || activeTab === "chapters"
-            ? "courses"
-            : activeTab === "progress" || activeTab === "mastery"
-            ? "progress"
-            : "home"
+              ? "courses"
+              : activeTab === "bookmarks"
+                ? "bookmarks"
+                : activeTab === "progress" || activeTab === "mastery"
+                  ? "progress"
+                  : "home"
         }
         onChangeTab={(tab) => {
           if (tab === "home") setActiveTab("home");
           else if (tab === "courses") setActiveTab("courses");
+          else if (tab === "bookmarks") setActiveTab("bookmarks");
           else if (tab === "progress") setActiveTab("progress");
           else if (tab === "profile") setProfileModalOpen(true);
         }}
@@ -2560,9 +2556,8 @@ export default function StudentDashboardPage() {
               ].map((badge, bIdx) => (
                 <div
                   key={bIdx}
-                  className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
-                    badge.unlocked ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E] opacity-70"
-                  }`}
+                  className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${badge.unlocked ? "bg-[#AED7E9]/40 border-[#AED7E9] text-[#221D1D]" : "bg-[#F7F7F5] border-[#E7E4E7] text-[#77716E] opacity-70"
+                    }`}
                 >
                   <div className="text-2xl">{badge.icon}</div>
                   <div className="min-w-0 flex-1">
