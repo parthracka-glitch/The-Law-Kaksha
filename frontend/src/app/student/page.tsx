@@ -1117,16 +1117,29 @@ export default function StudentDashboardPage() {
 
     syncWeeklyCases();
 
-    // Re-sync when student returns to tab or admin updates case studies
+    // 1. Re-sync when student switches tabs or returns to window
     const handleReSync = () => {
       syncWeeklyCases();
+      try {
+        const local = localStorage.getItem("lawkaksha_admin_cases");
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLiveCases(parsed);
+          }
+        }
+      } catch {}
     };
     window.addEventListener("focus", handleReSync);
     window.addEventListener("storage", handleReSync);
 
+    // 2. Background polling every 30s for zero-latency live synchronization
+    const intervalId = setInterval(syncWeeklyCases, 30000);
+
     return () => {
       window.removeEventListener("focus", handleReSync);
       window.removeEventListener("storage", handleReSync);
+      clearInterval(intervalId);
     };
   }, [API_URL]);
 
