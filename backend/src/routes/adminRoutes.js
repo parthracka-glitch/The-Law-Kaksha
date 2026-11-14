@@ -2284,12 +2284,19 @@ router.delete("/admin/offers/:id", async (req, res) => {
   }
 });
 
-// B8: CASE STUDIES CRUD (§8 B8)
+// B8: MAIN WEBSITE CASE STUDIES CRUD (§8 B8)
 router.get("/admin/case-studies", async (req, res) => {
   try {
+    if (isConnected()) {
+      const CaseStudy = require("../models/CaseStudy");
+      const cases = await CaseStudy.find().sort({ createdAt: -1 }).lean();
+      if (cases && cases.length > 0) {
+        return res.status(200).json({ success: true, count: cases.length, caseStudies: cases, source: "mongodb_atlas" });
+      }
+    }
     const caseStudiesTable = Database.table("case_studies");
     const cases = caseStudiesTable.find();
-    res.status(200).json({ success: true, count: cases.length, caseStudies: cases });
+    res.status(200).json({ success: true, count: cases.length, caseStudies: cases, source: "local_cache" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2297,27 +2304,54 @@ router.get("/admin/case-studies", async (req, res) => {
 
 router.post("/admin/case-studies", async (req, res) => {
   try {
-    const { title, slug, summary, content, cover_image, act_name, marks_weight, show_on_website, show_on_dashboard, is_published } = req.body;
-    if (!title || !content) return res.status(400).json({ success: false, message: "Title and content are required." });
+    const payload = req.body;
+    if (!payload.title) return res.status(400).json({ success: false, message: "Title is required." });
 
-    const generatedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const id = payload.id || `case-${Date.now()}`;
+    const slug =
+      payload.slug ||
+      payload.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "") ||
+      id;
+
+    const caseData = {
+      ...payload,
+      id,
+      slug,
+      subject: payload.subject || payload.act_name || "The Indian Contract Act, 1872",
+      act_name: payload.act_name || payload.subject || "Contract Act",
+      summary: payload.summary || "",
+      content: payload.content || payload.model_answer || payload.facts || "",
+      badge: payload.badge || "ICAI FAVORITE",
+      marks: payload.marks || `${payload.marks_weight || 6} Marks`,
+      marks_weight: Number(payload.marks_weight || 6),
+      precedent: payload.precedent || "",
+      facts: payload.facts || "",
+      issue: payload.issue || "",
+      ruling: payload.ruling || "",
+      model_answer: payload.model_answer || payload.content || "",
+      key_takeaways: Array.isArray(payload.key_takeaways) ? payload.key_takeaways : [],
+      cover_image: payload.cover_image || "/assets/ca-cs-hero-books-sharp.png",
+      show_on_website: payload.show_on_website !== false,
+      show_on_dashboard: Boolean(payload.show_on_dashboard),
+      is_published: payload.is_published !== false,
+    };
+
+    if (isConnected()) {
+      const CaseStudy = require("../models/CaseStudy");
+      const created = await CaseStudy.findOneAndUpdate({ id }, caseData, {
+        upsert: true,
+        returnDocument: "after",
+      });
+      Database.table("case_studies").insert(caseData);
+      return res.status(201).json({ success: true, caseStudy: created, source: "mongodb_atlas" });
+    }
+
     const caseStudiesTable = Database.table("case_studies");
-
-    const newCase = caseStudiesTable.insert({
-      id: `case-${Date.now()}`,
-      title,
-      slug: generatedSlug,
-      summary: summary || "",
-      content,
-      cover_image: cover_image || "/assets/ca-cs-hero-books-sharp.png",
-      act_name: act_name || "Contract Act",
-      marks_weight: Number(marks_weight || 6),
-      show_on_website: show_on_website !== false,
-      show_on_dashboard: show_on_dashboard !== false,
-      is_published: is_published !== false,
-    });
-
-    res.status(201).json({ success: true, caseStudy: newCase });
+    const newCase = caseStudiesTable.insert(caseData);
+    res.status(201).json({ success: true, caseStudy: newCase, source: "local_cache" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2325,10 +2359,22 @@ router.post("/admin/case-studies", async (req, res) => {
 
 router.put("/admin/case-studies/:id", async (req, res) => {
   try {
+    const id = req.params.id;
+    const payload = req.body;
+
+    if (isConnected()) {
+      const CaseStudy = require("../models/CaseStudy");
+      const updated = await CaseStudy.findOneAndUpdate({ id }, payload, {
+        returnDocument: "after",
+      });
+      Database.table("case_studies").update(id, payload);
+      return res.status(200).json({ success: true, caseStudy: updated || payload, source: "mongodb_atlas" });
+    }
+
     const caseStudiesTable = Database.table("case_studies");
-    const updated = caseStudiesTable.update(req.params.id, req.body);
+    const updated = caseStudiesTable.update(id, payload);
     if (!updated) return res.status(404).json({ success: false, message: "Case study not found." });
-    res.status(200).json({ success: true, caseStudy: updated });
+    res.status(200).json({ success: true, caseStudy: updated, source: "local_cache" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2336,8 +2382,15 @@ router.put("/admin/case-studies/:id", async (req, res) => {
 
 router.delete("/admin/case-studies/:id", async (req, res) => {
   try {
+    const id = req.params.id;
+    if (isConnected()) {
+      const CaseStudy = require("../models/CaseStudy");
+      await CaseStudy.findOneAndDelete({ id });
+      Database.table("case_studies").delete(id);
+      return res.status(200).json({ success: true, message: "Case study deleted.", source: "mongodb_atlas" });
+    }
     const caseStudiesTable = Database.table("case_studies");
-    caseStudiesTable.delete(req.params.id);
+    caseStudiesTable.delete(id);
     res.status(200).json({ success: true, message: "Case study deleted." });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

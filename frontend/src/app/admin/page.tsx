@@ -47,6 +47,7 @@ import {
   GraduationCap,
   ArrowUp,
   ArrowDown,
+  Scale,
 } from "lucide-react";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
 import { type PromoPassCard, type PromoBannersSetting, DEFAULT_PROMO_BANNERS } from "@/types/promo";
@@ -60,6 +61,7 @@ import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminExamCountdownAndQOTDTab } from "@/components/admin/AdminExamCountdownAndQOTDTab";
 import { AdminBroadcastTab } from "@/components/admin/AdminBroadcastTab";
 import { AdminCoursesContentTab } from "@/components/admin/AdminCoursesContentTab";
+import { AdminWebsiteCaseStudiesTab } from "@/components/admin/AdminWebsiteCaseStudiesTab";
 
 const SHOW_MCQ_TAB = false;
 
@@ -316,7 +318,8 @@ export default function AdminPortalPage() {
     | "promo_banners"
     | "broadcast"
     | "student_cases"
-    | "website_quiz";
+    | "website_quiz"
+    | "website_case_studies";
   const [activeTab, _setActiveTab] = useState<TabType>("overview");
   const [, startTabTransition] = useTransition();
 
@@ -831,7 +834,14 @@ export default function AdminPortalPage() {
   const STUDENT_DASHBOARD_TABS: TabType[] = ["cases", "student_cases", "promo_banners"];
   const MATERIALS_TABS: TabType[] = ["books_and_notes", "mcq", "exam_countdown_qotd", "qotd"];
   const SALES_TABS: TabType[] = ["orders", "subscriptions", "coupons", "payments", "expenses"];
-  const WEBSITE_TABS: TabType[] = ["broadcast", "carousel", "website_quiz", "settings", "offers"];
+  const WEBSITE_TABS: TabType[] = [
+    "broadcast",
+    "carousel",
+    "website_case_studies",
+    "website_quiz",
+    "settings",
+    "offers",
+  ];
 
   type HubId = "overview" | "students" | "student_dashboard" | "materials" | "sales" | "website";
 
@@ -1273,6 +1283,18 @@ export default function AdminPortalPage() {
               >
                 <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
                 <span>Hero Slider</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("website_case_studies")}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === "website_case_studies"
+                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
+                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5 text-[#005A9C]" />
+                <span>Website Case Studies</span>
               </button>
               <button
                 type="button"
@@ -2858,6 +2880,24 @@ export default function AdminPortalPage() {
                 </button>
               </div>
 
+              {/* SEGREGATION DISTINCTION BANNER */}
+              <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-amber-900 shrink-0">Note:</span>
+                  <span className="text-amber-800">
+                    These are the <strong>Student Dashboard Weekly Cases</strong> (Monster Monday, Midweek Madness, Final Boss Friday). To manage the public jurisprudence library at <code>/case-studies</code>, switch to Main Website Case Studies.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("website_case_studies")}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 font-bold border border-amber-300 transition-all text-[11px] flex items-center gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                >
+                  <Scale className="w-3.5 h-3.5 text-amber-800" />
+                  <span>Manage Main Website Cases ↗</span>
+                </button>
+              </div>
+
               {cases.length === 0 ? (
                 <div className="bg-white rounded-3xl border border-[#CBD5E1] p-12 text-center max-w-md mx-auto space-y-3">
                   <Flame className="w-10 h-10 text-amber-500 mx-auto" />
@@ -3265,6 +3305,11 @@ export default function AdminPortalPage() {
           {/* MODULE B4: CAROUSEL SLIDES EDITOR */}
           {activeTab === "carousel" && (
             <AdminCarouselTab adminFetch={adminFetch} showToast={showToast} />
+          )}
+
+          {/* MAIN WEBSITE CASE STUDIES DIRECTORY (/case-studies) */}
+          {activeTab === "website_case_studies" && (
+            <AdminWebsiteCaseStudiesTab adminFetch={adminFetch} showToast={showToast} />
           )}
 
           {/* WEBSITE QUIZ QUESTIONS (LIVELY UPDATED ON MAIN WEBSITE) */}
