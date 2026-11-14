@@ -922,7 +922,7 @@ export default function AdminPortalPage() {
     },
     website: {
       title: "Website & Brand Customization",
-      subtitle: "Live broadcast announcement bar, homepage hero carousel, and live website quiz questions.",
+      subtitle: "Manage top announcement marquee, homepage hero banners, daily quiz questions, and contact branding.",
     },
   };
 
@@ -1244,7 +1244,7 @@ export default function AdminPortalPage() {
             </div>
           )}
 
-          {/* SUB-NAV PILLS FOR WEBSITE & BRANDING */}
+          {/* SUB-NAV PILLS FOR WEBSITE & BRANDING (CLEAN, PROPERLY SEGREGATED) */}
           {activeHub === "website" && (
             <div className="bg-white rounded-2xl border border-[#CBD5E1] p-1.5 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x">
               <button
@@ -1257,7 +1257,7 @@ export default function AdminPortalPage() {
                 }`}
               >
                 <Megaphone className="w-3.5 h-3.5 text-[#005A9C]" />
-                <span>Live Broadcast Bar</span>
+                <span>Announcement Bar</span>
                 {announcement.enabled && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 )}
@@ -1272,7 +1272,7 @@ export default function AdminPortalPage() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 text-[#005A9C]" />
-                <span>Homepage Hero Carousel</span>
+                <span>Hero Slider</span>
               </button>
               <button
                 type="button"
@@ -1284,19 +1284,7 @@ export default function AdminPortalPage() {
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#005A9C]" />
-                <span>Website Quiz Questions</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("promo_banners")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  activeTab === "promo_banners"
-                    ? "bg-[#EFF6FF] text-[#005A9C] font-bold shadow-xs border border-[#BFDBFE]"
-                    : "text-[#475569] hover:text-[#0A192F] hover:bg-[#F8FAFC]"
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
-                <span>Student Codex Passes</span>
+                <span>Daily Quiz</span>
               </button>
               <button
                 type="button"
@@ -1320,76 +1308,8 @@ export default function AdminPortalPage() {
                 }`}
               >
                 <Settings className="w-3.5 h-3.5 text-[#005A9C]" />
-                <span>Platform Settings</span>
+                <span>Brand & Site Info</span>
               </button>
-            </div>
-          )}
-
-          {/* COMPACT BROADCAST STATUS STRIP (VISIBLE ON OTHER WEBSITE SUB-TABS) */}
-          {activeHub === "website" && activeTab !== "broadcast" && activeTab !== "promo_banners" && (
-            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
-                    announcement.enabled
-                      ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                      : "bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B]"
-                  }`}
-                >
-                  <Megaphone className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  <span className="font-bold text-[#0A192F] shrink-0">Live Broadcast Bar:</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                      announcement.enabled
-                        ? "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]"
-                        : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
-                    }`}
-                  >
-                    {announcement.enabled ? "● Live / Active" : "○ Hidden"}
-                  </span>
-                  <span className="text-[#334155] truncate max-w-sm sm:max-w-md font-medium">
-                    {announcement.enabled
-                      ? (announcement.text || "Announcement active")
-                      : "No announcement currently showing on the website"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const updated = { ...announcement, enabled: !announcement.enabled };
-                    setAnnouncement(updated);
-                    localStorage.setItem("lawkaksha_admin_announcement", JSON.stringify(updated));
-                    window.dispatchEvent(
-                      new CustomEvent("lawkaksha_announcement_updated", { detail: updated })
-                    );
-                    try {
-                      await adminFetch(`/api/admin/announcement`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ announcement: updated }),
-                      });
-                      showToast(updated.enabled ? "Live broadcast turned ON!" : "Live broadcast turned OFF!");
-                    } catch {
-                      showToast("Saved locally");
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#0A192F] cursor-pointer transition-colors"
-                >
-                  {announcement.enabled ? "Quick Turn Off" : "Quick Turn On"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("broadcast")}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#005A9C] border border-[#BFDBFE] flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
-                >
-                  <span>Edit Broadcast</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           )}
 
