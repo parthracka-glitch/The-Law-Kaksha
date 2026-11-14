@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   Flame,
   Scale,
-  Sparkles,
   Zap,
   CheckCircle2,
   Lock,
-  Pause,
-  Play,
   ArrowRight,
   ChevronDown,
   ChevronUp,
@@ -86,19 +83,10 @@ export function StudentCaseStudyHeroCarousel({
 
   // Active slide index
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Auto-scroll pause state (pause on hover/interaction)
-  const [isPaused, setIsPaused] = useState(false);
   // Track open answers per case ID
   const [openAnswers, setOpenAnswers] = useState<Record<string, boolean>>({});
   // Track practiced cases
   const [practicedCases, setPracticedCases] = useState<string[]>([]);
-  // Progress percentage (0 - 100) for current slide
-  const [slideProgress, setSlideProgress] = useState(0);
-
-  // Time per slide in ms
-  const SLIDE_DURATION = 6000;
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clean greeting
   const greeting = useMemo(() => {
@@ -120,47 +108,18 @@ export function StudentCaseStudyHeroCarousel({
   const isAnswerOpen = openAnswers[caseId] !== false; // open by default
   const isPracticed = practicedCases.includes(caseId);
 
-  // Navigation handlers
+  // Navigation handlers (Manual forward / back)
   const handleNext = useCallback(() => {
-    setSlideProgress(0);
     setCurrentIndex((prev) => (prev + 1) % totalCases);
   }, [totalCases]);
 
   const handlePrev = useCallback(() => {
-    setSlideProgress(0);
     setCurrentIndex((prev) => (prev - 1 + totalCases) % totalCases);
   }, [totalCases]);
 
   const handleGoTo = useCallback((index: number) => {
-    setSlideProgress(0);
     setCurrentIndex(index);
   }, []);
-
-  // Auto-scroll loop with progress timer
-  useEffect(() => {
-    if (totalCases <= 1 || isPaused) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      return;
-    }
-
-    const stepMs = 50;
-    const progressStep = (stepMs / SLIDE_DURATION) * 100;
-
-    progressIntervalRef.current = setInterval(() => {
-      setSlideProgress((prev) => {
-        if (prev >= 100) {
-          handleNext();
-          return 0;
-        }
-        return prev + progressStep;
-      });
-    }, stepMs);
-
-    return () => {
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    };
-  }, [isPaused, totalCases, handleNext, currentIndex]);
 
   return (
     <div className="space-y-2.5">
@@ -190,26 +149,10 @@ export function StudentCaseStudyHeroCarousel({
         )}
       </div>
 
-      {/* Main Hero Card Matching Image 1 Design */}
-      <div
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-        className="relative bg-white rounded-3xl sm:rounded-[32px] border-2 border-[#BFDBFE] p-5 sm:p-7 md:p-8 shadow-[0_10px_35px_rgba(59,130,246,0.08)] flex flex-col justify-between gap-4 sm:gap-5 transition-all duration-300 overflow-hidden group/hero"
-      >
-        {/* Subtle top progress bar indicating auto-advance countdown */}
-        {totalCases > 1 && (
-          <div className="absolute top-0 left-0 right-0 h-1 bg-slate-100 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#005A9C] via-[#3558F0] to-[#0284C7] transition-all duration-75"
-              style={{ width: `${slideProgress}%` }}
-            />
-          </div>
-        )}
-
+      {/* Main Hero Card Matching Image 1 Design (Static, Manual Navigation) */}
+      <div className="relative bg-white rounded-3xl sm:rounded-[32px] border-2 border-[#BFDBFE] p-5 sm:p-7 md:p-8 shadow-[0_10px_35px_rgba(59,130,246,0.08)] flex flex-col justify-between gap-4 sm:gap-5 transition-all duration-300 overflow-hidden group/hero">
         {/* ========================================================================= */}
-        {/* 1. TOP PILLS: CASE # OF THE WEEK + DIFFICULTY BADGE                       */}
+        {/* 1. TOP PILLS: CASE # OF THE WEEK + DIFFICULTY BADGE + NEXT BUTTON         */}
         {/* ========================================================================= */}
         <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
           {/* Case # Pill (Matching Image 1) */}
@@ -217,34 +160,27 @@ export function StudentCaseStudyHeroCarousel({
             <span role="img" aria-label="star" className="text-amber-500">
               ⭐
             </span>
-            <span>CASE #{currentIndex + 1} OF THE WEEK</span>
+            <span>
+              CASE #{currentIndex + 1} OF {totalCases}
+            </span>
           </span>
 
-          {/* Difficulty Pill (Matching Image 1) */}
+          {/* Difficulty Pill & Forward Button */}
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] shadow-2xs">
               {currentCase.badge || "High Difficulty"}
             </span>
 
-            {/* Pause/Play indicator pill */}
+            {/* Top Quick Next / Forward Button */}
             {totalCases > 1 && (
               <button
                 type="button"
-                onClick={() => setIsPaused((prev) => !prev)}
-                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                title={isPaused ? "Click to resume auto-scroll" : "Click to pause auto-scroll"}
+                onClick={handleNext}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-[#005A9C] bg-[#EFF6FF] hover:bg-[#005A9C] hover:text-white border border-[#BFDBFE] transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="View Next Case Study"
               >
-                {isPaused ? (
-                  <>
-                    <Play className="w-2.5 h-2.5 text-emerald-600 fill-emerald-600" />
-                    <span>Paused</span>
-                  </>
-                ) : (
-                  <>
-                    <Pause className="w-2.5 h-2.5 text-slate-500" />
-                    <span>Auto-scrolling</span>
-                  </>
-                )}
+                <span>Next Case</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -351,56 +287,60 @@ export function StudentCaseStudyHeroCarousel({
         </div>
 
         {/* ========================================================================= */}
-        {/* 6. BOTTOM CAROUSEL CONTROLS & STUDENT PRACTICE ACTION                    */}
+        {/* 6. BOTTOM NAVIGATION (PREVIOUS / FORWARD) & PRACTICE BUTTON              */}
         {/* ========================================================================= */}
         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Navigation Controls: Arrows + Dots */}
-          <div className="flex items-center gap-2.5 self-center sm:self-auto">
+          {/* Navigation Controls: Prev, Dots, Next/Forward Button */}
+          <div className="flex items-center gap-2 self-center sm:self-auto flex-wrap justify-center">
             {totalCases > 1 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                {/* Previous Button */}
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs hover:border-[#BFDBFE] transition-all cursor-pointer active:scale-95"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold inline-flex items-center gap-1 shadow-2xs hover:border-[#BFDBFE] transition-all cursor-pointer active:scale-95"
                   aria-label="Previous Case"
                 >
                   <ChevronLeft className="w-4 h-4" />
+                  <span>Prev</span>
                 </button>
+
+                {/* Slide Indicator Dots */}
+                <div className="flex items-center gap-1.5 px-1">
+                  {activeCases.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleGoTo(idx)}
+                      className="p-1 cursor-pointer flex items-center justify-center"
+                      aria-label={`Go to case ${idx + 1}`}
+                      title={`Go to Case #${idx + 1}`}
+                    >
+                      <span
+                        className={`h-2 rounded-full transition-all duration-300 block ${
+                          currentIndex === idx
+                            ? "w-6 bg-[#005A9C]"
+                            : "w-2 bg-slate-300 hover:bg-slate-400"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Forward / Next Button */}
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs hover:border-[#BFDBFE] transition-all cursor-pointer active:scale-95"
+                  className="px-3.5 py-1.5 rounded-xl border border-[#005A9C] bg-[#EBF5FF] hover:bg-[#005A9C] text-[#005A9C] hover:text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
                   aria-label="Next Case"
                 >
+                  <span>Next Case</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
 
-            {/* Slide Indicator Dots */}
-            {totalCases > 1 && (
-              <div className="flex items-center gap-1.5 px-2">
-                {activeCases.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleGoTo(idx)}
-                    className="p-1 cursor-pointer flex items-center justify-center"
-                    aria-label={`Go to case ${idx + 1}`}
-                  >
-                    <span
-                      className={`h-2 rounded-full transition-all duration-300 block ${
-                        currentIndex === idx
-                          ? "w-6 bg-[#005A9C]"
-                          : "w-2 bg-slate-300 hover:bg-slate-400"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <span className="text-[11px] font-semibold text-slate-500">
+            <span className="text-[11px] font-semibold text-slate-500 pl-1">
               Case {currentIndex + 1} of {totalCases}
             </span>
           </div>
