@@ -388,6 +388,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${inter.variable} ${playfair.variable} font-sans scroll-smooth`}>
       <head>
+        {/* Google Tag (gtag.js) / Google Tag Manager */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-5PN3M95F"
+        />
+        <script
+          id="google-tag"
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());`,
+          }}
+        />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://checkout.razorpay.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
         <link rel="preconnect" href="https://api.razorpay.com" crossOrigin="anonymous" />
@@ -398,6 +413,15 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white text-[#0A192F] antialiased overflow-x-hidden selection:bg-[#DBEAFE] selection:text-[#0A192F]">
+        {/* Google Tag Manager (noscript fallback) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-5PN3M95F"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
         <Providers>{children}</Providers>
