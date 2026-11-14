@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   BookOpen,
+  Maximize2,
+  X,
 } from "lucide-react";
 import type { WeeklyCaseHomeItem } from "./StudentDashboardHome";
 
@@ -83,10 +85,12 @@ export function StudentCaseStudyHeroCarousel({
 
   // Active slide index
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Track open answers per case ID
+  // Track open answers per case ID (collapsed by default to prevent long dashboard scrolling)
   const [openAnswers, setOpenAnswers] = useState<Record<string, boolean>>({});
   // Track practiced cases
   const [practicedCases, setPracticedCases] = useState<string[]>([]);
+  // Full-screen solution pop-up modal state
+  const [solutionModalOpen, setSolutionModalOpen] = useState(false);
 
   // Clean greeting
   const greeting = useMemo(() => {
@@ -105,7 +109,7 @@ export function StudentCaseStudyHeroCarousel({
   const totalCases = activeCases.length;
   const currentCase = activeCases[currentIndex] || activeCases[0];
   const caseId = currentCase.id || `case-${currentIndex}`;
-  const isAnswerOpen = openAnswers[caseId] !== false; // open by default
+  const isAnswerOpen = Boolean(openAnswers[caseId]); // Collapsed by default to keep dashboard neat
   const isPracticed = practicedCases.includes(caseId);
 
   // Navigation handlers (Manual forward / back)
@@ -248,23 +252,43 @@ export function StudentCaseStudyHeroCarousel({
 
           {hasAccess ? (
             isAnswerOpen && (
-              <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border border-[#BBF7D0] text-xs sm:text-[13px] text-[#14532D] space-y-3 leading-relaxed shadow-xs animate-in fade-in duration-200">
-                {currentCase.modelAnswer?.trim() ? (
-                  <p className="whitespace-pre-line leading-relaxed text-[#14532D] font-normal break-words [overflow-wrap:anywhere]">
-                    {currentCase.modelAnswer}
-                  </p>
-                ) : (
-                  <p className="text-xs text-[#15803D] italic">
-                    Faculty model answer is currently being prepared for this weekly case study.
-                  </p>
-                )}
+              <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border border-[#BBF7D0] text-xs sm:text-[13px] text-[#14532D] space-y-2.5 leading-relaxed shadow-xs animate-in fade-in duration-200">
+                {/* Solution Subheader: Label + Pop-up Modal Reader Trigger */}
+                <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[#BBF7D0]/70">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                    <Scale className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>ICAI / ICSI 4-Step Structure</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSolutionModalOpen(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-white/90 hover:bg-white px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs transition-all cursor-pointer active:scale-95 touch-manipulation"
+                    title="View entire answer in full-screen reader dialog"
+                  >
+                    <Maximize2 className="w-3 h-3 text-emerald-700" />
+                    <span>Full View</span>
+                  </button>
+                </div>
 
-                {currentCase.precedent && (
-                  <div className="pt-2.5 border-t border-[#BBF7D0] flex flex-col xs:flex-row xs:items-start gap-1 xs:gap-2 text-xs font-medium text-[#166534] bg-white/75 p-2.5 sm:p-3 rounded-xl border border-[#86EFAC]/40">
-                    <span className="font-bold shrink-0 text-[#14532D]">⚖️ Landmark Precedent:</span>
-                    <span className="italic break-words [overflow-wrap:anywhere]">{currentCase.precedent}</span>
-                  </div>
-                )}
+                {/* Bounded Scrollable Container: Prevents tall cards & endless page scrolling */}
+                <div className="max-h-44 sm:max-h-56 overflow-y-auto pr-1.5 space-y-2.5 [scrollbar-width:thin] [scrollbar-color:#86EFAC_transparent]">
+                  {currentCase.modelAnswer?.trim() ? (
+                    <p className="whitespace-pre-line leading-relaxed text-[#14532D] font-normal break-words [overflow-wrap:anywhere]">
+                      {currentCase.modelAnswer}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[#15803D] italic">
+                      Faculty model answer is currently being prepared for this weekly case study.
+                    </p>
+                  )}
+
+                  {currentCase.precedent && (
+                    <div className="pt-2 border-t border-[#BBF7D0] flex flex-col xs:flex-row xs:items-start gap-1 xs:gap-2 text-xs font-medium text-[#166534] bg-white/85 p-2 sm:p-2.5 rounded-xl border border-[#86EFAC]/50">
+                      <span className="font-bold shrink-0 text-[#14532D]">⚖️ Landmark Precedent:</span>
+                      <span className="italic break-words [overflow-wrap:anywhere]">{currentCase.precedent}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )
           ) : (
@@ -388,6 +412,98 @@ export function StudentCaseStudyHeroCarousel({
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 7. FULL 4-STEP SOLUTION POP-UP READER DIALOG (PREVENTS LONG PAGE SCROLL)   */}
+      {/* ========================================================================= */}
+      {solutionModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setSolutionModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-4 xs:px-5 py-3.5 bg-gradient-to-r from-[#0F2557] to-[#1E3A8A] text-white flex items-center justify-between gap-3 shrink-0">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-400 text-emerald-950">
+                    Case #{currentIndex + 1}
+                  </span>
+                  <span className="text-xs font-semibold text-sky-200 truncate">
+                    {currentCase.subject}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white truncate mt-1">
+                  {currentCase.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSolutionModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shrink-0"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Modal Content */}
+            <div className="p-4 xs:p-5 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-800 leading-relaxed [scrollbar-width:thin]">
+              {/* Factual Scenario */}
+              <div className="p-3.5 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+                  <BookOpen className="w-3.5 h-3.5 text-[#005A9C]" />
+                  <span>Case Scenario</span>
+                </span>
+                <p className="italic text-[#334155] leading-relaxed break-words [overflow-wrap:anywhere]">
+                  &ldquo;{currentCase.scenario}&rdquo;
+                </p>
+              </div>
+
+              {/* Model 4-Step Solution */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] border border-[#BBF7D0] text-[#14532D] space-y-3">
+                <div className="flex items-center justify-between border-b border-[#BBF7D0] pb-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#14532D] flex items-center gap-1.5">
+                    <Scale className="w-4 h-4 text-[#15803D]" />
+                    <span>Model Answer (4-Step Statutory Structure)</span>
+                  </span>
+                  <span className="text-xs font-mono font-bold text-[#15803D]">
+                    {currentCase.marks || "6/6 Marks"}
+                  </span>
+                </div>
+
+                <p className="whitespace-pre-line leading-relaxed text-[#14532D] font-normal break-words [overflow-wrap:anywhere]">
+                  {currentCase.modelAnswer}
+                </p>
+
+                {currentCase.precedent && (
+                  <div className="pt-2.5 border-t border-[#BBF7D0] flex flex-col xs:flex-row xs:items-start gap-1 xs:gap-2 text-xs font-medium text-[#166534] bg-white/80 p-3 rounded-xl border border-[#86EFAC]/50">
+                    <span className="font-bold shrink-0 text-[#14532D]">⚖️ Landmark Precedent:</span>
+                    <span className="italic break-words [overflow-wrap:anywhere]">{currentCase.precedent}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 xs:px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+              <span className="text-[11px] text-slate-500 font-medium">
+                Case {currentIndex + 1} of {totalCases}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSolutionModalOpen(false)}
+                className="px-4 py-1.5 rounded-xl bg-[#005A9C] hover:bg-[#004F8A] text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
