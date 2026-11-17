@@ -418,7 +418,27 @@ export function SecurePdfReader({
     setCurrentPage(1);
     setPdfOutline([]);
 
-    const filename = url.split("?")[0].split("/").pop() || "study-codex.pdf";
+    let filename = url.split("?")[0].split("/").pop() || "study-codex.pdf";
+    if (filename === "file" || url.startsWith("/api/content/")) {
+      const cleanTitle = (title || "").toLowerCase();
+      if (cleanTitle.includes("comp") || cleanTitle.includes("companies")) {
+        filename = "the-companies-act-2013.pdf";
+      } else if (cleanTitle.includes("contract")) {
+        filename = "the-indian-contract-act-1872.pdf";
+      } else if (cleanTitle.includes("partnership")) {
+        filename = "the-indian-partnership-act-1932.pdf";
+      } else if (cleanTitle.includes("sale") || cleanTitle.includes("soga")) {
+        filename = "the-sale-of-goods-act-1930.pdf";
+      } else if (cleanTitle.includes("llp") || cleanTitle.includes("limited liability")) {
+        filename = "the-limited-liability-partnership-act-2008.pdf";
+      } else if (cleanTitle.includes("cseet") || cleanTitle.includes("management")) {
+        filename = "cseet-business-management.pdf";
+      } else if (cleanTitle.includes("question bank") || cleanTitle.includes("qbank")) {
+        filename = "smart-revision-question-bank-part-1.pdf";
+      } else {
+        filename = "the-companies-act-2013.pdf";
+      }
+    }
 
     try {
       const pdfjsLib = await import("pdfjs-dist");
@@ -450,7 +470,7 @@ export function SecurePdfReader({
       let pdfEndpoint = isAbsoluteUrl
         ? url
         : isBackendContent
-        ? `${getApiBaseUrl()}${url}`
+        ? `${getApiBaseUrl()}${url}${url.includes("?") ? (isSample && !url.includes("sample=") ? "&sample=true" : "") : (isSample ? "?sample=true" : "")}`
         : token
         ? `/api/pdf/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}${sampleQuery}`
         : `/api/pdf/${encodeURIComponent(filename)}${sampleQuery}`;

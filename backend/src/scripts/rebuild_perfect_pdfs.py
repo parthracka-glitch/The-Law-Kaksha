@@ -152,7 +152,7 @@ def main():
     # Generate canonical alias files for URL/slug fallback compatibility
     aliases = {
         "the-indian-contract-act-1872.pdf": "Unit 1 - Nature of Contracts.pdf",
-        "the-companies-act-2013.pdf": "Unit 1 - Nature of Contracts.pdf",
+        "the-companies-act-2013.pdf": "Companies Act 2013 - Part 1 Notes-compressed.pdf",
         "sale-of-goods-unit-1.pdf": "SOGA Unit 1 .pdf",
         "sale-of-goods-unit-2.pdf": "SOGA Unit 2.pdf",
         "sale-of-goods-unit-3.pdf": "SOGA Unit 3.pdf",

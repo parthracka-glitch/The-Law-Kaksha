@@ -186,7 +186,11 @@ export async function GET(
       "unit-2-relations-of-partners.pdf": "Unit 2 RELATIONS OF PARTNERS.pdf",
       "unit-3-registration-and-dissolution-of-firm.pdf": "Unit 3 REGISTRATION AND DISSOLUTION OF FIRM.pdf",
       "the-limited-liability-partnership-act-2008.pdf": "THE LIMITED LIABILITY PARTNERSHIP ACT, 2008.pdf",
-      "the-companies-act-2013.pdf": "Unit 1 - Nature of Contracts.pdf",
+      "the-companies-act-2013.pdf": "the-companies-act-2013.pdf",
+      "companies-act-part-1.pdf": "the-companies-act-2013.pdf",
+      "companies-act-2013-part-1-notes-compressed.pdf": "Companies Act 2013 - Part 1 Notes-compressed.pdf",
+      "companies-act-part-2.pdf": "Companies Act 2013 - Part 2 Notes.pdf",
+      "companies-act-2013-part-2-notes.pdf": "Companies Act 2013 - Part 2 Notes.pdf",
       "cseet-business-management.pdf": "Lesson 7 Introduction to Management (Comprehensive Notes).pdf",
       "cseet-management-full.pdf": "Lesson 7 Introduction to Management (Comprehensive Notes).pdf",
       "cseet-business-law-full.pdf": "Lesson 10 Management Knowledge for CS.pdf",
@@ -236,7 +240,7 @@ export async function GET(
     if (!filePath && isSampleFile) {
       const subjectFallbacks: string[] = [];
       if (lowerName.includes("contract")) {
-        subjectFallbacks.push("Unit 1 - Nature of Contracts.pdf", "Question Bank Part 1- Sample Copy.pdf");
+        subjectFallbacks.push("Unit 1 - Nature of Contracts.pdf");
       } else if (lowerName.includes("soga") || lowerName.includes("sale-of-goods") || lowerName.includes("sale of goods")) {
         subjectFallbacks.push("SOGA Unit 1 .pdf", "sale-of-goods-unit-1.pdf");
       } else if (lowerName.includes("partnership")) {
@@ -245,8 +249,10 @@ export async function GET(
         subjectFallbacks.push("THE LIMITED LIABILITY PARTNERSHIP ACT, 2008.pdf", "LDR_Flowchart_Book.pdf");
       } else if (lowerName.includes("cseet") || lowerName.includes("management")) {
         subjectFallbacks.push("Lesson 7 Introduction to Management (Comprehensive Notes).pdf");
+      } else if (lowerName.includes("comp") || lowerName.includes("company") || lowerName.includes("companies")) {
+        subjectFallbacks.push("the-companies-act-2013.pdf", "Companies Act 2013 - Part 1 Notes-compressed.pdf");
       } else {
-        subjectFallbacks.push("Unit 1 - Nature of Contracts.pdf", "Question Bank Part 1- Sample Copy.pdf");
+        subjectFallbacks.push("the-companies-act-2013.pdf", "Unit 1 - Nature of Contracts.pdf");
       }
 
       for (const fallback of subjectFallbacks) {
