@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useTransition, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -213,6 +213,19 @@ export default function StudentDashboardPage() {
   }, []);
   const [, setSelectedChapterId] = useState<string>("ca-ch3");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const [selectedActFilter, setSelectedActFilter] = useState<string>("all");
   const [ldrFilter, setLdrFilter] = useState<string>("all");
 
@@ -1572,16 +1585,22 @@ export default function StudentDashboardPage() {
                       </p>
                     </div>
 
-                    {/* Instant Act & Topic Search */}
+                    {/* Instant Act & Topic Search with Ctrl+K */}
                     <div className="relative w-full sm:w-80">
                       <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        ref={searchInputRef}
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search acts, sections, topics..."
-                        className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-[#E7E4E7] text-xs text-[#1F2937] focus:outline-none focus:border-[#7E22CE] shadow-2xs transition-all"
+                        placeholder="Search acts, sections, topics... (Ctrl+K)"
+                        className="w-full pl-9 pr-14 py-2 rounded-xl bg-white border border-[#E7E4E7] text-xs text-[#1F2937] focus:outline-none focus:border-[#7E22CE] shadow-2xs transition-all"
                       />
+                      {!searchQuery && (
+                        <kbd className="hidden sm:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] bg-slate-100 border border-slate-300 rounded px-1.5 py-0.5 text-slate-500 font-mono pointer-events-none">
+                          Ctrl K
+                        </kbd>
+                      )}
                       {searchQuery && (
                         <button
                           onClick={() => setSearchQuery("")}

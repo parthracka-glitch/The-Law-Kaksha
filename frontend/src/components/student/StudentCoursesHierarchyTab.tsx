@@ -129,6 +129,19 @@ export function StudentCoursesHierarchyTab({
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<MaterialCategory>("all");
   const [actDetailFilter, setActDetailFilter] = useState<"all" | "ldr" | "notes" | "practice" | "infographic">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const hierarchySearchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        hierarchySearchRef.current?.focus();
+        hierarchySearchRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [, setError] = useState<string | null>(null);
@@ -592,21 +605,27 @@ export function StudentCoursesHierarchyTab({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* SEARCH BAR (EXACT MATCH TO SCREENSHOT) */}
-          <div className="relative w-full sm:w-72">
+          {/* SEARCH BAR WITH CTRL+K */}
+          <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
+              ref={hierarchySearchRef}
               type="text"
-              placeholder="Search your courses, acts, flowcharts..."
+              placeholder="Search courses, acts, flowcharts... (Ctrl+K)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 rounded-full border border-[#E2E8F0] bg-white text-xs sm:text-sm font-medium text-[#0A192F] placeholder-[#94A3B8] shadow-2xs focus:outline-hidden focus:ring-2 focus:ring-[#005A9C]/20 focus:border-[#005A9C] transition-all"
+              className="w-full pl-10 pr-14 py-2.5 rounded-full border border-[#E2E8F0] bg-white text-xs sm:text-sm font-medium text-[#0A192F] placeholder-[#94A3B8] shadow-2xs focus:outline-hidden focus:ring-2 focus:ring-[#005A9C]/20 focus:border-[#005A9C] transition-all"
             />
+            {!searchQuery && (
+              <kbd className="hidden sm:inline-block absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] bg-slate-100 border border-slate-300 rounded px-1.5 py-0.5 text-slate-500 font-mono pointer-events-none">
+                Ctrl K
+              </kbd>
+            )}
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0A192F] p-0.5"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0A192F] p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
