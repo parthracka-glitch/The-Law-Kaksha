@@ -151,12 +151,12 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
     const safeTitle = (item.title || "study-codex").replace(/[^a-zA-Z0-9_-]/g, "_");
     res.setHeader("Content-Disposition", `inline; filename="lk-${safeTitle}.pdf"`);
 
-    // 5. Cloudinary Streaming (if public ID exists and is a valid Cloudinary asset)
+    // 5. Cloudinary Streaming (if public ID exists and is not an internal GridFS/local path)
     const targetPublicId = isSampleRequest && item.samplePublicId ? item.samplePublicId : item.cloudinaryPublicId;
     const isCloudinaryPublicId =
-      targetPublicId &&
+      Boolean(targetPublicId) &&
       !String(targetPublicId).startsWith("gridfs-") &&
-      !String(targetPublicId).toLowerCase().endsWith(".pdf");
+      !String(targetPublicId).startsWith("/api/");
 
     if (isCloudinaryPublicId && isCloudinaryConfigured()) {
       try {
