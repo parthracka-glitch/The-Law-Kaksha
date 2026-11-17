@@ -1,6 +1,9 @@
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 const path = require("path");
+const mongoose = require("mongoose");
+const { Readable } = require("stream");
+const { isConnected } = require("../db/mongo");
 
 // Configure Cloudinary from environment variables
 cloudinary.config({
@@ -72,25 +75,101 @@ doc.save(r'${outPath.replace(/\\/g, "/")}', garbage=4, deflate=True)
 }
 
 /**
- * Upload a file buffer or local file path to Cloudinary (or local fallback)
+ * Helper to get MongoDB Atlas GridFSBucket for 'codex_files'
+ */
+function getGridFSBucket() {
+  if (!isConnected() || !mongoose.connection.db) {
+    return null;
+  }
+  return new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+    bucketName: "codex_files",
+  });
+}
+
+/**
+ * Upload a file buffer into MongoDB Atlas GridFS for permanent cloud persistence
+ * @param {Buffer} buffer - File buffer
+ * @param {string} filename - Unique filename
+ * @param {Object} metadata - Optional metadata { publicId, originalName, contentType }
+ */
+async function uploadToGridFS(buffer, filename, metadata = {}) {
+  const bucket = getGridFSBucket();
+  if (!bucket) return null;
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = bucket.openUploadStream(filename, {
+      metadata: {
+        ...metadata,
+        uploadedAt: new Date(),
+      },
+    });
+
+    const readable = new Readable();
+    readable.push(buffer);
+    readable.push(null);
+
+    readable
+      .pipe(uploadStream)
+      .on("error", (err) => {
+        console.error("[GridFS] Upload failed:", err.message);
+        reject(err);
+      })
+      .on("finish", () => {
+        console.log(`[GridFS] Persisted ${filename} (${buffer.length} bytes) to MongoDB Atlas. ID: ${uploadStream.id}`);
+        resolve({
+          gridfsId: uploadStream.id.toString(),
+          filename,
+          length: buffer.length,
+        });
+      });
+  });
+}
+
+/**
+ * Upload a file buffer or local file path to Cloudinary with MongoDB Atlas GridFS permanent cloud persistence
  * @param {Buffer|string} fileInput - Buffer or file path
- * @param {Object} options - { folder, resource_type, public_id, extension }
+ * @param {Object} options - { folder, resource_type, public_id, extension, originalName, fileName }
  */
 const uploadToStorage = async (fileInput, options = {}) => {
   const folder = options.folder || "thelawkaksha/resources";
   const resource_type = options.resource_type || "auto";
 
-  let readyBuffer = fileInput;
-  if (Buffer.isBuffer(fileInput) && fileInput.length > 9.5 * 1024 * 1024 && (resource_type === "raw" || options.extension === ".pdf")) {
-    console.log(`[Storage] Optimizing large PDF (${(fileInput.length / (1024*1024)).toFixed(2)} MB) before Cloudinary upload...`);
-    readyBuffer = optimizePdfBuffer(fileInput);
+  const rawBuffer = Buffer.isBuffer(fileInput)
+    ? fileInput
+    : typeof fileInput === "string" && fs.existsSync(fileInput)
+    ? fs.readFileSync(fileInput)
+    : null;
+
+  let readyBuffer = rawBuffer || fileInput;
+
+  // 1. Permanent MongoDB Atlas Cloud Storage (GridFS)
+  let gridfsResult = null;
+  if (rawBuffer && isConnected()) {
+    try {
+      const gridfsFilename = `${options.public_id || "codex"}-${Date.now()}${options.extension || ".pdf"}`;
+      gridfsResult = await uploadToGridFS(rawBuffer, gridfsFilename, {
+        publicId: options.public_id || "",
+        originalName: options.originalName || options.fileName || "",
+        contentType: options.extension === ".pdf" ? "application/pdf" : "application/octet-stream",
+      });
+    } catch (gridfsErr) {
+      console.warn("[Storage] Atlas GridFS backup failed:", gridfsErr.message);
+    }
+  }
+
+  // 2. Optional compression if exceeding Cloudinary's 9.5MB threshold
+  if (Buffer.isBuffer(readyBuffer) && readyBuffer.length > 9.5 * 1024 * 1024 && (resource_type === "raw" || options.extension === ".pdf")) {
+    console.log(`[Storage] Optimizing large PDF (${(readyBuffer.length / (1024*1024)).toFixed(2)} MB) for Cloudinary...`);
+    readyBuffer = optimizePdfBuffer(readyBuffer);
     console.log(`[Storage] PDF size after optimization: ${(readyBuffer.length / (1024*1024)).toFixed(2)} MB`);
   }
 
+  // 3. Fast CDN Upload via Cloudinary
+  let cloudinaryResult = null;
   if (isCloudinaryConfigured()) {
     try {
-      if (Buffer.isBuffer(readyBuffer)) {
-        return await new Promise((resolve, reject) => {
+      if (Buffer.isBuffer(readyBuffer) && readyBuffer.length <= 10 * 1024 * 1024) {
+        cloudinaryResult = await new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               folder,
@@ -115,7 +194,7 @@ const uploadToStorage = async (fileInput, options = {}) => {
           resource_type,
           public_id: options.public_id,
         });
-        return {
+        cloudinaryResult = {
           url: result.secure_url,
           publicId: result.public_id,
           format: result.format,
@@ -123,11 +202,35 @@ const uploadToStorage = async (fileInput, options = {}) => {
         };
       }
     } catch (err) {
-      console.error("[Storage] Cloudinary upload failed, falling back to local storage:", err.message);
+      console.warn("[Storage] Cloudinary upload bypassed/failed (file available via GridFS):", err.message);
     }
   }
 
-  // Fallback to local uploads directory
+  // If Cloudinary succeeded
+  if (cloudinaryResult) {
+    return {
+      url: cloudinaryResult.url,
+      publicId: cloudinaryResult.publicId,
+      gridfsId: gridfsResult ? gridfsResult.gridfsId : null,
+      format: cloudinaryResult.format,
+      bytes: cloudinaryResult.bytes,
+      isLocal: false,
+    };
+  }
+
+  // If GridFS succeeded (permanent cloud storage)
+  if (gridfsResult) {
+    return {
+      url: `/api/content/gridfs/${gridfsResult.gridfsId}`,
+      publicId: gridfsResult.filename,
+      gridfsId: gridfsResult.gridfsId,
+      format: options.extension ? options.extension.replace(".", "") : "pdf",
+      bytes: rawBuffer ? rawBuffer.length : 0,
+      isLocal: false,
+    };
+  }
+
+  // Fallback to local uploads directory (only if Atlas is disconnected or running offline)
   const uploadsDir = path.join(__dirname, "../../uploads");
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -142,10 +245,10 @@ const uploadToStorage = async (fileInput, options = {}) => {
     fs.copyFileSync(fileInput, targetPath);
   }
 
-
   return {
     url: `/api/pdf/${filename}`,
     publicId: filename,
+    gridfsId: null,
     localPath: targetPath,
     isLocal: true,
   };
@@ -154,5 +257,7 @@ const uploadToStorage = async (fileInput, options = {}) => {
 module.exports = {
   cloudinary,
   isCloudinaryConfigured,
+  getGridFSBucket,
+  uploadToGridFS,
   uploadToStorage,
 };

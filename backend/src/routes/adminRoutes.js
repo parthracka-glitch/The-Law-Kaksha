@@ -1012,6 +1012,8 @@ router.post(
         resource_type,
         public_id: `${path.parse(originalName).name.replace(/[^a-zA-Z0-9_-]/g, "_")}-${Date.now()}`,
         extension,
+        originalName,
+        fileName: originalName,
       });
 
       res.status(200).json({
@@ -1019,6 +1021,9 @@ router.post(
         message: "File uploaded successfully.",
         url: uploadResult.url,
         publicId: uploadResult.publicId,
+        gridfsId: uploadResult.gridfsId || null,
+        fileName: originalName,
+        fileSize: req.file.size,
         isLocal: uploadResult.isLocal || false,
       });
     } catch (err) {
@@ -2836,6 +2841,9 @@ router.post("/admin/content-items", async (req, res) => {
       fileName,
       fileSize,
       cloudinaryPublicId,
+      gridfsId,
+      actId: reqActId,
+      courseId: reqCourseId,
     } = req.body;
 
     if (!unitId || !title) {
@@ -2852,10 +2860,75 @@ router.post("/admin/content-items", async (req, res) => {
       }
     }
 
+    let resolvedActId = reqActId || "";
+    let resolvedCourseId = reqCourseId || "";
+
+    // Resolve Unit & Act hierarchy automatically
+    let unit = null;
+    if (isConnected()) {
+      unit = await Unit.findOne({ id: unitId }).lean();
+    } else {
+      unit = Database.table("units").findOne((u) => u.id === unitId);
+    }
+
+    if (unit) {
+      resolvedActId = unit.actId || unit.act_id || resolvedActId;
+      let act = null;
+      if (isConnected()) {
+        act = await Act.findOne({ id: resolvedActId }).lean();
+      } else {
+        act = Database.table("acts").findOne((a) => a.id === resolvedActId);
+      }
+      if (act) {
+        resolvedCourseId =
+          act.courseId ||
+          act.course_id ||
+          (Array.isArray(act.course_ids) ? act.course_ids[0] : "") ||
+          resolvedCourseId;
+
+        // AUTOMATICALLY FLIP ACT TO LIVE WHEN CONTENT IS ADDED
+        if (isConnected()) {
+          await Act.updateOne(
+            { id: resolvedActId },
+            {
+              $set: {
+                availability: "live",
+                status: "Live",
+                isComingSoon: false,
+              },
+            }
+          );
+        }
+        Database.table("acts").update(resolvedActId, {
+          availability: "live",
+          status: "Live",
+          isComingSoon: false,
+        });
+      }
+    }
+
+    // Auto-resolve GridFS ID if not provided
+    let finalGridfsId = gridfsId || "";
+    if (!finalGridfsId && isConnected() && mongoose.connection.db) {
+      try {
+        const gridDoc = await mongoose.connection.db.collection("codex_files.files").findOne({
+          $or: [
+            ...(cloudinaryPublicId ? [{ filename: cloudinaryPublicId }, { "metadata.publicId": cloudinaryPublicId }] : []),
+            ...(fileName ? [{ filename: fileName }, { "metadata.originalName": fileName }] : []),
+          ],
+        });
+        if (gridDoc) {
+          finalGridfsId = gridDoc._id.toString();
+        }
+      } catch (_) {}
+    }
+
     const payload = {
       id: req.body.id || `item-${Date.now()}`,
       unitId,
-      title,
+      actId: resolvedActId,
+      courseId: resolvedCourseId,
+      title: title.trim(),
       type: type || "notes",
       isSample: Boolean(isSample),
       sampleFromPage: fromP,
@@ -2867,6 +2940,7 @@ router.post("/admin/content-items", async (req, res) => {
       fileName: fileName || "",
       fileSize: Number(fileSize) || 0,
       cloudinaryPublicId: cloudinaryPublicId || "",
+      gridfsId: finalGridfsId,
       publishedAt: new Date(),
     };
 
@@ -2898,6 +2972,9 @@ router.put("/admin/content-items/:id", async (req, res) => {
       "fileName",
       "fileSize",
       "cloudinaryPublicId",
+      "gridfsId",
+      "actId",
+      "courseId",
     ];
     const updates = {};
     for (const f of allowed) {
@@ -2913,6 +2990,36 @@ router.put("/admin/content-items/:id", async (req, res) => {
     if (updates.order !== undefined) updates.order = Number(updates.order);
     if (updates.isSample !== undefined) updates.isSample = Boolean(updates.isSample);
     if (updates.isPublished !== undefined) updates.isPublished = Boolean(updates.isPublished);
+
+    // If item is published or being updated, ensure parent Act is set to Live
+    const targetUnitId = req.body.unitId;
+    if (targetUnitId) {
+      let unit = null;
+      if (isConnected()) {
+        unit = await Unit.findOne({ id: targetUnitId }).lean();
+      } else {
+        unit = Database.table("units").findOne((u) => u.id === targetUnitId);
+      }
+      if (unit && unit.actId) {
+        if (isConnected()) {
+          await Act.updateOne(
+            { id: unit.actId },
+            {
+              $set: {
+                availability: "live",
+                status: "Live",
+                isComingSoon: false,
+              },
+            }
+          );
+        }
+        Database.table("acts").update(unit.actId, {
+          availability: "live",
+          status: "Live",
+          isComingSoon: false,
+        });
+      }
+    }
 
     if (isConnected()) {
       const updated = await ContentItem.findOneAndUpdate({ id }, updates, { new: true });

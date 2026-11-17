@@ -16,6 +16,7 @@ const { cloudinary, isCloudinaryConfigured } = require("../utils/cloudinary");
 const ContentItem = require("../models/ContentItem");
 const Resource = require("../models/Resource");
 const Product = require("../models/Product");
+const mongoose = require("mongoose");
 const { isConnected } = require("../db/mongo");
 
 const router = express.Router();
@@ -150,10 +151,14 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
     const safeTitle = (item.title || "study-codex").replace(/[^a-zA-Z0-9_-]/g, "_");
     res.setHeader("Content-Disposition", `inline; filename="lk-${safeTitle}.pdf"`);
 
-    // 5. Cloudinary Streaming (if public ID exists and Cloudinary configured)
+    // 5. Cloudinary Streaming (if public ID exists and is a valid Cloudinary asset)
     const targetPublicId = isSampleRequest && item.samplePublicId ? item.samplePublicId : item.cloudinaryPublicId;
+    const isCloudinaryPublicId =
+      targetPublicId &&
+      !String(targetPublicId).startsWith("gridfs-") &&
+      !String(targetPublicId).toLowerCase().endsWith(".pdf");
 
-    if (targetPublicId && isCloudinaryConfigured()) {
+    if (isCloudinaryPublicId && isCloudinaryConfigured()) {
       try {
         const hasExt = String(targetPublicId).toLowerCase().endsWith(".pdf");
         const format = hasExt ? "" : "pdf";
@@ -164,7 +169,7 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
         });
 
         const streamUrlWithRedirect = (fetchUrl, depth = 0) => {
-          if (depth > 3) return fallbackLocalOrMinimal();
+          if (depth > 3) return streamFromGridFSOrLocal();
           https
             .get(fetchUrl, (streamRes) => {
               if (streamRes.statusCode >= 300 && streamRes.statusCode < 400 && streamRes.headers.location) {
@@ -173,22 +178,110 @@ router.get("/content/:itemId/file", optionalAuth, async (req, res) => {
               if (streamRes.statusCode === 200) {
                 streamRes.pipe(res);
               } else {
-                fallbackLocalOrMinimal();
+                streamFromGridFSOrLocal();
               }
             })
             .on("error", () => {
-              fallbackLocalOrMinimal();
+              streamFromGridFSOrLocal();
             });
         };
 
         return streamUrlWithRedirect(signedUrl);
       } catch (err) {
-        console.warn("[ContentFile] Cloudinary signed URL error, falling back:", err.message);
+        console.warn("[ContentFile] Cloudinary signed URL error, trying GridFS/local:", err.message);
       }
     }
 
-    // 6. Local File Stream / Minimal Generated PDF Fallback
-    fallbackLocalOrMinimal();
+    // 6. MongoDB Atlas GridFS Persistent Cloud Storage
+    return streamFromGridFSOrLocal();
+
+    async function streamFromGridFSOrLocal() {
+      if (isConnected() && mongoose.connection.db) {
+        try {
+          const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+            bucketName: "codex_files",
+          });
+          let gridDoc = null;
+
+          // 1. Search by explicit gridfsId
+          if (item.gridfsId && mongoose.isValidObjectId(item.gridfsId)) {
+            gridDoc = await mongoose.connection.db
+              .collection("codex_files.files")
+              .findOne({ _id: new mongoose.Types.ObjectId(item.gridfsId) });
+          }
+
+          // 2. Search by exact public ID, filename, or item ID
+          if (!gridDoc) {
+            const matchTargets = [
+              item.cloudinaryPublicId,
+              item.fileName,
+              item.id,
+              item.title,
+            ].filter(Boolean);
+
+            for (const cand of matchTargets) {
+              gridDoc = await mongoose.connection.db
+                .collection("codex_files.files")
+                .findOne({
+                  $or: [
+                    { filename: cand },
+                    { "metadata.publicId": cand },
+                    { "metadata.originalName": cand },
+                  ],
+                });
+              if (gridDoc) break;
+            }
+          }
+
+          // 3. Normalized keyword match in GridFS if exact not found
+          if (!gridDoc && (item.fileName || item.title)) {
+            const raw = (item.fileName || item.title || "").replace(/[^a-zA-Z0-9]/g, " ").trim();
+            const words = raw.split(/\s+/).filter((w) => w.length >= 4);
+            if (words.length > 0) {
+              const regex = new RegExp(words.join(".*"), "i");
+              gridDoc = await mongoose.connection.db
+                .collection("codex_files.files")
+                .findOne({
+                  $or: [
+                    { filename: regex },
+                    { "metadata.originalName": regex },
+                  ],
+                });
+            }
+          }
+
+          if (gridDoc) {
+            console.log(`[ContentFile] Streaming ${gridDoc.filename} (${gridDoc.length} bytes) directly from MongoDB Atlas GridFS...`);
+            if (isSampleRequest) {
+              const chunks = [];
+              const dlStream = bucket.openDownloadStream(gridDoc._id);
+              dlStream.on("data", (chunk) => chunks.push(chunk));
+              dlStream.on("end", async () => {
+                const fullBuffer = Buffer.concat(chunks);
+                try {
+                  const sampleBuffer = await extractSamplePages(
+                    fullBuffer,
+                    item.sampleFromPage || 1,
+                    item.sampleToPage || 5
+                  );
+                  return res.send(sampleBuffer);
+                } catch (_) {
+                  return res.send(fullBuffer);
+                }
+              });
+              dlStream.on("error", () => fallbackLocalOrMinimal());
+              return;
+            } else {
+              return bucket.openDownloadStream(gridDoc._id).pipe(res);
+            }
+          }
+        } catch (gridErr) {
+          console.warn("[ContentFile] GridFS stream error, trying disk fallback:", gridErr.message);
+        }
+      }
+
+      fallbackLocalOrMinimal();
+    }
 
     function fallbackLocalOrMinimal() {
       const candidates = [];
@@ -466,6 +559,110 @@ router.post("/reviews", (req, res) => {
     message: "Thank you! Your testimonial has been submitted for verification.",
     review: newReview,
   });
+});
+
+/**
+ * GET /api/content/gridfs/:fileId
+ * Direct streaming gateway for MongoDB Atlas GridFS files
+ */
+router.get("/content/gridfs/:fileId", optionalAuth, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    if (!isConnected() || !mongoose.connection.db) {
+      return res.status(503).json({ success: false, message: "Storage temporarily unavailable." });
+    }
+
+    let filter = {};
+    if (mongoose.isValidObjectId(fileId)) {
+      filter = { _id: new mongoose.Types.ObjectId(fileId) };
+    } else {
+      filter = { filename: fileId };
+    }
+
+    const gridDoc = await mongoose.connection.db.collection("codex_files.files").findOne(filter);
+    if (!gridDoc) {
+      return res.status(404).json({ success: false, message: "File not found in cloud storage." });
+    }
+
+    res.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Content-Type", gridDoc.metadata?.contentType || "application/pdf");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    const safeName = (gridDoc.filename || "document").replace(/[^a-zA-Z0-9_.-]/g, "_");
+    res.setHeader("Content-Disposition", `inline; filename="${safeName}"`);
+
+    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: "codex_files" });
+    bucket.openDownloadStream(gridDoc._id).pipe(res);
+  } catch (err) {
+    console.error("[GridFS Direct Stream Error]:", err);
+    res.status(500).json({ success: false, message: "Error streaming file." });
+  }
+});
+
+/**
+ * GET /api/pdf/:filename
+ * Universal PDF Streaming Endpoint for Direct and DRM Readers
+ */
+router.get("/pdf/:filename", optionalAuth, async (req, res) => {
+  try {
+    const { filename } = req.params;
+    let cleanFileName = filename;
+    try {
+      cleanFileName = decodeURIComponent(filename);
+    } catch (_) {}
+
+    const safeFilename = path.basename(cleanFileName);
+
+    // 1. Check MongoDB Atlas GridFS
+    if (isConnected() && mongoose.connection.db) {
+      try {
+        const gridDoc = await mongoose.connection.db.collection("codex_files.files").findOne({
+          $or: [
+            { filename: safeFilename },
+            { filename: cleanFileName },
+            { "metadata.originalName": safeFilename },
+            { "metadata.originalName": cleanFileName },
+            { "metadata.publicId": safeFilename },
+          ],
+        });
+
+        if (gridDoc) {
+          res.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `inline; filename="${safeFilename}"`);
+          const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: "codex_files" });
+          return bucket.openDownloadStream(gridDoc._id).pipe(res);
+        }
+      } catch (gridErr) {
+        console.warn("[PdfRoute] GridFS lookup error:", gridErr.message);
+      }
+    }
+
+    // 2. Check local disk directories
+    const searchDirs = [
+      path.join(__dirname, "../../../frontend/public/samples"),
+      path.join(__dirname, "../../../frontend/public/notes"),
+      path.join(__dirname, "../../uploads"),
+      path.join(__dirname, "../../../frontend/public"),
+    ];
+
+    for (const d of searchDirs) {
+      const p = path.join(d, safeFilename);
+      if (fs.existsSync(p)) {
+        res.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${safeFilename}"`);
+        return fs.createReadStream(p).pipe(res);
+      }
+    }
+
+    return res.status(404).json({ success: false, message: "PDF not found." });
+  } catch (err) {
+    console.error("[PdfRoute Error]:", err);
+    res.status(500).json({ success: false, message: "Error serving PDF." });
+  }
 });
 
 module.exports = router;

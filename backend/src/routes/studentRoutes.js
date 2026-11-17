@@ -1366,7 +1366,8 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                     contentItems,
                   };
                 });
-              const isActComingSoon = Boolean(
+              const hasLiveContent = units.some((u) => u.contentItems && u.contentItems.length > 0);
+              const isActComingSoon = !hasLiveContent && Boolean(
                 act.availability === "coming_soon" ||
                 act.isComingSoon === true ||
                 act.status === "Coming Soon" ||
@@ -1562,7 +1563,8 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                   contentItems,
                 };
               });
-            const isActComingSoon = Boolean(
+            const hasLiveContent = units.some((u) => u.contentItems && u.contentItems.length > 0);
+            const isActComingSoon = !hasLiveContent && Boolean(
               act.availability === "coming_soon" ||
               act.isComingSoon === true ||
               act.status === "Coming Soon" ||

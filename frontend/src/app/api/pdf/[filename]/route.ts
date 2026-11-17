@@ -299,6 +299,32 @@ export async function GET(
         }
       }
 
+      // Upstream Render Backend / GridFS Fallback Proxy
+      try {
+        const backendOrigin = (process.env.NEXT_PUBLIC_API_URL || "https://the-law-kaksha.onrender.com").replace(/\/$/, "");
+        const backendUrl = `${backendOrigin}/api/pdf/${encodeURIComponent(safeFilename)}`;
+        const bRes = await fetch(backendUrl, {
+          headers: {
+            cookie: request.headers.get("cookie") || "",
+            authorization: request.headers.get("authorization") || "",
+          },
+        });
+        if (bRes.ok) {
+          const pdfBlob = await bRes.arrayBuffer();
+          return new NextResponse(pdfBlob, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Length": pdfBlob.byteLength.toString(),
+              "Cache-Control": "private, no-cache, no-store, must-revalidate",
+              "Content-Disposition": `inline; filename="${safeFilename}"`,
+            },
+          });
+        }
+      } catch (bErr) {
+        console.warn("[PdfProxy] Render upstream fetch error:", bErr);
+      }
+
       return NextResponse.json({ error: "PDF resource not found." }, { status: 404 });
     }
 

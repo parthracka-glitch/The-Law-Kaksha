@@ -183,6 +183,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   const [pdfUploadFile, setPdfUploadFile] = useState<File | null>(null);
   const [pdfUploadProgress, setPdfUploadProgress] = useState<boolean>(false);
   const [pdfUploadedPublicId, setPdfUploadedPublicId] = useState<string>("");
+  const [pdfUploadedGridfsId, setPdfUploadedGridfsId] = useState<string>("");
   const [pdfUploadedFileName, setPdfUploadedFileName] = useState<string>("");
   const [pdfUploadedFileSize, setPdfUploadedFileSize] = useState<number>(0);
 
@@ -865,12 +866,10 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             fileName: file.name,
             fileSize: file.size,
             cloudinaryPublicId: data.publicId || data.url || "",
+            gridfsId: data.gridfsId || "",
           },
         }));
-        if (data.isLocal) {
-          alert("Cloudinary upload failed, so this file was saved to local disk. It may not persist in production. Check Cloudinary credentials or file size.");
-        }
-        showToast(`Uploaded ${file.name}`);
+        showToast(`✓ Uploaded ${file.name} to Cloud Storage`);
       } else {
         alert(data.message || "Upload failed.");
       }
@@ -915,7 +914,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         if (data.success && data.item) {
           setContentItems((prev) => [...prev, data.item]);
           setContentModal({ open: false, mode: "add", data: {} });
-          showToast(`Added content item: ${data.item.title}`);
+          showToast(`✓ Published: ${data.item.title} is now LIVE in Student Dashboard!`);
         } else {
           alert(data.message || "Failed to add content item.");
         }
@@ -931,7 +930,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
             prev.map((i) => (i.id === data.item.id ? data.item : i))
           );
           setContentModal({ open: false, mode: "add", data: {} });
-          showToast("Content item updated.");
+          showToast(`✓ Updated: ${data.item.title} is LIVE in Student Dashboard!`);
         } else {
           alert(data.message || "Failed to update content item.");
         }
@@ -1017,6 +1016,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     setInlineUnitName("");
     setPdfUploadFile(null);
     setPdfUploadedPublicId("");
+    setPdfUploadedGridfsId("");
     setPdfUploadedFileName("");
     setPdfUploadedFileSize(0);
     setPdfTitle("");
@@ -1097,7 +1097,10 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       const data = await res.json();
       if (data.success && (data.publicId || data.url)) {
         setPdfUploadedPublicId(data.publicId || data.url);
-        showToast(`Uploaded ${file.name}`);
+        if (data.gridfsId) {
+          setPdfUploadedGridfsId(data.gridfsId);
+        }
+        showToast(`✓ Uploaded ${file.name}`);
       } else {
         alert(data.message || "Failed to upload PDF. Please check server logs.");
       }
@@ -1126,6 +1129,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     setPdfSaving(true);
     try {
       let finalPublicId = pdfUploadedPublicId;
+      let finalGridfsId = pdfUploadedGridfsId;
       if (!finalPublicId && pdfUploadFile) {
         const formData = new FormData();
         formData.append("file", pdfUploadFile);
@@ -1138,6 +1142,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
           throw new Error(uploadData.message || "Failed to upload PDF file.");
         }
         finalPublicId = uploadData.publicId || uploadData.url;
+        finalGridfsId = uploadData.gridfsId || "";
       }
 
       // Resolve Act
@@ -1196,9 +1201,12 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       // Save Content Item
       const payload = {
         unitId: finalUnitId,
+        actId: finalActId,
+        courseId: targetCourseId,
         title: pdfTitle.trim(),
         type: pdfContentType,
         cloudinaryPublicId: finalPublicId,
+        gridfsId: finalGridfsId,
         fileName: pdfUploadedFileName || pdfUploadFile?.name || "document.pdf",
         fileSize: pdfUploadedFileSize || pdfUploadFile?.size || 0,
         isSample: pdfIsSample,
@@ -1215,7 +1223,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       });
       const data = await res.json();
       if (data.success && data.item) {
-        showToast(`Published PDF: ${data.item.title}`);
+        showToast(`✓ Published: ${data.item.title} is now LIVE in Student Dashboard!`);
         setSimplifiedUploadOpen(false);
 
         // Switch active hierarchy to display newly uploaded item

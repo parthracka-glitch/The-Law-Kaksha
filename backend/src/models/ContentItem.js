@@ -4,6 +4,8 @@ const ContentItemSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true, index: true },
     unitId: { type: String, required: true, index: true },
+    actId: { type: String, default: "", index: true },
+    courseId: { type: String, default: "", index: true },
     type: {
       type: String,
       enum: ["notes", "practice", "case_study", "flowchart", "pyq", "revision"],
@@ -12,6 +14,7 @@ const ContentItemSchema = new mongoose.Schema(
     },
     title: { type: String, required: true },
     cloudinaryPublicId: { type: String, default: "" }, // PRIVATE: Paid/full PDF asset ID on Cloudinary
+    gridfsId: { type: String, default: "", index: true }, // MONGODB ATLAS: Guaranteed cloud-persistent GridFS file ID
     samplePublicId: { type: String, default: "" }, // PUBLIC: Free sample preview PDF asset ID
     isSample: { type: Boolean, default: false },
     sampleFromPage: { type: Number, default: 1 },
