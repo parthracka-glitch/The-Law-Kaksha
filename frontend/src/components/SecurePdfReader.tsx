@@ -440,20 +440,20 @@ export function SecurePdfReader({
       }
     }
 
+    let token = "";
+    if (typeof window !== "undefined") {
+      token =
+        localStorage.getItem("lawkaksha_student_token") ||
+        localStorage.getItem("lawkaksha_token") ||
+        localStorage.getItem("token") ||
+        "";
+    }
+
     try {
       const pdfjsLib = await import("pdfjs-dist");
 
       if (typeof window !== "undefined") {
         pdfjsLib.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.mjs`;
-      }
-
-      let token = "";
-      if (typeof window !== "undefined") {
-        token =
-          localStorage.getItem("lawkaksha_student_token") ||
-          localStorage.getItem("lawkaksha_token") ||
-          localStorage.getItem("token") ||
-          "";
       }
 
       const isAbsoluteUrl = /^https?:\/\//i.test(url);
@@ -532,8 +532,32 @@ export function SecurePdfReader({
       }
     } catch (err) {
       console.error("PDF load failed:", err);
-      // Fallback
+      // Multi-tier Fallback
       if (url.startsWith("/api/content/")) {
+        // Tier 1: If full access was rejected (e.g. 403 because entitlement check), retry with ?sample=true
+        if (!url.includes("sample=true")) {
+          try {
+            const pdfjsLib = await import("pdfjs-dist");
+            const sampleEndpoint = `${getApiBaseUrl()}${url}${url.includes("?") ? "&sample=true" : "?sample=true"}`;
+            const sampleTask = pdfjsLib.getDocument({
+              url: sampleEndpoint,
+              httpHeaders: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              cMapUrl: "/cmaps/",
+              cMapPacked: true,
+              standardFontDataUrl: "/standard_fonts/",
+            });
+            const sampleDoc = await sampleTask.promise;
+            setPdfDoc(sampleDoc);
+            setTotalPages(sampleDoc.numPages);
+            return;
+          } catch (sampleErr) {
+            console.warn("Backend sample fallback failed, trying static PDF proxy:", sampleErr);
+          }
+        }
+
+        // Tier 2: Static PDF proxy on frontend (/api/pdf/[filename]?sample=true)
         try {
           const pdfjsLib = await import("pdfjs-dist");
           const fallbackTask = pdfjsLib.getDocument({

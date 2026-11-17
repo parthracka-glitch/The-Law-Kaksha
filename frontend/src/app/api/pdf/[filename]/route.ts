@@ -267,8 +267,38 @@ export async function GET(
       }
     }
 
-    // Fail closed with 404 if file does not exist on disk (no silent leaks of other paid PDFs)
+    // Fail closed with 404 if file does not exist on disk, unless it can be streamed from Cloudinary
     if (!filePath) {
+      const CLOUDINARY_MAP: Record<string, string> = {
+        "the-companies-act-2013.pdf": "https://res.cloudinary.com/wpt4eabs/raw/upload/v1794465564/thelawkaksha/pdfs/Companies_Act_2013_-_Part_1_Notes-compressed-1794465564289",
+        "companies-act-part-1.pdf": "https://res.cloudinary.com/wpt4eabs/raw/upload/v1794465564/thelawkaksha/pdfs/Companies_Act_2013_-_Part_1_Notes-compressed-1794465564289",
+        "companies-act-2013-part-1-notes-compressed.pdf": "https://res.cloudinary.com/wpt4eabs/raw/upload/v1794465564/thelawkaksha/pdfs/Companies_Act_2013_-_Part_1_Notes-compressed-1794465564289",
+        "companies-act-part-2.pdf": "https://res.cloudinary.com/wpt4eabs/raw/upload/v1794902494/thelawkaksha/pdfs/Companies_Act_2013_-_Part_2_Notes-1794465703736-1794465706196.pdf",
+        "companies-act-2013-part-2-notes.pdf": "https://res.cloudinary.com/wpt4eabs/raw/upload/v1794902494/thelawkaksha/pdfs/Companies_Act_2013_-_Part_2_Notes-1794465703736-1794465706196.pdf",
+      };
+
+      const cUrl = CLOUDINARY_MAP[lowerName];
+      if (cUrl || lowerName.includes("comp") || lowerName.includes("companies")) {
+        try {
+          const fetchUrl = cUrl || CLOUDINARY_MAP["the-companies-act-2013.pdf"];
+          const cRes = await fetch(fetchUrl);
+          if (cRes.ok) {
+            const pdfBlob = await cRes.arrayBuffer();
+            return new NextResponse(pdfBlob, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Length": pdfBlob.byteLength.toString(),
+                "Cache-Control": "private, no-cache, no-store, must-revalidate",
+                "Content-Disposition": `inline; filename="${safeFilename}"`,
+              },
+            });
+          }
+        } catch (cErr) {
+          console.warn("[PdfProxy] Cloudinary upstream fetch fallback error:", cErr);
+        }
+      }
+
       return NextResponse.json({ error: "PDF resource not found." }, { status: 404 });
     }
 
