@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SecurePdfReader } from "@/components/SecurePdfReader";
+import { FloatingWhatsAppSupport } from "@/components/FloatingWhatsAppSupport";
 import { useCart } from "@/context/CartContext";
 import { apiRequest, isUserAuthenticated } from "@/lib/api";
 import {
@@ -673,6 +674,7 @@ function CoursesCatalogContent() {
         studentRoll="PUBLIC-SAMPLE"
       />
 
+      <FloatingWhatsAppSupport />
       <Footer />
     </div>
   );
@@ -687,7 +689,8 @@ export default function CoursesCatalogPage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-[#AED7E9] border-t-transparent rounded-full animate-spin" />
           </div>
-          <Footer />
+          <FloatingWhatsAppSupport />
+      <Footer />
         </div>
       }
     >

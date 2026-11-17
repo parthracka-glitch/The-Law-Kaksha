@@ -82,13 +82,25 @@ export function AnnouncementBar() {
     };
   }, []);
 
-  const activeAnnouncement = announcement ?? cachedAnnouncement;
+  const fallbackAnnouncement: AnnouncementData = {
+    enabled: true,
+    badge: "2026 ATTEMPT",
+    text: "⚡ Certified Updated for May & Nov 2026 CA Foundation & CSEET Examination Cycle • Full ICAI Bare Act Alignment",
+    link: "/courses",
+  };
+
+  const activeAnnouncement =
+    announcement && announcement.enabled && announcement.text
+      ? announcement
+      : cachedAnnouncement && cachedAnnouncement.enabled && cachedAnnouncement.text
+      ? cachedAnnouncement
+      : fallbackAnnouncement;
 
   if (
+    dismissed ||
     !activeAnnouncement ||
     !activeAnnouncement.enabled ||
-    !activeAnnouncement.text ||
-    dismissed
+    !activeAnnouncement.text
   ) {
     return null;
   }
