@@ -168,7 +168,7 @@ async function seed() {
       id: "act-ca-companies",
       courseId: "course-ca-foundation",
       title: "The Companies Act, 2013",
-      availability: "coming_soon",
+      availability: "live",
       order: 5,
       units: [
         { id: "unit-ca-companies-1", title: "Essential Characteristics & Lifting of Corporate Veil", order: 1 },

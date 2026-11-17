@@ -347,7 +347,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       const res = await adminFetch(`/api/admin/courses/${course.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ availability: nextAvailability }),
+        body: JSON.stringify({
+          availability: nextAvailability,
+          isComingSoon: nextAvailability === "coming_soon",
+          status: nextAvailability === "live" ? "Live" : "Coming Soon",
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -484,7 +488,11 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       const res = await adminFetch(`/api/admin/acts/${act.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ availability: nextAvailability }),
+        body: JSON.stringify({
+          availability: nextAvailability,
+          isComingSoon: nextAvailability === "coming_soon",
+          status: nextAvailability === "live" ? "Live" : "Coming Soon",
+        }),
       });
       const data = await res.json();
       if (data.success) {

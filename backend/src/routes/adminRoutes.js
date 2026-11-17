@@ -2599,13 +2599,37 @@ router.get("/admin/acts", async (req, res) => {
       const filter = courseId ? { courseId } : {};
       const acts = await Act.find(filter).sort({ order: 1 }).lean();
       if (acts && acts.length > 0) {
-        return res.status(200).json({ success: true, source: "mongodb_atlas", acts });
+        // Deduplicate acts by normalized title so duplicate IDs don't cause twin modules
+        const actsMap = new Map();
+        for (const act of acts) {
+          const normTitle = (act.title || "").trim().toLowerCase();
+          const existing = actsMap.get(normTitle);
+          if (!existing) {
+            actsMap.set(normTitle, act);
+          } else {
+            // Prefer the act that is marked live
+            if (existing.availability !== "live" && act.availability === "live") {
+              actsMap.set(normTitle, act);
+            }
+          }
+        }
+        const dedupedActs = Array.from(actsMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+        return res.status(200).json({ success: true, source: "mongodb_atlas", acts: dedupedActs });
       }
     }
     let acts = Database.table("acts").find();
     if (courseId) acts = acts.filter((a) => a.courseId === courseId);
-    acts.sort((a, b) => (a.order || 0) - (b.order || 0));
-    res.status(200).json({ success: true, source: "local_cache", acts });
+    // Deduplicate in local table as well
+    const actsMap = new Map();
+    for (const act of acts) {
+      const normTitle = (act.title || "").trim().toLowerCase();
+      const existing = actsMap.get(normTitle);
+      if (!existing || (existing.availability !== "live" && act.availability === "live")) {
+        actsMap.set(normTitle, act);
+      }
+    }
+    const dedupedActs = Array.from(actsMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+    res.status(200).json({ success: true, source: "local_cache", acts: dedupedActs });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching acts: " + err.message });
   }
@@ -2618,6 +2642,8 @@ router.post("/admin/acts", async (req, res) => {
       courseId: req.body.courseId,
       title: req.body.title,
       availability: req.body.availability === "coming_soon" ? "coming_soon" : "live",
+      isComingSoon: req.body.availability === "coming_soon",
+      status: req.body.availability === "coming_soon" ? "Coming Soon" : "Live",
       order: Number(req.body.order) || 1,
       description: req.body.description || "",
     };
@@ -2641,12 +2667,16 @@ router.post("/admin/acts", async (req, res) => {
 router.put("/admin/acts/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const allowed = ["title", "availability", "order", "description"];
+    const allowed = ["title", "availability", "order", "description", "isComingSoon", "status"];
     const updates = {};
     for (const f of allowed) {
       if (req.body[f] !== undefined) updates[f] = req.body[f];
     }
     if (updates.order !== undefined) updates.order = Number(updates.order);
+    if (updates.availability !== undefined) {
+      updates.isComingSoon = updates.availability === "coming_soon";
+      updates.status = updates.availability === "coming_soon" ? "Coming Soon" : "Live";
+    }
 
     if (isConnected()) {
       const updated = await Act.findOneAndUpdate({ id }, updates, { new: true });

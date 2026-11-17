@@ -1366,18 +1366,20 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                     contentItems,
                   };
                 });
-              const isActComingSoon =
-                Boolean(act.isComingSoon || act.availability === "coming_soon") ||
-                (act.title || "").toLowerCase().includes("companies") ||
-                (act.title || "").toLowerCase().includes("negotiable") ||
-                (act.id || "").toLowerCase().includes("companies") ||
-                (act.id || "").toLowerCase().includes("negotiable");
+              const isActComingSoon = Boolean(
+                act.availability === "coming_soon" ||
+                act.isComingSoon === true ||
+                act.status === "Coming Soon" ||
+                act.status === "Draft"
+              );
 
               return {
                 id: act.id,
                 title: act.title,
                 order: act.order,
                 isComingSoon: isActComingSoon,
+                availability: act.availability || (isActComingSoon ? "coming_soon" : "live"),
+                status: act.status || (isActComingSoon ? "Coming Soon" : "Live"),
                 units,
               };
             });
@@ -1560,18 +1562,20 @@ router.get("/my-courses", requireAuth, async (req, res) => {
                   contentItems,
                 };
               });
-            const isActComingSoon =
-              Boolean(act.isComingSoon || act.availability === "coming_soon") ||
-              (act.title || "").toLowerCase().includes("companies") ||
-              (act.title || "").toLowerCase().includes("negotiable") ||
-              (act.id || "").toLowerCase().includes("companies") ||
-              (act.id || "").toLowerCase().includes("negotiable");
+            const isActComingSoon = Boolean(
+              act.availability === "coming_soon" ||
+              act.isComingSoon === true ||
+              act.status === "Coming Soon" ||
+              act.status === "Draft"
+            );
 
             return {
               id: act.id,
               title: act.title,
               order: act.order,
               isComingSoon: isActComingSoon,
+              availability: act.availability || (isActComingSoon ? "coming_soon" : "live"),
+              status: act.status || (isActComingSoon ? "Coming Soon" : "Live"),
               units,
             };
           });

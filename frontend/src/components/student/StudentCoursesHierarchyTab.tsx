@@ -62,6 +62,8 @@ export interface HierarchicalAct {
   title: string;
   order: number;
   isComingSoon?: boolean;
+  availability?: string;
+  status?: string;
   units: HierarchicalUnit[];
 }
 
@@ -292,10 +294,9 @@ export function StudentCoursesHierarchyTab({
 
     const isActComingSoon = Boolean(
       act.isComingSoon ||
-      l.includes("companies") ||
-      l.includes("negotiable") ||
-      id.includes("companies") ||
-      id.includes("negotiable")
+      act.availability === "coming_soon" ||
+      (act as unknown as { status?: string }).status === "Coming Soon" ||
+      (act as unknown as { status?: string }).status === "Draft"
     );
 
     if (isActComingSoon) {
@@ -311,6 +312,37 @@ export function StudentCoursesHierarchyTab({
         accentRing: "ring-[#F59E0B]/20",
         lightBg: "bg-[#FFFBF5]",
         isComingSoon: true,
+      };
+    }
+
+    if (l.includes("companies") || id.includes("companies")) {
+      return {
+        icon: Landmark,
+        colorBg: "bg-[#EEF2FF]",
+        colorText: "text-[#4F46E5]",
+        gradientPill: "from-[#4F46E5] to-[#6366F1]",
+        borderHover: "hover:border-[#4F46E5]/40",
+        progressColor: "bg-[#4F46E5]",
+        badgeCategory: "Business Laws • 15-20% Weightage",
+        arrowBg: "bg-[#EEF2FF] hover:bg-[#4F46E5] text-[#4F46E5] hover:text-white",
+        accentRing: "ring-[#4F46E5]/20",
+        lightBg: "bg-[#F5F7FF]",
+        isComingSoon: false,
+      };
+    }
+    if (l.includes("negotiable") || id.includes("negotiable")) {
+      return {
+        icon: Scale,
+        colorBg: "bg-[#F0FDF4]",
+        colorText: "text-[#16A34A]",
+        gradientPill: "from-[#16A34A] to-[#22C55E]",
+        borderHover: "hover:border-[#16A34A]/40",
+        progressColor: "bg-[#16A34A]",
+        badgeCategory: "Business Laws • 10-15% Weightage",
+        arrowBg: "bg-[#F0FDF4] hover:bg-[#16A34A] text-[#16A34A] hover:text-white",
+        accentRing: "ring-[#16A34A]/20",
+        lightBg: "bg-[#F7FDF9]",
+        isComingSoon: false,
       };
     }
 
@@ -431,10 +463,9 @@ export function StudentCoursesHierarchyTab({
     (activeCourse?.acts || []).forEach((act) => {
       const isComingSoon = Boolean(
         act.isComingSoon ||
-        (act.title || "").toLowerCase().includes("companies") ||
-        (act.title || "").toLowerCase().includes("negotiable") ||
-        (act.id || "").toLowerCase().includes("companies") ||
-        (act.id || "").toLowerCase().includes("negotiable")
+        act.availability === "coming_soon" ||
+        (act as unknown as { status?: string }).status === "Coming Soon" ||
+        (act as unknown as { status?: string }).status === "Draft"
       );
       if (isComingSoon) return;
 
@@ -963,10 +994,9 @@ export function StudentCoursesHierarchyTab({
                   const isCurrent = a.id === selectedActId;
                   const isSoon = Boolean(
                     a.isComingSoon ||
-                    (a.title || "").toLowerCase().includes("companies") ||
-                    (a.title || "").toLowerCase().includes("negotiable") ||
-                    (a.id || "").toLowerCase().includes("companies") ||
-                    (a.id || "").toLowerCase().includes("negotiable")
+                    a.availability === "coming_soon" ||
+                    (a as unknown as { status?: string }).status === "Coming Soon" ||
+                    (a as unknown as { status?: string }).status === "Draft"
                   );
                   return (
                     <button
@@ -1071,10 +1101,9 @@ export function StudentCoursesHierarchyTab({
           {/* COMING SOON BANNER FOR DRILLED ACT */}
           {Boolean(
             currentDrilledAct.isComingSoon ||
-            (currentDrilledAct.title || "").toLowerCase().includes("companies") ||
-            (currentDrilledAct.title || "").toLowerCase().includes("negotiable") ||
-            (currentDrilledAct.id || "").toLowerCase().includes("companies") ||
-            (currentDrilledAct.id || "").toLowerCase().includes("negotiable")
+            currentDrilledAct.availability === "coming_soon" ||
+            (currentDrilledAct as unknown as { status?: string }).status === "Coming Soon" ||
+            (currentDrilledAct as unknown as { status?: string }).status === "Draft"
           ) && (
             <div className="rounded-3xl bg-gradient-to-br from-[#FFFBEB] via-[#FEF3C7]/40 to-white border-2 border-[#FDE68A] p-7 sm:p-8 text-center space-y-4 shadow-xs">
               <div className="w-16 h-16 rounded-3xl bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] flex items-center justify-center mx-auto shadow-xs">
