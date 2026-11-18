@@ -3031,10 +3031,10 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     >
                       <option value="notes">📘 Study Notes</option>
-                      <option value="flowcharts">📊 Flowcharts / Mindmaps</option>
+                      <option value="flowchart">📊 Flowcharts / Mindmaps</option>
                       <option value="practice">📝 Practice Questions</option>
-                      <option value="case_problems">⚖️ Case Study &amp; Precedents</option>
-                      <option value="pyqs">🏛️ Previous Year Questions (PYQs)</option>
+                      <option value="case_study">⚖️ Case Study &amp; Precedents</option>
+                      <option value="pyq">🏛️ Previous Year Questions (PYQs)</option>
                       <option value="revision">⚡ Rapid Revision</option>
                     </select>
                   </div>

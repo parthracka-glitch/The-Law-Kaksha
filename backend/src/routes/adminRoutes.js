@@ -2803,6 +2803,18 @@ router.delete("/admin/units/:id", async (req, res) => {
 // -----------------------------------------------------------------------------
 // 18. CONTENT ITEMS MANAGEMENT (P5)
 // -----------------------------------------------------------------------------
+function normalizeContentType(val) {
+  if (!val || typeof val !== "string") return "notes";
+  const s = val.trim().toLowerCase();
+  if (s === "flowchart" || s === "flowcharts" || s === "mindmap" || s === "mindmaps") return "flowchart";
+  if (s === "case_study" || s === "case_problems" || s === "case" || s === "cases") return "case_study";
+  if (s === "pyq" || s === "pyqs") return "pyq";
+  if (s === "practice" || s === "practice_questions" || s === "questions") return "practice";
+  if (s === "revision" || s === "ldr" || s === "summary") return "revision";
+  if (s === "notes" || s === "chapter_notes") return "notes";
+  return s || "notes";
+}
+
 router.get("/admin/content-items", async (req, res) => {
   try {
     const { unitId, type } = req.query;
@@ -2929,7 +2941,7 @@ router.post("/admin/content-items", async (req, res) => {
       actId: resolvedActId,
       courseId: resolvedCourseId,
       title: title.trim(),
-      type: type || "notes",
+      type: normalizeContentType(type),
       isSample: Boolean(isSample),
       sampleFromPage: fromP,
       sampleToPage: toP,
@@ -2990,6 +3002,7 @@ router.put("/admin/content-items/:id", async (req, res) => {
     if (updates.order !== undefined) updates.order = Number(updates.order);
     if (updates.isSample !== undefined) updates.isSample = Boolean(updates.isSample);
     if (updates.isPublished !== undefined) updates.isPublished = Boolean(updates.isPublished);
+    if (updates.type !== undefined) updates.type = normalizeContentType(updates.type);
 
     // If item is published or being updated, ensure parent Act is set to Live
     const targetUnitId = req.body.unitId;

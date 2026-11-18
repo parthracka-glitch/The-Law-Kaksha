@@ -1,5 +1,35 @@
 const mongoose = require("mongoose");
 
+function normalizeContentType(val) {
+  if (!val || typeof val !== "string") return "notes";
+  const s = val.trim().toLowerCase();
+  if (s === "flowchart" || s === "flowcharts" || s === "mindmap" || s === "mindmaps") return "flowchart";
+  if (s === "case_study" || s === "case_problems" || s === "case" || s === "cases") return "case_study";
+  if (s === "pyq" || s === "pyqs") return "pyq";
+  if (s === "practice" || s === "practice_questions" || s === "questions") return "practice";
+  if (s === "revision" || s === "ldr" || s === "summary") return "revision";
+  if (s === "notes" || s === "chapter_notes") return "notes";
+  return s || "notes";
+}
+
+const ALLOWED_CONTENT_TYPES = [
+  "notes",
+  "practice",
+  "case_study",
+  "flowchart",
+  "pyq",
+  "revision",
+  // Tolerant aliases for UI compatibility:
+  "flowcharts",
+  "case_problems",
+  "pyqs",
+  "ldr",
+  "mindmap",
+  "mindmaps",
+  "cases",
+  "questions",
+];
+
 const ContentItemSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true, index: true },
@@ -8,7 +38,8 @@ const ContentItemSchema = new mongoose.Schema(
     courseId: { type: String, default: "", index: true },
     type: {
       type: String,
-      enum: ["notes", "practice", "case_study", "flowchart", "pyq", "revision"],
+      enum: ALLOWED_CONTENT_TYPES,
+      set: normalizeContentType,
       required: true,
       index: true,
     },
@@ -28,6 +59,13 @@ const ContentItemSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Auto-normalize type before validation to guarantee canonical storage
+ContentItemSchema.pre("validate", function () {
+  if (this.type) {
+    this.type = normalizeContentType(this.type);
+  }
+});
 
 // Required composite index for fast content queries
 ContentItemSchema.index({ unitId: 1, type: 1, isPublished: 1 });
