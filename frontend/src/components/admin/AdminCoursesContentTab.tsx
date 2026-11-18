@@ -24,6 +24,8 @@ import {
   FileCheck,
   ShieldCheck,
   CheckCircle2,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
 export interface CourseRecord {
@@ -196,6 +198,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
   const [pdfIsPublished, setPdfIsPublished] = useState<boolean>(true);
   const [pdfDescription, setPdfDescription] = useState<string>("");
   const [pdfSaving, setPdfSaving] = useState<boolean>(false);
+  const [autoDetectedBadge, setAutoDetectedBadge] = useState<string>("");
 
   const simplifiedFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1027,6 +1030,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     setPdfSamplePages("1-5");
     setPdfIsPublished(true);
     setPdfDescription("");
+    setAutoDetectedBadge("");
 
     setSimplifiedUploadOpen(true);
 
@@ -1077,15 +1081,163 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
     setPdfUploadedFileName(file.name);
     setPdfUploadedFileSize(file.size);
 
-    const inferredTitle = file.name
+    const fileNameLower = file.name.toLowerCase();
+
+    // 1. Clean Title Inference (Cleaned & Title Cased)
+    const rawClean = file.name
       .replace(/\.pdf$/i, "")
       .replace(/[_-]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+    const inferredTitle = rawClean.replace(/\b\w/g, (char) => char.toUpperCase());
 
     if (!pdfTitle.trim()) {
       setPdfTitle(inferredTitle);
     }
+
+    // 2. Material Type Auto-Detection
+    let detectedType: ContentItemRecord["type"] = "notes";
+    let detectedTypeLabel = "Study Notes";
+    if (
+      fileNameLower.includes("flowchart") ||
+      fileNameLower.includes("flow chart") ||
+      fileNameLower.includes("mindmap") ||
+      fileNameLower.includes("mind map") ||
+      fileNameLower.includes("diagram")
+    ) {
+      detectedType = "flowchart";
+      detectedTypeLabel = "Flowcharts / Mindmaps";
+    } else if (
+      fileNameLower.includes("case") ||
+      fileNameLower.includes("judgment") ||
+      fileNameLower.includes("judgement") ||
+      fileNameLower.includes("precedent") ||
+      fileNameLower.includes("landmark")
+    ) {
+      detectedType = "case_study";
+      detectedTypeLabel = "Case Study & Precedent";
+    } else if (
+      fileNameLower.includes("pyq") ||
+      fileNameLower.includes("past year") ||
+      fileNameLower.includes("previous year")
+    ) {
+      detectedType = "pyq";
+      detectedTypeLabel = "Past Year Questions (PYQs)";
+    } else if (
+      fileNameLower.includes("practice") ||
+      fileNameLower.includes("question bank") ||
+      fileNameLower.includes("qbank") ||
+      fileNameLower.includes("problem")
+    ) {
+      detectedType = "practice";
+      detectedTypeLabel = "Practice Questions";
+    } else if (
+      fileNameLower.includes("revision") ||
+      fileNameLower.includes("ldr") ||
+      fileNameLower.includes("summary") ||
+      fileNameLower.includes("rapid")
+    ) {
+      detectedType = "revision";
+      detectedTypeLabel = "Rapid Revision";
+    }
+    setPdfContentType(detectedType);
+
+    // 3. Course Auto-Direction
+    let resolvedCourseId = targetCourseId || selectedCourseId || courses[0]?.id || "";
+    if (fileNameLower.includes("cseet")) {
+      const cseetCourse = courses.find((c) => c.id.includes("cseet") || c.title.toLowerCase().includes("cseet"));
+      if (cseetCourse) resolvedCourseId = cseetCourse.id;
+    } else if (fileNameLower.includes("question bank") || fileNameLower.includes("qbank")) {
+      const qbankCourse = courses.find((c) => c.id.includes("qbank") || c.title.toLowerCase().includes("question bank"));
+      if (qbankCourse) resolvedCourseId = qbankCourse.id;
+    } else if (!resolvedCourseId && courses.length > 0) {
+      resolvedCourseId = courses[0].id;
+    }
+
+    if (resolvedCourseId !== targetCourseId) {
+      setTargetCourseId(resolvedCourseId);
+    }
+
+    // 4. Act Auto-Direction
+    let detectedActTitle = "";
+    try {
+      const actsRes = await adminFetchRef.current(`/api/admin/acts?courseId=${resolvedCourseId}`);
+      const actsData = await actsRes.json();
+      const currentActs: ActRecord[] = actsData.success && Array.isArray(actsData.acts) ? actsData.acts : uploadActsList;
+      setUploadActsList(currentActs);
+
+      let matchedAct: ActRecord | undefined;
+      for (const a of currentActs) {
+        const aTitle = a.title.toLowerCase();
+        if (fileNameLower.includes("negotiable") && (aTitle.includes("negotiable") || aTitle.includes("instrument"))) {
+          matchedAct = a; break;
+        }
+        if ((fileNameLower.includes("company") || fileNameLower.includes("companies")) && aTitle.includes("companies")) {
+          matchedAct = a; break;
+        }
+        if (fileNameLower.includes("contract") && aTitle.includes("contract")) {
+          matchedAct = a; break;
+        }
+        if (fileNameLower.includes("partnership") && aTitle.includes("partnership")) {
+          matchedAct = a; break;
+        }
+        if ((fileNameLower.includes("sale of goods") || fileNameLower.includes("soga")) && (aTitle.includes("sale") || aTitle.includes("goods"))) {
+          matchedAct = a; break;
+        }
+        if ((fileNameLower.includes("llp") || fileNameLower.includes("limited liability")) && (aTitle.includes("llp") || aTitle.includes("limited liability"))) {
+          matchedAct = a; break;
+        }
+      }
+
+      const activeActId = matchedAct ? matchedAct.id : (targetActId || (currentActs[0]?.id || ""));
+      if (matchedAct) {
+        setTargetActId(matchedAct.id);
+        setCreatingActInline(false);
+        detectedActTitle = matchedAct.title;
+      }
+
+      // 5. Unit Auto-Direction
+      if (activeActId && activeActId !== "__new_act__") {
+        const unitsRes = await adminFetchRef.current(`/api/admin/units?actId=${activeActId}`);
+        const unitsData = await unitsRes.json();
+        const currentUnits: UnitRecord[] = unitsData.success && Array.isArray(unitsData.units) ? unitsData.units : [];
+        setUploadUnitsList(currentUnits);
+
+        const unitMatch = fileNameLower.match(/(?:unit|part|ch|chapter)\s*([0-9]+)/i);
+        let matchedUnit: UnitRecord | undefined;
+        if (unitMatch) {
+          const num = unitMatch[1];
+          matchedUnit = currentUnits.find((u) => {
+            const uTitle = u.title.toLowerCase();
+            return (
+              uTitle.includes(`unit ${num}`) ||
+              uTitle.includes(`unit-${num}`) ||
+              uTitle.includes(`unit${num}`) ||
+              uTitle.includes(`part ${num}`) ||
+              uTitle.includes(`part-${num}`) ||
+              uTitle.includes(`part${num}`)
+            );
+          });
+        }
+        if (!matchedUnit && currentUnits.length > 0) {
+          matchedUnit = currentUnits[0];
+        }
+
+        if (matchedUnit) {
+          setTargetUnitId(matchedUnit.id);
+          setCreatingUnitInline(false);
+        } else if (currentUnits.length === 0) {
+          setTargetUnitId("__new_unit__");
+          setCreatingUnitInline(true);
+          const autoUnitName = unitMatch ? `Unit ${unitMatch[1]}` : "Unit 1 - Core Notes";
+          setInlineUnitName(autoUnitName);
+        }
+      }
+    } catch (_) {}
+
+    setAutoDetectedBadge(
+      `⚡ Auto-directed: ${detectedActTitle ? `${detectedActTitle} • ` : ""}${detectedTypeLabel}`
+    );
 
     setPdfUploadProgress(true);
     try {
@@ -2793,44 +2945,65 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
       )}
 
       {/* ============================================================ */}
-      {/* SIMPLIFIED PDF UPLOAD MODAL                                  */}
+      {/* SIMPLIFIED PDF UPLOAD MODAL (MOBILE-OPTIMIZED BOTTOM SHEET)  */}
       {/* ============================================================ */}
       {simplifiedUploadOpen && isMounted && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-[99999] bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-150">
           <form
             onSubmit={handleSubmitSimplifiedUpload}
-            className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden animate-in zoom-in-95 duration-150"
+            className="bg-white rounded-t-[1.75rem] sm:rounded-3xl max-w-2xl w-full shadow-2xl border-t sm:border border-slate-200 flex flex-col h-[94vh] sm:h-auto sm:max-h-[88vh] overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-150"
           >
-            {/* 1. PINNED HEADER - Always visible at top, never cut off */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 shrink-0">
-                  <UploadCloud className="w-5 h-5" />
+            {/* Mobile Pull Handle Indicator */}
+            <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white">
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
+
+            {/* 1. PINNED HEADER */}
+            <div className="px-4 py-3 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 shrink-0">
+                  <UploadCloud className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
-                    Upload Study Material PDF
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Simplified Flow
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm sm:text-lg text-slate-800 flex items-center gap-1.5 sm:gap-2 truncate">
+                    <span>Upload Study Material PDF</span>
+                    <span className="text-[9px] sm:text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                      Mobile Ready
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    Upload notes, flowcharts, or questions directly to any course with 1 click.
+                  <p className="text-[11px] sm:text-xs text-slate-500 truncate">
+                    Upload from phone, drive, or laptop with 1-click auto-direction.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSimplifiedUploadOpen(false)}
-                className="w-9 h-9 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shrink-0 ml-2"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
-            {/* 2. SCROLLABLE FORM BODY - Smooth internal scroll on any screen size */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs text-slate-700">
+            {/* 2. SCROLLABLE FORM BODY */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs text-slate-700 overscroll-contain">
+              {/* SMART AUTO-DETECTED PILL NOTIFICATION */}
+              {autoDetectedBadge && (
+                <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-950 shadow-2xs animate-in fade-in">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold text-emerald-950 truncate">{autoDetectedBadge}</p>
+                    <p className="text-[10px] text-emerald-700">Course, Act &amp; Type were matched automatically. You can review or publish immediately.</p>
+                  </div>
+                  <span className="hidden sm:inline-flex text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-white/90 border border-emerald-300 text-emerald-800 shrink-0">
+                    1-Tap Ready
+                  </span>
+                </div>
+              )}
+
               {/* STEP 1: TARGET COURSE & STRUCTURE */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
                 <div className="flex items-center justify-between">
@@ -2848,7 +3021,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     <select
                       value={targetCourseId}
                       onChange={(e) => handleCourseChangeInModal(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                       required
                     >
                       {courses.map((c) => (
@@ -2868,7 +3041,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     <select
                       value={targetActId}
                       onChange={(e) => handleActChangeInModal(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     >
                       {uploadActsList.map((a) => (
                         <option key={a.id} value={a.id}>
@@ -2889,7 +3062,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       value={targetUnitId}
                       onChange={(e) => handleUnitChangeInModal(e.target.value)}
                       disabled={targetActId === "__new_act__"}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
+                      className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
                     >
                       {uploadUnitsList.map((u) => (
                         <option key={u.id} value={u.id}>
@@ -2914,7 +3087,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                           value={inlineActName}
                           onChange={(e) => setInlineActName(e.target.value)}
                           placeholder="e.g. Indian Contract Act, 1872"
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full p-3 sm:p-2.5 rounded-xl border border-emerald-300 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                         />
                       </div>
                     )}
@@ -2928,7 +3101,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                           value={inlineUnitName}
                           onChange={(e) => setInlineUnitName(e.target.value)}
                           placeholder="e.g. Unit 1: Nature of Contracts"
-                          className="w-full p-2.5 rounded-xl border border-emerald-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full p-3 sm:p-2.5 rounded-xl border border-emerald-300 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                         />
                       </div>
                     )}
@@ -2936,7 +3109,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 )}
               </div>
 
-              {/* STEP 2: PDF UPLOAD ZONE */}
+              {/* STEP 2: PDF UPLOAD ZONE (TOUCH & MOBILE FRIENDLY) */}
               <div>
                 <input
                   type="file"
@@ -2952,23 +3125,23 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 </span>
 
                 {pdfUploadProgress ? (
-                  <div className="border border-emerald-200 bg-emerald-50/60 rounded-2xl p-6 text-center space-y-3">
+                  <div className="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-6 text-center space-y-3">
                     <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
                     <div>
-                      <p className="font-bold text-slate-800">Uploading &amp; Securing PDF...</p>
-                      <p className="text-[11px] text-slate-500">Storing on secure cloud storage with DRM protection.</p>
+                      <p className="font-bold text-slate-800 text-sm">Uploading &amp; Securing PDF to Cloud...</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Dual-syncing to Cloudinary CDN &amp; MongoDB Atlas GridFS storage.</p>
                     </div>
                   </div>
                 ) : pdfUploadedPublicId ? (
-                  <div className="border border-emerald-200 bg-emerald-50/80 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="border border-emerald-200 bg-emerald-50/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
                         <FileCheck className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-slate-900 truncate">{pdfUploadedFileName || "Document.pdf"}</p>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900">
+                          <p className="font-bold text-slate-900 truncate text-xs sm:text-sm">{pdfUploadedFileName || "Document.pdf"}</p>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-950 shrink-0">
                             <Check className="w-3 h-3" /> Ready
                           </span>
                         </div>
@@ -2980,7 +3153,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     <button
                       type="button"
                       onClick={() => simplifiedFileInputRef.current?.click()}
-                      className="px-3 py-1.5 rounded-xl border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs transition-colors cursor-pointer shrink-0"
+                      className="px-3.5 py-2 rounded-xl border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
                     >
                       Change File
                     </button>
@@ -2988,16 +3161,16 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                 ) : (
                   <div
                     onClick={() => simplifiedFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-6 text-center cursor-pointer transition-all group"
+                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-6 sm:p-7 text-center cursor-pointer transition-all group active:scale-[0.99]"
                   >
-                    <div className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-emerald-200/80 text-emerald-600 group-hover:scale-105 transition-transform flex items-center justify-center mx-auto mb-2.5">
-                      <UploadCloud className="w-5 h-5" />
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-emerald-200/80 text-emerald-600 group-hover:scale-105 transition-transform flex items-center justify-center mx-auto mb-2.5">
+                      <UploadCloud className="w-6 h-6" />
                     </div>
-                    <p className="font-bold text-slate-800 text-xs sm:text-sm">
-                      Click here to choose PDF file or drag &amp; drop
+                    <p className="font-bold text-slate-900 text-xs sm:text-sm">
+                      Choose PDF from Phone, Drive, or Computer
                     </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Accepts standard PDF documents. Title and file details will auto-fill automatically.
+                    <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+                      Tap here to pick any study note or question bank. Course, act, and title will auto-fill automatically.
                     </p>
                   </div>
                 )}
@@ -3018,7 +3191,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       value={pdfTitle}
                       onChange={(e) => setPdfTitle(e.target.value)}
                       placeholder="e.g. Chapter 1: Comprehensive Study Notes &amp; Analysis"
-                      className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                       required
                     />
                   </div>
@@ -3028,7 +3201,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     <select
                       value={pdfContentType}
                       onChange={(e) => setPdfContentType(e.target.value as ContentItemRecord["type"])}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                      className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     >
                       <option value="notes">📘 Study Notes</option>
                       <option value="flowchart">📊 Flowcharts / Mindmaps</option>
@@ -3047,12 +3220,12 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                     value={pdfDescription}
                     onChange={(e) => setPdfDescription(e.target.value)}
                     placeholder="Short summary, covered ICAI sections, or chapter keywords..."
-                    className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="w-full p-3 sm:p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   />
                 </div>
 
                 {/* Free Sample & Publish Options */}
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5">
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -3061,7 +3234,7 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
                     />
                     <div>
-                      <span className="font-semibold text-slate-800">Allow Free Sample Preview</span>
+                      <span className="font-semibold text-slate-800 text-xs">Allow Free Sample Preview</span>
                       <p className="text-[10px] text-slate-500">Unregistered visitors can preview selected pages.</p>
                     </div>
                   </label>
@@ -3086,25 +3259,25 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
                       onChange={(e) => setPdfIsPublished(e.target.checked)}
                       className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
                     />
-                    <span className="font-semibold text-slate-800">Publish Immediately</span>
+                    <span className="font-semibold text-slate-800 text-xs">Publish Immediately</span>
                   </label>
                 </div>
               </div>
             </div>
 
-            {/* 3. PINNED FOOTER - Always visible at bottom, never cut off */}
-            <div className="p-4 sm:px-6 border-t border-slate-100 bg-slate-50/90 flex items-center justify-end gap-3 shrink-0">
+            {/* 3. PINNED FOOTER (WITH MOBILE SAFE AREA SPACING) */}
+            <div className="p-3.5 sm:px-6 border-t border-slate-100 bg-slate-50/95 backdrop-blur flex items-center justify-end gap-2.5 shrink-0 pb-safe">
               <button
                 type="button"
                 onClick={() => setSimplifiedUploadOpen(false)}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors text-xs"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={pdfSaving || pdfUploadProgress || (!pdfUploadedPublicId && !pdfUploadFile) || !pdfTitle.trim()}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold flex items-center gap-2 shadow-md hover:shadow transition-all cursor-pointer"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold flex items-center justify-center gap-2 shadow-md hover:shadow transition-all cursor-pointer text-xs"
               >
                 {pdfSaving ? (
                   <>
@@ -3123,6 +3296,19 @@ export function AdminCoursesContentTab({ adminFetch, showToast, onPreviewPdf }: 
         </div>,
         document.body
       )}
+
+      {/* 4. MOBILE QUICK UPLOAD FLOATING ACTION BUTTON (STICKY FOR ADMINS ON PHONES) */}
+      <div className="sm:hidden fixed bottom-6 right-5 z-40">
+        <button
+          type="button"
+          onClick={() => handleOpenSimplifiedUpload(selectedCourseId, selectedActId, selectedUnitId)}
+          className="flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs shadow-xl shadow-emerald-950/25 border border-emerald-400/40 cursor-pointer transition-transform active:scale-95"
+          title="Quick Upload Study Material from Mobile"
+        >
+          <UploadCloud className="w-4 h-4" />
+          <span>Upload PDF</span>
+        </button>
+      </div>
     </div>
   );
 }
