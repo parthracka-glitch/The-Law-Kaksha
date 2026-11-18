@@ -43,6 +43,7 @@ const SupportTicket = require("../models/SupportTicket");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { uploadToStorage, isCloudinaryConfigured } = require("../utils/cloudinary");
+const { getAutomatedDailyQotd, getAutomatedWeeklyCases, getAutomationTelemetry } = require("../services/curriculumAutomation");
 const { requireAdmin } = require("../middleware/authMiddleware");
 const { grantEntitlement, reconcileOrder } = require("../services/entitlementService");
 
@@ -908,20 +909,20 @@ router.get("/admin/qotd", async (req, res) => {
     if (isConnected()) {
       const setting = await SiteSetting.findOne({ key: "qotd" });
       if (setting && setting.value) {
-        return res.status(200).json({ success: true, qotd: setting.value });
+        return res.status(200).json({
+          success: true,
+          qotd: setting.value,
+          isAutomated: false,
+          source: "admin_override",
+        });
       }
     }
+    const autoQotd = await getAutomatedDailyQotd();
     res.status(200).json({
       success: true,
-      qotd: {
-        id: "qotd-1",
-        act: "Indian Partnership Act, 1932",
-        section: "Section 28",
-        question: "When a retired partner's name is retained on the letterhead without public notice, third parties can sue under:",
-        options: ["Doctrine of Subrogation", "Doctrine of Holding Out", "Doctrine of Ultra Vires", "Doctrine of Estoppel in Pais"],
-        correctOption: 1,
-        explanation: "Under Section 28 of the Indian Partnership Act 1932, anyone who represents or allows himself to be represented as a partner is liable as a partner by Holding Out.",
-      },
+      qotd: autoQotd,
+      isAutomated: true,
+      source: "curriculum_automation_engine",
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching QOTD." });
@@ -938,6 +939,36 @@ router.post("/admin/qotd", async (req, res) => {
     res.status(200).json({ success: true, qotd });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error saving QOTD." });
+  }
+});
+
+// GET /admin/automation/telemetry — Status of automated daily QOTD & weekly cases
+router.get("/admin/automation/telemetry", async (req, res) => {
+  try {
+    const telemetry = await getAutomationTelemetry();
+    return res.status(200).json({ success: true, telemetry });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Error fetching automation telemetry." });
+  }
+});
+
+// POST /admin/automation/reset-override — Resume full autopilot by clearing manual overrides
+router.post("/admin/automation/reset-override", async (req, res) => {
+  try {
+    const { target } = req.body || {};
+    if (isConnected()) {
+      if (!target || target === "qotd" || target === "all") {
+        await SiteSetting.deleteOne({ key: "qotd" });
+        await SiteSetting.deleteOne({ key: "qotd_override" });
+      }
+      if (!target || target === "cases" || target === "all") {
+        await SiteSetting.deleteOne({ key: "weekly_cases_override" });
+      }
+    }
+    const telemetry = await getAutomationTelemetry();
+    return res.status(200).json({ success: true, message: "Automation autopilot restored.", telemetry });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Error resetting overrides." });
   }
 });
 

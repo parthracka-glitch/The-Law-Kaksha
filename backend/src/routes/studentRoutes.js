@@ -25,6 +25,7 @@ const Database = require("../db/database");
 const mongoose = require("mongoose");
 const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
 const { serializeProduct, serializeResource } = require("../utils/responseSerializer");
+const { getAutomatedDailyQotd, getAutomatedWeeklyCases } = require("../services/curriculumAutomation");
 
 const router = express.Router();
 
@@ -115,6 +116,15 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       mcqs = Database.table("mcqs").find();
       mcqTests = Database.table("mcq_tests").find();
       resources = Database.table("resources").find();
+    }
+
+    // Ensure QOTD and Weekly Cases have fallback from Automated Curriculum Engine
+    if (!qotd) {
+      qotd = await getAutomatedDailyQotd();
+    }
+    if (!cases || cases.length === 0) {
+      const autoWeekly = await getAutomatedWeeklyCases();
+      cases = autoWeekly.cases || [];
     }
 
     // Determine unlocked item IDs
@@ -424,6 +434,7 @@ router.get("/dashboard", requireAuth, async (req, res) => {
       availableProducts: products.map(serializeProduct),
       resources: resources.map((r) => serializeResource(r)),
       cases,
+      qotd,
       mcqs,
       mcqTests,
       examSettings,

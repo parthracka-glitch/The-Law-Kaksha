@@ -287,9 +287,27 @@ export default function StudentDashboardPage() {
     date: "",
   });
 
-  // Daily QOTD Interactive State
+  // Daily QOTD Interactive State (Automated 24h Rotation)
+  const [liveQotd, setLiveQotd] = useState<any>(DAILY_QOTD_DATA);
   const [qotdSelected, setQotdSelected] = useState<number | null>(null);
   const [qotdSubmitted, setQotdSubmitted] = useState<boolean>(false);
+
+  // Restore daily answer state per-day
+  useEffect(() => {
+    if (typeof window !== "undefined" && liveQotd?.id) {
+      try {
+        const saved = localStorage.getItem(`lawkaksha_qotd_answered_${liveQotd.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setQotdSelected(parsed.selectedIdx);
+          setQotdSubmitted(true);
+        } else {
+          setQotdSelected(null);
+          setQotdSubmitted(false);
+        }
+      } catch { }
+    }
+  }, [liveQotd?.id]);
 
   // Live Atlas & Catalog data
   const [purchasedBooks, setPurchasedBooks] = useState<string[]>([]);
@@ -1052,6 +1070,9 @@ export default function StudentDashboardPage() {
           if (Array.isArray(data.cases)) {
             setLiveCases(data.cases);
           }
+          if (data.qotd && data.qotd.question) {
+            setLiveQotd(data.qotd);
+          }
           if (Array.isArray(data.mcqTests) && data.mcqTests.length > 0) {
             setLiveMcqTests(data.mcqTests);
           }
@@ -1115,24 +1136,35 @@ export default function StudentDashboardPage() {
     loadCatalog();
   }, [API_URL]);
 
-  // Real-time synchronization of weekly academic case studies direct from database
+  // Real-time synchronization of weekly academic case studies & daily QOTD
   useEffect(() => {
-    async function syncWeeklyCases() {
+    async function syncWeeklyCasesAndQotd() {
       try {
         const res = await fetch(`${API_URL}/api/public/weekly-cases`, { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.success && Array.isArray(data.cases) && data.cases.length > 0) {
-          setLiveCases(data.cases);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.cases) && data.cases.length > 0) {
+            setLiveCases(data.cases);
+          }
+        }
+      } catch { }
+
+      try {
+        const qRes = await fetch(`${API_URL}/api/public/qotd`, { cache: "no-store" });
+        if (qRes.ok) {
+          const qData = await qRes.json();
+          if (qData.success && qData.qotd && qData.qotd.question) {
+            setLiveQotd(qData.qotd);
+          }
         }
       } catch { }
     }
 
-    syncWeeklyCases();
+    syncWeeklyCasesAndQotd();
 
     // 1. Re-sync when student switches tabs or returns to window
     const handleReSync = () => {
-      syncWeeklyCases();
+      syncWeeklyCasesAndQotd();
       try {
         const local = localStorage.getItem("lawkaksha_admin_cases");
         if (local) {
@@ -1147,7 +1179,7 @@ export default function StudentDashboardPage() {
     window.addEventListener("storage", handleReSync);
 
     // 2. Background polling every 30s for zero-latency live synchronization
-    const intervalId = setInterval(syncWeeklyCases, 30000);
+    const intervalId = setInterval(syncWeeklyCasesAndQotd, 30000);
 
     return () => {
       window.removeEventListener("focus", handleReSync);
@@ -1471,14 +1503,22 @@ export default function StudentDashboardPage() {
                           setActiveTab("courses");
                         }
                       }}
-                      qotdData={DAILY_QOTD_DATA}
+                      qotdData={liveQotd}
                       qotdSelected={qotdSelected}
                       qotdSubmitted={qotdSubmitted}
                       onSelectQotdOption={(idx) => {
+                        if (qotdSubmitted) return;
                         setQotdSelected(idx);
                         setQotdSubmitted(true);
-                        if (idx === DAILY_QOTD_DATA.correctIndex) {
-                          awardXp(DAILY_QOTD_DATA.xpReward, "QOTD Answered Correctly! 🎉");
+                        try {
+                          localStorage.setItem(
+                            `lawkaksha_qotd_answered_${liveQotd?.id || "today"}`,
+                            JSON.stringify({ selectedIdx: idx, timestamp: Date.now() })
+                          );
+                        } catch { }
+                        const correctIdx = liveQotd?.correctIndex ?? liveQotd?.correctOption ?? 0;
+                        if (idx === correctIdx) {
+                          awardXp(liveQotd?.xpReward || 15, "QOTD Answered Correctly! 🎉");
                         } else {
                           awardXp(5, "QOTD Attempted (+5 XP)");
                         }

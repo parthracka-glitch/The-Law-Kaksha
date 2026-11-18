@@ -15,6 +15,7 @@ const ContentItem = require("../models/ContentItem");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { serializeProduct, serializeCourse, serializeResource, serializeContentItem } = require("../utils/responseSerializer");
+const { getAutomatedDailyQotd, getAutomatedWeeklyCases } = require("../services/curriculumAutomation");
 
 const DEFAULT_COURSES = [];
 
@@ -178,6 +179,15 @@ router.get("/public/site-data", async (req, res) => {
 
     const filteredProducts = products.filter((p) => !isRemovedProduct(p));
 
+    // Fallback to Automated Deterministic Engine if no manual override in DB
+    if (!qotd) {
+      qotd = await getAutomatedDailyQotd();
+    }
+    if (!cases || cases.length === 0) {
+      const autoCases = await getAutomatedWeeklyCases();
+      cases = autoCases.cases || [];
+    }
+
     res.status(200).json({
       success: true,
       source: isConnected() ? "mongodb_atlas" : "local_cache",
@@ -196,16 +206,40 @@ router.get("/public/site-data", async (req, res) => {
 router.get("/public/weekly-cases", async (req, res) => {
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   try {
+    let cases = [];
     if (isConnected()) {
       const WeeklyCase = require("../models/WeeklyCase");
-      const cases = await WeeklyCase.find().sort({ createdAt: 1 }).lean();
-      return res.status(200).json({ success: true, source: "mongodb_atlas", cases: cases || [] });
+      cases = await WeeklyCase.find().sort({ createdAt: 1 }).lean();
+    } else {
+      const casesTable = Database.table("weekly_cases");
+      cases = casesTable ? casesTable.find() : [];
     }
-    const casesTable = Database.table("weekly_cases");
-    const cases = casesTable ? casesTable.find() : [];
-    res.status(200).json({ success: true, source: "local_cache", cases: cases || [] });
+
+    if (!cases || cases.length === 0) {
+      const autoCases = await getAutomatedWeeklyCases();
+      return res.status(200).json({
+        success: true,
+        source: autoCases.source || "automation_vault",
+        cases: autoCases.cases || [],
+        weekNumber: autoCases.weekNumber,
+        isAutomated: true,
+      });
+    }
+
+    res.status(200).json({ success: true, source: isConnected() ? "mongodb_atlas" : "local_cache", cases });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching weekly cases." });
+  }
+});
+
+// GET /api/public/qotd — Daily Question of the Day with 24h deterministic rotation
+router.get("/public/qotd", async (req, res) => {
+  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
+  try {
+    const qotd = await getAutomatedDailyQotd();
+    return res.status(200).json({ success: true, qotd });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Error fetching daily QOTD." });
   }
 });
 
