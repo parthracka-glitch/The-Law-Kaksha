@@ -178,11 +178,17 @@ interface LevelInfo {
 interface QotdData {
   id?: string;
   subject?: string;
+  act?: string;
   section?: string;
+  statutoryRef?: string;
   question?: string;
   options?: string[];
   correctIndex?: number;
+  correctOption?: number;
+  explanationTitle?: string;
   explanation?: string;
+  keyDistinction?: string;
+  rotationSchedule?: string;
   xpReward?: number;
 }
 
@@ -1405,13 +1411,20 @@ export function StudentDashboardHome({
         className="bg-white rounded-2xl sm:rounded-3xl border border-[#E7E4E7] p-4 sm:p-6 shadow-2xs space-y-3 sm:space-y-3.5"
       >
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#FEF3C7] text-[#D97706] flex items-center gap-1">
               <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[#D97706]" />
-              <span>Daily 1-Min Quiz (+15 Pts)</span>
+              <span>Daily Question (+{qotdData?.xpReward || 15} XP)</span>
             </span>
+            {(qotdData?.statutoryRef || qotdData?.subject) && (
+              <span className="text-[10px] sm:text-xs font-semibold text-[#4B8097]">
+                • {qotdData.statutoryRef || qotdData.subject}
+              </span>
+            )}
           </div>
-          <span className="text-[10px] sm:text-xs font-bold text-[#7E22CE]">ICAI / ICSI Pattern</span>
+          <span className="text-[10px] sm:text-xs font-bold text-[#7E22CE] bg-[#FAF5FF] px-2 py-0.5 rounded-full border border-[#E9DDF5]">
+            Rotates Daily
+          </span>
         </div>
 
         <p className="text-sm font-semibold text-[#1F2937] leading-relaxed">
@@ -1422,7 +1435,8 @@ export function StudentDashboardHome({
         <div className="space-y-2 pt-1">
           {qotdData?.options?.map((opt: string, idx: number) => {
             const isChosen = qotdSelected === idx;
-            const isCorrect = idx === qotdData.correctIndex;
+            const correctIdx = qotdData?.correctIndex ?? qotdData?.correctOption ?? 0;
+            const isCorrect = idx === correctIdx;
             let btnStyle =
               "bg-[#F9FAFB] border-[#E5E7EB] text-[#374151] hover:bg-white";
 
@@ -1458,9 +1472,15 @@ export function StudentDashboardHome({
         </div>
 
         {qotdSubmitted && (
-          <div className="p-3 bg-[#FAF5FF] rounded-xl border border-[#E9DDF5] text-xs text-[#374151] leading-relaxed">
-            <p className="font-bold text-[#1F2937]">Explanation in Simple Words:</p>
-            <p className="mt-0.5 text-[#4B5563]">{qotdData?.explanation}</p>
+          <div className="p-3.5 bg-[#FAF5FF] rounded-xl border border-[#E9DDF5] text-xs text-[#374151] leading-relaxed space-y-1.5">
+            <p className="font-bold text-[#1F2937]">{qotdData?.explanationTitle || "Statutory Interpretation:"}</p>
+            <p className="text-[#4B5563]">{qotdData?.explanation}</p>
+            {qotdData?.keyDistinction && (
+              <div className="mt-2 pt-2 border-t border-[#E9DDF5] text-[11px] text-[#6B21A8]">
+                <span className="font-bold">Exam Distinction: </span>
+                <span>{qotdData.keyDistinction}</span>
+              </div>
+            )}
           </div>
         )}
       </div>

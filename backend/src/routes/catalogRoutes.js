@@ -15,7 +15,7 @@ const ContentItem = require("../models/ContentItem");
 const Database = require("../db/database");
 const { isConnected } = require("../db/mongo");
 const { serializeProduct, serializeCourse, serializeResource, serializeContentItem } = require("../utils/responseSerializer");
-const { getAutomatedDailyQotd, getAutomatedWeeklyCases } = require("../services/curriculumAutomation");
+const { getAutomatedDailyQotd, getAutomatedWeeklyCases, WEEKLY_CASE_VAULT } = require("../services/curriculumAutomation");
 
 const DEFAULT_COURSES = [];
 
@@ -1132,6 +1132,28 @@ router.get("/case-studies", async (req, res) => {
       }
     }
 
+    // Fallback to active weekly cases from Curriculum Automation Engine
+    if (!caseStudies || caseStudies.length === 0) {
+      const autoWeekly = await getAutomatedWeeklyCases();
+      if (autoWeekly && Array.isArray(autoWeekly.cases) && autoWeekly.cases.length > 0) {
+        caseStudies = autoWeekly.cases.map((w) => ({
+          id: w.id,
+          slug: w.slug || w.id,
+          title: w.title,
+          subject: w.subject || "The Indian Contract Act, 1872",
+          summary: w.scenario || w.summary || "",
+          scenario: w.scenario || "",
+          modelAnswer: w.modelAnswer || "",
+          badge: w.badge || "ICAI FAVORITE",
+          marks: w.marks || "6 Marks Model Case",
+          precedent: w.precedent || "",
+          applicableExams: ["CA Foundation", "CSEET"],
+          day: w.day,
+          created_at: new Date().toISOString(),
+        }));
+      }
+    }
+
     res.status(200).json({ success: true, count: caseStudies.length, caseStudies });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching case studies: " + err.message });
@@ -1159,6 +1181,36 @@ router.get("/case-studies/:slug", async (req, res) => {
       caseStudy = caseStudiesTable.findOne(
         (c) => (c.slug === slug || c.id === slug) && c.is_published !== false
       );
+    }
+
+    // Check Automated Vault if not in standard collection
+    if (!caseStudy && Array.isArray(WEEKLY_CASE_VAULT)) {
+      const allVault = WEEKLY_CASE_VAULT.flat();
+      const foundVault = allVault.find(
+        (c) =>
+          c.id === slug ||
+          c.slug === slug ||
+          c.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === slug
+      );
+      if (foundVault) {
+        caseStudy = {
+          id: foundVault.id,
+          slug: foundVault.id,
+          title: foundVault.title,
+          subject: foundVault.subject,
+          summary: foundVault.scenario,
+          facts: foundVault.scenario,
+          statute: foundVault.subject,
+          precedent: foundVault.precedent,
+          marks: foundVault.marks,
+          day: foundVault.day,
+          badge: foundVault.badge,
+          model_answer: foundVault.modelAnswer,
+          analysis: foundVault.modelAnswer,
+          is_published: true,
+          applicableExams: ["CA Foundation", "CSEET"],
+        };
+      }
     }
 
     if (!caseStudy) {

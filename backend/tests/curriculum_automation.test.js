@@ -75,6 +75,23 @@ describe("Curriculum Automation Engine Tests", () => {
     assert.ok(Array.isArray(data.cases) && data.cases.length > 0, "site-data must include cases");
   });
 
+  test("GET /api/case-studies returns case studies including automation vault fallbacks", async () => {
+    const res = await fetch(`${API_URL}/api/case-studies`);
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.strictEqual(data.success, true);
+    assert.ok(Array.isArray(data.caseStudies) && data.caseStudies.length > 0);
+  });
+
+  test("GET /api/case-studies/:slug resolves automated case study by ID", async () => {
+    const res = await fetch(`${API_URL}/api/case-studies/w1-mon`);
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.strictEqual(data.success, true);
+    assert.ok(data.caseStudy);
+    assert.strictEqual(data.caseStudy.id, "w1-mon");
+  });
+
   test("getAutomationTelemetry provides monitoring metrics", async () => {
     const telemetry = await getAutomationTelemetry();
     assert.ok(telemetry, "Must return telemetry");

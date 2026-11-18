@@ -747,8 +747,40 @@ router.get("/calendar", requireAuth, async (req, res) => {
 // GET /api/student/case-studies — Case studies for student dashboard (C7)
 router.get("/case-studies", requireAuth, async (req, res) => {
   try {
-    const caseStudiesTable = Database.table("case_studies");
-    const caseStudies = caseStudiesTable.find((c) => c.is_published !== false && c.show_on_dashboard !== false);
+    let caseStudies = [];
+    if (isConnected()) {
+      try {
+        const CaseStudy = require("../models/CaseStudy");
+        caseStudies = await CaseStudy.find({ is_published: true, show_on_dashboard: true }).lean();
+      } catch (_) {}
+    }
+
+    if (!caseStudies || caseStudies.length === 0) {
+      const caseStudiesTable = Database.table("case_studies");
+      caseStudies = caseStudiesTable.find((c) => c.is_published !== false && c.show_on_dashboard !== false);
+    }
+
+    if (!caseStudies || caseStudies.length === 0) {
+      const autoWeekly = await getAutomatedWeeklyCases();
+      if (autoWeekly && Array.isArray(autoWeekly.cases) && autoWeekly.cases.length > 0) {
+        caseStudies = autoWeekly.cases.map((w) => ({
+          id: w.id,
+          slug: w.id,
+          title: w.title,
+          subject: w.subject || "The Indian Contract Act, 1872",
+          summary: w.scenario,
+          scenario: w.scenario,
+          modelAnswer: w.modelAnswer,
+          precedent: w.precedent,
+          badge: w.badge,
+          marks: w.marks,
+          day: w.day,
+          is_published: true,
+          show_on_dashboard: true,
+        }));
+      }
+    }
+
     res.status(200).json({ success: true, count: caseStudies.length, caseStudies });
   } catch (err) {
     res.status(500).json({ success: false, message: "Error fetching dashboard case studies: " + err.message });
